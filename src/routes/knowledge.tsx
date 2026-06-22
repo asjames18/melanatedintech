@@ -154,7 +154,7 @@ function KnowledgeIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 md:grid-cols-2 lg:grid-cols-3">
           {paged.map((a) => (
             <ArticleCard key={a.id} {...a} />
           ))}

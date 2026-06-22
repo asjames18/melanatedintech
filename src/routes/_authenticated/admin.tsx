@@ -481,6 +481,108 @@ function MessagesPanel() {
   );
 }
 
+function SubmissionsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListSubmissions);
+  const review = useServerFn(adminReviewSubmission);
+  const q = useQuery({ queryKey: ["admin-submissions"], queryFn: () => list() });
+
+  const reviewMut = useMutation({
+    mutationFn: (args: { id: string; status: "approved" | "rejected" | "pending"; notes: string }) =>
+      review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
+    onSuccess: () => {
+      toast.success("Submission updated.");
+      qc.invalidateQueries({ queryKey: ["admin-submissions"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div>
+      <Toolbar title="Agent submissions" count={q.data?.length ?? 0} icon={<Inbox className="h-4 w-4" />} />
+      <div className="mt-4 grid gap-3">
+        {(q.data ?? []).map((s) => (
+          <SubmissionCard
+            key={s.id}
+            submission={s}
+            pending={reviewMut.isPending}
+            onReview={(status, notes) => reviewMut.mutate({ id: s.id, status, notes })}
+          />
+        ))}
+        {!q.isLoading && (q.data ?? []).length === 0 && (
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+            No submissions yet.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+type SubmissionRow = Awaited<ReturnType<typeof adminListSubmissions>>[number];
+
+function SubmissionCard({
+  submission,
+  onReview,
+  pending,
+}: {
+  submission: SubmissionRow;
+  onReview: (status: "approved" | "rejected" | "pending", notes: string) => void;
+  pending: boolean;
+}) {
+  const [notes, setNotes] = useState(submission.review_notes ?? "");
+  const statusTone =
+    submission.status === "approved" ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20"
+    : submission.status === "rejected" ? "bg-red-500/10 text-red-700 ring-red-500/20"
+    : "bg-muted text-muted-foreground ring-border";
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-display text-base font-semibold">{submission.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {submission.category} · {submission.contact_email} ·{" "}
+            {new Date(submission.created_at).toLocaleDateString()}
+          </p>
+        </div>
+        <span className={`rounded-full px-2 py-0.5 text-xs capitalize ring-1 ${statusTone}`}>
+          {submission.status}
+        </span>
+      </div>
+      <p className="mt-3 text-sm">{submission.tagline}</p>
+      <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{submission.description}</p>
+      {(submission.website_url || submission.demo_url || submission.repo_url) && (
+        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+          {submission.website_url && <a href={submission.website_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website ↗</a>}
+          {submission.demo_url && <a href={submission.demo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Demo ↗</a>}
+          {submission.repo_url && <a href={submission.repo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Repo ↗</a>}
+        </div>
+      )}
+      <Textarea
+        rows={2}
+        className="mt-4"
+        placeholder="Internal review notes (optional)"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+      />
+      <div className="mt-3 flex flex-wrap justify-end gap-2">
+        <Button variant="outline" size="sm" disabled={pending} onClick={() => onReview("pending", notes)}>
+          Mark pending
+        </Button>
+        <Button variant="outline" size="sm" disabled={pending} onClick={() => onReview("rejected", notes)}>
+          Reject
+        </Button>
+        <Button size="sm" disabled={pending} onClick={() => onReview("approved", notes)}>
+          Approve
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+
+
 // ---------- Shared bits ----------
 
 function Toolbar({ title, count, action, icon }: { title: string; count: number; action?: React.ReactNode; icon?: React.ReactNode }) {

@@ -34,7 +34,7 @@ function AdminAnalytics() {
           <h1 className="mt-4 font-display text-2xl font-semibold">Admin access required</h1>
           <p className="mt-2 text-sm text-muted-foreground">{(q.error as Error).message}</p>
           <Button asChild variant="outline" className="mt-6">
-            <Link to="/_authenticated/admin">Open admin</Link>
+            <Link to="/admin">Open admin</Link>
           </Button>
         </div>
       </SiteLayout>

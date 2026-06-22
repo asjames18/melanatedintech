@@ -147,7 +147,7 @@ function ProductsIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {paged.map((p) => <ProductCard key={p.id} {...p} />)}
         </div>
         {filtered.length === 0 && (

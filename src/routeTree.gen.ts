@@ -25,10 +25,15 @@ import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
+import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
+import { Route as AuthenticatedInterestsRouteImport } from './routes/_authenticated/interests'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 
@@ -111,6 +116,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
+  id: '/authors/$slug',
+  path: '/authors/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsSlugRoute = AgentsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -122,6 +132,17 @@ const AuthenticatedSubmitAgentRoute =
     path: '/submit-agent',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSubmissionsRoute =
+  AuthenticatedSubmissionsRouteImport.update({
+    id: '/submissions',
+    path: '/submissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInterestsRoute = AuthenticatedInterestsRouteImport.update({
+  id: '/interests',
+  path: '/interests',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -132,6 +153,18 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSubmissionsIdRoute =
+  AuthenticatedSubmissionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedSubmissionsRoute,
+  } as any)
+const AuthenticatedAdminCatalogRoute =
+  AuthenticatedAdminCatalogRouteImport.update({
+    id: '/catalog',
+    path: '/catalog',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/analytics',
@@ -159,13 +192,18 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/interests': typeof AuthenticatedInterestsRoute
+  '/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/authors/$slug': typeof AuthorsSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
+  '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -182,13 +220,18 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/interests': typeof AuthenticatedInterestsRoute
+  '/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/authors/$slug': typeof AuthorsSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
+  '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -207,13 +250,18 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/interests': typeof AuthenticatedInterestsRoute
+  '/_authenticated/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/authors/$slug': typeof AuthorsSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
+  '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -232,13 +280,18 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/account'
     | '/admin'
+    | '/interests'
+    | '/submissions'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/authors/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/admin/analytics'
+    | '/admin/catalog'
+    | '/submissions/$id'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -255,13 +308,18 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/account'
     | '/admin'
+    | '/interests'
+    | '/submissions'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/authors/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/admin/analytics'
+    | '/admin/catalog'
+    | '/submissions/$id'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -279,13 +337,18 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
+    | '/_authenticated/interests'
+    | '/_authenticated/submissions'
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
+    | '/authors/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/catalog'
+    | '/_authenticated/submissions/$id'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -302,6 +365,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
@@ -420,6 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/authors/$slug': {
+      id: '/authors/$slug'
+      path: '/authors/$slug'
+      fullPath: '/authors/$slug'
+      preLoaderRoute: typeof AuthorsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/$slug': {
       id: '/agents/$slug'
       path: '/$slug'
@@ -432,6 +503,20 @@ declare module '@tanstack/react-router' {
       path: '/submit-agent'
       fullPath: '/submit-agent'
       preLoaderRoute: typeof AuthenticatedSubmitAgentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/submissions': {
+      id: '/_authenticated/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/interests': {
+      id: '/_authenticated/interests'
+      path: '/interests'
+      fullPath: '/interests'
+      preLoaderRoute: typeof AuthenticatedInterestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
@@ -447,6 +532,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/account'
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/submissions/$id': {
+      id: '/_authenticated/submissions/$id'
+      path: '/$id'
+      fullPath: '/submissions/$id'
+      preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
+      parentRoute: typeof AuthenticatedSubmissionsRoute
+    }
+    '/_authenticated/admin/catalog': {
+      id: '/_authenticated/admin/catalog'
+      path: '/catalog'
+      fullPath: '/admin/catalog'
+      preLoaderRoute: typeof AuthenticatedAdminCatalogRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/analytics': {
       id: '/_authenticated/admin/analytics'
@@ -467,24 +566,44 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminCatalogRoute: typeof AuthenticatedAdminCatalogRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminCatalogRoute: AuthenticatedAdminCatalogRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedSubmissionsRouteChildren {
+  AuthenticatedSubmissionsIdRoute: typeof AuthenticatedSubmissionsIdRoute
+}
+
+const AuthenticatedSubmissionsRouteChildren: AuthenticatedSubmissionsRouteChildren =
+  {
+    AuthenticatedSubmissionsIdRoute: AuthenticatedSubmissionsIdRoute,
+  }
+
+const AuthenticatedSubmissionsRouteWithChildren =
+  AuthenticatedSubmissionsRoute._addFileChildren(
+    AuthenticatedSubmissionsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedInterestsRoute: typeof AuthenticatedInterestsRoute
+  AuthenticatedSubmissionsRoute: typeof AuthenticatedSubmissionsRouteWithChildren
   AuthenticatedSubmitAgentRoute: typeof AuthenticatedSubmitAgentRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedInterestsRoute: AuthenticatedInterestsRoute,
+  AuthenticatedSubmissionsRoute: AuthenticatedSubmissionsRouteWithChildren,
   AuthenticatedSubmitAgentRoute: AuthenticatedSubmitAgentRoute,
 }
 
@@ -551,6 +670,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }

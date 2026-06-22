@@ -1,18 +1,22 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
-import { getArticle } from "@/lib/public.functions";
-import { ArrowLeft } from "lucide-react";
+import { ArticleCard, AgentCard } from "@/components/cards";
+import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
+import { ArrowLeft, Sparkles } from "lucide-react";
 
 const qo = (slug: string) =>
-  queryOptions({
-    queryKey: ["article", slug],
-    queryFn: () => getArticle({ data: { slug } }),
-  });
+  queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });
+const allArticlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
+const allAgentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 
 export const Route = createFileRoute("/knowledge/$slug")({
   loader: async ({ context, params }) => {
-    const a = await context.queryClient.ensureQueryData(qo(params.slug));
+    const [a] = await Promise.all([
+      context.queryClient.ensureQueryData(qo(params.slug)),
+      context.queryClient.ensureQueryData(allArticlesQO),
+      context.queryClient.ensureQueryData(allAgentsQO),
+    ]);
     if (!a) throw notFound();
     return { article: a };
   },
@@ -42,7 +46,6 @@ export const Route = createFileRoute("/knowledge/$slug")({
 });
 
 function renderMarkdown(md: string) {
-  // Tiny, safe-ish markdown: headings, paragraphs, lists, inline code.
   const lines = md.split("\n");
   const out: React.ReactNode[] = [];
   let listBuf: string[] | null = null;
@@ -73,7 +76,14 @@ function renderMarkdown(md: string) {
 function ArticleView() {
   const { slug } = Route.useParams();
   const { data: article } = useSuspenseQuery(qo(slug));
+  const { data: allArticles } = useSuspenseQuery(allArticlesQO);
+  const { data: allAgents } = useSuspenseQuery(allAgentsQO);
   if (!article) return null;
+
+  const related = allArticles
+    .filter((a) => a.slug !== article.slug && a.category === article.category)
+    .slice(0, 3);
+  const featuredAgents = allAgents.filter((a) => a.featured).slice(0, 3);
 
   return (
     <SiteLayout>
@@ -92,6 +102,44 @@ function ArticleView() {
         <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
         <div className="mt-10">{renderMarkdown(article.body)}</div>
       </article>
+
+      {related.length > 0 && (
+        <section className="border-t border-border bg-muted/30">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">Related reading</p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">More on {article.category}</h2>
+              </div>
+              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
+            </div>
+            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {related.map((a) => <ArticleCard key={a.id} {...a} />)}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {featuredAgents.length > 0 && (
+        <section className="border-t border-border">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-accent2">
+                  <Sparkles className="h-3 w-3" /> Featured agents
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">Put this knowledge into practice</h2>
+              </div>
+              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
+            </div>
+            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredAgents.map((a) => (
+                <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </SiteLayout>
   );
 }

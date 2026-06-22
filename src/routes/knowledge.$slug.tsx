@@ -285,14 +285,27 @@ function ArticleView() {
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAgents.map(({ a, reason }) => (
-                <div key={a.id} className="flex flex-col">
+              {featuredAgents.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "featured_agents",
+                    itemType: "agent",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceArticleSlug: article.slug,
+                    sourceArticleCategory: article.category,
+                  }}
+                >
                   <AgentCard {...a} capabilities={a.capabilities} />
                   <p className="mt-2 px-1 text-xs text-muted-foreground">
                     <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
                     {reason}
                   </p>
-                </div>
+                </RecommendationItem>
               ))}
             </div>
           </div>

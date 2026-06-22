@@ -1,16 +1,19 @@
 import { useEffect, useMemo } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site-layout";
 import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
 import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
+import { getArticleAuthor } from "@/lib/authors.functions";
 import { useInterests } from "@/hooks/use-interests";
+import { useTrackReadingProgress } from "@/hooks/use-reading-progress";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta } from "@/lib/seo";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Link as LinkIcon } from "lucide-react";
 
 const qo = (slug: string) =>
   queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });
@@ -112,10 +115,19 @@ function ArticleView() {
   const { data: allArticles } = useSuspenseQuery(allArticlesQO);
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
   const { interests, recordVisit } = useInterests("article");
+  const progressPct = useTrackReadingProgress(article?.slug, article?.title);
+  const fetchAuthor = useServerFn(getArticleAuthor);
+  const authorId = article?.author_id ?? null;
+  const author = useQuery({
+    queryKey: ["article-author", authorId],
+    queryFn: () => authorId ? fetchAuthor({ data: { author_id: authorId } }) : Promise.resolve(null),
+    enabled: !!authorId,
+  });
 
   useEffect(() => {
     if (article) recordVisit(article.slug, article.category);
   }, [article, recordVisit]);
+
 
   const { related, featuredAgents, personalized, topInterests } = useMemo(() => {
     if (!article) return { related: [], featuredAgents: [], personalized: false, topInterests: [] as string[] };

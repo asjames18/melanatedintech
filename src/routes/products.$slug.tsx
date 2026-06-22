@@ -3,7 +3,8 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { ProductCard, AgentCard, TierBadge } from "@/components/cards";
-import { WaitlistForm } from "@/components/waitlist-form";
+import { ProductWaitlist } from "@/components/product-waitlist";
+
 import { ShareBar } from "@/components/share-bar";
 import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
@@ -206,15 +207,7 @@ function ProductDetail() {
                   </div>
                 </div>
               )}
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <p className="text-sm font-medium">Get notified at launch</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {product.name} is rolling out to early users. Join the list for access.
-                </p>
-                <div className="mt-4">
-                  <WaitlistForm source={`product:${product.slug}`} interest={product.name} />
-                </div>
-              </div>
+              <ProductWaitlist productSlug={product.slug} />
             </div>
           </aside>
         </div>

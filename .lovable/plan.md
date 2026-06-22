@@ -1,78 +1,53 @@
-# Melanated In Tech — Full Development Plan
+# Remaining Work Plan
 
-You're right that recent work has been scattered (detail pages → share bar → OG tags → personalization → reasons → tracking). Here is a single roadmap that organizes everything already shipped and everything still to build, in the order that will keep momentum without rework.
+Grouped into 5 phases. Each phase is independently shippable. Emails stay parked.
 
-## Where we are today
+## Phase A — Submissions polish
 
-Shipped:
-- Routes: home, about, agents (list + detail), knowledge (list + detail), products (list + detail), services, community, contact, auth, account.
-- Backend: agents, articles, products, services, waitlist, contact, profiles, user_roles, saved_agents — RLS + GRANTs + seed.
-- Knowledge detail: share/copy buttons, dynamic OG/Twitter tags, personalized "Related reading" + "Featured agents", "Because you're reading…" reasons, impression + click analytics.
+1. **User submission edit + resubmit.** New `/account` → "My submissions" tab listing the signed-in user's `agent_submissions` with status badge + review notes. Rejected/pending rows get an **Edit & resubmit** button opening the existing submission form pre-filled; submit sets status back to `pending` and clears `reviewed_at`/`reviewer_notes`.
+2. **Status timeline.** On each submission row, show a 3-step timeline (Pending → Approved/Rejected) with timestamps and the reviewer's note when present.
+3. **Auto-publish on approval.** When admin approves, insert a row into `public.agents` from the submission's fields (slug, name, summary, etc.), mark submission `published_agent_id`, and return that slug. Admin UI shows a "View live agent" link; users see the approved item appear on `/agents`.
+4. **Autosave submission form.** Debounced localStorage autosave keyed by user id; restore on mount with a "Draft restored" toast + Discard button. Strengthen client-side zod validation (required fields, URL format, max lengths).
 
-Gaps causing the "all over the place" feeling:
-- Personalization + analytics only exist on `/knowledge/$slug`. Agents and Products detail pages are inconsistent.
-- No shared recommendation / share / SEO primitives — logic is inlined per page.
-- Analytics events go to localStorage only; no way to actually read them.
-- Auth, account, and admin areas are thin.
-- No search, no pagination on long lists, no sitemap.
+## Phase B — Personalization controls
 
-## Phase 1 — Consolidate what exists (1–2 days)
+5. **Interests settings page** at `/account/interests`: chips for categories + content types; saves to a new `user_interests` table (jsonb prefs) so it syncs across devices. Falls back to localStorage when signed out.
+6. **Reset my recommendations** button on the interests page and on the account "Reading history" tab: clears `user_interests` row + localStorage interest store.
+7. **Clickable reason chips.** "Because you're reading X" becomes a `<Link>` to the listing page with the matched `category`/`topic` pre-filtered.
 
-Goal: stop one-off page work; extract shared primitives so the next features land everywhere at once.
+## Phase C — Content depth
 
-1. Shared components in `src/components/`:
-   - `share-bar.tsx` — already exists; generalize props (`title`, `url`, `summary`) so agents/products can reuse.
-   - `seo-head.ts` helper — single function returning the `meta` array for `head()` from `{ title, description, image, url, type }`.
-   - `recommendation-grid.tsx` — wraps the impression/click `RecommendationItem` pattern, takes `items`, `surface`, `renderCard`, `reasonFor`.
-2. Shared hooks/lib:
-   - Move `reasonFor` out of `knowledge.$slug.tsx` into `src/lib/recommendations.ts` alongside `interestScore` / `topCategories`.
-   - Extend `use-reading-interests` → `use-interests` covering articles, agents, products (one keyed store per kind).
-3. Apply to `/agents/$slug` and `/products/$slug`:
-   - Dynamic OG/Twitter tags via `seo-head`.
-   - Share bar.
-   - Personalized "Related agents" / "Related products" + "Recommended reading" using shared recommendation grid.
-   - Impression + click tracking on every recommendation surface.
+8. **Author profiles.** Add `public.authors` (name, slug, bio, avatar_url, links jsonb) + `articles.author_id` FK. New route `/authors/$slug` with bio + their articles. Author card on `/knowledge/$slug`.
+9. **Reading progress + resume.** Scroll-based progress bar on article pages; persist `{slug, percent, updated_at}` to localStorage; "Continue reading" section on `/knowledge` showing last 3 in-progress articles.
+10. **Per-article OG image generator.** New server route `/api/og/article/$slug.png` rendering a branded card (title, author, category) with `@vercel/og` or satori; cached. Wire `og:image`/`twitter:image` on `/knowledge/$slug`.
 
-## Phase 2 — Make analytics usable ✅
+## Phase D — Product surface gaps
 
-Shipped:
-- `analytics_events` table (RLS, GRANTs, GIN index on `props`).
-- `recordEvents` server function + debounced flush from `src/lib/analytics.ts` (session id, batch ≤50, retry on failure, flush on `pagehide`/`visibilitychange`).
-- `adminAnalyticsSummary` server function aggregating impressions, clicks, CTR by surface / item / reason.
-- Admin route `/admin/analytics` with totals + tables, gated by `has_role(uid,'admin')`.
+11. **Per-product waitlist form** on `/products/$slug` (uses existing `waitlist_signups` with a `product_slug` column added). Email field + zod validation + toast confirmation. Shows count of signups for social proof.
 
-## Phase 3 — Content discovery ✅
+## Phase E — Analytics depth
 
-Shipped:
-- `/search` route with `fuse.js` fuzzy search across agents, articles, products; type filter + `q` in URL search params.
-- Search icon in header (desktop) + Search link in mobile menu.
-- `src/routes/sitemap[.]xml.ts` server route enumerating static routes + every agent/article/product slug from the DB.
-- `public/robots.txt` allowing crawl, disallowing `/account`, `/admin`, `/auth`, `/api/`, pointing to the sitemap.
-- JSON-LD: `Organization` schema on root, `Article` schema on knowledge detail, `Product` schema on products + agents detail.
-- Pagination + listing filters: existing `Pagination` already wires `page` to URL search params; non-page filters stay local (revisit in Phase 4 if needed).
+12. **Admin seed-verification page** at `/admin/catalog`: counts of agent categories, knowledge content types, product types, service lines, with "missing" flags for empty buckets.
+13. **Recommendation analytics deepening.** Add `dwell_time_ms` event (records time between recommendation click and next navigation/leave). Surface in `/admin/analytics` table.
+14. **CSV export** from `/admin/analytics` (impressions/clicks/CTR by surface + by item).
 
-## Phase 4 — Account + community depth ✅
+## Skipped / parked
 
-Shipped:
-- Tables: `saved_articles`, `discussion_posts`, `discussion_comments` (RLS + GRANTs, author/admin update + delete policies, trigger to keep `last_activity_at` + `comment_count` in sync).
-- Account page expanded to 4 tabs: Saved agents · Saved articles · Reading history (recently-read articles + recently-viewed agents from `useInterests`, with per-list Clear) · Profile.
-- `SaveArticleButton` on knowledge detail next to the share bar.
-- Community rewritten: `/community` lists threads; `/community/$id` is the thread view with replies, author display, and self-delete; new-thread dialog gated on auth.
-- Submissions admin tab: list every `agent_submissions` row with one-click Approve / Reject / Mark pending plus internal notes (`adminListSubmissions`, `adminReviewSubmission`).
-- Profile editor avatar upload already shipped — left as-is.
+- **GA4/Segment forwarding** — keep server-side analytics; revisit if user wants external tooling.
+- **A/B testing on reason copy** — needs a feature-flag setup; defer until traffic justifies.
+- **Recommendation-weighting admin tuner** — defer; current heuristic works.
+- **PDF export** — CSV covers stakeholder reporting; PDF is heavy for low value.
+- **Transactional emails** — parked per your earlier call.
 
-## Phase 5 — Monetization + launch (in progress)
+## Suggested order
 
-Shipped:
-- Built-in payments enabled (Lovable's Stripe). Test env live in preview with card `4242 4242 4242 4242`.
-- Stripe products + prices created for 5 premium items (3 agents, 2 products) via `batch_create_product` and mapped in `src/lib/premium-catalog.ts`.
-- `user_entitlements` table (RLS: users read own, service role writes; unique on `(user_id, kind, slug, environment)` and on `stripe_session_id`).
-- Server functions in `src/lib/payments.functions.ts`: `createUnlockCheckout` (auth-gated, creates Stripe Customer with `metadata.userId`, embedded checkout session, stamps `unlock_kind`/`unlock_slug`/`price_id` in metadata) and `listMyEntitlements`.
-- Webhook handler at `/api/public/payments/webhook` — verifies signature, handles `checkout.session.completed` + `transaction.completed`, upserts entitlement row keyed by session id (idempotent).
-- `UnlockButton` component (embedded checkout in a Dialog) wired into `/agents/$slug` and `/products/$slug` for premium items in the catalog.
-- `/checkout/return` page, `<PaymentTestModeBanner />` on every page, "Unlocked" tab on `/account`.
+A → D → B → C → E. A and D unblock real user flows; B and C deepen engagement; E is admin/insight polish.
 
-Remaining:
-1. Transactional email via Lovable Email: waitlist welcome, contact auto-reply, purchase receipt (domain `melanatedintech.com` — setup dialog).
-2. Premium-content gating for full agent details (currently entitlement only surfaces "Unlocked" state — actual gated content like deployment links can be added per agent as content arrives).
-3. Launch checklist: per-route OG image fallbacks, favicon set, image lazy-loading audit, publish.
+## Technical notes
+
+- New tables: `authors`, `user_interests`. Both follow the GRANT-then-RLS pattern. `articles.author_id` is a nullable FK so existing rows aren't broken.
+- New columns: `agent_submissions.published_agent_id uuid`, `waitlist_signups.product_slug text`.
+- New server fns: `getMySubmissions`, `resubmitSubmission`, `saveInterests`, `getInterests`, `resetInterests`, `joinProductWaitlist`, `recordDwell`, `exportAnalyticsCsv`. Approval flow extends existing `adminReviewSubmission` to write the agents row.
+- OG image route uses satori + resvg (Worker-compatible). Cache headers `public, max-age=86400`.
+
+Want me to start at Phase A, or reshuffle?

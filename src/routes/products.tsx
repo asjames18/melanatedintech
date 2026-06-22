@@ -16,6 +16,7 @@ const qo = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() 
 
 const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
+  category: fallback(z.string(), "All").default("All"),
 });
 
 export const Route = createFileRoute("/products")({
@@ -38,16 +39,18 @@ export const Route = createFileRoute("/products")({
 
 function ProductsIndex() {
   const { data: products } = useSuspenseQuery(qo);
-  const { page } = Route.useSearch();
+  const { page, category: urlCategory } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(products.map((p) => p.category)))],
     [products],
   );
-  const [cat, setCat] = useState("All");
+  const [cat, setCat] = useState(urlCategory ?? "All");
   const [tier, setTier] = useState("All");
   const [q, setQ] = useState("");
+
+  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = products.filter((p) => {
     const matchCat = cat === "All" || p.category === cat;
@@ -65,12 +68,15 @@ function ProductsIndex() {
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   useEffect(() => {
-    if (page !== 1) navigate({ search: { page: 1 }, replace: true });
+    navigate({
+      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      replace: true,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cat, tier, q]);
 
   const setPage = (p: number) => {
-    navigate({ search: { page: p } });
+    navigate({ search: (prev: { page: number; category: string }) => ({ ...prev, page: p }) });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

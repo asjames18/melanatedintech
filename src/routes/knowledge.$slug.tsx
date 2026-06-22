@@ -4,39 +4,12 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
+import { RecommendationItem } from "@/components/recommendation-item";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
-import { useReadingInterests, interestScore, topCategories } from "@/hooks/use-reading-interests";
-import { useImpression } from "@/hooks/use-impression";
-import { trackEvent } from "@/lib/analytics";
+import { useInterests } from "@/hooks/use-interests";
+import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
+import { buildSeoMeta } from "@/lib/seo";
 import { ArrowLeft, Sparkles } from "lucide-react";
-
-type RecMeta = {
-  surface: "related_reading" | "featured_agents";
-  itemType: "article" | "agent";
-  itemSlug: string;
-  itemCategory: string;
-  reason: string;
-  position: number;
-  personalized: boolean;
-  sourceArticleSlug: string;
-  sourceArticleCategory: string;
-};
-
-function RecommendationItem({ meta, children }: { meta: RecMeta; children: React.ReactNode }) {
-  const ref = useImpression<HTMLDivElement>(
-    () => trackEvent("recommendation_impression", meta),
-    { key: `${meta.surface}:${meta.itemSlug}:${meta.sourceArticleSlug}` },
-  );
-  return (
-    <div
-      ref={ref}
-      className="flex flex-col"
-      onClickCapture={() => trackEvent("recommendation_click", meta)}
-    >
-      {children}
-    </div>
-  );
-}
 
 const qo = (slug: string) =>
   queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });
@@ -56,27 +29,19 @@ export const Route = createFileRoute("/knowledge/$slug")({
   head: ({ params, loaderData }) => {
     const a = loaderData?.article;
     const path = `/knowledge/${params.slug}`;
-    if (!a) {
-      return { meta: [{ title: "Article — Melanated In Tech" }] };
-    }
-    const title = `${a.title} — Melanated In Tech`;
+    if (!a) return { meta: [{ title: "Article — Melanated In Tech" }] };
     return {
       meta: [
-        { title },
-        { name: "description", content: a.excerpt },
-        { name: "author", content: "Melanated In Tech" },
-        { property: "og:title", content: a.title },
-        { property: "og:description", content: a.excerpt },
-        { property: "og:type", content: "article" },
-        { property: "og:url", content: path },
-        { property: "og:site_name", content: "Melanated In Tech" },
+        ...buildSeoMeta({
+          title: `${a.title} — Melanated In Tech`,
+          description: a.excerpt,
+          url: path,
+          type: "article",
+        }),
         { property: "article:section", content: a.category },
         ...(a.published_at
           ? [{ property: "article:published_time", content: new Date(a.published_at).toISOString() }]
           : []),
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: a.title },
-        { name: "twitter:description", content: a.excerpt },
         { name: "twitter:label1", content: "Reading time" },
         { name: "twitter:data1", content: `${a.read_minutes ?? 5} min read` },
         { name: "twitter:label2", content: "Topic" },
@@ -145,7 +110,7 @@ function ArticleView() {
   const { data: article } = useSuspenseQuery(qo(slug));
   const { data: allArticles } = useSuspenseQuery(allArticlesQO);
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
-  const { interests, recordVisit } = useReadingInterests();
+  const { interests, recordVisit } = useInterests("article");
 
   useEffect(() => {
     if (article) recordVisit(article.slug, article.category);
@@ -156,12 +121,6 @@ function ArticleView() {
     const cats = interests.categories;
     const hasHistory = Object.keys(cats).length > 0;
 
-    const reasonFor = (cat: string, fallback: string) => {
-      if (cat === article.category) return `Because you're reading ${article.category}`;
-      if (interestScore(cats, cat) > 0) return `Because you've been reading ${cat}`;
-      return fallback;
-    };
-
     const related = allArticles
       .filter((a) => a.slug !== article.slug && !interests.recent.includes(a.slug))
       .map((a) => ({
@@ -170,7 +129,13 @@ function ArticleView() {
           (a.category === article.category ? 5 : 0) +
           interestScore(cats, a.category) +
           (a.published_at ? new Date(a.published_at).getTime() / 1e13 : 0),
-        reason: reasonFor(a.category, `More in ${a.category}`),
+        reason: reasonFor({
+          categories: cats,
+          sourceCategory: article.category,
+          itemCategory: a.category,
+          activeVerb: "reading",
+          fallback: `More in ${a.category}`,
+        }),
       }))
       .sort((x, y) => y.score - x.score)
       .slice(0, 3);
@@ -182,10 +147,13 @@ function ArticleView() {
           (a.category === article.category ? 4 : 0) +
           interestScore(cats, a.category) * 2 +
           (a.featured ? 1 : 0),
-        reason: reasonFor(
-          a.category,
-          a.featured ? "Featured pick from the team" : `Pairs with ${a.category}`,
-        ),
+        reason: reasonFor({
+          categories: cats,
+          sourceCategory: article.category,
+          itemCategory: a.category,
+          activeVerb: "reading",
+          fallback: a.featured ? "Featured pick from the team" : `Pairs with ${a.category}`,
+        }),
       }))
       .sort((x, y) => y.score - x.score)
       .slice(0, 3);
@@ -244,22 +212,19 @@ function ArticleView() {
                 <RecommendationItem
                   key={a.id}
                   meta={{
-                    surface: "related_reading",
+                    surface: "knowledge:related_reading",
                     itemType: "article",
                     itemSlug: a.slug,
                     itemCategory: a.category,
                     reason,
                     position: i,
                     personalized,
-                    sourceArticleSlug: article.slug,
-                    sourceArticleCategory: article.category,
+                    sourceType: "article",
+                    sourceSlug: article.slug,
+                    sourceCategory: article.category,
                   }}
                 >
                   <ArticleCard {...a} />
-                  <p className="mt-2 px-1 text-xs text-muted-foreground">
-                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
-                    {reason}
-                  </p>
                 </RecommendationItem>
               ))}
             </div>
@@ -289,22 +254,19 @@ function ArticleView() {
                 <RecommendationItem
                   key={a.id}
                   meta={{
-                    surface: "featured_agents",
+                    surface: "knowledge:featured_agents",
                     itemType: "agent",
                     itemSlug: a.slug,
                     itemCategory: a.category,
                     reason,
                     position: i,
                     personalized,
-                    sourceArticleSlug: article.slug,
-                    sourceArticleCategory: article.category,
+                    sourceType: "article",
+                    sourceSlug: article.slug,
+                    sourceCategory: article.category,
                   }}
                 >
                   <AgentCard {...a} capabilities={a.capabilities} />
-                  <p className="mt-2 px-1 text-xs text-muted-foreground">
-                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
-                    {reason}
-                  </p>
                 </RecommendationItem>
               ))}
             </div>

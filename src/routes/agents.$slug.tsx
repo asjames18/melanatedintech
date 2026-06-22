@@ -71,13 +71,14 @@ function AgentDetail() {
               <p className="text-xs uppercase tracking-wider text-primary">{agent.category}</p>
               <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{agent.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{agent.tagline}</p>
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <TierBadge tier={agent.tier} />
                 {agent.featured && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
                     <Sparkles className="h-3 w-3" /> Featured
                   </span>
                 )}
+                <div className="ml-auto"><SaveAgentButton agentId={agent.id} /></div>
               </div>
             </div>
           </div>

@@ -88,6 +88,13 @@ export function SiteHeader() {
               </Link>
             ))}
             <Link
+              to="/search"
+              onClick={() => setOpen(false)}
+              className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              Search
+            </Link>
+            <Link
               to="/contact"
               onClick={() => setOpen(false)}
               className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"

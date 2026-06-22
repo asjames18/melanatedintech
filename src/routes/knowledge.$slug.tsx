@@ -115,12 +115,53 @@ function ArticleView() {
   const { data: article } = useSuspenseQuery(qo(slug));
   const { data: allArticles } = useSuspenseQuery(allArticlesQO);
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
-  if (!article) return null;
+  const { interests, recordVisit } = useReadingInterests();
 
-  const related = allArticles
-    .filter((a) => a.slug !== article.slug && a.category === article.category)
-    .slice(0, 3);
-  const featuredAgents = allAgents.filter((a) => a.featured).slice(0, 3);
+  useEffect(() => {
+    if (article) recordVisit(article.slug, article.category);
+  }, [article, recordVisit]);
+
+  const { related, featuredAgents, personalized, topInterests } = useMemo(() => {
+    if (!article) return { related: [], featuredAgents: [], personalized: false, topInterests: [] as string[] };
+    const cats = interests.categories;
+    const hasHistory = Object.keys(cats).length > 0;
+
+    // Related: weight same-category highest, then by reader's interest score, then recency.
+    const related = allArticles
+      .filter((a) => a.slug !== article.slug && !interests.recent.includes(a.slug))
+      .map((a) => ({
+        a,
+        score:
+          (a.category === article.category ? 5 : 0) +
+          interestScore(cats, a.category) +
+          (a.published_at ? new Date(a.published_at).getTime() / 1e13 : 0),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3)
+      .map((x) => x.a);
+
+    // Featured agents: weight by current article category + reader interests, keep featured as tiebreak.
+    const featuredAgents = allAgents
+      .map((a) => ({
+        a,
+        score:
+          (a.category === article.category ? 4 : 0) +
+          interestScore(cats, a.category) * 2 +
+          (a.featured ? 1 : 0),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3)
+      .map((x) => x.a);
+
+    return {
+      related,
+      featuredAgents,
+      personalized: hasHistory,
+      topInterests: topCategories(cats, 3),
+    };
+  }, [article, allArticles, allAgents, interests]);
+
+  if (!article) return null;
 
   return (
     <SiteLayout>
@@ -150,8 +191,14 @@ function ArticleView() {
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-primary">Related reading</p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">More on {article.category}</h2>
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                  {personalized ? "Picked for you" : "Related reading"}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">
+                  {personalized && topInterests.length > 0
+                    ? `Because you've been reading ${topInterests.slice(0, 2).join(" & ")}`
+                    : `More on ${article.category}`}
+                </h2>
               </div>
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
             </div>
@@ -168,9 +215,14 @@ function ArticleView() {
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-accent2">
-                  <Sparkles className="h-3 w-3" /> Featured agents
+                  <Sparkles className="h-3 w-3" />
+                  {personalized ? "Matched to your interests" : "Featured agents"}
                 </p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">Put this knowledge into practice</h2>
+                <h2 className="mt-1 font-display text-2xl font-semibold">
+                  {personalized
+                    ? `Agents for ${topInterests[0] ?? article.category} readers`
+                    : "Put this knowledge into practice"}
+                </h2>
               </div>
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>

@@ -69,6 +69,20 @@ export const listProducts = createServerFn({ method: "GET" }).handler(async () =
   return data ?? [];
 });
 
+export const getProduct = createServerFn({ method: "GET" })
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = publicClient();
+    const { data: row, error } = await sb
+      .from("products")
+      .select("*")
+      .eq("slug", data.slug)
+      .eq("active", true)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    return row;
+  });
+
 export const listServices = createServerFn({ method: "GET" }).handler(async () => {
   const sb = publicClient();
   const { data, error } = await sb

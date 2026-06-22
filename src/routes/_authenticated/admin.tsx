@@ -560,11 +560,14 @@ function SubmissionCard({
       </div>
       <p className="mt-3 text-sm">{submission.tagline}</p>
       <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{submission.description}</p>
-      {(submission.website_url || submission.demo_url || submission.repo_url) && (
+      {(submission.website_url || submission.demo_url || submission.repo_url || submission.published_agent_id) && (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {submission.website_url && <a href={submission.website_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website ↗</a>}
           {submission.demo_url && <a href={submission.demo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Demo ↗</a>}
           {submission.repo_url && <a href={submission.repo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Repo ↗</a>}
+          {submission.published_agent_id && (
+            <Link to="/agents" className="text-emerald-700 hover:underline">Live agent ↗</Link>
+          )}
         </div>
       )}
       <Textarea

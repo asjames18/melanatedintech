@@ -66,12 +66,14 @@ function AdminPage() {
             <TabsTrigger value="agents">Agents</TabsTrigger>
             <TabsTrigger value="articles">Knowledge</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
+            <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
           </TabsList>
           <TabsContent value="agents" className="mt-6"><AgentsPanel /></TabsContent>
           <TabsContent value="articles" className="mt-6"><ArticlesPanel /></TabsContent>
           <TabsContent value="services" className="mt-6"><ServicesPanel /></TabsContent>
+          <TabsContent value="submissions" className="mt-6"><SubmissionsPanel /></TabsContent>
           <TabsContent value="waitlist" className="mt-6"><WaitlistPanel /></TabsContent>
           <TabsContent value="messages" className="mt-6"><MessagesPanel /></TabsContent>
         </Tabs>

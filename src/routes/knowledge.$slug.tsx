@@ -126,7 +126,12 @@ function ArticleView() {
     const cats = interests.categories;
     const hasHistory = Object.keys(cats).length > 0;
 
-    // Related: weight same-category highest, then by reader's interest score, then recency.
+    const reasonFor = (cat: string, fallback: string) => {
+      if (cat === article.category) return `Because you're reading ${article.category}`;
+      if (interestScore(cats, cat) > 0) return `Because you've been reading ${cat}`;
+      return fallback;
+    };
+
     const related = allArticles
       .filter((a) => a.slug !== article.slug && !interests.recent.includes(a.slug))
       .map((a) => ({
@@ -135,12 +140,11 @@ function ArticleView() {
           (a.category === article.category ? 5 : 0) +
           interestScore(cats, a.category) +
           (a.published_at ? new Date(a.published_at).getTime() / 1e13 : 0),
+        reason: reasonFor(a.category, `More in ${a.category}`),
       }))
       .sort((x, y) => y.score - x.score)
-      .slice(0, 3)
-      .map((x) => x.a);
+      .slice(0, 3);
 
-    // Featured agents: weight by current article category + reader interests, keep featured as tiebreak.
     const featuredAgents = allAgents
       .map((a) => ({
         a,
@@ -148,10 +152,13 @@ function ArticleView() {
           (a.category === article.category ? 4 : 0) +
           interestScore(cats, a.category) * 2 +
           (a.featured ? 1 : 0),
+        reason: reasonFor(
+          a.category,
+          a.featured ? "Featured pick from the team" : `Pairs with ${a.category}`,
+        ),
       }))
       .sort((x, y) => y.score - x.score)
-      .slice(0, 3)
-      .map((x) => x.a);
+      .slice(0, 3);
 
     return {
       related,

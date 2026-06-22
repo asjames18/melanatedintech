@@ -579,3 +579,93 @@ function DeleteBtn({ onConfirm, name }: { onConfirm: () => void; name: string })
     </AlertDialog>
   );
 }
+
+// ---------- Publish state helpers ----------
+
+type PublishStatus = "draft" | "scheduled" | "published";
+
+function saveLabel(status: PublishStatus) {
+  if (status === "published") return "Save & publish";
+  if (status === "scheduled") return "Save & schedule";
+  return "Save draft";
+}
+
+// Convert ISO string <-> value for <input type="datetime-local">
+function isoToLocalInput(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function localInputToIso(v: string) {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function PublishControls({
+  status, scheduledAt, onChange,
+}: {
+  status: PublishStatus;
+  scheduledAt: string | null;
+  onChange: (status: PublishStatus, scheduledAt: string | null) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Publication">
+          <Select
+            value={status}
+            onValueChange={(v) => {
+              const next = v as PublishStatus;
+              onChange(next, next === "scheduled" ? scheduledAt : null);
+            }}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft — hidden</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="published">Published — live</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        {status === "scheduled" && (
+          <Field label="Goes live at">
+            <Input
+              type="datetime-local"
+              value={isoToLocalInput(scheduledAt)}
+              onChange={(e) => onChange(status, localInputToIso(e.target.value))}
+            />
+          </Field>
+        )}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {status === "draft" && "Only admins can see this. Nothing is visible on the public site."}
+        {status === "scheduled" && (scheduledAt
+          ? `Goes live on ${new Date(scheduledAt).toLocaleString()}.`
+          : "Pick a date and time to schedule.")}
+        {status === "published" && "Visible to everyone on the public site."}
+      </p>
+    </div>
+  );
+}
+
+function PublishBadge({ status, scheduledAt }: { status: PublishStatus; scheduledAt: string | null }) {
+  const live = status === "published" || (status === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
+  const tone =
+    status === "published" ? "bg-accent2/15 text-accent2 ring-accent2/30"
+    : status === "scheduled" ? "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-400"
+    : "bg-muted text-muted-foreground ring-border";
+  const label =
+    status === "published" ? "Published"
+    : status === "scheduled"
+      ? (scheduledAt ? (live ? "Live (scheduled)" : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`) : "Scheduled")
+      : "Draft";
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ring-1 ${tone}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current/50"}`} />
+      {label}
+    </span>
+  );
+}

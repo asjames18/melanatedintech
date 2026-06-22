@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ProductCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
+import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listProducts } from "@/lib/public.functions";
 
 const PAGE_SIZE = 9;

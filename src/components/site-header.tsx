@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, Search } from "lucide-react";
 import { NAV } from "@/lib/site";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";

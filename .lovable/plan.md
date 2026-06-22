@@ -61,21 +61,18 @@ Shipped:
 - Submissions admin tab: list every `agent_submissions` row with one-click Approve / Reject / Mark pending plus internal notes (`adminListSubmissions`, `adminReviewSubmission`).
 - Profile editor avatar upload already shipped — left as-is.
 
-## Phase 5 — Monetization + launch (3–5 days)
+## Phase 5 — Monetization + launch (in progress)
 
-1. Stripe via Lovable's Stripe connector: paid product checkout for `products` with `tier = premium`, and "premium agent unlock" on agents.
-2. Entitlements table `user_entitlements (user_id, sku, granted_at)` written by Stripe webhook in `src/routes/api/public/stripe-webhook.ts` (signature-verified).
-3. Gate premium content + downloads on entitlements.
-4. Transactional email via Lovable Email: waitlist welcome, contact auto-reply, purchase receipt.
-5. Launch checklist: OG image per route, favicon set, performance pass (image sizes, lazy loading), publish.
+Shipped:
+- Built-in payments enabled (Lovable's Stripe). Test env live in preview with card `4242 4242 4242 4242`.
+- Stripe products + prices created for 5 premium items (3 agents, 2 products) via `batch_create_product` and mapped in `src/lib/premium-catalog.ts`.
+- `user_entitlements` table (RLS: users read own, service role writes; unique on `(user_id, kind, slug, environment)` and on `stripe_session_id`).
+- Server functions in `src/lib/payments.functions.ts`: `createUnlockCheckout` (auth-gated, creates Stripe Customer with `metadata.userId`, embedded checkout session, stamps `unlock_kind`/`unlock_slug`/`price_id` in metadata) and `listMyEntitlements`.
+- Webhook handler at `/api/public/payments/webhook` — verifies signature, handles `checkout.session.completed` + `transaction.completed`, upserts entitlement row keyed by session id (idempotent).
+- `UnlockButton` component (embedded checkout in a Dialog) wired into `/agents/$slug` and `/products/$slug` for premium items in the catalog.
+- `/checkout/return` page, `<PaymentTestModeBanner />` on every page, "Unlocked" tab on `/account`.
 
-## Technical notes
-
-- Keep all colors/typography on semantic tokens already defined in `src/styles.css`. No new hardcoded hex.
-- All app-internal server logic stays in `createServerFn` under `src/lib/*.functions.ts`. Webhooks/sitemap go under `src/routes/api/public/`.
-- New tables: each migration MUST include `GRANT` + `ENABLE ROW LEVEL SECURITY` + policies, per project rules.
-- Recommendation logic should be deterministic on the server-rendered pass so OG/preview tools don't see empty grids; personalization layer hydrates on the client.
-
-## What I'd build next (recommend Phase 1)
-
-Phase 1 directly addresses the "all over the place" feeling — it converts the knowledge-page features into reusable primitives and applies them uniformly to agents and products. Approve and I'll start there; otherwise tell me which phase to lead with.
+Remaining:
+1. Transactional email via Lovable Email: waitlist welcome, contact auto-reply, purchase receipt (domain `melanatedintech.com` — setup dialog).
+2. Premium-content gating for full agent details (currently entitlement only surfaces "Unlocked" state — actual gated content like deployment links can be added per agent as content arrives).
+3. Launch checklist: per-route OG image fallbacks, favicon set, image lazy-loading audit, publish.

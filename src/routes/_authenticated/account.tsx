@@ -16,7 +16,8 @@ import { ProfileEditor } from "@/components/profile-editor";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { useInterests } from "@/hooks/use-interests";
 import { TierBadge } from "@/components/cards";
-import { Bookmark, BookOpen, Clock, LogOut, ShieldCheck, User } from "lucide-react";
+import { useEntitlements } from "@/hooks/use-entitlement";
+import { Bookmark, BookOpen, Clock, LogOut, ShieldCheck, Sparkles, User } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -34,6 +35,7 @@ function Account() {
   const profile = useQuery({ queryKey: ["me"], queryFn: () => getProfile() });
   const savedAgents = useQuery({ queryKey: ["saved-agents"], queryFn: () => getSavedAgents() });
   const savedArticles = useQuery({ queryKey: ["saved-articles"], queryFn: () => getSavedArticles() });
+  const entitlements = useEntitlements();
   const avatarUrl = useAvatarUrl(profile.data?.avatar_url);
 
   async function signOut() {
@@ -93,6 +95,10 @@ function Account() {
             <TabsTrigger value="articles">
               <BookOpen className="h-4 w-4" /> Saved articles
               <Count n={savedArticles.data?.length ?? 0} />
+            </TabsTrigger>
+            <TabsTrigger value="unlocked">
+              <Sparkles className="h-4 w-4" /> Unlocked
+              <Count n={entitlements.data?.length ?? 0} />
             </TabsTrigger>
             <TabsTrigger value="history">
               <Clock className="h-4 w-4" /> Reading history
@@ -157,6 +163,38 @@ function Account() {
                   </Link>
                 ))}
               </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="unlocked" className="mt-6">
+            {entitlements.isLoading ? (
+              <Loading />
+            ) : (entitlements.data ?? []).length === 0 ? (
+              <Empty
+                title="Nothing unlocked yet"
+                body="Premium agents and products you purchase will appear here."
+                cta={<Button asChild className="mt-4"><Link to="/agents">Browse the marketplace</Link></Button>}
+              />
+            ) : (
+              <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+                {(entitlements.data ?? []).map((e) => (
+                  <li key={`${e.kind}-${e.slug}-${e.environment}`} className="flex items-center justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">{e.kind}</p>
+                      <Link
+                        to={e.kind === "agent" ? "/agents/$slug" : "/products/$slug"}
+                        params={{ slug: e.slug }}
+                        className="text-sm font-medium hover:text-primary"
+                      >
+                        {e.slug}
+                      </Link>
+                    </div>
+                    <span className="rounded-full bg-accent2/15 px-2 py-0.5 text-xs text-accent2">
+                      {new Date(e.granted_at).toLocaleDateString()}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             )}
           </TabsContent>
 

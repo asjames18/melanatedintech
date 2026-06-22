@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { ArticleCard, AgentCard } from "@/components/cards";
+import { ShareBar } from "@/components/share-bar";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { ArrowLeft, Sparkles } from "lucide-react";
 

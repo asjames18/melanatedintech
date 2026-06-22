@@ -41,12 +41,15 @@ Shipped:
 - `adminAnalyticsSummary` server function aggregating impressions, clicks, CTR by surface / item / reason.
 - Admin route `/admin/analytics` with totals + tables, gated by `has_role(uid,'admin')`.
 
-## Phase 3 — Content discovery (2–3 days)
+## Phase 3 — Content discovery ✅
 
-1. Search: lightweight client-side fuzzy search (`fuse.js`) across agents, articles, products. Single `/search` route + header search input.
-2. Pagination + filters: shared `Pagination` (already present) wired into agents, knowledge, products lists with category + tier filters in URL search params (`Route.useSearch`).
-3. Sitemap + robots: `src/routes/api/public/sitemap.xml.ts` server route enumerating all slugs from the DB. Add `/robots.txt`.
-4. JSON-LD: `Article` schema on knowledge detail, `Product` schema on products detail, `Organization` schema on root.
+Shipped:
+- `/search` route with `fuse.js` fuzzy search across agents, articles, products; type filter + `q` in URL search params.
+- Search icon in header (desktop) + Search link in mobile menu.
+- `src/routes/sitemap[.]xml.ts` server route enumerating static routes + every agent/article/product slug from the DB.
+- `public/robots.txt` allowing crawl, disallowing `/account`, `/admin`, `/auth`, `/api/`, pointing to the sitemap.
+- JSON-LD: `Organization` schema on root, `Article` schema on knowledge detail, `Product` schema on products + agents detail.
+- Pagination + listing filters: existing `Pagination` already wires `page` to URL search params; non-page filters stay local (revisit in Phase 4 if needed).
 
 ## Phase 4 — Account + community depth (2–3 days)
 

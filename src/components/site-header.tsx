@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Sparkles } from "lucide-react";
+import { Menu, X, Sparkles, Search } from "lucide-react";
 import { NAV } from "@/lib/site";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,13 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link
+            to="/search"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Search"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
+          <Link
             to="/contact"
             className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
           >
@@ -80,6 +87,13 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
+            <Link
+              to="/search"
+              onClick={() => setOpen(false)}
+              className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+            >
+              Search
+            </Link>
             <Link
               to="/contact"
               onClick={() => setOpen(false)}

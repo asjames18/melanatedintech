@@ -53,6 +53,25 @@ export const Route = createFileRoute("/products/$slug")({
         { name: "twitter:data2", content: formatPrice(p.price_cents, p.tier) },
       ],
       links: [{ rel: "canonical", href: path }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          description: p.tagline,
+          category: p.category,
+          image: p.image_url ?? undefined,
+          brand: { "@type": "Organization", name: "Melanated In Tech" },
+          offers: p.price_cents != null ? {
+            "@type": "Offer",
+            price: (p.price_cents / 100).toFixed(2),
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url: path,
+          } : undefined,
+        }),
+      }],
     };
   },
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,

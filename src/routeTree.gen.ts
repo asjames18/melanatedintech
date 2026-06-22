@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -27,9 +29,19 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -123,7 +135,9 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
@@ -141,7 +155,9 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
@@ -161,7 +177,9 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
@@ -181,7 +199,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
+    | '/sitemap.xml'
     | '/account'
     | '/admin'
     | '/submit-agent'
@@ -199,7 +219,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
+    | '/sitemap.xml'
     | '/account'
     | '/admin'
     | '/submit-agent'
@@ -218,7 +240,9 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
+    | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/submit-agent'
@@ -238,16 +262,32 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
   ProductsRoute: typeof ProductsRouteWithChildren
+  SearchRoute: typeof SearchRoute
   ServicesRoute: typeof ServicesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -436,7 +476,9 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
   ProductsRoute: ProductsRouteWithChildren,
+  SearchRoute: SearchRoute,
   ServicesRoute: ServicesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

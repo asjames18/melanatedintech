@@ -47,6 +47,18 @@ export const Route = createFileRoute("/agents/$slug")({
         { name: "twitter:data2", content: a.tier },
       ],
       links: [{ rel: "canonical", href: path }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: a.name,
+          description: a.tagline,
+          category: a.category,
+          image: a.image_url ?? undefined,
+          brand: { "@type": "Organization", name: "Melanated In Tech" },
+        }),
+      }],
     };
   },
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,

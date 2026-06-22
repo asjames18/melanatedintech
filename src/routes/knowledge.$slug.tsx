@@ -6,7 +6,37 @@ import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { useReadingInterests, interestScore, topCategories } from "@/hooks/use-reading-interests";
+import { useImpression } from "@/hooks/use-impression";
+import { trackEvent } from "@/lib/analytics";
 import { ArrowLeft, Sparkles } from "lucide-react";
+
+type RecMeta = {
+  surface: "related_reading" | "featured_agents";
+  itemType: "article" | "agent";
+  itemSlug: string;
+  itemCategory: string;
+  reason: string;
+  position: number;
+  personalized: boolean;
+  sourceArticleSlug: string;
+  sourceArticleCategory: string;
+};
+
+function RecommendationItem({ meta, children }: { meta: RecMeta; children: React.ReactNode }) {
+  const ref = useImpression<HTMLDivElement>(
+    () => trackEvent("recommendation_impression", meta),
+    { key: `${meta.surface}:${meta.itemSlug}:${meta.sourceArticleSlug}` },
+  );
+  return (
+    <div
+      ref={ref}
+      className="flex flex-col"
+      onClickCapture={() => trackEvent("recommendation_click", meta)}
+    >
+      {children}
+    </div>
+  );
+}
 
 const qo = (slug: string) =>
   queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });

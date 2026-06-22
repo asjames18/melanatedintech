@@ -41,7 +41,7 @@ Shipped:
 - `adminAnalyticsSummary` server function aggregating impressions, clicks, CTR by surface / item / reason.
 - Admin route `/admin/analytics` with totals + tables, gated by `has_role(uid,'admin')`.
 
-## Phase 3 — Content discovery (2–3 days)
+## Phase 3 — Content discovery ✅
 
 Shipped:
 - `/search` route with `fuse.js` fuzzy search across agents, articles, products; type filter + `q` in URL search params.

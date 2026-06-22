@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ArticleCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
+import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles } from "@/lib/public.functions";
 
 const PAGE_SIZE = 9;
@@ -33,6 +34,8 @@ export const Route = createFileRoute("/knowledge")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
+  pendingMs: 0,
+  pendingComponent: () => <SiteLayout><ListingPendingShell variant="article" label="articles" /></SiteLayout>,
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
   component: KnowledgeIndex,
@@ -154,7 +157,7 @@ function KnowledgeIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 md:grid-cols-2 lg:grid-cols-3">
           {paged.map((a) => (
             <ArticleCard key={a.id} {...a} />
           ))}

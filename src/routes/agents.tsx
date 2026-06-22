@@ -8,6 +8,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { AgentCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
+import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listAgents } from "@/lib/public.functions";
 
 const PAGE_SIZE = 9;
@@ -29,6 +30,8 @@ export const Route = createFileRoute("/agents")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
+  pendingMs: 0,
+  pendingComponent: () => <SiteLayout><ListingPendingShell variant="agent" label="agents" /></SiteLayout>,
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
   component: AgentsIndex,
@@ -158,7 +161,7 @@ function AgentsIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {paged.map((a) => (
             <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
           ))}

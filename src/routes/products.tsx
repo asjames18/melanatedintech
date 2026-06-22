@@ -7,6 +7,7 @@ import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ProductCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
+import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listProducts } from "@/lib/public.functions";
 
 const PAGE_SIZE = 9;
@@ -28,6 +29,8 @@ export const Route = createFileRoute("/products")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
+  pendingMs: 0,
+  pendingComponent: () => <SiteLayout><ListingPendingShell variant="product" label="products" /></SiteLayout>,
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
   component: ProductsIndex,
@@ -147,7 +150,7 @@ function ProductsIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {paged.map((p) => <ProductCard key={p.id} {...p} />)}
         </div>
         {filtered.length === 0 && (

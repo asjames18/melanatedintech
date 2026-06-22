@@ -28,6 +28,7 @@ import {
   adminUpsertAgent, adminUpsertArticle, adminUpsertService,
   adminDelete, checkAdminStatus, claimFirstAdmin,
 } from "@/lib/admin.functions";
+import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({ meta: [{ title: "Admin — Melanated In Tech" }] }),

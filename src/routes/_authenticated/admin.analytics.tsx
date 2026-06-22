@@ -8,7 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { adminAnalyticsSummary } from "@/lib/analytics.functions";
-import { ShieldCheck } from "lucide-react";
+import { Download, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
   head: () => ({ meta: [{ title: "Analytics — Admin" }] }),
@@ -69,6 +69,17 @@ function AdminAnalytics() {
                 <SelectItem value="90">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data}
+              onClick={() => {
+                if (!data) return;
+                downloadAnalyticsCsv(data, days);
+              }}
+            >
+              <Download className="mr-1 h-3 w-3" /> Export CSV
+            </Button>
           </div>
         </div>
 
@@ -169,4 +180,48 @@ function Table({
       </tbody>
     </table>
   );
+}
+
+type Summary = NonNullable<Awaited<ReturnType<typeof adminAnalyticsSummary>>>;
+
+function downloadAnalyticsCsv(data: Summary, days: number) {
+  const lines: string[] = [];
+  const esc = (v: string | number) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const row = (cells: (string | number)[]) => esc(cells[0]) + cells.slice(1).map((c) => "," + esc(c)).join("");
+
+  lines.push(`# Recommendation analytics — last ${days} days`);
+  lines.push("");
+  lines.push("Metric,Value");
+  lines.push(row(["Impressions", data.totals.impressions]));
+  lines.push(row(["Clicks", data.totals.clicks]));
+  lines.push(row(["CTR", (data.totals.ctr * 100).toFixed(2) + "%"]));
+  lines.push(row(["Events", data.totals.events]));
+  lines.push("");
+
+  lines.push("By surface");
+  lines.push(row(["Surface", "Impressions", "Clicks", "CTR"]));
+  for (const r of data.bySurface) lines.push(row([r.surface, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+  lines.push("");
+
+  lines.push("Top items");
+  lines.push(row(["Type", "Slug", "Category", "Impressions", "Clicks", "CTR"]));
+  for (const r of data.topItems) lines.push(row([r.itemType, r.itemSlug, r.itemCategory, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+  lines.push("");
+
+  lines.push("Top reasons");
+  lines.push(row(["Reason", "Impressions", "Clicks", "CTR"]));
+  for (const r of data.topReasons) lines.push(row([r.reason, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `recommendations-${days}d-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

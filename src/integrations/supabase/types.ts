@@ -25,6 +25,7 @@ export type Database = {
           id: string
           name: string
           pricing_notes: string | null
+          published_agent_id: string | null
           repo_url: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -45,6 +46,7 @@ export type Database = {
           id?: string
           name: string
           pricing_notes?: string | null
+          published_agent_id?: string | null
           repo_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -65,6 +67,7 @@ export type Database = {
           id?: string
           name?: string
           pricing_notes?: string | null
+          published_agent_id?: string | null
           repo_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -75,7 +78,15 @@ export type Database = {
           updated_at?: string
           website_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_submissions_published_agent_id_fkey"
+            columns: ["published_agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agents: {
         Row: {
@@ -166,6 +177,7 @@ export type Database = {
       }
       articles: {
         Row: {
+          author_id: string | null
           body: string
           category: string
           created_at: string
@@ -181,6 +193,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          author_id?: string | null
           body: string
           category: string
           created_at?: string
@@ -196,6 +209,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          author_id?: string | null
           body?: string
           category?: string
           created_at?: string
@@ -208,6 +222,47 @@ export type Database = {
           slug?: string
           status?: Database["public"]["Enums"]["publish_status"]
           title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "authors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      authors: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          id: string
+          links: Json
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          links?: Json
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          id?: string
+          links?: Json
+          name?: string
+          slug?: string
           updated_at?: string
         }
         Relationships: []
@@ -524,6 +579,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interests: {
+        Row: {
+          categories: string[]
+          content_types: string[]
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          categories?: string[]
+          content_types?: string[]
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          categories?: string[]
+          content_types?: string[]
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -551,6 +630,7 @@ export type Database = {
           email: string
           id: string
           interest: string | null
+          product_slug: string | null
           source: string | null
         }
         Insert: {
@@ -558,6 +638,7 @@ export type Database = {
           email: string
           id?: string
           interest?: string | null
+          product_slug?: string | null
           source?: string | null
         }
         Update: {
@@ -565,6 +646,7 @@ export type Database = {
           email?: string
           id?: string
           interest?: string | null
+          product_slug?: string | null
           source?: string | null
         }
         Relationships: []

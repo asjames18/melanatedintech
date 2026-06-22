@@ -57,7 +57,10 @@ function AdminPage() {
         description="Edit marketplace listings, knowledge content, services, and review inbound activity."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex flex-wrap justify-end gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/catalog">Catalog verification →</Link>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/admin/analytics">View analytics →</Link>
           </Button>
@@ -491,8 +494,12 @@ function SubmissionsPanel() {
   const reviewMut = useMutation({
     mutationFn: (args: { id: string; status: "approved" | "rejected" | "pending"; notes: string }) =>
       review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
-    onSuccess: () => {
-      toast.success("Submission updated.");
+    onSuccess: (res) => {
+      if (res?.publishedSlug) {
+        toast.success(`Approved — published as /agents/${res.publishedSlug}`);
+      } else {
+        toast.success("Submission updated.");
+      }
       qc.invalidateQueries({ queryKey: ["admin-submissions"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -553,11 +560,14 @@ function SubmissionCard({
       </div>
       <p className="mt-3 text-sm">{submission.tagline}</p>
       <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{submission.description}</p>
-      {(submission.website_url || submission.demo_url || submission.repo_url) && (
+      {(submission.website_url || submission.demo_url || submission.repo_url || submission.published_agent_id) && (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           {submission.website_url && <a href={submission.website_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website ↗</a>}
           {submission.demo_url && <a href={submission.demo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Demo ↗</a>}
           {submission.repo_url && <a href={submission.repo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Repo ↗</a>}
+          {submission.published_agent_id && (
+            <Link to="/agents" className="text-emerald-700 hover:underline">Live agent ↗</Link>
+          )}
         </div>
       )}
       <Textarea

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
@@ -9,6 +9,7 @@ import { ArticleCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles } from "@/lib/public.functions";
+import { useReadingProgressList } from "@/hooks/use-reading-progress";
 
 const PAGE_SIZE = 9;
 
@@ -16,6 +17,7 @@ const qo = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() 
 
 const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
+  category: fallback(z.string(), "All").default("All"),
 });
 
 type Length = "All" | "Quick" | "Medium" | "Deep";
@@ -43,16 +45,19 @@ export const Route = createFileRoute("/knowledge")({
 
 function KnowledgeIndex() {
   const { data: articles } = useSuspenseQuery(qo);
-  const { page } = Route.useSearch();
+  const { page, category: urlCategory } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(articles.map((a) => a.category))).sort()],
     [articles],
   );
-  const [cat, setCat] = useState("All");
+  const [cat, setCat] = useState(urlCategory ?? "All");
   const [len, setLen] = useState<Length>("All");
   const [q, setQ] = useState("");
+
+  // Keep local state in sync when URL changes (e.g. clicking a reason chip).
+  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = articles.filter((a) => {
     const matchCat = cat === "All" || a.category === cat;
@@ -69,13 +74,17 @@ function KnowledgeIndex() {
   const safePage = Math.min(Math.max(1, page), pageCount);
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  // When filter changes, reset page + reflect category in URL.
   useEffect(() => {
-    if (page !== 1) navigate({ search: { page: 1 }, replace: true });
+    navigate({
+      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      replace: true,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cat, len, q]);
 
   const setPage = (p: number) => {
-    navigate({ search: { page: p } });
+    navigate({ search: (prev: { page: number; category: string }) => ({ ...prev, page: p }) });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -177,7 +186,39 @@ function KnowledgeIndex() {
           label="articles"
           onChange={setPage}
         />
+
+        <ContinueReading articles={articles} />
       </section>
     </SiteLayout>
+  );
+}
+
+function ContinueReading({ articles }: { articles: Array<{ id: string; slug: string; title: string; category: string; read_minutes: number }> }) {
+  const rows = useReadingProgressList();
+  const inProgress = rows
+    .filter((r) => r.percent > 5 && r.percent < 95)
+    .slice(0, 3)
+    .map((r) => ({ row: r, article: articles.find((a) => a.slug === r.slug) }))
+    .filter((x) => x.article);
+  if (inProgress.length === 0) return null;
+  return (
+    <div className="mt-16 border-t pt-10">
+      <h2 className="font-display text-xl font-semibold">Continue reading</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
+      <ul className="mt-5 grid gap-4 md:grid-cols-3">
+        {inProgress.map(({ row, article }) => (
+          <li key={row.slug} className="rounded-2xl border bg-card p-4">
+            <Link to="/knowledge/$slug" params={{ slug: article!.slug }} className="font-medium hover:text-primary">
+              {article!.title}
+            </Link>
+            <p className="mt-1 text-xs text-muted-foreground">{article!.category} · {article!.read_minutes} min</p>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full bg-primary" style={{ width: `${row.percent}%` }} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{row.percent}% read</p>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

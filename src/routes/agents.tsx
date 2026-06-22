@@ -17,6 +17,7 @@ const qo = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 
 const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
+  category: fallback(z.string(), "All").default("All"),
 });
 
 export const Route = createFileRoute("/agents")({
@@ -39,16 +40,18 @@ export const Route = createFileRoute("/agents")({
 
 function AgentsIndex() {
   const { data: agents } = useSuspenseQuery(qo);
-  const { page } = Route.useSearch();
+  const { page, category: urlCategory } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
 
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(agents.map((a) => a.category)))],
     [agents],
   );
-  const [cat, setCat] = useState<string>("All");
+  const [cat, setCat] = useState<string>(urlCategory ?? "All");
   const [tier, setTier] = useState<string>("All");
   const [q, setQ] = useState("");
+
+  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = agents.filter((a) => {
     const matchCat = cat === "All" || a.category === cat;
@@ -66,14 +69,16 @@ function AgentsIndex() {
   const safePage = Math.min(Math.max(1, page), pageCount);
   const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
-  // Reset to page 1 whenever filters change.
   useEffect(() => {
-    if (page !== 1) navigate({ search: { page: 1 }, replace: true });
+    navigate({
+      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      replace: true,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cat, tier, q]);
 
   const setPage = (p: number) => {
-    navigate({ search: { page: p } });
+    navigate({ search: (prev: { page: number; category: string }) => ({ ...prev, page: p }) });
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 

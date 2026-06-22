@@ -78,6 +78,12 @@ function Account() {
               <Link to="/submit-agent">Submit an agent</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
+              <Link to="/submissions">My submissions</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/interests"><Sparkles className="h-4 w-4" /> Interests</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin"><ShieldCheck className="h-4 w-4" /> Admin</Link>
             </Button>
             <Button variant="outline" size="sm" onClick={signOut}>

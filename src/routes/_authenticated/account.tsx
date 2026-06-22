@@ -64,12 +64,16 @@ function Account() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
+              <Link to="/submit-agent">Submit an agent</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/admin"><ShieldCheck className="h-4 w-4" /> Admin</Link>
             </Button>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="h-4 w-4" /> Sign out
             </Button>
           </div>
+
         </div>
 
         <Tabs defaultValue="saved" className="mt-8">

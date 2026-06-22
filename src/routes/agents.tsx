@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { AgentCard } from "@/components/cards";
+import { Button } from "@/components/ui/button";
 import { listAgents } from "@/lib/public.functions";
+
 
 const qo = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 
@@ -56,6 +58,13 @@ function AgentsIndex() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">Built something? Get it featured here.</p>
+          <Button asChild size="sm" variant="outline">
+            <Link to="/submit-agent"><Plus className="mr-1 h-4 w-4" /> Submit an agent</Link>
+          </Button>
+        </div>
+
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">

@@ -19,6 +19,7 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
@@ -74,6 +75,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ProductsRoute,
+} as any)
 const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -109,13 +115,14 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
-  '/products': typeof ProductsRoute
+  '/products': typeof ProductsRouteWithChildren
   '/services': typeof ServicesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -125,13 +132,14 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
-  '/products': typeof ProductsRoute
+  '/products': typeof ProductsRouteWithChildren
   '/services': typeof ServicesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,13 +151,14 @@ export interface FileRoutesById {
   '/community': typeof CommunityRoute
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
-  '/products': typeof ProductsRoute
+  '/products': typeof ProductsRouteWithChildren
   '/services': typeof ServicesRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/products/$slug': typeof ProductsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
+    | '/products/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
+    | '/products/$slug'
   id:
     | '__root__'
     | '/'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
+    | '/products/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,7 +224,7 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRoute
   ContactRoute: typeof ContactRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
-  ProductsRoute: typeof ProductsRoute
+  ProductsRoute: typeof ProductsRouteWithChildren
   ServicesRoute: typeof ServicesRoute
 }
 
@@ -287,6 +299,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof ProductsRoute
     }
     '/knowledge/$slug': {
       id: '/knowledge/$slug'
@@ -364,6 +383,18 @@ const KnowledgeRouteWithChildren = KnowledgeRoute._addFileChildren(
   KnowledgeRouteChildren,
 )
 
+interface ProductsRouteChildren {
+  ProductsSlugRoute: typeof ProductsSlugRoute
+}
+
+const ProductsRouteChildren: ProductsRouteChildren = {
+  ProductsSlugRoute: ProductsSlugRoute,
+}
+
+const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
+  ProductsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -373,7 +404,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRoute,
   ContactRoute: ContactRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
-  ProductsRoute: ProductsRoute,
+  ProductsRoute: ProductsRouteWithChildren,
   ServicesRoute: ServicesRoute,
 }
 export const routeTree = rootRouteImport

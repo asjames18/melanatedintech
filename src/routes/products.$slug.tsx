@@ -5,6 +5,8 @@ import { SiteLayout } from "@/components/site-layout";
 import { ProductCard, AgentCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { ShareBar } from "@/components/share-bar";
+import { UnlockButton } from "@/components/unlock-button";
+import { getPremiumEntry } from "@/lib/premium-catalog";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -192,13 +194,26 @@ function ProductDetail() {
             <p className="mt-3 whitespace-pre-line text-muted-foreground">{product.description}</p>
           </div>
           <aside className="md:col-span-1">
-            <div className="sticky top-24 rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm font-medium">Get notified at launch</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {product.name} is rolling out to early users. Join the list for access.
-              </p>
-              <div className="mt-4">
-                <WaitlistForm source={`product:${product.slug}`} interest={product.name} />
+            <div className="sticky top-24 space-y-4">
+              {product.tier === "premium" && getPremiumEntry("product", product.slug) && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <p className="text-sm font-medium">Buy this product</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    One-time purchase. Instant access after checkout.
+                  </p>
+                  <div className="mt-4">
+                    <UnlockButton kind="product" slug={product.slug} itemName={product.name} />
+                  </div>
+                </div>
+              )}
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm font-medium">Get notified at launch</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {product.name} is rolling out to early users. Join the list for access.
+                </p>
+                <div className="mt-4">
+                  <WaitlistForm source={`product:${product.slug}`} interest={product.name} />
+                </div>
               </div>
             </div>
           </aside>

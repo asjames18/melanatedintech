@@ -5,6 +5,8 @@ import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { SaveAgentButton } from "@/components/save-agent-button";
+import { UnlockButton } from "@/components/unlock-button";
+import { getPremiumEntry } from "@/lib/premium-catalog";
 import { ShareBar } from "@/components/share-bar";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
@@ -203,13 +205,26 @@ function AgentDetail() {
           </div>
 
           <aside className="md:col-span-1">
-            <div className="sticky top-24 rounded-2xl border border-border bg-card p-6">
-              <p className="text-sm font-medium">Get early access</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                We're onboarding builders for {agent.name}. Join the list to get a deployment invite.
-              </p>
-              <div className="mt-4">
-                <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
+            <div className="sticky top-24 space-y-4">
+              {agent.tier === "premium" && getPremiumEntry("agent", agent.slug) && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <p className="text-sm font-medium">Premium agent</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    One-time unlock. Lifetime access to {agent.name} on your account.
+                  </p>
+                  <div className="mt-4">
+                    <UnlockButton kind="agent" slug={agent.slug} itemName={agent.name} />
+                  </div>
+                </div>
+              )}
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm font-medium">Get early access</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  We're onboarding builders for {agent.name}. Join the list to get a deployment invite.
+                </p>
+                <div className="mt-4">
+                  <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
+                </div>
               </div>
             </div>
           </aside>

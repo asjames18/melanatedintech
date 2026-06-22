@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -36,6 +37,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsRoute = ProductsRouteImport.update({
@@ -129,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -148,6 +155,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -169,6 +177,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/account'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/account'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/knowledge'
     | '/products'
+    | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/_authenticated/account'
@@ -250,6 +262,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
   ProductsRoute: typeof ProductsRouteWithChildren
+  SearchRoute: typeof SearchRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
@@ -268,6 +281,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products': {
@@ -456,6 +476,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
   ProductsRoute: ProductsRouteWithChildren,
+  SearchRoute: SearchRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
 }

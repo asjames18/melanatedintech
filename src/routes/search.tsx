@@ -100,9 +100,9 @@ function SearchPage() {
     (showProducts ? productHits.length : 0);
 
   const setQ = (next: string) =>
-    navigate({ search: (prev) => ({ ...prev, q: next }), replace: true });
+    navigate({ search: (prev: { q: string; type: typeof type }) => ({ ...prev, q: next }), replace: true });
   const setType = (next: typeof type) =>
-    navigate({ search: (prev) => ({ ...prev, type: next }), replace: true });
+    navigate({ search: (prev: { q: string; type: typeof type }) => ({ ...prev, type: next }), replace: true });
 
   return (
     <SiteLayout>

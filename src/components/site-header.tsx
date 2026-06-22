@@ -42,6 +42,13 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-2 md:flex">
           <Link
+            to="/search"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Search"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
+          <Link
             to="/contact"
             className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
           >

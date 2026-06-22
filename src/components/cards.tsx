@@ -1,0 +1,129 @@
+import { Link } from "@tanstack/react-router";
+import { ArrowUpRight, Bot, BookOpen, Package, Wrench } from "lucide-react";
+
+export type Tier = "free" | "premium" | "custom";
+
+export function TierBadge({ tier }: { tier: Tier }) {
+  const styles = {
+    free: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+    premium: "bg-primary/10 text-primary",
+    custom: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  } as const;
+  const label = tier === "free" ? "Free" : tier === "premium" ? "Premium" : "Custom";
+  return (
+    <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[tier]}`}>
+      {label}
+    </span>
+  );
+}
+
+export function AgentCard({
+  slug, name, tagline, category, tier, featured, capabilities,
+}: {
+  slug: string; name: string; tagline: string; category: string;
+  tier: Tier; featured?: boolean; capabilities?: string[] | null;
+}) {
+  return (
+    <Link
+      to="/agents/$slug"
+      params={{ slug }}
+      className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-foreground text-background">
+          <Bot className="h-5 w-5" />
+        </div>
+        <div className="flex items-center gap-2">
+          {featured && (
+            <span className="inline-flex rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
+              Featured
+            </span>
+          )}
+          <TierBadge tier={tier} />
+        </div>
+      </div>
+      <p className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">{category}</p>
+      <h3 className="mt-1 font-display text-lg font-semibold">{name}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{tagline}</p>
+      {capabilities && capabilities.length > 0 && (
+        <ul className="mt-4 flex flex-wrap gap-1.5">
+          {capabilities.slice(0, 3).map((c) => (
+            <li key={c} className="rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              {c}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="mt-6 flex items-center gap-1 text-sm font-medium text-primary">
+        View agent <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </div>
+    </Link>
+  );
+}
+
+export function ArticleCard({
+  slug, title, excerpt, category, read_minutes,
+}: {
+  slug: string; title: string; excerpt: string; category: string; read_minutes: number;
+}) {
+  return (
+    <Link
+      to="/knowledge/$slug"
+      params={{ slug }}
+      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+    >
+      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+        <BookOpen className="h-3.5 w-3.5" />
+        <span>{category}</span>
+        <span>·</span>
+        <span>{read_minutes} min read</span>
+      </div>
+      <h3 className="mt-3 font-display text-lg font-semibold leading-snug">{title}</h3>
+      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{excerpt}</p>
+      <div className="mt-6 flex items-center gap-1 text-sm font-medium text-primary">
+        Read article <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </div>
+    </Link>
+  );
+}
+
+export function ProductCard({
+  name, tagline, category, tier,
+}: { name: string; tagline: string; category: string; tier: Tier }) {
+  return (
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-6">
+      <div className="flex items-start justify-between">
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent2/15 text-accent2">
+          <Package className="h-5 w-5" />
+        </div>
+        <TierBadge tier={tier} />
+      </div>
+      <p className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">{category}</p>
+      <h3 className="mt-1 font-display text-lg font-semibold">{name}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{tagline}</p>
+      <p className="mt-4 text-xs text-muted-foreground">Built for AI agent builders.</p>
+    </div>
+  );
+}
+
+export function ServiceCard({
+  name, tagline, outcomes,
+}: { name: string; tagline: string; outcomes: string[] }) {
+  return (
+    <div className="flex flex-col rounded-2xl border border-border bg-card p-6">
+      <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+        <Wrench className="h-5 w-5" />
+      </div>
+      <h3 className="mt-4 font-display text-lg font-semibold">{name}</h3>
+      <p className="mt-1 text-sm text-muted-foreground">{tagline}</p>
+      <ul className="mt-4 space-y-1.5 text-sm">
+        {outcomes.map((o) => (
+          <li key={o} className="flex items-start gap-2 text-muted-foreground">
+            <span className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-accent2" />
+            {o}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

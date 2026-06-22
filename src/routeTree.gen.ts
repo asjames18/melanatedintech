@@ -24,6 +24,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -105,6 +106,11 @@ const CommunityIdRoute = CommunityIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => CommunityRoute,
 } as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsSlugRoute = AgentsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -177,6 +184,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -201,6 +209,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
@@ -225,6 +234,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
@@ -247,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
+    | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
@@ -290,6 +302,7 @@ export interface RootRouteChildren {
   SearchRoute: typeof SearchRoute
   ServicesRoute: typeof ServicesRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  CheckoutReturnRoute: typeof CheckoutReturnRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
 }
 
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community/$id'
       preLoaderRoute: typeof CommunityIdRouteImport
       parentRoute: typeof CommunityRoute
+    }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/agents/$slug': {
       id: '/agents/$slug'
@@ -531,6 +551,7 @@ const rootRouteChildren: RootRouteChildren = {
   SearchRoute: SearchRoute,
   ServicesRoute: ServicesRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  CheckoutReturnRoute: CheckoutReturnRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
 }
 export const routeTree = rootRouteImport

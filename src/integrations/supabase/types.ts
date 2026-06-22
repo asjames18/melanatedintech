@@ -14,6 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_submissions: {
+        Row: {
+          capabilities: string[]
+          category: string
+          contact_email: string
+          created_at: string
+          demo_url: string | null
+          description: string
+          id: string
+          name: string
+          pricing_notes: string | null
+          repo_url: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["submission_status"]
+          submitter_id: string
+          tagline: string
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          capabilities?: string[]
+          category: string
+          contact_email: string
+          created_at?: string
+          demo_url?: string | null
+          description: string
+          id?: string
+          name: string
+          pricing_notes?: string | null
+          repo_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          submitter_id: string
+          tagline: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          capabilities?: string[]
+          category?: string
+          contact_email?: string
+          created_at?: string
+          demo_url?: string | null
+          description?: string
+          id?: string
+          name?: string
+          pricing_notes?: string | null
+          repo_url?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          submitter_id?: string
+          tagline?: string
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           active: boolean
@@ -357,6 +420,7 @@ export type Database = {
       agent_tier: "free" | "premium" | "custom"
       app_role: "admin" | "member"
       publish_status: "draft" | "scheduled" | "published"
+      submission_status: "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -487,6 +551,7 @@ export const Constants = {
       agent_tier: ["free", "premium", "custom"],
       app_role: ["admin", "member"],
       publish_status: ["draft", "scheduled", "published"],
+      submission_status: ["pending", "approved", "rejected"],
     },
   },
 } as const

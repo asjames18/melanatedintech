@@ -185,7 +185,39 @@ function KnowledgeIndex() {
           label="articles"
           onChange={setPage}
         />
+
+        <ContinueReading articles={articles} />
       </section>
     </SiteLayout>
+  );
+}
+
+function ContinueReading({ articles }: { articles: Array<{ id: string; slug: string; title: string; category: string; read_minutes: number }> }) {
+  const rows = useReadingProgressList();
+  const inProgress = rows
+    .filter((r) => r.percent > 5 && r.percent < 95)
+    .slice(0, 3)
+    .map((r) => ({ row: r, article: articles.find((a) => a.slug === r.slug) }))
+    .filter((x) => x.article);
+  if (inProgress.length === 0) return null;
+  return (
+    <div className="mt-16 border-t pt-10">
+      <h2 className="font-display text-xl font-semibold">Continue reading</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
+      <ul className="mt-5 grid gap-4 md:grid-cols-3">
+        {inProgress.map(({ row, article }) => (
+          <li key={row.slug} className="rounded-2xl border bg-card p-4">
+            <Link to="/knowledge/$slug" params={{ slug: article!.slug }} className="font-medium hover:text-primary">
+              {article!.title}
+            </Link>
+            <p className="mt-1 text-xs text-muted-foreground">{article!.category} · {article!.read_minutes} min</p>
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+              <div className="h-full bg-primary" style={{ width: `${row.percent}%` }} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{row.percent}% read</p>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }

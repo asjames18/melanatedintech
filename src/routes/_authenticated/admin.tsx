@@ -494,8 +494,12 @@ function SubmissionsPanel() {
   const reviewMut = useMutation({
     mutationFn: (args: { id: string; status: "approved" | "rejected" | "pending"; notes: string }) =>
       review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
-    onSuccess: () => {
-      toast.success("Submission updated.");
+    onSuccess: (res) => {
+      if (res?.publishedSlug) {
+        toast.success(`Approved — published as /agents/${res.publishedSlug}`);
+      } else {
+        toast.success("Submission updated.");
+      }
       qc.invalidateQueries({ queryKey: ["admin-submissions"] });
     },
     onError: (e: Error) => toast.error(e.message),

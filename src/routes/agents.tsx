@@ -1,10 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { AgentCard } from "@/components/cards";
+import { Button } from "@/components/ui/button";
 import { listAgents } from "@/lib/public.functions";
+
 
 const qo = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 

@@ -51,12 +51,15 @@ Shipped:
 - JSON-LD: `Organization` schema on root, `Article` schema on knowledge detail, `Product` schema on products + agents detail.
 - Pagination + listing filters: existing `Pagination` already wires `page` to URL search params; non-page filters stay local (revisit in Phase 4 if needed).
 
-## Phase 4 — Account + community depth (2–3 days)
+## Phase 4 — Account + community depth ✅
 
-1. Account: saved agents (exists) + saved articles + reading history surfaced from `use-interests`.
-2. Profile editor polish (avatar upload via Storage bucket `avatars`).
-3. Community: gated discussion stub — `posts` + `comments` tables, RLS by `auth.uid()`, basic thread view. Keep scope tight: list + create + reply, no moderation UI yet.
-4. Submit-agent flow (route already exists): move to a proper multi-step form, admin review queue in `/_authenticated/admin`.
+Shipped:
+- Tables: `saved_articles`, `discussion_posts`, `discussion_comments` (RLS + GRANTs, author/admin update + delete policies, trigger to keep `last_activity_at` + `comment_count` in sync).
+- Account page expanded to 4 tabs: Saved agents · Saved articles · Reading history (recently-read articles + recently-viewed agents from `useInterests`, with per-list Clear) · Profile.
+- `SaveArticleButton` on knowledge detail next to the share bar.
+- Community rewritten: `/community` lists threads; `/community/$id` is the thread view with replies, author display, and self-delete; new-thread dialog gated on auth.
+- Submissions admin tab: list every `agent_submissions` row with one-click Approve / Reject / Mark pending plus internal notes (`adminListSubmissions`, `adminReviewSubmission`).
+- Profile editor avatar upload already shipped — left as-is.
 
 ## Phase 5 — Monetization + launch (3–5 days)
 

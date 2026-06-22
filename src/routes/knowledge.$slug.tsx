@@ -4,6 +4,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
+import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -183,7 +184,10 @@ function ArticleView() {
           {article.title}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
-        <ShareBar title={article.title} text={article.excerpt} className="mt-6" />
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <ShareBar title={article.title} text={article.excerpt} />
+          <SaveArticleButton articleId={article.id} />
+        </div>
         <div className="mt-10">{renderMarkdown(article.body)}</div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-5">
           <p className="text-sm font-medium">Found this useful? Share it.</p>

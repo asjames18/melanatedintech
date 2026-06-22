@@ -1,59 +1,171 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { MessageSquare, Plus } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { WaitlistForm } from "@/components/waitlist-form";
-import { Users, MessageSquare, Lightbulb, Rocket } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
+import { listDiscussionPosts, createDiscussionPost } from "@/lib/community.functions";
+import { toast } from "sonner";
+import { buildSeoMeta } from "@/lib/seo";
+
+const postsQO = queryOptions({ queryKey: ["discussion-posts"], queryFn: () => listDiscussionPosts() });
 
 export const Route = createFileRoute("/community")({
   head: () => ({
-    meta: [
-      { title: "Agent Builder Community — Melanated In Tech" },
-      { name: "description", content: "A community for people building, deploying, and benefiting from AI agents. Coming soon." },
-      { property: "og:title", content: "AI Agent Builder Community" },
-      { property: "og:description", content: "Where AI agent builders learn, ship, and grow together." },
-    ],
+    meta: buildSeoMeta({
+      title: "Community — Melanated In Tech",
+      description: "Discussions, questions, and field notes from people building AI agents.",
+      url: "/community",
+    }),
   }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(postsQO),
+  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
+  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
   component: Community,
 });
 
-const PILLARS = [
-  { icon: Users, title: "Builders, not spectators", body: "A room full of people actually shipping agents — ministries, founders, operators, creators." },
-  { icon: MessageSquare, title: "Real conversations", body: "Live Q&A, async threads, code reviews, and feedback on agents in progress." },
-  { icon: Lightbulb, title: "First access", body: "Early drops of new agents, blueprints, and prompt libraries before they go public." },
-  { icon: Rocket, title: "Ship together", body: "Cohorts, build challenges, and accountability — so the agent in your head ends up in production." },
-];
-
 function Community() {
+  const { data: posts } = useSuspenseQuery(postsQO);
+
   return (
     <SiteLayout>
       <PageHeader
         eyebrow="Community"
-        title="The agent builder community is coming."
-        description="A focused community for people building, deploying, and benefiting from AI agents. Join the waitlist to get an invite when doors open."
+        title="Discussions for agent builders."
+        description="Ask questions, share what you're shipping, and learn from others in the field."
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {PILLARS.map((p) => (
-            <div key={p.title} className="rounded-2xl border border-border bg-card p-6">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                <p.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-4 font-display text-lg font-semibold">{p.title}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{p.body}</p>
-            </div>
-          ))}
+      <section className="mx-auto max-w-4xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            {posts.length} {posts.length === 1 ? "thread" : "threads"}
+          </p>
+          <NewPostDialog />
         </div>
 
-        <div className="mt-12 rounded-3xl border border-border bg-foreground p-10 text-background">
-          <h2 className="font-display text-2xl font-semibold">Join the agent builder waitlist</h2>
-          <p className="mt-2 max-w-xl text-sm text-background/70">
-            We're opening in waves. Drop your email and we'll send your invite when your seat is ready.
-          </p>
-          <div className="mt-5 max-w-md">
-            <WaitlistForm source="community" />
+        {posts.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+            <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground" />
+            <p className="mt-3 font-display text-lg font-semibold">No threads yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">Start the first conversation.</p>
           </div>
-        </div>
+        ) : (
+          <ul className="space-y-3">
+            {posts.map((p) => (
+              <li key={p.id}>
+                <Link
+                  to="/community/$id"
+                  params={{ id: p.id }}
+                  className="block rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase tracking-wider text-muted-foreground">
+                      {p.category}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {p.comment_count} {p.comment_count === 1 ? "reply" : "replies"}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 font-display text-lg font-semibold">{p.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{p.body}</p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {p.author?.display_name ?? "Someone"} · {timeAgo(p.last_activity_at)}
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </SiteLayout>
   );
+}
+
+function NewPostDialog() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const create = useServerFn(createDiscussionPost);
+  const [open, setOpen] = useState(false);
+  const [authed, setAuthed] = useState<boolean | null>(null);
+  const [form, setForm] = useState({ title: "", body: "", category: "general" });
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
+  }, []);
+
+  const mut = useMutation({
+    mutationFn: () => create({ data: form }),
+    onSuccess: (r) => {
+      toast.success("Thread posted.");
+      qc.invalidateQueries({ queryKey: ["discussion-posts"] });
+      setOpen(false);
+      setForm({ title: "", body: "", category: "general" });
+      navigate({ to: "/community/$id", params: { id: r.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (authed === false) {
+    return (
+      <Button size="sm" onClick={() => navigate({ to: "/auth" })}>
+        <Plus className="h-4 w-4" /> Sign in to post
+      </Button>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm" disabled={authed === null}>
+          <Plus className="h-4 w-4" /> New thread
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader><DialogTitle>Start a thread</DialogTitle></DialogHeader>
+        <div className="grid gap-4">
+          <div className="grid gap-1.5">
+            <Label htmlFor="title">Title</Label>
+            <Input id="title" maxLength={140} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="What's on your mind?" />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="category">Category</Label>
+            <Input id="category" maxLength={40} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="general" />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="body">Body</Label>
+            <Textarea id="body" rows={6} maxLength={4000} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Share details, questions, or context." />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || form.title.trim().length < 3 || form.body.trim().length < 1}
+          >
+            {mut.isPending ? "Posting…" : "Post thread"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function timeAgo(ts: string | null | undefined): string {
+  if (!ts) return "";
+  const diff = Date.now() - new Date(ts).getTime();
+  const sec = Math.round(diff / 1000);
+  if (sec < 60) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.round(hr / 24);
+  if (day < 30) return `${day}d ago`;
+  return new Date(ts).toLocaleDateString();
 }

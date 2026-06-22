@@ -16,7 +16,6 @@ export const listAgents = createServerFn({ method: "GET" }).handler(async () => 
   const { data, error } = await sb
     .from("agents")
     .select("id,slug,name,tagline,category,capabilities,tier,price_cents,image_url,featured")
-    .eq("active", true)
     .order("featured", { ascending: false })
     .order("name");
   if (error) throw new Error(error.message);
@@ -31,7 +30,6 @@ export const getAgent = createServerFn({ method: "GET" })
       .from("agents")
       .select("*")
       .eq("slug", data.slug)
-      .eq("active", true)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return row;
@@ -42,7 +40,6 @@ export const listArticles = createServerFn({ method: "GET" }).handler(async () =
   const { data, error } = await sb
     .from("articles")
     .select("id,slug,title,excerpt,category,read_minutes,published_at")
-    .eq("published", true)
     .order("published_at", { ascending: false });
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -56,7 +53,6 @@ export const getArticle = createServerFn({ method: "GET" })
       .from("articles")
       .select("*")
       .eq("slug", data.slug)
-      .eq("published", true)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return row;
@@ -78,7 +74,6 @@ export const listServices = createServerFn({ method: "GET" }).handler(async () =
   const { data, error } = await sb
     .from("services")
     .select("id,slug,name,tagline,description,outcomes,starting_price_cents")
-    .eq("active", true)
     .order("name");
   if (error) throw new Error(error.message);
   return data ?? [];

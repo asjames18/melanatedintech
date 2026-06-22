@@ -242,8 +242,14 @@ function ArticleView() {
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAgents.map((a) => (
-                <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
+              {featuredAgents.map(({ a, reason }) => (
+                <div key={a.id} className="flex flex-col">
+                  <AgentCard {...a} capabilities={a.capabilities} />
+                  <p className="mt-2 px-1 text-xs text-muted-foreground">
+                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
+                    {reason}
+                  </p>
+                </div>
               ))}
             </div>
           </div>

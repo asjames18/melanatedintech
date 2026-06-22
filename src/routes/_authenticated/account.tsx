@@ -41,7 +41,10 @@ function Account() {
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-semibold">Saved agents</h2>
-          <Button variant="outline" size="sm" onClick={signOut}>Sign out</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild><Link to="/admin">Admin</Link></Button>
+            <Button variant="outline" size="sm" onClick={signOut}>Sign out</Button>
+          </div>
         </div>
 
         {saved.isLoading ? (

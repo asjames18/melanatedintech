@@ -353,7 +353,7 @@ function ServicesPanel() {
         columns={[
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
           { header: "Outcomes", cell: (r) => <span className="text-muted-foreground">{r.outcomes.length}</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.active} label={r.active ? "Active" : "Hidden"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>
@@ -377,7 +377,8 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
     tagline: existing?.tagline ?? "",
     description: existing?.description ?? "",
     outcomes: (existing?.outcomes ?? []).join("\n"),
-    active: existing?.active ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -409,11 +410,15 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
           <Field label="Outcomes (one per line)">
             <Textarea rows={4} value={form.outcomes} onChange={(e) => setForm({ ...form, outcomes: e.target.value })} />
           </Field>
-          <ToggleField label="Active" checked={form.active} onChange={(v) => setForm({ ...form, active: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

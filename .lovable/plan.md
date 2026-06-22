@@ -33,13 +33,13 @@ Goal: stop one-off page work; extract shared primitives so the next features lan
    - Personalized "Related agents" / "Related products" + "Recommended reading" using shared recommendation grid.
    - Impression + click tracking on every recommendation surface.
 
-## Phase 2 — Make analytics usable (1 day)
+## Phase 2 — Make analytics usable ✅
 
-Right now events sit in `localStorage`. Make them actionable.
-
-1. New table `analytics_events` (RLS: insert allowed for anon + authenticated, select admin-only via `has_role`).
-2. Server function `recordEvents({ events })` that batch-inserts; called from a debounced flush in `src/lib/analytics.ts`.
-3. Admin route `/_authenticated/admin/analytics` — top recommended items, CTR per surface, top reasons. Gated by `has_role(uid, 'admin')`.
+Shipped:
+- `analytics_events` table (RLS, GRANTs, GIN index on `props`).
+- `recordEvents` server function + debounced flush from `src/lib/analytics.ts` (session id, batch ≤50, retry on failure, flush on `pagehide`/`visibilitychange`).
+- `adminAnalyticsSummary` server function aggregating impressions, clicks, CTR by surface / item / reason.
+- Admin route `/admin/analytics` with totals + tables, gated by `has_role(uid,'admin')`.
 
 ## Phase 3 — Content discovery (2–3 days)
 

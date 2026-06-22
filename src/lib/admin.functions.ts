@@ -98,8 +98,23 @@ export const adminListMessages = createServerFn({ method: "GET" })
 // ---------- Upserts ----------
 
 const tierEnum = z.enum(["free", "premium", "custom"]);
+const statusEnum = z.enum(["draft", "scheduled", "published"]);
 
-const agentSchema = z.object({
+// Status + optional scheduled_at, with cross-field validation.
+const publishFields = {
+  status: statusEnum.default("draft"),
+  scheduled_at: z.string().datetime().nullable().optional(),
+};
+function refinePublish<T extends z.ZodTypeAny>(schema: T) {
+  return schema.superRefine((val, ctx) => {
+    const v = val as { status: string; scheduled_at?: string | null };
+    if (v.status === "scheduled" && !v.scheduled_at) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scheduled_at"], message: "Pick a date and time to schedule." });
+    }
+  });
+}
+
+const agentSchema = refinePublish(z.object({
   id: z.string().uuid().optional(),
   slug: z.string().trim().min(1).max(120),
   name: z.string().trim().min(1).max(120),
@@ -110,8 +125,8 @@ const agentSchema = z.object({
   capabilities: z.array(z.string().trim().min(1)).default([]),
   price_cents: z.number().int().nullable().optional(),
   featured: z.boolean().default(false),
-  active: z.boolean().default(true),
-});
+  ...publishFields,
+}));
 
 export const adminUpsertAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

@@ -1,16 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X, Plus } from "lucide-react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { AgentCard } from "@/components/cards";
+import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { listAgents } from "@/lib/public.functions";
 
+const PAGE_SIZE = 9;
 
 const qo = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 
+const searchSchema = z.object({
+  page: fallback(z.number().int().min(1), 1).default(1),
+});
+
 export const Route = createFileRoute("/agents")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Agent Marketplace — Melanated In Tech" },
@@ -27,6 +36,9 @@ export const Route = createFileRoute("/agents")({
 
 function AgentsIndex() {
   const { data: agents } = useSuspenseQuery(qo);
+  const { page } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(agents.map((a) => a.category)))],
     [agents],
@@ -46,6 +58,21 @@ function AgentsIndex() {
       (a.capabilities ?? []).some((c) => c.toLowerCase().includes(needle));
     return matchCat && matchTier && matchQ;
   });
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  // Reset to page 1 whenever filters change.
+  useEffect(() => {
+    if (page !== 1) navigate({ search: { page: 1 }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cat, tier, q]);
+
+  const setPage = (p: number) => {
+    navigate({ search: { page: p } });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const hasFilters = cat !== "All" || tier !== "All" || q.length > 0;
 
@@ -132,7 +159,7 @@ function AgentsIndex() {
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((a) => (
+          {paged.map((a) => (
             <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
           ))}
         </div>
@@ -142,6 +169,15 @@ function AgentsIndex() {
             <p className="mt-1 text-xs text-muted-foreground">Try clearing filters or searching a different keyword.</p>
           </div>
         )}
+
+        <Pagination
+          page={safePage}
+          pageCount={pageCount}
+          total={filtered.length}
+          pageSize={PAGE_SIZE}
+          label="agents"
+          onChange={setPage}
+        />
       </section>
     </SiteLayout>
   );

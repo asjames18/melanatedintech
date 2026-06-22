@@ -1,14 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ProductCard } from "@/components/cards";
+import { Pagination } from "@/components/pagination";
 import { listProducts } from "@/lib/public.functions";
+
+const PAGE_SIZE = 9;
 
 const qo = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() });
 
+const searchSchema = z.object({
+  page: fallback(z.number().int().min(1), 1).default(1),
+});
+
 export const Route = createFileRoute("/products")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Agent Digital Products — Melanated In Tech" },
@@ -25,6 +35,9 @@ export const Route = createFileRoute("/products")({
 
 function ProductsIndex() {
   const { data: products } = useSuspenseQuery(qo);
+  const { page } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+
   const categories = useMemo(
     () => ["All", ...Array.from(new Set(products.map((p) => p.category)))],
     [products],
@@ -43,6 +56,20 @@ function ProductsIndex() {
       p.tagline.toLowerCase().includes(needle);
     return matchCat && matchTier && matchQ;
   });
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  useEffect(() => {
+    if (page !== 1) navigate({ search: { page: 1 }, replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cat, tier, q]);
+
+  const setPage = (p: number) => {
+    navigate({ search: { page: p } });
+    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const hasFilters = cat !== "All" || tier !== "All" || q.length > 0;
 
@@ -121,7 +148,7 @@ function ProductsIndex() {
         </div>
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => <ProductCard key={p.id} {...p} />)}
+          {paged.map((p) => <ProductCard key={p.id} {...p} />)}
         </div>
         {filtered.length === 0 && (
           <div className="mt-12 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
@@ -129,6 +156,15 @@ function ProductsIndex() {
             <p className="mt-1 text-xs text-muted-foreground">Try clearing filters or searching a different keyword.</p>
           </div>
         )}
+
+        <Pagination
+          page={safePage}
+          pageCount={pageCount}
+          total={filtered.length}
+          pageSize={PAGE_SIZE}
+          label="products"
+          onChange={setPage}
+        />
       </section>
     </SiteLayout>
   );

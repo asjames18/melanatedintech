@@ -57,7 +57,10 @@ function AdminPage() {
         description="Edit marketplace listings, knowledge content, services, and review inbound activity."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex flex-wrap justify-end gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to="/admin/catalog">Catalog verification →</Link>
+          </Button>
           <Button asChild variant="outline" size="sm">
             <Link to="/admin/analytics">View analytics →</Link>
           </Button>

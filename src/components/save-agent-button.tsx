@@ -41,10 +41,7 @@ export function SaveAgentButton({ agentId }: { agentId: string }) {
 
   if (authed === false) {
     return (
-      <Button
-        variant="outline"
-        onClick={() => navigate({ to: "/auth", search: { redirect: window.location.pathname } })}
-      >
+      <Button variant="outline" onClick={() => navigate({ to: "/auth" })}>
         <Bookmark className="h-4 w-4" /> Sign in to save
       </Button>
     );

@@ -21,17 +21,51 @@ export const Route = createFileRoute("/knowledge/$slug")({
     if (!a) throw notFound();
     return { article: a };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData?.article
-      ? [
-          { title: `${loaderData.article.title} — Melanated In Tech` },
-          { name: "description", content: loaderData.article.excerpt },
-          { property: "og:title", content: loaderData.article.title },
-          { property: "og:description", content: loaderData.article.excerpt },
-          { property: "og:type", content: "article" },
-        ]
-      : [{ title: "Article — Melanated In Tech" }],
-  }),
+  head: ({ params, loaderData }) => {
+    const a = loaderData?.article;
+    const path = `/knowledge/${params.slug}`;
+    if (!a) {
+      return { meta: [{ title: "Article — Melanated In Tech" }] };
+    }
+    const title = `${a.title} — Melanated In Tech`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: a.excerpt },
+        { name: "author", content: "Melanated In Tech" },
+        { property: "og:title", content: a.title },
+        { property: "og:description", content: a.excerpt },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: path },
+        { property: "og:site_name", content: "Melanated In Tech" },
+        { property: "article:section", content: a.category },
+        ...(a.published_at
+          ? [{ property: "article:published_time", content: new Date(a.published_at).toISOString() }]
+          : []),
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: a.title },
+        { name: "twitter:description", content: a.excerpt },
+        { name: "twitter:label1", content: "Reading time" },
+        { name: "twitter:data1", content: `${a.read_minutes ?? 5} min read` },
+        { name: "twitter:label2", content: "Topic" },
+        { name: "twitter:data2", content: a.category },
+      ],
+      links: [{ rel: "canonical", href: path }],
+      scripts: [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: a.title,
+          description: a.excerpt,
+          articleSection: a.category,
+          datePublished: a.published_at ?? undefined,
+          author: { "@type": "Organization", name: "Melanated In Tech" },
+          publisher: { "@type": "Organization", name: "Melanated In Tech" },
+        }),
+      }],
+    };
+  },
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => (
     <SiteLayout>

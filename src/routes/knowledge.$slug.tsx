@@ -210,7 +210,15 @@ function ArticleView() {
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {related.map((a) => <ArticleCard key={a.id} {...a} />)}
+              {related.map(({ a, reason }) => (
+                <div key={a.id} className="flex flex-col">
+                  <ArticleCard {...a} />
+                  <p className="mt-2 px-1 text-xs text-muted-foreground">
+                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
+                    {reason}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

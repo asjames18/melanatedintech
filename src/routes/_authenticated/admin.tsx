@@ -58,7 +58,7 @@ function AdminPage() {
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-6 flex justify-end">
           <Button asChild variant="outline" size="sm">
-            <Link to="/_authenticated/admin/analytics">View analytics →</Link>
+            <Link to="/admin/analytics">View analytics →</Link>
           </Button>
         </div>
         <Tabs defaultValue="agents">

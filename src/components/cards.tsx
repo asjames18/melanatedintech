@@ -88,10 +88,14 @@ export function ArticleCard({
 }
 
 export function ProductCard({
-  name, tagline, category, tier,
-}: { name: string; tagline: string; category: string; tier: Tier }) {
+  slug, name, tagline, category, tier,
+}: { slug: string; name: string; tagline: string; category: string; tier: Tier }) {
   return (
-    <div className="flex flex-col rounded-2xl border border-border bg-card p-6">
+    <Link
+      to="/products/$slug"
+      params={{ slug }}
+      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+    >
       <div className="flex items-start justify-between">
         <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent2/15 text-accent2">
           <Package className="h-5 w-5" />
@@ -101,8 +105,10 @@ export function ProductCard({
       <p className="mt-4 text-xs uppercase tracking-wider text-muted-foreground">{category}</p>
       <h3 className="mt-1 font-display text-lg font-semibold">{name}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{tagline}</p>
-      <p className="mt-4 text-xs text-muted-foreground">Built for AI agent builders.</p>
-    </div>
+      <div className="mt-6 flex items-center gap-1 text-sm font-medium text-primary">
+        View details <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </div>
+    </Link>
   );
 }
 

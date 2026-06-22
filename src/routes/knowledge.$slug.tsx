@@ -183,6 +183,11 @@ function ArticleView() {
 
   return (
     <SiteLayout>
+      <div
+        className="sticky top-0 z-30 h-1 bg-primary/80 transition-[width] duration-150"
+        style={{ width: `${progressPct}%` }}
+        aria-hidden
+      />
       <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
         <Link to="/knowledge" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Knowledge hub
@@ -196,6 +201,25 @@ function ArticleView() {
           {article.title}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
+
+        {author.data && (
+          <Link
+            to="/authors/$slug"
+            params={{ slug: author.data.slug }}
+            className="mt-5 inline-flex items-center gap-3 rounded-full border bg-card px-3 py-1.5 transition-colors hover:border-foreground/30"
+          >
+            {author.data.avatar_url ? (
+              <img src={author.data.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+            ) : (
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-xs font-semibold">
+                {author.data.name.slice(0, 1).toUpperCase()}
+              </span>
+            )}
+            <span className="text-sm font-medium">{author.data.name}</span>
+            <LinkIcon className="h-3 w-3 text-muted-foreground" />
+          </Link>
+        )}
+
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <ShareBar title={article.title} text={article.excerpt} />
           <SaveArticleButton articleId={article.id} />
@@ -206,6 +230,7 @@ function ArticleView() {
           <ShareBar title={article.title} text={article.excerpt} className="mt-3" />
         </div>
       </article>
+
 
       {related.length > 0 && (
         <section className="border-t border-border bg-muted/30">

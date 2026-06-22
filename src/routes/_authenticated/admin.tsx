@@ -163,7 +163,8 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
     tier: (existing?.tier ?? "free") as "free" | "premium" | "custom",
     capabilities: (existing?.capabilities ?? []).join("\n"),
     featured: existing?.featured ?? false,
-    active: existing?.active ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -210,14 +211,16 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
           <Field label="Capabilities (one per line)">
             <Textarea rows={4} value={form.capabilities} onChange={(e) => setForm({ ...form, capabilities: e.target.value })} />
           </Field>
-          <div className="flex items-center gap-6">
-            <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
-            <ToggleField label="Active" checked={form.active} onChange={(v) => setForm({ ...form, active: v })} />
-          </div>
+          <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

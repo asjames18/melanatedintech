@@ -6,7 +6,37 @@ import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { useReadingInterests, interestScore, topCategories } from "@/hooks/use-reading-interests";
+import { useImpression } from "@/hooks/use-impression";
+import { trackEvent } from "@/lib/analytics";
 import { ArrowLeft, Sparkles } from "lucide-react";
+
+type RecMeta = {
+  surface: "related_reading" | "featured_agents";
+  itemType: "article" | "agent";
+  itemSlug: string;
+  itemCategory: string;
+  reason: string;
+  position: number;
+  personalized: boolean;
+  sourceArticleSlug: string;
+  sourceArticleCategory: string;
+};
+
+function RecommendationItem({ meta, children }: { meta: RecMeta; children: React.ReactNode }) {
+  const ref = useImpression<HTMLDivElement>(
+    () => trackEvent("recommendation_impression", meta),
+    { key: `${meta.surface}:${meta.itemSlug}:${meta.sourceArticleSlug}` },
+  );
+  return (
+    <div
+      ref={ref}
+      className="flex flex-col"
+      onClickCapture={() => trackEvent("recommendation_click", meta)}
+    >
+      {children}
+    </div>
+  );
+}
 
 const qo = (slug: string) =>
   queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });
@@ -210,14 +240,27 @@ function ArticleView() {
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {related.map(({ a, reason }) => (
-                <div key={a.id} className="flex flex-col">
+              {related.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "related_reading",
+                    itemType: "article",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceArticleSlug: article.slug,
+                    sourceArticleCategory: article.category,
+                  }}
+                >
                   <ArticleCard {...a} />
                   <p className="mt-2 px-1 text-xs text-muted-foreground">
                     <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
                     {reason}
                   </p>
-                </div>
+                </RecommendationItem>
               ))}
             </div>
           </div>
@@ -242,14 +285,27 @@ function ArticleView() {
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAgents.map(({ a, reason }) => (
-                <div key={a.id} className="flex flex-col">
+              {featuredAgents.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "featured_agents",
+                    itemType: "agent",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceArticleSlug: article.slug,
+                    sourceArticleCategory: article.category,
+                  }}
+                >
                   <AgentCard {...a} capabilities={a.capabilities} />
                   <p className="mt-2 px-1 text-xs text-muted-foreground">
                     <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
                     {reason}
                   </p>
-                </div>
+                </RecommendationItem>
               ))}
             </div>
           </div>

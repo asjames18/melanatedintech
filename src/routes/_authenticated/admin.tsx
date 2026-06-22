@@ -664,7 +664,7 @@ function PublishBadge({ status, scheduledAt }: { status: PublishStatus; schedule
       : "Draft";
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ring-1 ${tone}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current/50"}`} />
+      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current opacity-50"}`} />
       {label}
     </span>
   );

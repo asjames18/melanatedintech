@@ -23,6 +23,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
+import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -98,6 +99,11 @@ const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => KnowledgeRoute,
 } as any)
+const CommunityIdRoute = CommunityIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CommunityRoute,
+} as any)
 const AgentsSlugRoute = AgentsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -131,7 +137,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -151,7 +158,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
@@ -162,6 +169,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -173,7 +181,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
-  '/community': typeof CommunityRoute
+  '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
@@ -184,6 +192,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
+  '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/admin/analytics'
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/submit-agent'
     | '/agents/$slug'
+    | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/admin/analytics'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
+    | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
     | '/_authenticated/admin/analytics'
@@ -258,7 +270,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRouteWithChildren
   AuthRoute: typeof AuthRoute
-  CommunityRoute: typeof CommunityRoute
+  CommunityRoute: typeof CommunityRouteWithChildren
   ContactRoute: typeof ContactRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
   ProductsRoute: typeof ProductsRouteWithChildren
@@ -367,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KnowledgeSlugRouteImport
       parentRoute: typeof KnowledgeRoute
     }
+    '/community/$id': {
+      id: '/community/$id'
+      path: '/$id'
+      fullPath: '/community/$id'
+      preLoaderRoute: typeof CommunityIdRouteImport
+      parentRoute: typeof CommunityRoute
+    }
     '/agents/$slug': {
       id: '/agents/$slug'
       path: '/$slug'
@@ -442,6 +461,18 @@ const AgentsRouteChildren: AgentsRouteChildren = {
 const AgentsRouteWithChildren =
   AgentsRoute._addFileChildren(AgentsRouteChildren)
 
+interface CommunityRouteChildren {
+  CommunityIdRoute: typeof CommunityIdRoute
+}
+
+const CommunityRouteChildren: CommunityRouteChildren = {
+  CommunityIdRoute: CommunityIdRoute,
+}
+
+const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
+  CommunityRouteChildren,
+)
+
 interface KnowledgeRouteChildren {
   KnowledgeSlugRoute: typeof KnowledgeSlugRoute
 }
@@ -472,7 +503,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRouteWithChildren,
   AuthRoute: AuthRoute,
-  CommunityRoute: CommunityRoute,
+  CommunityRoute: CommunityRouteWithChildren,
   ContactRoute: ContactRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
   ProductsRoute: ProductsRouteWithChildren,

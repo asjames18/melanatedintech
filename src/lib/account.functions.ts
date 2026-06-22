@@ -77,3 +77,45 @@ export const toggleSavedAgent = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { saved: true };
   });
+
+// ---------- Saved articles ----------
+
+export const listMySavedArticles = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase
+      .from("saved_articles")
+      .select("article_id, created_at, articles(id, slug, title, excerpt, category, read_minutes, published_at)")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
+
+export const listMySavedArticleIds = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data, error } = await context.supabase.from("saved_articles").select("article_id");
+    if (error) throw new Error(error.message);
+    return (data ?? []).map((r) => r.article_id);
+  });
+
+export const toggleSavedArticle = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ articleId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const existing = await context.supabase
+      .from("saved_articles")
+      .select("id")
+      .eq("user_id", context.userId)
+      .eq("article_id", data.articleId)
+      .maybeSingle();
+    if (existing.data) {
+      await context.supabase.from("saved_articles").delete().eq("id", existing.data.id);
+      return { saved: false };
+    }
+    const { error } = await context.supabase
+      .from("saved_articles")
+      .insert({ user_id: context.userId, article_id: data.articleId });
+    if (error) throw new Error(error.message);
+    return { saved: true };
+  });

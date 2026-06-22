@@ -136,7 +136,7 @@ function AgentsPanel() {
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
           { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
           { header: "Tier", cell: (r) => <span className="capitalize">{r.tier}</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.active} label={r.active ? "Active" : "Hidden"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>

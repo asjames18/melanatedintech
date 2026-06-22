@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { SaveAgentButton } from "@/components/save-agent-button";
 import { getAgent, listAgents } from "@/lib/public.functions";
 import { ArrowLeft, Bot, CheckCircle2, Layers, Sparkles, Tag } from "lucide-react";
 

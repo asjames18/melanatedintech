@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { SaveAgentButton } from "@/components/save-agent-button";
 import { getAgent, listAgents } from "@/lib/public.functions";
 import { ArrowLeft, Bot, CheckCircle2, Layers, Sparkles, Tag } from "lucide-react";
 
@@ -70,13 +71,14 @@ function AgentDetail() {
               <p className="text-xs uppercase tracking-wider text-primary">{agent.category}</p>
               <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{agent.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{agent.tagline}</p>
-              <div className="mt-4 flex items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2">
                 <TierBadge tier={agent.tier} />
                 {agent.featured && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-accent2/15 px-2 py-0.5 text-xs font-medium text-accent2">
                     <Sparkles className="h-3 w-3" /> Featured
                   </span>
                 )}
+                <div className="ml-auto"><SaveAgentButton agentId={agent.id} /></div>
               </div>
             </div>
           </div>

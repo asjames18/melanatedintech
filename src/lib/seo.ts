@@ -37,3 +37,73 @@ export function buildSeoMeta(input: SeoInput): MetaTag[] {
   }
   return meta;
 }
+
+// ---------- JSON-LD helpers ----------
+
+type JsonLd = Record<string, unknown>;
+
+export function ldScript(data: JsonLd) {
+  return { type: "application/ld+json", children: JSON.stringify(data) };
+}
+
+export function organizationLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: DEFAULT_SITE,
+    description:
+      "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+  };
+}
+
+export function articleLd(a: {
+  title: string;
+  excerpt?: string | null;
+  category?: string | null;
+  published_at?: string | null;
+  url?: string;
+  image?: string | null;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: a.title,
+    description: a.excerpt ?? undefined,
+    articleSection: a.category ?? undefined,
+    datePublished: a.published_at ?? undefined,
+    image: a.image ?? undefined,
+    mainEntityOfPage: a.url ?? undefined,
+    author: { "@type": "Organization", name: DEFAULT_SITE },
+    publisher: { "@type": "Organization", name: DEFAULT_SITE },
+  };
+}
+
+export function productLd(p: {
+  name: string;
+  tagline?: string | null;
+  category?: string | null;
+  image?: string | null;
+  price_cents?: number | null;
+  url?: string;
+}) {
+  const offers =
+    p.price_cents != null
+      ? {
+          "@type": "Offer",
+          price: (p.price_cents / 100).toFixed(2),
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: p.url ?? undefined,
+        }
+      : undefined;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    description: p.tagline ?? undefined,
+    category: p.category ?? undefined,
+    image: p.image ?? undefined,
+    brand: { "@type": "Organization", name: DEFAULT_SITE },
+    offers,
+  };
+}

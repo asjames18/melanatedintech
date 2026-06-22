@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
@@ -9,6 +9,7 @@ import { ArticleCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles } from "@/lib/public.functions";
+import { useReadingProgressList } from "@/hooks/use-reading-progress";
 
 const PAGE_SIZE = 9;
 

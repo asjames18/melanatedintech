@@ -1,35 +1,54 @@
+import { useEffect, useMemo } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
-import { AgentCard, TierBadge } from "@/components/cards";
+import { AgentCard, ArticleCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { SaveAgentButton } from "@/components/save-agent-button";
-import { getAgent, listAgents } from "@/lib/public.functions";
+import { ShareBar } from "@/components/share-bar";
+import { RecommendationItem } from "@/components/recommendation-item";
+import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
+import { useInterests } from "@/hooks/use-interests";
+import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
+import { buildSeoMeta } from "@/lib/seo";
 import { ArrowLeft, Bot, CheckCircle2, Layers, Sparkles, Tag } from "lucide-react";
 
 const agentQO = (slug: string) =>
   queryOptions({ queryKey: ["agent", slug], queryFn: () => getAgent({ data: { slug } }) });
 const allAgentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
+const allArticlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
 
 export const Route = createFileRoute("/agents/$slug")({
   loader: async ({ context, params }) => {
     const [agent] = await Promise.all([
       context.queryClient.ensureQueryData(agentQO(params.slug)),
       context.queryClient.ensureQueryData(allAgentsQO),
+      context.queryClient.ensureQueryData(allArticlesQO),
     ]);
     if (!agent) throw notFound();
     return { agent };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData?.agent
-      ? [
-          { title: `${loaderData.agent.name} — AI Agent | Melanated In Tech` },
-          { name: "description", content: loaderData.agent.tagline },
-          { property: "og:title", content: `${loaderData.agent.name} — AI Agent` },
-          { property: "og:description", content: loaderData.agent.tagline },
-        ]
-      : [{ title: "Agent — Melanated In Tech" }],
-  }),
+  head: ({ params, loaderData }) => {
+    const a = loaderData?.agent;
+    const path = `/agents/${params.slug}`;
+    if (!a) return { meta: [{ title: "Agent — Melanated In Tech" }] };
+    return {
+      meta: [
+        ...buildSeoMeta({
+          title: `${a.name} — AI Agent | Melanated In Tech`,
+          description: a.tagline,
+          url: path,
+          type: "product",
+          image: a.image_url ?? null,
+        }),
+        { name: "twitter:label1", content: "Category" },
+        { name: "twitter:data1", content: a.category },
+        { name: "twitter:label2", content: "Tier" },
+        { name: "twitter:data2", content: a.tier },
+      ],
+      links: [{ rel: "canonical", href: path }],
+    };
+  },
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => (
     <SiteLayout>
@@ -49,11 +68,67 @@ function AgentDetail() {
   const { slug } = Route.useParams();
   const { data: agent } = useSuspenseQuery(agentQO(slug));
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
-  if (!agent) return null;
+  const { data: allArticles } = useSuspenseQuery(allArticlesQO);
+  const { interests, recordVisit } = useInterests("agent");
+  const { interests: readingInterests } = useInterests("article");
 
-  const related = allAgents
-    .filter((a) => a.slug !== agent.slug && a.category === agent.category)
-    .slice(0, 3);
+  useEffect(() => {
+    if (agent) recordVisit(agent.slug, agent.category);
+  }, [agent, recordVisit]);
+
+  const { related, recommendedReading, personalized, topInterests } = useMemo(() => {
+    if (!agent) return { related: [], recommendedReading: [], personalized: false, topInterests: [] as string[] };
+    const cats = interests.categories;
+    const readingCats = readingInterests.categories;
+    const hasHistory = Object.keys(cats).length + Object.keys(readingCats).length > 0;
+
+    const related = allAgents
+      .filter((a) => a.slug !== agent.slug && !interests.recent.includes(a.slug))
+      .map((a) => ({
+        a,
+        score:
+          (a.category === agent.category ? 5 : 0) +
+          interestScore(cats, a.category) * 2 +
+          interestScore(readingCats, a.category) +
+          (a.featured ? 1 : 0),
+        reason: reasonFor({
+          categories: { ...readingCats, ...cats },
+          sourceCategory: agent.category,
+          itemCategory: a.category,
+          activeVerb: "exploring",
+          fallback: a.featured ? "Featured pick from the team" : `More ${a.category} agents`,
+        }),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3);
+
+    const recommendedReading = allArticles
+      .map((art) => ({
+        a: art,
+        score:
+          (art.category === agent.category ? 4 : 0) +
+          interestScore(readingCats, art.category) +
+          interestScore(cats, art.category),
+        reason: reasonFor({
+          categories: { ...readingCats, ...cats },
+          sourceCategory: agent.category,
+          itemCategory: art.category,
+          activeVerb: "exploring",
+          fallback: `Background on ${art.category}`,
+        }),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3);
+
+    return {
+      related,
+      recommendedReading,
+      personalized: hasHistory,
+      topInterests: topCategories({ ...readingCats, ...cats }, 3),
+    };
+  }, [agent, allAgents, allArticles, interests, readingInterests]);
+
+  if (!agent) return null;
 
   return (
     <SiteLayout>
@@ -89,6 +164,8 @@ function AgentDetail() {
             <Stat icon={Sparkles} label="Tier" value={agent.tier} capitalize />
             <Stat icon={CheckCircle2} label="Status" value="Onboarding" />
           </div>
+
+          <ShareBar title={agent.name} text={agent.tagline} className="mt-6" />
         </div>
       </section>
 
@@ -132,14 +209,73 @@ function AgentDetail() {
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-primary">Related</p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">More {agent.category} agents</h2>
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                  {personalized ? "Picked for you" : "Related"}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">
+                  {personalized && topInterests.length > 0
+                    ? `More agents for ${topInterests.slice(0, 2).join(" & ")}`
+                    : `More ${agent.category} agents`}
+                </h2>
               </div>
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">All agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((a) => (
-                <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
+              {related.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "agent:related_agents",
+                    itemType: "agent",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceType: "agent",
+                    sourceSlug: agent.slug,
+                    sourceCategory: agent.category,
+                  }}
+                >
+                  <AgentCard {...a} capabilities={a.capabilities} />
+                </RecommendationItem>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {recommendedReading.length > 0 && (
+        <section className="border-t border-border">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-accent2">
+                  <Sparkles className="h-3 w-3" /> Recommended reading
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">Sharpen your context</h2>
+              </div>
+              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">Knowledge hub →</Link>
+            </div>
+            <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+              {recommendedReading.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "agent:recommended_reading",
+                    itemType: "article",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceType: "agent",
+                    sourceSlug: agent.slug,
+                    sourceCategory: agent.category,
+                  }}
+                >
+                  <ArticleCard {...a} />
+                </RecommendationItem>
               ))}
             </div>
           </div>

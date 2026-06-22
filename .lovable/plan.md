@@ -1,71 +1,75 @@
-## Melanated In Tech — MVP Build
+# Melanated In Tech — Full Development Plan
 
-An AI-agent-first platform where every pillar (marketplace, knowledge, products, services, community) orbits one identity: **AI agents**. Not generic AI education — a destination for people who build, deploy, and benefit from agents.
+You're right that recent work has been scattered (detail pages → share bar → OG tags → personalization → reasons → tracking). Here is a single roadmap that organizes everything already shipped and everything still to build, in the order that will keep momentum without rework.
 
-### Visual direction
-- Clean modern tech: slate `#0F172A`, brand blue `#3B82F6`, emerald accent `#10B981`, light surface `#F8FAFC`
-- Type: Space Grotesk (display) + Inter (body) via `@fontsource`
-- Subtle grid background on hero, soft cards, rounded-2xl, refined tier badges
-- Dark mode supported via existing `.dark` tokens
+## Where we are today
 
-### Routes (file-based)
-```text
-/                Home — agent-first hero, featured agents, knowledge picks, pillar grid, waitlist
-/about           Vision, mission, core belief — framed around agents
-/agents          Marketplace: filter by category + tier
-/agents/$slug    Agent detail (capabilities, description, save button, related)
-/knowledge       Knowledge Hub index — filter by category
-/knowledge/$slug Article detail (markdown body rendered)
-/products        Digital Products (kits, blueprints, prompt libs, SOPs, MCP collections)
-/services        Professional services (strategy sprint, custom build, ministry, workshop)
-/community       Builder community teaser + waitlist
-/contact         Contact form
-/auth            Sign in / Sign up (email+password + Google)
-/_authenticated/account  Profile + saved agents
-```
-Each route gets its own `head()` with unique title/description/og tags.
+Shipped:
+- Routes: home, about, agents (list + detail), knowledge (list + detail), products (list + detail), services, community, contact, auth, account.
+- Backend: agents, articles, products, services, waitlist, contact, profiles, user_roles, saved_agents — RLS + GRANTs + seed.
+- Knowledge detail: share/copy buttons, dynamic OG/Twitter tags, personalized "Related reading" + "Featured agents", "Because you're reading…" reasons, impression + click analytics.
 
-### Lovable Cloud (already enabled)
-Tables (created with GRANTs + RLS + seed data):
-- `agents` — slug, name, tagline, category, capabilities[], tier (free/premium/custom), price_cents, featured, active (public read)
-- `articles` — slug, title, excerpt, body (markdown), category, read_minutes, published (public read)
-- `products` — slug, name, tagline, category, tier, price_cents (public read)
-- `services` — slug, name, tagline, description, outcomes[] (public read)
-- `waitlist_signups` — email, source, interest (insert via server fn, admin read)
-- `contact_messages` — name, email, organization, topic, message (insert via server fn, admin read)
-- `profiles` — auto-created on signup, user-owned
-- `user_roles` + `app_role` enum + `has_role()` security-definer (admin gating)
-- `saved_agents` — user-owned
+Gaps causing the "all over the place" feeling:
+- Personalization + analytics only exist on `/knowledge/$slug`. Agents and Products detail pages are inconsistent.
+- No shared recommendation / share / SEO primitives — logic is inlined per page.
+- Analytics events go to localStorage only; no way to actually read them.
+- Auth, account, and admin areas are thin.
+- No search, no pagination on long lists, no sitemap.
 
-Seeded with 8 agents, 6 articles, 6 products, 4 services covering church/ministry, business, sales, creators, research, support, productivity, fundamentals, memory, MCP, multi-agent, local AI, skills.
+## Phase 1 — Consolidate what exists (1–2 days)
 
-Auth: email/password + Google (managed). `_authenticated/route.tsx` gates the account area.
+Goal: stop one-off page work; extract shared primitives so the next features land everywhere at once.
 
-### Server functions (`src/lib/*.functions.ts`)
-- `listAgents`, `getAgent({slug})`, `listArticles`, `getArticle`, `listProducts`, `listServices` — public read via server publishable client
-- `joinWaitlist`, `submitContact` — public POST, zod-validated, written via service-role inside handler
-- `getMyProfile`, `listMySavedAgents`, `toggleSavedAgent` — `requireSupabaseAuth`
+1. Shared components in `src/components/`:
+   - `share-bar.tsx` — already exists; generalize props (`title`, `url`, `summary`) so agents/products can reuse.
+   - `seo-head.ts` helper — single function returning the `meta` array for `head()` from `{ title, description, image, url, type }`.
+   - `recommendation-grid.tsx` — wraps the impression/click `RecommendationItem` pattern, takes `items`, `surface`, `renderCard`, `reasonFor`.
+2. Shared hooks/lib:
+   - Move `reasonFor` out of `knowledge.$slug.tsx` into `src/lib/recommendations.ts` alongside `interestScore` / `topCategories`.
+   - Extend `use-reading-interests` → `use-interests` covering articles, agents, products (one keyed store per kind).
+3. Apply to `/agents/$slug` and `/products/$slug`:
+   - Dynamic OG/Twitter tags via `seo-head`.
+   - Share bar.
+   - Personalized "Related agents" / "Related products" + "Recommended reading" using shared recommendation grid.
+   - Impression + click tracking on every recommendation surface.
 
-### Components
-- `SiteHeader` (sticky, mobile menu, sign-in/account toggle)
-- `SiteFooter` (links + footer waitlist)
-- `Hero` (agent-first headline + dual CTA)
-- `AgentCard`, `ArticleCard`, `ProductCard`, `ServiceCard`, `TierBadge`
-- `WaitlistForm` (reusable: home, community, footer)
-- `ContactForm`
+## Phase 2 — Make analytics usable (1 day)
 
-### Design system
-- `src/styles.css` updated with brand tokens, Space Grotesk/Inter, gradient utility, grid utility
-- All tokens semantic — no hardcoded colors in components
+Right now events sit in `localStorage`. Make them actionable.
 
-### SEO
-- Per-route `head()` with title/description/og:title/og:description
-- Single H1 per page, semantic landmarks, alt text on icons via aria
+1. New table `analytics_events` (RLS: insert allowed for anon + authenticated, select admin-only via `has_role`).
+2. Server function `recordEvents({ events })` that batch-inserts; called from a debounced flush in `src/lib/analytics.ts`.
+3. Admin route `/_authenticated/admin/analytics` — top recommended items, CTR per surface, top reasons. Gated by `has_role(uid, 'admin')`.
 
-### Out of scope (future)
-- Payments / checkout
-- Article authoring UI / admin dashboard
-- Full community forum (threads, posts)
-- Search, comments, ratings, downloads
+## Phase 3 — Content discovery (2–3 days)
 
-Switch to build mode and I'll ship this end to end in one pass.
+1. Search: lightweight client-side fuzzy search (`fuse.js`) across agents, articles, products. Single `/search` route + header search input.
+2. Pagination + filters: shared `Pagination` (already present) wired into agents, knowledge, products lists with category + tier filters in URL search params (`Route.useSearch`).
+3. Sitemap + robots: `src/routes/api/public/sitemap.xml.ts` server route enumerating all slugs from the DB. Add `/robots.txt`.
+4. JSON-LD: `Article` schema on knowledge detail, `Product` schema on products detail, `Organization` schema on root.
+
+## Phase 4 — Account + community depth (2–3 days)
+
+1. Account: saved agents (exists) + saved articles + reading history surfaced from `use-interests`.
+2. Profile editor polish (avatar upload via Storage bucket `avatars`).
+3. Community: gated discussion stub — `posts` + `comments` tables, RLS by `auth.uid()`, basic thread view. Keep scope tight: list + create + reply, no moderation UI yet.
+4. Submit-agent flow (route already exists): move to a proper multi-step form, admin review queue in `/_authenticated/admin`.
+
+## Phase 5 — Monetization + launch (3–5 days)
+
+1. Stripe via Lovable's Stripe connector: paid product checkout for `products` with `tier = premium`, and "premium agent unlock" on agents.
+2. Entitlements table `user_entitlements (user_id, sku, granted_at)` written by Stripe webhook in `src/routes/api/public/stripe-webhook.ts` (signature-verified).
+3. Gate premium content + downloads on entitlements.
+4. Transactional email via Lovable Email: waitlist welcome, contact auto-reply, purchase receipt.
+5. Launch checklist: OG image per route, favicon set, performance pass (image sizes, lazy loading), publish.
+
+## Technical notes
+
+- Keep all colors/typography on semantic tokens already defined in `src/styles.css`. No new hardcoded hex.
+- All app-internal server logic stays in `createServerFn` under `src/lib/*.functions.ts`. Webhooks/sitemap go under `src/routes/api/public/`.
+- New tables: each migration MUST include `GRANT` + `ENABLE ROW LEVEL SECURITY` + policies, per project rules.
+- Recommendation logic should be deterministic on the server-rendered pass so OG/preview tools don't see empty grids; personalization layer hydrates on the client.
+
+## What I'd build next (recommend Phase 1)
+
+Phase 1 directly addresses the "all over the place" feeling — it converts the knowledge-page features into reusable primitives and applies them uniformly to agents and products. Approve and I'll start there; otherwise tell me which phase to lead with.

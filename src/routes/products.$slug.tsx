@@ -1,9 +1,15 @@
+import { useEffect, useMemo } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { ProductCard, AgentCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { ShareBar } from "@/components/share-bar";
+import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
+import { useInterests } from "@/hooks/use-interests";
+import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
+import { buildSeoMeta } from "@/lib/seo";
 import { ArrowLeft, Package, Sparkles, Tag, Wallet } from "lucide-react";
 
 const productQO = (slug: string) =>
@@ -28,16 +34,27 @@ export const Route = createFileRoute("/products/$slug")({
     if (!product) throw notFound();
     return { product };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData?.product
-      ? [
-          { title: `${loaderData.product.name} — Digital Product | Melanated In Tech` },
-          { name: "description", content: loaderData.product.tagline },
-          { property: "og:title", content: loaderData.product.name },
-          { property: "og:description", content: loaderData.product.tagline },
-        ]
-      : [{ title: "Product — Melanated In Tech" }],
-  }),
+  head: ({ params, loaderData }) => {
+    const p = loaderData?.product;
+    const path = `/products/${params.slug}`;
+    if (!p) return { meta: [{ title: "Product — Melanated In Tech" }] };
+    return {
+      meta: [
+        ...buildSeoMeta({
+          title: `${p.name} — Digital Product | Melanated In Tech`,
+          description: p.tagline,
+          url: path,
+          type: "product",
+          image: p.image_url ?? null,
+        }),
+        { name: "twitter:label1", content: "Category" },
+        { name: "twitter:data1", content: p.category },
+        { name: "twitter:label2", content: "Price" },
+        { name: "twitter:data2", content: formatPrice(p.price_cents, p.tier) },
+      ],
+      links: [{ rel: "canonical", href: path }],
+    };
+  },
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => (
     <SiteLayout>
@@ -57,10 +74,66 @@ function ProductDetail() {
   const { data: product } = useSuspenseQuery(productQO(slug));
   const { data: allProducts } = useSuspenseQuery(allProductsQO);
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
-  if (!product) return null;
+  const { interests, recordVisit } = useInterests("product");
+  const { interests: agentInterests } = useInterests("agent");
 
-  const related = allProducts.filter((p) => p.slug !== product.slug && p.category === product.category).slice(0, 3);
-  const featuredAgents = allAgents.filter((a) => a.featured).slice(0, 3);
+  useEffect(() => {
+    if (product) recordVisit(product.slug, product.category);
+  }, [product, recordVisit]);
+
+  const { related, pairedAgents, personalized, topInterests } = useMemo(() => {
+    if (!product) return { related: [], pairedAgents: [], personalized: false, topInterests: [] as string[] };
+    const cats = interests.categories;
+    const ag = agentInterests.categories;
+    const hasHistory = Object.keys(cats).length + Object.keys(ag).length > 0;
+
+    const related = allProducts
+      .filter((p) => p.slug !== product.slug && !interests.recent.includes(p.slug))
+      .map((p) => ({
+        a: p,
+        score:
+          (p.category === product.category ? 5 : 0) +
+          interestScore(cats, p.category) * 2 +
+          interestScore(ag, p.category),
+        reason: reasonFor({
+          categories: { ...ag, ...cats },
+          sourceCategory: product.category,
+          itemCategory: p.category,
+          activeVerb: "browsing",
+          fallback: `More ${p.category}`,
+        }),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3);
+
+    const pairedAgents = allAgents
+      .map((a) => ({
+        a,
+        score:
+          (a.category === product.category ? 4 : 0) +
+          interestScore(ag, a.category) * 2 +
+          interestScore(cats, a.category) +
+          (a.featured ? 1 : 0),
+        reason: reasonFor({
+          categories: { ...ag, ...cats },
+          sourceCategory: product.category,
+          itemCategory: a.category,
+          activeVerb: "browsing",
+          fallback: a.featured ? "Featured pick from the team" : `Pairs with ${a.category}`,
+        }),
+      }))
+      .sort((x, y) => y.score - x.score)
+      .slice(0, 3);
+
+    return {
+      related,
+      pairedAgents,
+      personalized: hasHistory,
+      topInterests: topCategories({ ...ag, ...cats }, 3),
+    };
+  }, [product, allProducts, allAgents, interests, agentInterests]);
+
+  if (!product) return null;
 
   return (
     <SiteLayout>
@@ -89,6 +162,7 @@ function ProductDetail() {
               </div>
             </div>
           </div>
+          <ShareBar title={product.name} text={product.tagline} className="mt-6" />
         </div>
       </section>
 
@@ -117,33 +191,73 @@ function ProductDetail() {
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-primary">Related</p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">More {product.category}</h2>
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                  {personalized ? "Picked for you" : "Related"}
+                </p>
+                <h2 className="mt-1 font-display text-2xl font-semibold">
+                  {personalized && topInterests.length > 0
+                    ? `More for ${topInterests.slice(0, 2).join(" & ")}`
+                    : `More ${product.category}`}
+                </h2>
               </div>
               <Link to="/products" className="text-sm font-medium text-primary hover:underline">All products →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {related.map((p) => <ProductCard key={p.id} {...p} />)}
+              {related.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "product:related_products",
+                    itemType: "product",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceType: "product",
+                    sourceSlug: product.slug,
+                    sourceCategory: product.category,
+                  }}
+                >
+                  <ProductCard {...a} />
+                </RecommendationItem>
+              ))}
             </div>
           </div>
         </section>
       )}
 
-      {featuredAgents.length > 0 && (
+      {pairedAgents.length > 0 && (
         <section className="border-t border-border">
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex items-end justify-between gap-4">
               <div>
                 <p className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-accent2">
-                  <Sparkles className="h-3 w-3" /> Featured agents
+                  <Sparkles className="h-3 w-3" /> Paired agents
                 </p>
                 <h2 className="mt-1 font-display text-2xl font-semibold">Pair this with a ready-to-use agent</h2>
               </div>
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAgents.map((a) => (
-                <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
+              {pairedAgents.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "product:paired_agents",
+                    itemType: "agent",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceType: "product",
+                    sourceSlug: product.slug,
+                    sourceCategory: product.category,
+                  }}
+                >
+                  <AgentCard {...a} capabilities={a.capabilities} />
+                </RecommendationItem>
               ))}
             </div>
           </div>

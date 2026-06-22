@@ -126,7 +126,12 @@ function ArticleView() {
     const cats = interests.categories;
     const hasHistory = Object.keys(cats).length > 0;
 
-    // Related: weight same-category highest, then by reader's interest score, then recency.
+    const reasonFor = (cat: string, fallback: string) => {
+      if (cat === article.category) return `Because you're reading ${article.category}`;
+      if (interestScore(cats, cat) > 0) return `Because you've been reading ${cat}`;
+      return fallback;
+    };
+
     const related = allArticles
       .filter((a) => a.slug !== article.slug && !interests.recent.includes(a.slug))
       .map((a) => ({
@@ -135,12 +140,11 @@ function ArticleView() {
           (a.category === article.category ? 5 : 0) +
           interestScore(cats, a.category) +
           (a.published_at ? new Date(a.published_at).getTime() / 1e13 : 0),
+        reason: reasonFor(a.category, `More in ${a.category}`),
       }))
       .sort((x, y) => y.score - x.score)
-      .slice(0, 3)
-      .map((x) => x.a);
+      .slice(0, 3);
 
-    // Featured agents: weight by current article category + reader interests, keep featured as tiebreak.
     const featuredAgents = allAgents
       .map((a) => ({
         a,
@@ -148,10 +152,13 @@ function ArticleView() {
           (a.category === article.category ? 4 : 0) +
           interestScore(cats, a.category) * 2 +
           (a.featured ? 1 : 0),
+        reason: reasonFor(
+          a.category,
+          a.featured ? "Featured pick from the team" : `Pairs with ${a.category}`,
+        ),
       }))
       .sort((x, y) => y.score - x.score)
-      .slice(0, 3)
-      .map((x) => x.a);
+      .slice(0, 3);
 
     return {
       related,
@@ -203,7 +210,15 @@ function ArticleView() {
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {related.map((a) => <ArticleCard key={a.id} {...a} />)}
+              {related.map(({ a, reason }) => (
+                <div key={a.id} className="flex flex-col">
+                  <ArticleCard {...a} />
+                  <p className="mt-2 px-1 text-xs text-muted-foreground">
+                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
+                    {reason}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -227,8 +242,14 @@ function ArticleView() {
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {featuredAgents.map((a) => (
-                <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
+              {featuredAgents.map(({ a, reason }) => (
+                <div key={a.id} className="flex flex-col">
+                  <AgentCard {...a} capabilities={a.capabilities} />
+                  <p className="mt-2 px-1 text-xs text-muted-foreground">
+                    <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
+                    {reason}
+                  </p>
+                </div>
               ))}
             </div>
           </div>

@@ -8,6 +8,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { AgentCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
+import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listAgents } from "@/lib/public.functions";
 
 const PAGE_SIZE = 9;

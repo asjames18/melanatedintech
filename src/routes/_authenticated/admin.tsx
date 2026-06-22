@@ -256,7 +256,7 @@ function ArticlesPanel() {
           { header: "Title", cell: (r) => <span className="font-medium">{r.title}</span> },
           { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
           { header: "Read", cell: (r) => <span>{r.read_minutes} min</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.published} label={r.published ? "Published" : "Draft"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>
@@ -281,7 +281,8 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
     body: existing?.body ?? "",
     category: existing?.category ?? "",
     read_minutes: existing?.read_minutes ?? 5,
-    published: existing?.published ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -309,11 +310,15 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
             <Field label="Category"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
             <Field label="Read minutes"><Input type="number" value={form.read_minutes} onChange={(e) => setForm({ ...form, read_minutes: Number(e.target.value) })} /></Field>
           </div>
-          <ToggleField label="Published" checked={form.published} onChange={(v) => setForm({ ...form, published: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

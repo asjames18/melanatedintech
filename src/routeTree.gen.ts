@@ -21,6 +21,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
+import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 
@@ -83,6 +84,12 @@ const AgentsSlugRoute = AgentsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => AgentsRoute,
 } as any)
+const AuthenticatedSubmitAgentRoute =
+  AuthenticatedSubmitAgentRouteImport.update({
+    id: '/submit-agent',
+    path: '/submit-agent',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
 }
@@ -121,6 +129,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
 }
@@ -138,6 +147,7 @@ export interface FileRoutesById {
   '/services': typeof ServicesRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
 }
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/account'
     | '/admin'
+    | '/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
   fileRoutesByTo: FileRoutesByTo
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/account'
     | '/admin'
+    | '/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
   id:
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/_authenticated/account'
     | '/_authenticated/admin'
+    | '/_authenticated/submit-agent'
     | '/agents/$slug'
     | '/knowledge/$slug'
   fileRoutesById: FileRoutesById
@@ -289,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AgentsSlugRouteImport
       parentRoute: typeof AgentsRoute
     }
+    '/_authenticated/submit-agent': {
+      id: '/_authenticated/submit-agent'
+      path: '/submit-agent'
+      fullPath: '/submit-agent'
+      preLoaderRoute: typeof AuthenticatedSubmitAgentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -309,11 +329,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedSubmitAgentRoute: typeof AuthenticatedSubmitAgentRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedSubmitAgentRoute: AuthenticatedSubmitAgentRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

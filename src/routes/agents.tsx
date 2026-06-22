@@ -161,7 +161,7 @@ function AgentsIndex() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {paged.map((a) => (
             <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
           ))}

@@ -69,6 +69,17 @@ function AdminAnalytics() {
                 <SelectItem value="90">Last 90 days</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!data}
+              onClick={() => {
+                if (!data) return;
+                downloadAnalyticsCsv(data, days);
+              }}
+            >
+              <Download className="mr-1 h-3 w-3" /> Export CSV
+            </Button>
           </div>
         </div>
 

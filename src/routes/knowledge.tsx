@@ -34,6 +34,8 @@ export const Route = createFileRoute("/knowledge")({
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
+  pendingMs: 0,
+  pendingComponent: () => <SiteLayout><ListingPendingShell variant="article" label="articles" /></SiteLayout>,
   errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
   notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
   component: KnowledgeIndex,

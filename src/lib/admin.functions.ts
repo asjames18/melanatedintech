@@ -98,8 +98,23 @@ export const adminListMessages = createServerFn({ method: "GET" })
 // ---------- Upserts ----------
 
 const tierEnum = z.enum(["free", "premium", "custom"]);
+const statusEnum = z.enum(["draft", "scheduled", "published"]);
 
-const agentSchema = z.object({
+// Status + optional scheduled_at, with cross-field validation.
+const publishFields = {
+  status: statusEnum.default("draft"),
+  scheduled_at: z.string().datetime().nullable().optional(),
+};
+function refinePublish<T extends z.ZodTypeAny>(schema: T) {
+  return schema.superRefine((val, ctx) => {
+    const v = val as { status: string; scheduled_at?: string | null };
+    if (v.status === "scheduled" && !v.scheduled_at) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scheduled_at"], message: "Pick a date and time to schedule." });
+    }
+  });
+}
+
+const agentSchema = refinePublish(z.object({
   id: z.string().uuid().optional(),
   slug: z.string().trim().min(1).max(120),
   name: z.string().trim().min(1).max(120),
@@ -110,8 +125,8 @@ const agentSchema = z.object({
   capabilities: z.array(z.string().trim().min(1)).default([]),
   price_cents: z.number().int().nullable().optional(),
   featured: z.boolean().default(false),
-  active: z.boolean().default(true),
-});
+  ...publishFields,
+}));
 
 export const adminUpsertAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -119,12 +134,13 @@ export const adminUpsertAgent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("agents").upsert(data, { onConflict: "id" });
+    const row = { ...data, active: data.status === "published" };
+    const { error } = await supabaseAdmin.from("agents").upsert(row, { onConflict: "id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-const articleSchema = z.object({
+const articleSchema = refinePublish(z.object({
   id: z.string().uuid().optional(),
   slug: z.string().trim().min(1).max(160),
   title: z.string().trim().min(1).max(200),
@@ -132,8 +148,8 @@ const articleSchema = z.object({
   body: z.string().trim().min(1),
   category: z.string().trim().min(1).max(80),
   read_minutes: z.number().int().min(1).max(120).default(5),
-  published: z.boolean().default(true),
-});
+  ...publishFields,
+}));
 
 export const adminUpsertArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -141,12 +157,13 @@ export const adminUpsertArticle = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("articles").upsert(data, { onConflict: "id" });
+    const row = { ...data, published: data.status === "published" };
+    const { error } = await supabaseAdmin.from("articles").upsert(row, { onConflict: "id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
-const serviceSchema = z.object({
+const serviceSchema = refinePublish(z.object({
   id: z.string().uuid().optional(),
   slug: z.string().trim().min(1).max(120),
   name: z.string().trim().min(1).max(120),
@@ -154,8 +171,8 @@ const serviceSchema = z.object({
   description: z.string().trim().min(1),
   outcomes: z.array(z.string().trim().min(1)).default([]),
   starting_price_cents: z.number().int().nullable().optional(),
-  active: z.boolean().default(true),
-});
+  ...publishFields,
+}));
 
 export const adminUpsertService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -163,7 +180,8 @@ export const adminUpsertService = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("services").upsert(data, { onConflict: "id" });
+    const row = { ...data, active: data.status === "published" };
+    const { error } = await supabaseAdmin.from("services").upsert(row, { onConflict: "id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -26,7 +26,9 @@ export type Database = {
           image_url: string | null
           name: string
           price_cents: number | null
+          scheduled_at: string | null
           slug: string
+          status: Database["public"]["Enums"]["publish_status"]
           tagline: string
           tier: Database["public"]["Enums"]["agent_tier"]
           updated_at: string
@@ -42,7 +44,9 @@ export type Database = {
           image_url?: string | null
           name: string
           price_cents?: number | null
+          scheduled_at?: string | null
           slug: string
+          status?: Database["public"]["Enums"]["publish_status"]
           tagline: string
           tier?: Database["public"]["Enums"]["agent_tier"]
           updated_at?: string
@@ -58,7 +62,9 @@ export type Database = {
           image_url?: string | null
           name?: string
           price_cents?: number | null
+          scheduled_at?: string | null
           slug?: string
+          status?: Database["public"]["Enums"]["publish_status"]
           tagline?: string
           tier?: Database["public"]["Enums"]["agent_tier"]
           updated_at?: string
@@ -75,7 +81,9 @@ export type Database = {
           published: boolean
           published_at: string
           read_minutes: number
+          scheduled_at: string | null
           slug: string
+          status: Database["public"]["Enums"]["publish_status"]
           title: string
           updated_at: string
         }
@@ -88,7 +96,9 @@ export type Database = {
           published?: boolean
           published_at?: string
           read_minutes?: number
+          scheduled_at?: string | null
           slug: string
+          status?: Database["public"]["Enums"]["publish_status"]
           title: string
           updated_at?: string
         }
@@ -101,7 +111,9 @@ export type Database = {
           published?: boolean
           published_at?: string
           read_minutes?: number
+          scheduled_at?: string | null
           slug?: string
+          status?: Database["public"]["Enums"]["publish_status"]
           title?: string
           updated_at?: string
         }
@@ -243,8 +255,10 @@ export type Database = {
           id: string
           name: string
           outcomes: string[]
+          scheduled_at: string | null
           slug: string
           starting_price_cents: number | null
+          status: Database["public"]["Enums"]["publish_status"]
           tagline: string
           updated_at: string
         }
@@ -255,8 +269,10 @@ export type Database = {
           id?: string
           name: string
           outcomes?: string[]
+          scheduled_at?: string | null
           slug: string
           starting_price_cents?: number | null
+          status?: Database["public"]["Enums"]["publish_status"]
           tagline: string
           updated_at?: string
         }
@@ -267,8 +283,10 @@ export type Database = {
           id?: string
           name?: string
           outcomes?: string[]
+          scheduled_at?: string | null
           slug?: string
           starting_price_cents?: number | null
+          status?: Database["public"]["Enums"]["publish_status"]
           tagline?: string
           updated_at?: string
         }
@@ -335,6 +353,7 @@ export type Database = {
     Enums: {
       agent_tier: "free" | "premium" | "custom"
       app_role: "admin" | "member"
+      publish_status: "draft" | "scheduled" | "published"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -464,6 +483,7 @@ export const Constants = {
     Enums: {
       agent_tier: ["free", "premium", "custom"],
       app_role: ["admin", "member"],
+      publish_status: ["draft", "scheduled", "published"],
     },
   },
 } as const

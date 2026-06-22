@@ -136,7 +136,7 @@ function AgentsPanel() {
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
           { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
           { header: "Tier", cell: (r) => <span className="capitalize">{r.tier}</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.active} label={r.active ? "Active" : "Hidden"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>
@@ -163,7 +163,8 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
     tier: (existing?.tier ?? "free") as "free" | "premium" | "custom",
     capabilities: (existing?.capabilities ?? []).join("\n"),
     featured: existing?.featured ?? false,
-    active: existing?.active ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -210,14 +211,16 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
           <Field label="Capabilities (one per line)">
             <Textarea rows={4} value={form.capabilities} onChange={(e) => setForm({ ...form, capabilities: e.target.value })} />
           </Field>
-          <div className="flex items-center gap-6">
-            <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
-            <ToggleField label="Active" checked={form.active} onChange={(v) => setForm({ ...form, active: v })} />
-          </div>
+          <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -253,7 +256,7 @@ function ArticlesPanel() {
           { header: "Title", cell: (r) => <span className="font-medium">{r.title}</span> },
           { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
           { header: "Read", cell: (r) => <span>{r.read_minutes} min</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.published} label={r.published ? "Published" : "Draft"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>
@@ -278,7 +281,8 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
     body: existing?.body ?? "",
     category: existing?.category ?? "",
     read_minutes: existing?.read_minutes ?? 5,
-    published: existing?.published ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -306,11 +310,15 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
             <Field label="Category"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
             <Field label="Read minutes"><Input type="number" value={form.read_minutes} onChange={(e) => setForm({ ...form, read_minutes: Number(e.target.value) })} /></Field>
           </div>
-          <ToggleField label="Published" checked={form.published} onChange={(v) => setForm({ ...form, published: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -345,7 +353,7 @@ function ServicesPanel() {
         columns={[
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
           { header: "Outcomes", cell: (r) => <span className="text-muted-foreground">{r.outcomes.length}</span> },
-          { header: "Status", cell: (r) => <StatusDot active={r.active} label={r.active ? "Active" : "Hidden"} /> },
+          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
         ]}
         actions={(r) => (
           <>
@@ -369,7 +377,8 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
     tagline: existing?.tagline ?? "",
     description: existing?.description ?? "",
     outcomes: (existing?.outcomes ?? []).join("\n"),
-    active: existing?.active ?? true,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
   }));
 
   const mut = useMutation({
@@ -401,11 +410,15 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
           <Field label="Outcomes (one per line)">
             <Textarea rows={4} value={form.outcomes} onChange={(e) => setForm({ ...form, outcomes: e.target.value })} />
           </Field>
-          <ToggleField label="Active" checked={form.active} onChange={(v) => setForm({ ...form, active: v })} />
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : "Save"}</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -564,5 +577,95 @@ function DeleteBtn({ onConfirm, name }: { onConfirm: () => void; name: string })
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+  );
+}
+
+// ---------- Publish state helpers ----------
+
+type PublishStatus = "draft" | "scheduled" | "published";
+
+function saveLabel(status: PublishStatus) {
+  if (status === "published") return "Save & publish";
+  if (status === "scheduled") return "Save & schedule";
+  return "Save draft";
+}
+
+// Convert ISO string <-> value for <input type="datetime-local">
+function isoToLocalInput(iso: string | null | undefined) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function localInputToIso(v: string) {
+  if (!v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+function PublishControls({
+  status, scheduledAt, onChange,
+}: {
+  status: PublishStatus;
+  scheduledAt: string | null;
+  onChange: (status: PublishStatus, scheduledAt: string | null) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Publication">
+          <Select
+            value={status}
+            onValueChange={(v) => {
+              const next = v as PublishStatus;
+              onChange(next, next === "scheduled" ? scheduledAt : null);
+            }}
+          >
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft — hidden</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="published">Published — live</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+        {status === "scheduled" && (
+          <Field label="Goes live at">
+            <Input
+              type="datetime-local"
+              value={isoToLocalInput(scheduledAt)}
+              onChange={(e) => onChange(status, localInputToIso(e.target.value))}
+            />
+          </Field>
+        )}
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        {status === "draft" && "Only admins can see this. Nothing is visible on the public site."}
+        {status === "scheduled" && (scheduledAt
+          ? `Goes live on ${new Date(scheduledAt).toLocaleString()}.`
+          : "Pick a date and time to schedule.")}
+        {status === "published" && "Visible to everyone on the public site."}
+      </p>
+    </div>
+  );
+}
+
+function PublishBadge({ status, scheduledAt }: { status: PublishStatus; scheduledAt: string | null }) {
+  const live = status === "published" || (status === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
+  const tone =
+    status === "published" ? "bg-accent2/15 text-accent2 ring-accent2/30"
+    : status === "scheduled" ? "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-400"
+    : "bg-muted text-muted-foreground ring-border";
+  const label =
+    status === "published" ? "Published"
+    : status === "scheduled"
+      ? (scheduledAt ? (live ? "Live (scheduled)" : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`) : "Scheduled")
+      : "Draft";
+  return (
+    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ring-1 ${tone}`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current opacity-50"}`} />
+      {label}
+    </span>
   );
 }

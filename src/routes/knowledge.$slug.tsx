@@ -240,14 +240,27 @@ function ArticleView() {
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-              {related.map(({ a, reason }) => (
-                <div key={a.id} className="flex flex-col">
+              {related.map(({ a, reason }, i) => (
+                <RecommendationItem
+                  key={a.id}
+                  meta={{
+                    surface: "related_reading",
+                    itemType: "article",
+                    itemSlug: a.slug,
+                    itemCategory: a.category,
+                    reason,
+                    position: i,
+                    personalized,
+                    sourceArticleSlug: article.slug,
+                    sourceArticleCategory: article.category,
+                  }}
+                >
                   <ArticleCard {...a} />
                   <p className="mt-2 px-1 text-xs text-muted-foreground">
                     <Sparkles className="mr-1 inline h-3 w-3 text-accent2" />
                     {reason}
                   </p>
-                </div>
+                </RecommendationItem>
               ))}
             </div>
           </div>

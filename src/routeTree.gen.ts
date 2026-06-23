@@ -36,6 +36,8 @@ import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedInterestsRouteImport } from './routes/_authenticated/interests'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
+import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
 import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
@@ -177,6 +179,17 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSubmissionsIndexRoute =
+  AuthenticatedSubmissionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSubmissionsRoute,
+  } as any)
+const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedSubmissionsIdRoute =
   AuthenticatedSubmissionsIdRouteImport.update({
     id: '/$id',
@@ -232,6 +245,8 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -243,9 +258,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
-  '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/interests': typeof AuthenticatedInterestsRoute
-  '/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/authors/$slug': typeof AuthorsSlugRoute
@@ -260,6 +273,8 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRoutesById {
@@ -294,6 +309,8 @@ export interface FileRoutesById {
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
 }
 export interface FileRouteTypes {
@@ -328,6 +345,8 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
+    | '/admin/'
+    | '/submissions/'
     | '/api/public/payments/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -339,9 +358,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/sitemap.xml'
     | '/account'
-    | '/admin'
     | '/interests'
-    | '/submissions'
     | '/submit-agent'
     | '/agents/$slug'
     | '/authors/$slug'
@@ -356,6 +373,8 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
+    | '/admin'
+    | '/submissions'
     | '/api/public/payments/webhook'
   id:
     | '__root__'
@@ -389,6 +408,8 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/submissions/$id'
+    | '/_authenticated/admin/'
+    | '/_authenticated/submissions/'
     | '/api/public/payments/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -601,6 +622,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/submissions/': {
+      id: '/_authenticated/submissions/'
+      path: '/'
+      fullPath: '/submissions/'
+      preLoaderRoute: typeof AuthenticatedSubmissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedSubmissionsRoute
+    }
+    '/_authenticated/admin/': {
+      id: '/_authenticated/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/submissions/$id': {
       id: '/_authenticated/submissions/$id'
       path: '/$id'
@@ -635,11 +670,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminCatalogRoute: typeof AuthenticatedAdminCatalogRoute
+  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminCatalogRoute: AuthenticatedAdminCatalogRoute,
+  AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
@@ -647,11 +684,13 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedSubmissionsRouteChildren {
   AuthenticatedSubmissionsIdRoute: typeof AuthenticatedSubmissionsIdRoute
+  AuthenticatedSubmissionsIndexRoute: typeof AuthenticatedSubmissionsIndexRoute
 }
 
 const AuthenticatedSubmissionsRouteChildren: AuthenticatedSubmissionsRouteChildren =
   {
     AuthenticatedSubmissionsIdRoute: AuthenticatedSubmissionsIdRoute,
+    AuthenticatedSubmissionsIndexRoute: AuthenticatedSubmissionsIndexRoute,
   }
 
 const AuthenticatedSubmissionsRouteWithChildren =

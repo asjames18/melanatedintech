@@ -10,6 +10,8 @@ import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
+import { ProductDelivery } from "@/components/product-delivery";
+import { useHasEntitlement } from "@/hooks/use-entitlement";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -112,6 +114,7 @@ function ProductDetail() {
   const { data: allAgents } = useSuspenseQuery(allAgentsQO);
   const { interests, recordVisit } = useInterests("product");
   const { interests: agentInterests } = useInterests("agent");
+  const owned = useHasEntitlement("product", slug);
 
   useEffect(() => {
     if (product) recordVisit(product.slug, product.category);
@@ -216,22 +219,36 @@ function ProductDetail() {
             <div className="mt-3">
               <Markdown md={product.description} />
             </div>
+            {owned && <ProductDelivery slug={product.slug} />}
           </div>
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {product.tier === "premium" && (
-                <div className="rounded-2xl border border-border bg-card p-6">
-                  <p className="text-sm font-medium">Buy this product</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {getPremiumEntry("product", product.slug)
-                      ? "One-time purchase. Instant access after checkout."
-                      : "Available through a quick conversation — tell us what you need and we'll get you set up."}
-                  </p>
-                  <div className="mt-4">
-                    <UnlockButton kind="product" slug={product.slug} itemName={product.name} />
+              {product.tier === "premium" &&
+                (getPremiumEntry("product", product.slug) && !product.has_fulfillment && !owned ? (
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <p className="text-sm font-medium">Coming soon</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      This product isn't available to buy just yet — join the waitlist below and
+                      we'll let you know the moment it drops.
+                    </p>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <p className="text-sm font-medium">
+                      {owned ? "You own this product" : "Buy this product"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {owned
+                        ? "Your pack is unlocked below — read it here or download it any time."
+                        : getPremiumEntry("product", product.slug)
+                          ? "One-time purchase. Instant access after checkout."
+                          : "Available through a quick conversation — tell us what you need and we'll get you set up."}
+                    </p>
+                    <div className="mt-4">
+                      <UnlockButton kind="product" slug={product.slug} itemName={product.name} />
+                    </div>
+                  </div>
+                ))}
               <ProductWaitlist productSlug={product.slug} />
             </div>
           </aside>

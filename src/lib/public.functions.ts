@@ -71,14 +71,30 @@ export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
-    const { data: row, error } = await sb
-      .from("products")
-      .select("*")
+    const baseCols =
+      "id,slug,name,tagline,description,category,tier,price_cents,image_url,active,created_at,updated_at";
+    // Never select unlock_content here — RLS is row-level, so select("*") would
+    // hand the paid pack to anyone. Fetch the gated fields only to derive a
+    // boolean, then strip them. Degrade gracefully if the columns aren't there
+    // yet (code deployed ahead of the migration).
+    let { data: row, error } = await (sb.from("products") as any)
+      .select(`${baseCols},unlock_content,asset_path`)
       .eq("slug", data.slug)
       .eq("active", true)
       .maybeSingle();
+    if (error && /unlock_content|asset_path|column/i.test(error.message)) {
+      ({ data: row, error } = await sb
+        .from("products")
+        .select(baseCols)
+        .eq("slug", data.slug)
+        .eq("active", true)
+        .maybeSingle());
+    }
     if (error) throw new Error(error.message);
-    return row;
+    if (!row) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { unlock_content, asset_path, ...rest } = row as any;
+    return { ...rest, has_fulfillment: !!unlock_content || !!asset_path };
   });
 
 export const listServices = createServerFn({ method: "GET" }).handler(async () => {

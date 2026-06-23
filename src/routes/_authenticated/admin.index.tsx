@@ -22,9 +22,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pencil, Plus, Trash2, ShieldCheck, Mail, Inbox } from "lucide-react";
 import { toast } from "sonner";
+import { Markdown } from "@/components/markdown";
 import {
   adminListAgents, adminListArticles, adminListServices,
   adminListWaitlist, adminListMessages,
+  adminUpdateMessage, adminDeleteMessage,
   adminUpsertAgent, adminUpsertArticle, adminUpsertService,
   adminDelete, checkAdminStatus, claimFirstAdmin,
 } from "@/lib/admin.functions";
@@ -174,6 +176,8 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
     tier: (existing?.tier ?? "free") as "free" | "premium" | "custom",
     capabilities: (existing?.capabilities ?? []).join("\n"),
     featured: existing?.featured ?? false,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    unlock_content: ((existing as any)?.unlock_content ?? "") as string,
     status: (existing?.status ?? "draft") as PublishStatus,
     scheduled_at: existing?.scheduled_at ?? null,
   }));
@@ -223,6 +227,12 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             <Textarea rows={4} value={form.capabilities} onChange={(e) => setForm({ ...form, capabilities: e.target.value })} />
           </Field>
           <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
+          <FulfillmentField
+            label="Unlock pack (markdown) — delivered to buyers only"
+            value={form.unlock_content}
+            onChange={(v) => setForm({ ...form, unlock_content: v })}
+            hint="Premium agents need a pack here or they show “Coming soon” instead of a buy button."
+          />
           <PublishControls
             status={form.status}
             scheduledAt={form.scheduled_at}
@@ -441,9 +451,30 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
 function WaitlistPanel() {
   const list = useServerFn(adminListWaitlist);
   const q = useQuery({ queryKey: ["admin-waitlist"], queryFn: () => list() });
+  const rows = q.data ?? [];
   return (
     <div>
-      <Toolbar title="Waitlist signups" count={q.data?.length ?? 0} icon={<Inbox className="h-4 w-4" />} />
+      <Toolbar
+        title="Waitlist signups"
+        count={rows.length}
+        icon={<Inbox className="h-4 w-4" />}
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={rows.length === 0}
+            onClick={() =>
+              downloadCsv(
+                "waitlist-signups",
+                ["Email", "Source", "Interest", "When"],
+                rows.map((r) => [r.email, r.source ?? "", r.interest ?? "", new Date(r.created_at).toISOString()]),
+              )
+            }
+          >
+            Export CSV
+          </Button>
+        }
+      />
       <DataTable
         loading={q.isLoading}
         rows={q.data ?? []}
@@ -459,24 +490,54 @@ function WaitlistPanel() {
 }
 
 function MessagesPanel() {
+  const qc = useQueryClient();
   const list = useServerFn(adminListMessages);
+  const update = useServerFn(adminUpdateMessage);
+  const del = useServerFn(adminDeleteMessage);
   const q = useQuery({ queryKey: ["admin-messages"], queryFn: () => list() });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-messages"] });
+  const updateMut = useMutation({
+    mutationFn: (args: { id: string; handled: boolean }) => update({ data: args }),
+    onSuccess: (_r, args) => { toast.success(args.handled ? "Marked handled." : "Reopened."); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id } }),
+    onSuccess: () => { toast.success("Message deleted."); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div>
       <Toolbar title="Contact messages" count={q.data?.length ?? 0} icon={<Mail className="h-4 w-4" />} />
       <div className="mt-4 grid gap-3">
-        {(q.data ?? []).map((m) => (
-          <div key={m.id} className="rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <div>
-                <p className="font-medium">{m.name} <span className="text-muted-foreground">· {m.email}</span></p>
-                {m.organization && <p className="text-xs text-muted-foreground">{m.organization}{m.topic ? ` · ${m.topic}` : ""}</p>}
+        {(q.data ?? []).map((m) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const handled = !!(m as any).handled;
+          return (
+            <div key={m.id} className={`rounded-xl border border-border bg-card p-4 ${handled ? "opacity-60" : ""}`}>
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <div>
+                  <p className="font-medium">
+                    {m.name} <span className="text-muted-foreground">· {m.email}</span>
+                    {handled && <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">Handled</span>}
+                  </p>
+                  {m.organization && <p className="text-xs text-muted-foreground">{m.organization}{m.topic ? ` · ${m.topic}` : ""}</p>}
+                </div>
+                <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
               </div>
-              <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
+              <p className="mt-2 whitespace-pre-line text-sm">{m.message}</p>
+              <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <Button variant="outline" size="sm" disabled={updateMut.isPending}
+                  onClick={() => updateMut.mutate({ id: m.id, handled: !handled })}>
+                  {handled ? "Reopen" : "Mark handled"}
+                </Button>
+                <DeleteBtn onConfirm={() => delMut.mutate(m.id)} name={`message from ${m.name}`} />
+              </div>
             </div>
-            <p className="mt-2 whitespace-pre-line text-sm">{m.message}</p>
-          </div>
-        ))}
+          );
+        })}
         {!q.isLoading && (q.data ?? []).length === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No messages yet.</div>
         )}
@@ -596,6 +657,23 @@ function SubmissionCard({
 
 // ---------- Shared bits ----------
 
+function downloadCsv(name: string, headers: string[], rows: (string | number)[][]) {
+  const esc = (v: string | number) => {
+    const s = String(v ?? "");
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${name}-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 function Toolbar({ title, count, action, icon }: { title: string; count: number; action?: React.ReactNode; icon?: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -648,6 +726,43 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     <div className="grid gap-1.5">
       <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
       {children}
+    </div>
+  );
+}
+
+function FulfillmentField({
+  label, value, onChange, hint,
+}: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
+  const [preview, setPreview] = useState(false);
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-6 px-2 text-xs"
+          onClick={() => setPreview((p) => !p)}
+          disabled={!value.trim()}
+        >
+          {preview ? "Edit" : "Preview"}
+        </Button>
+      </div>
+      {preview ? (
+        <div className="max-h-72 overflow-y-auto rounded-md border border-border bg-muted/30 p-4">
+          <Markdown md={value} />
+        </div>
+      ) : (
+        <Textarea
+          rows={8}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="# Pack title&#10;&#10;Markdown the buyer sees after purchase…"
+          className="font-mono text-xs"
+        />
+      )}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }

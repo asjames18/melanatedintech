@@ -95,6 +95,36 @@ export const adminListMessages = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+// ---------- Contact message triage ----------
+
+export const adminUpdateMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), handled: z.boolean() }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // handled isn't in the generated Database types yet — cast past the typed Update.
+    const { error } = await supabaseAdmin
+      .from("contact_messages")
+      .update({ handled: data.handled } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("contact_messages").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 // ---------- Upserts ----------
 
 const tierEnum = z.enum(["free", "premium", "custom"]);
@@ -125,6 +155,8 @@ const agentSchema = refinePublish(z.object({
   capabilities: z.array(z.string().trim().min(1)).default([]),
   price_cents: z.number().int().nullable().optional(),
   featured: z.boolean().default(false),
+  // Owner-only deliverable (the paid pack). Empty string clears it.
+  unlock_content: z.string().nullable().optional(),
   ...publishFields,
 }));
 
@@ -134,8 +166,12 @@ export const adminUpsertAgent = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const row = { ...data, active: data.status === "published" };
-    const { error } = await supabaseAdmin.from("agents").upsert(row, { onConflict: "id" });
+    // Normalize a blank pack to NULL so getAgent's has_fulfillment stays accurate.
+    const unlock_content = data.unlock_content?.trim() ? data.unlock_content : null;
+    const row = { ...data, unlock_content, active: data.status === "published" };
+    // unlock_content isn't in the generated Database types yet (migration may post-date
+    // type generation), so cast past the typed Insert.
+    const { error } = await supabaseAdmin.from("agents").upsert(row as never, { onConflict: "id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

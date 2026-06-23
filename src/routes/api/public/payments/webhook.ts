@@ -1,65 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type StripeEnv, verifyWebhook, createStripeClient } from "@/lib/stripe.server";
-import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
-
-async function getAdmin() {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return supabaseAdmin;
-}
-
-async function grantFromSession(sessionObj: any, env: StripeEnv) {
-  const meta = sessionObj?.metadata ?? {};
-  const userId = meta.userId;
-  const kind = meta.unlock_kind as PremiumKind | undefined;
-  const slug = meta.unlock_slug;
-  const sessionId = sessionObj?.id ?? null;
-
-  if (!userId || !kind || !slug) {
-    console.warn("[payments-webhook] skipping: missing metadata", { sessionId });
-    return;
-  }
-  if (sessionObj?.payment_status && sessionObj.payment_status !== "paid") {
-    console.log("[payments-webhook] not paid yet", {
-      sessionId,
-      status: sessionObj.payment_status,
-    });
-    return;
-  }
-
-  // Never trust metadata for what was purchased: resolve (kind, slug) against the
-  // catalog, and confirm the amount actually paid matches the catalog price before
-  // granting. This defeats a forged/mismatched checkout.
-  const entry = getPremiumEntry(kind, slug);
-  if (!entry) {
-    console.warn("[payments-webhook] skipping: unknown catalog item", { sessionId, kind, slug });
-    return;
-  }
-  const amountPaid = sessionObj?.amount_total;
-  if (typeof amountPaid === "number" && amountPaid !== entry.amountCents) {
-    console.warn("[payments-webhook] skipping: amount mismatch", {
-      sessionId,
-      expected: entry.amountCents,
-      got: amountPaid,
-    });
-    return;
-  }
-  const priceId = entry.priceId;
-
-  const admin = await getAdmin();
-  const { error } = await admin.from("user_entitlements").upsert(
-    {
-      user_id: userId,
-      kind,
-      slug,
-      price_id: priceId,
-      stripe_session_id: sessionId,
-      environment: env,
-      granted_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,kind,slug,environment" },
-  );
-  if (error) console.error("[payments-webhook] upsert error", error);
-}
+import { grantFromSession } from "@/lib/fulfillment-grant.server";
 
 async function handleEvent(event: { type: string; data: { object: any } }, env: StripeEnv) {
   const obj = event.data.object;

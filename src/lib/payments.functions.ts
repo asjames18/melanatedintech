@@ -2,11 +2,16 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
-import { getPremiumEntry } from "@/lib/premium-catalog";
+import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
+import { grantFromSession } from "@/lib/fulfillment-grant.server";
 
 const envSchema = z.enum(["sandbox", "live"]);
 
 type CheckoutResult = { clientSecret: string } | { error: string };
+
+type ConfirmResult =
+  | { owned: true; kind: PremiumKind; slug: string }
+  | { owned: false };
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -108,6 +113,46 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
     } catch (error) {
       console.error("createUnlockCheckout error", error);
       return { error: getStripeErrorMessage(error) };
+    }
+  });
+
+/**
+ * Self-healing fulfillment: grant the entitlement straight from a paid checkout
+ * session when the buyer lands back on /checkout/return, so delivery does NOT depend
+ * on the Stripe webhook firing. The webhook remains a backup. Idempotent — re-calling
+ * for the same session is a no-op thanks to the upsert in grantFromSession.
+ */
+export const confirmCheckoutSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { sessionId: string; environment: StripeEnv }) =>
+    z
+      .object({
+        sessionId: z.string().min(1).max(200),
+        environment: envSchema,
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }): Promise<ConfirmResult> => {
+    try {
+      const { userId } = context;
+      const stripe = createStripeClient(data.environment);
+      const session = await stripe.checkout.sessions.retrieve(data.sessionId);
+
+      // Ownership guard: unlike the webhook (whose payload is Stripe-signed), this path
+      // is user-triggered, so we must confirm the session belongs to the caller before
+      // trusting its metadata. A user can only confirm their own checkout.
+      if ((session as any)?.metadata?.userId !== userId) {
+        return { owned: false };
+      }
+
+      const result = await grantFromSession(session, data.environment);
+      if (result.granted) {
+        return { owned: true, kind: result.kind, slug: result.slug };
+      }
+      return { owned: false };
+    } catch (error) {
+      console.error("confirmCheckoutSession error", error);
+      return { owned: false };
     }
   });
 

@@ -2,40 +2,79 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Hero } from "@/components/hero";
 import { SiteLayout } from "@/components/site-layout";
-import { AgentCard, ArticleCard } from "@/components/cards";
+import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
-import { listAgents, listArticles } from "@/lib/public.functions";
-import { PILLARS } from "@/lib/site";
-import { ArrowRight } from "lucide-react";
+import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
+import { PILLARS, SITE_URL } from "@/lib/site";
+import { ArrowRight, Compass, ShieldCheck, Wrench } from "lucide-react";
 
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
+const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() });
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Melanated In Tech — The home for AI agents" },
-      { name: "description", content: "Marketplace, knowledge hub, products, and services for people building, deploying, and benefiting from AI agents." },
+      {
+        name: "description",
+        content:
+          "Marketplace, knowledge hub, products, and services for people building, deploying, and benefiting from AI agents.",
+      },
       { property: "og:title", content: "Melanated In Tech — The home for AI agents" },
-      { property: "og:description", content: "The destination for AI agent knowledge, solutions, and innovation." },
+      {
+        property: "og:description",
+        content: "The destination for AI agent knowledge, solutions, and innovation.",
+      },
+      { property: "og:url", content: `${SITE_URL}/` },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
   }),
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(agentsQO),
       context.queryClient.ensureQueryData(articlesQO),
+      context.queryClient.ensureQueryData(productsQO),
     ]);
   },
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: Home,
 });
+
+const TRUST = [
+  {
+    Icon: Wrench,
+    title: "Built by operators, not theorists",
+    body: "Every agent and guide comes from real deployments — patterns we run in production, not slideware.",
+  },
+  {
+    Icon: ShieldCheck,
+    title: "Production-tested patterns",
+    body: "Memory, tools, guardrails, and evals baked in — so what you ship is reliable, not a demo that breaks on day two.",
+  },
+  {
+    Icon: Compass,
+    title: "Stewardship-first for ministries",
+    body: "Practical AI for churches and nonprofits, with the ethics and guardrails the mission deserves.",
+  },
+];
 
 function Home() {
   const { data: agents } = useSuspenseQuery(agentsQO);
   const { data: articles } = useSuspenseQuery(articlesQO);
+  const { data: products } = useSuspenseQuery(productsQO);
   const featuredAgents = agents.filter((a) => a.featured).slice(0, 4);
   const topArticles = articles.slice(0, 3);
+  const topProducts = products.slice(0, 3);
 
   return (
     <SiteLayout>
@@ -46,15 +85,21 @@ function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">Featured agents</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                Featured agents
+              </p>
               <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
                 Production-ready AI agents.
               </h2>
               <p className="mt-2 max-w-xl text-muted-foreground">
-                Hand-picked agents that solve real problems for ministries, businesses, sales teams, and creators.
+                Hand-picked agents that solve real problems for ministries, businesses, sales teams,
+                and creators.
               </p>
             </div>
-            <Link to="/agents" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            <Link
+              to="/agents"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
               All agents <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -63,6 +108,36 @@ function Home() {
             {featuredAgents.map((a) => (
               <AgentCard key={a.id} {...a} tier={a.tier} capabilities={a.capabilities} />
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trust — honest credibility band with real catalog stats */}
+      <section className="border-b border-border bg-muted/30">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                Why builders trust us
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+                A real catalog, not a landing page.
+              </h2>
+              <div className="mt-6 flex flex-wrap gap-6">
+                <Stat value={`${agents.length}`} label="AI agents" />
+                <Stat value={`${articles.length}`} label="field guides" />
+                <Stat value={`${products.length}`} label="digital products" />
+              </div>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {TRUST.map(({ Icon, title, body }) => (
+                <div key={title} className="rounded-2xl border border-border bg-card p-5">
+                  <Icon className="h-5 w-5 text-primary" />
+                  <h3 className="mt-3 font-display text-base font-semibold">{title}</h3>
+                  <p className="mt-1.5 text-sm text-muted-foreground">{body}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -81,11 +156,14 @@ function Home() {
                 to={p.href}
                 className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
               >
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{p.tag}</span>
+                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                  {p.tag}
+                </span>
                 <h3 className="mt-2 font-display text-xl font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{p.blurb}</p>
                 <span className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                  Explore <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  Explore{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
             ))}
@@ -93,17 +171,54 @@ function Home() {
         </div>
       </section>
 
+      {/* Digital products */}
+      {topProducts.length > 0 && (
+        <section className="border-b border-border">
+          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                  Digital products
+                </p>
+                <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+                  Ship agents faster.
+                </h2>
+                <p className="mt-2 max-w-xl text-muted-foreground">
+                  Starter kits, blueprints, prompt libraries, and memory systems — lift and adapt.
+                </p>
+              </div>
+              <Link
+                to="/products"
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                All products <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {topProducts.map((p) => (
+                <ProductCard key={p.id} {...p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Knowledge */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">Knowledge hub</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                Knowledge hub
+              </p>
               <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
                 Field notes from people shipping agents.
               </h2>
             </div>
-            <Link to="/knowledge" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+            <Link
+              to="/knowledge"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
               All articles <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -126,8 +241,8 @@ function Home() {
                   Join the agent builder waitlist.
                 </h2>
                 <p className="mt-3 max-w-xl text-sm text-background/70">
-                  Be first to access new agents, blueprints, and the builder community. No spam — just what's
-                  worth your time.
+                  Be first to access new agents, blueprints, and the builder community. No spam —
+                  just what's worth your time.
                 </p>
               </div>
               <div className="lg:justify-self-end lg:w-full lg:max-w-md">
@@ -138,5 +253,14 @@ function Home() {
         </div>
       </section>
     </SiteLayout>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div>
+      <div className="font-display text-3xl font-semibold text-foreground">{value}</div>
+      <div className="mt-0.5 text-sm text-muted-foreground">{label}</div>
+    </div>
   );
 }

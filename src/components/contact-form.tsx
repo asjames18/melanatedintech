@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
-export function ContactForm() {
+export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
     organization: "",
-    topic: "",
+    topic: defaultTopic,
     message: "",
   });
   const [hp, setHp] = useState("");

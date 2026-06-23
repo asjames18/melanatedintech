@@ -1,10 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { Lock, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogHeader,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { createUnlockCheckout } from "@/lib/payments.functions";
@@ -37,15 +43,14 @@ export function UnlockButton({ kind, slug, itemName }: Props) {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const options = useMemo(
-    () => (clientSecret ? { clientSecret } : null),
-    [clientSecret],
-  );
+  const options = useMemo(() => (clientSecret ? { clientSecret } : null), [clientSecret]);
 
   if (!entry) {
     return (
-      <Button variant="outline" disabled className="w-full">
-        <Lock className="h-4 w-4" /> Contact for pricing
+      <Button asChild variant="outline" className="w-full">
+        <Link to="/contact" search={{ topic: itemName }}>
+          <Lock className="h-4 w-4" /> Contact for pricing
+        </Link>
       </Button>
     );
   }

@@ -8,6 +8,7 @@ import { ProductWaitlist } from "@/components/product-waitlist";
 import { ShareBar } from "@/components/share-bar";
 import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
+import { categoryVisual } from "@/lib/category-style";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -56,33 +57,45 @@ export const Route = createFileRoute("/products/$slug")({
         { name: "twitter:data2", content: formatPrice(p.price_cents, p.tier) },
       ],
       links: [{ rel: "canonical", href: path }],
-      scripts: [{
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: p.name,
-          description: p.tagline,
-          category: p.category,
-          image: p.image_url ?? undefined,
-          brand: { "@type": "Organization", name: "Melanated In Tech" },
-          offers: p.price_cents != null ? {
-            "@type": "Offer",
-            price: (p.price_cents / 100).toFixed(2),
-            priceCurrency: "USD",
-            availability: "https://schema.org/InStock",
-            url: path,
-          } : undefined,
-        }),
-      }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: p.name,
+            description: p.tagline,
+            category: p.category,
+            image: p.image_url ?? undefined,
+            brand: { "@type": "Organization", name: "Melanated In Tech" },
+            offers:
+              p.price_cents != null
+                ? {
+                    "@type": "Offer",
+                    price: (p.price_cents / 100).toFixed(2),
+                    priceCurrency: "USD",
+                    availability: "https://schema.org/InStock",
+                    url: path,
+                  }
+                : undefined,
+          }),
+        },
+      ],
     };
   },
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold">Product not found</h1>
-        <Link to="/products" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <Link
+          to="/products"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to products
         </Link>
       </div>
@@ -104,7 +117,8 @@ function ProductDetail() {
   }, [product, recordVisit]);
 
   const { related, pairedAgents, personalized, topInterests } = useMemo(() => {
-    if (!product) return { related: [], pairedAgents: [], personalized: false, topInterests: [] as string[] };
+    if (!product)
+      return { related: [], pairedAgents: [], personalized: false, topInterests: [] as string[] };
     const cats = interests.categories;
     const ag = agentInterests.categories;
     const hasHistory = Object.keys(cats).length + Object.keys(ag).length > 0;
@@ -156,22 +170,28 @@ function ProductDetail() {
   }, [product, allProducts, allAgents, interests, agentInterests]);
 
   if (!product) return null;
+  const { Icon: CatIcon, className: catClass } = categoryVisual(product.category, Package);
 
   return (
     <SiteLayout>
       <section className="relative overflow-hidden border-b border-border bg-muted/30">
         <div className="bg-grid absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" />
         <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-          <Link to="/products" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            to="/products"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> All products
           </Link>
           <div className="mt-6 flex items-start gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-accent2/15 text-accent2">
-              <Package className="h-7 w-7" />
+            <div className={`grid h-14 w-14 place-items-center rounded-2xl ${catClass}`}>
+              <CatIcon className="h-7 w-7" />
             </div>
             <div className="flex-1">
               <p className="text-xs uppercase tracking-wider text-primary">{product.category}</p>
-              <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{product.name}</h1>
+              <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">
+                {product.name}
+              </h1>
               <p className="mt-2 text-lg text-muted-foreground">{product.tagline}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <TierBadge tier={product.tier as "free" | "premium" | "custom"} />
@@ -196,11 +216,13 @@ function ProductDetail() {
           </div>
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {product.tier === "premium" && getPremiumEntry("product", product.slug) && (
+              {product.tier === "premium" && (
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <p className="text-sm font-medium">Buy this product</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    One-time purchase. Instant access after checkout.
+                    {getPremiumEntry("product", product.slug)
+                      ? "One-time purchase. Instant access after checkout."
+                      : "Available through a quick conversation — tell us what you need and we'll get you set up."}
                   </p>
                   <div className="mt-4">
                     <UnlockButton kind="product" slug={product.slug} itemName={product.name} />
@@ -227,7 +249,9 @@ function ProductDetail() {
                     : `More ${product.category}`}
                 </h2>
               </div>
-              <Link to="/products" className="text-sm font-medium text-primary hover:underline">All products →</Link>
+              <Link to="/products" className="text-sm font-medium text-primary hover:underline">
+                All products →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {related.map(({ a, reason }, i) => (
@@ -262,9 +286,13 @@ function ProductDetail() {
                 <p className="inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-accent2">
                   <Sparkles className="h-3 w-3" /> Paired agents
                 </p>
-                <h2 className="mt-1 font-display text-2xl font-semibold">Pair this with a ready-to-use agent</h2>
+                <h2 className="mt-1 font-display text-2xl font-semibold">
+                  Pair this with a ready-to-use agent
+                </h2>
               </div>
-              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
+              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">
+                Browse agents →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {pairedAgents.map(({ a, reason }, i) => (

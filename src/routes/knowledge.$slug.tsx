@@ -7,6 +7,7 @@ import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
 import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
+import { Markdown } from "@/components/markdown";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { getArticleAuthor } from "@/lib/authors.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -44,7 +45,12 @@ export const Route = createFileRoute("/knowledge/$slug")({
         }),
         { property: "article:section", content: a.category },
         ...(a.published_at
-          ? [{ property: "article:published_time", content: new Date(a.published_at).toISOString() }]
+          ? [
+              {
+                property: "article:published_time",
+                content: new Date(a.published_at).toISOString(),
+              },
+            ]
           : []),
         { name: "twitter:label1", content: "Reading time" },
         { name: "twitter:data1", content: `${a.read_minutes ?? 5} min read` },
@@ -52,27 +58,36 @@ export const Route = createFileRoute("/knowledge/$slug")({
         { name: "twitter:data2", content: a.category },
       ],
       links: [{ rel: "canonical", href: path }],
-      scripts: [{
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: a.title,
-          description: a.excerpt,
-          articleSection: a.category,
-          datePublished: a.published_at ?? undefined,
-          author: { "@type": "Organization", name: "Melanated In Tech" },
-          publisher: { "@type": "Organization", name: "Melanated In Tech" },
-        }),
-      }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: a.title,
+            description: a.excerpt,
+            articleSection: a.category,
+            datePublished: a.published_at ?? undefined,
+            author: { "@type": "Organization", name: "Melanated In Tech" },
+            publisher: { "@type": "Organization", name: "Melanated In Tech" },
+          }),
+        },
+      ],
     };
   },
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold">Article not found</h1>
-        <Link to="/knowledge" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <Link
+          to="/knowledge"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to knowledge hub
         </Link>
       </div>
@@ -80,34 +95,6 @@ export const Route = createFileRoute("/knowledge/$slug")({
   ),
   component: ArticleView,
 });
-
-function renderMarkdown(md: string) {
-  const lines = md.split("\n");
-  const out: React.ReactNode[] = [];
-  let listBuf: string[] | null = null;
-  const flush = () => {
-    if (listBuf) {
-      out.push(
-        <ul key={`l-${out.length}`} className="my-4 list-disc space-y-1 pl-5 text-muted-foreground">
-          {listBuf.map((it, i) => <li key={i}>{it}</li>)}
-        </ul>,
-      );
-      listBuf = null;
-    }
-  };
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (!line.trim()) { flush(); continue; }
-    if (line.startsWith("# ")) { flush(); out.push(<h1 key={out.length} className="mt-8 font-display text-3xl font-semibold">{line.slice(2)}</h1>); continue; }
-    if (line.startsWith("## ")) { flush(); out.push(<h2 key={out.length} className="mt-8 font-display text-2xl font-semibold">{line.slice(3)}</h2>); continue; }
-    if (line.startsWith("### ")) { flush(); out.push(<h3 key={out.length} className="mt-6 font-display text-xl font-semibold">{line.slice(4)}</h3>); continue; }
-    if (line.startsWith("- ")) { (listBuf ??= []).push(line.slice(2)); continue; }
-    flush();
-    out.push(<p key={out.length} className="mt-4 text-muted-foreground">{line}</p>);
-  }
-  flush();
-  return out;
-}
 
 function ArticleView() {
   const { slug } = Route.useParams();
@@ -120,7 +107,8 @@ function ArticleView() {
   const authorId = article?.author_id ?? null;
   const author = useQuery({
     queryKey: ["article-author", authorId],
-    queryFn: () => authorId ? fetchAuthor({ data: { author_id: authorId } }) : Promise.resolve(null),
+    queryFn: () =>
+      authorId ? fetchAuthor({ data: { author_id: authorId } }) : Promise.resolve(null),
     enabled: !!authorId,
   });
 
@@ -128,9 +116,9 @@ function ArticleView() {
     if (article) recordVisit(article.slug, article.category);
   }, [article, recordVisit]);
 
-
   const { related, featuredAgents, personalized, topInterests } = useMemo(() => {
-    if (!article) return { related: [], featuredAgents: [], personalized: false, topInterests: [] as string[] };
+    if (!article)
+      return { related: [], featuredAgents: [], personalized: false, topInterests: [] as string[] };
     const cats = interests.categories;
     const hasHistory = Object.keys(cats).length > 0;
 
@@ -189,7 +177,10 @@ function ArticleView() {
         aria-hidden
       />
       <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
-        <Link to="/knowledge" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/knowledge"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Knowledge hub
         </Link>
         <div className="mt-6 flex items-center gap-2 text-xs uppercase tracking-wider text-primary">
@@ -209,7 +200,11 @@ function ArticleView() {
             className="mt-5 inline-flex items-center gap-3 rounded-full border bg-card px-3 py-1.5 transition-colors hover:border-foreground/30"
           >
             {author.data.avatar_url ? (
-              <img src={author.data.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
+              <img
+                src={author.data.avatar_url}
+                alt=""
+                className="h-7 w-7 rounded-full object-cover"
+              />
             ) : (
               <span className="grid h-7 w-7 place-items-center rounded-full bg-muted text-xs font-semibold">
                 {author.data.name.slice(0, 1).toUpperCase()}
@@ -224,13 +219,14 @@ function ArticleView() {
           <ShareBar title={article.title} text={article.excerpt} />
           <SaveArticleButton articleId={article.id} />
         </div>
-        <div className="mt-10">{renderMarkdown(article.body)}</div>
+        <div className="mt-10">
+          <Markdown md={article.body} />
+        </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-5">
           <p className="text-sm font-medium">Found this useful? Share it.</p>
           <ShareBar title={article.title} text={article.excerpt} className="mt-3" />
         </div>
       </article>
-
 
       {related.length > 0 && (
         <section className="border-t border-border bg-muted/30">
@@ -246,7 +242,9 @@ function ArticleView() {
                     : `More on ${article.category}`}
                 </h2>
               </div>
-              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">All articles →</Link>
+              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">
+                All articles →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {related.map(({ a, reason }, i) => (
@@ -288,7 +286,9 @@ function ArticleView() {
                     : "Put this knowledge into practice"}
                 </h2>
               </div>
-              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">Browse agents →</Link>
+              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">
+                Browse agents →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {featuredAgents.map(({ a, reason }, i) => (

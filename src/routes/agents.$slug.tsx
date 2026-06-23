@@ -7,6 +7,7 @@ import { WaitlistForm } from "@/components/waitlist-form";
 import { SaveAgentButton } from "@/components/save-agent-button";
 import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
+import { categoryVisual } from "@/lib/category-style";
 import { ShareBar } from "@/components/share-bar";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
@@ -49,27 +50,36 @@ export const Route = createFileRoute("/agents/$slug")({
         { name: "twitter:data2", content: a.tier },
       ],
       links: [{ rel: "canonical", href: path }],
-      scripts: [{
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Product",
-          name: a.name,
-          description: a.tagline,
-          category: a.category,
-          image: a.image_url ?? undefined,
-          brand: { "@type": "Organization", name: "Melanated In Tech" },
-        }),
-      }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Product",
+            name: a.name,
+            description: a.tagline,
+            category: a.category,
+            image: a.image_url ?? undefined,
+            brand: { "@type": "Organization", name: "Melanated In Tech" },
+          }),
+        },
+      ],
     };
   },
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold">Agent not found</h1>
         <p className="mt-2 text-muted-foreground">It may have been retired or renamed.</p>
-        <Link to="/agents" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <Link
+          to="/agents"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to marketplace
         </Link>
       </div>
@@ -91,7 +101,13 @@ function AgentDetail() {
   }, [agent, recordVisit]);
 
   const { related, recommendedReading, personalized, topInterests } = useMemo(() => {
-    if (!agent) return { related: [], recommendedReading: [], personalized: false, topInterests: [] as string[] };
+    if (!agent)
+      return {
+        related: [],
+        recommendedReading: [],
+        personalized: false,
+        topInterests: [] as string[],
+      };
     const cats = interests.categories;
     const readingCats = readingInterests.categories;
     const hasHistory = Object.keys(cats).length + Object.keys(readingCats).length > 0;
@@ -143,18 +159,24 @@ function AgentDetail() {
   }, [agent, allAgents, allArticles, interests, readingInterests]);
 
   if (!agent) return null;
+  const { Icon: CatIcon, className: catClass } = categoryVisual(agent.category, Bot);
 
   return (
     <SiteLayout>
       <section className="relative overflow-hidden border-b border-border bg-muted/30">
         <div className="bg-grid absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_top,black_20%,transparent_70%)]" />
         <div className="relative mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-          <Link to="/agents" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link
+            to="/agents"
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
             <ArrowLeft className="h-4 w-4" /> All agents
           </Link>
           <div className="mt-6 flex items-start gap-4">
-            <div className="grid h-14 w-14 place-items-center rounded-2xl bg-foreground text-background shadow-lg shadow-foreground/10">
-              <Bot className="h-7 w-7" />
+            <div
+              className={`grid h-14 w-14 place-items-center rounded-2xl shadow-lg shadow-foreground/5 ${catClass}`}
+            >
+              <CatIcon className="h-7 w-7" />
             </div>
             <div className="flex-1">
               <p className="text-xs uppercase tracking-wider text-primary">{agent.category}</p>
@@ -167,14 +189,20 @@ function AgentDetail() {
                     <Sparkles className="h-3 w-3" /> Featured
                   </span>
                 )}
-                <div className="ml-auto"><SaveAgentButton agentId={agent.id} /></div>
+                <div className="ml-auto">
+                  <SaveAgentButton agentId={agent.id} />
+                </div>
               </div>
             </div>
           </div>
 
           <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Stat icon={Tag} label="Category" value={agent.category} />
-            <Stat icon={Layers} label="Capabilities" value={String((agent.capabilities ?? []).length)} />
+            <Stat
+              icon={Layers}
+              label="Capabilities"
+              value={String((agent.capabilities ?? []).length)}
+            />
             <Stat icon={Sparkles} label="Tier" value={agent.tier} capitalize />
             <Stat icon={CheckCircle2} label="Status" value="Onboarding" />
           </div>
@@ -194,7 +222,10 @@ function AgentDetail() {
                 <h2 className="mt-10 font-display text-xl font-semibold">Capabilities</h2>
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
                   {agent.capabilities.map((c) => (
-                    <li key={c} className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm">
+                    <li
+                      key={c}
+                      className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm"
+                    >
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent2" />
                       <span>{c}</span>
                     </li>
@@ -206,11 +237,13 @@ function AgentDetail() {
 
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {agent.tier === "premium" && getPremiumEntry("agent", agent.slug) && (
+              {agent.tier === "premium" && (
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <p className="text-sm font-medium">Premium agent</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    One-time unlock. Lifetime access to {agent.name} on your account.
+                    {getPremiumEntry("agent", agent.slug)
+                      ? `One-time unlock. Lifetime access to ${agent.name} on your account.`
+                      : "Available through a quick conversation — tell us your use case and we'll get you set up."}
                   </p>
                   <div className="mt-4">
                     <UnlockButton kind="agent" slug={agent.slug} itemName={agent.name} />
@@ -220,7 +253,8 @@ function AgentDetail() {
               <div className="rounded-2xl border border-border bg-card p-6">
                 <p className="text-sm font-medium">Get early access</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  We're onboarding builders for {agent.name}. Join the list to get a deployment invite.
+                  We're onboarding builders for {agent.name}. Join the list to get a deployment
+                  invite.
                 </p>
                 <div className="mt-4">
                   <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
@@ -245,7 +279,9 @@ function AgentDetail() {
                     : `More ${agent.category} agents`}
                 </h2>
               </div>
-              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">All agents →</Link>
+              <Link to="/agents" className="text-sm font-medium text-primary hover:underline">
+                All agents →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {related.map(({ a, reason }, i) => (
@@ -282,7 +318,9 @@ function AgentDetail() {
                 </p>
                 <h2 className="mt-1 font-display text-2xl font-semibold">Sharpen your context</h2>
               </div>
-              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">Knowledge hub →</Link>
+              <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">
+                Knowledge hub →
+              </Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {recommendedReading.map(({ a, reason }, i) => (
@@ -313,8 +351,16 @@ function AgentDetail() {
 }
 
 function Stat({
-  icon: Icon, label, value, capitalize,
-}: { icon: React.ComponentType<{ className?: string }>; label: string; value: string; capitalize?: boolean }) {
+  icon: Icon,
+  label,
+  value,
+  capitalize,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+  capitalize?: boolean;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-3">
       <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">

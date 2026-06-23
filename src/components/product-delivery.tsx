@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Download, Gift, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
-import { getProductFulfillment } from "@/lib/fulfillment.functions";
+import { getAgentFulfillment, getProductFulfillment } from "@/lib/fulfillment.functions";
 
 function downloadMarkdown(filename: string, content: string) {
   const blob = new Blob([content], { type: "text/markdown;charset=utf-8" });
@@ -42,13 +42,13 @@ export function ProductFreePack({ slug, content }: { slug: string; content: stri
 
 /**
  * Owner-only delivery section. Renders the unlocked pack and download buttons.
- * Only mount this when the viewer already owns the product — the server fn
+ * Only mount this when the viewer already owns the item — the server fn
  * re-checks ownership regardless, but this avoids a wasted request.
  */
-export function ProductDelivery({ slug }: { slug: string }) {
-  const fn = useServerFn(getProductFulfillment);
+export function PackDelivery({ kind, slug }: { kind: "agent" | "product"; slug: string }) {
+  const fn = useServerFn(kind === "agent" ? getAgentFulfillment : getProductFulfillment);
   const { data, isLoading } = useQuery({
-    queryKey: ["fulfillment", slug],
+    queryKey: ["fulfillment", kind, slug],
     queryFn: () => fn({ data: { slug } }),
     staleTime: 60_000,
   });
@@ -100,4 +100,13 @@ export function ProductDelivery({ slug }: { slug: string }) {
       )}
     </section>
   );
+}
+
+/** Thin named wrappers so callers read clearly at the call site. */
+export function ProductDelivery({ slug }: { slug: string }) {
+  return <PackDelivery kind="product" slug={slug} />;
+}
+
+export function AgentDelivery({ slug }: { slug: string }) {
+  return <PackDelivery kind="agent" slug={slug} />;
 }

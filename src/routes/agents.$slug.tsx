@@ -9,6 +9,8 @@ import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
+import { AgentDelivery } from "@/components/product-delivery";
+import { useHasEntitlement } from "@/hooks/use-entitlement";
 import { ShareBar } from "@/components/share-bar";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
@@ -96,6 +98,7 @@ function AgentDetail() {
   const { data: allArticles } = useSuspenseQuery(allArticlesQO);
   const { interests, recordVisit } = useInterests("agent");
   const { interests: readingInterests } = useInterests("article");
+  const owned = useHasEntitlement("agent", slug);
 
   useEffect(() => {
     if (agent) recordVisit(agent.slug, agent.category);
@@ -224,7 +227,7 @@ function AgentDetail() {
               <>
                 <h2 className="mt-10 font-display text-xl font-semibold">Capabilities</h2>
                 <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {agent.capabilities.map((c) => (
+                  {agent.capabilities.map((c: string) => (
                     <li
                       key={c}
                       className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm"
@@ -236,33 +239,50 @@ function AgentDetail() {
                 </ul>
               </>
             )}
+
+            {owned && <AgentDelivery slug={agent.slug} />}
           </div>
 
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
-              {agent.tier === "premium" && (
+              {agent.tier === "premium" &&
+                (getPremiumEntry("agent", agent.slug) && !agent.has_fulfillment && !owned ? (
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <p className="text-sm font-medium">Coming soon</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      This agent isn't available to unlock just yet — join the list below and we'll
+                      let you know the moment it's ready.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <p className="text-sm font-medium">
+                      {owned ? "You own this agent" : "Premium agent"}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {owned
+                        ? "Your pack is unlocked below — read it here or download it any time."
+                        : getPremiumEntry("agent", agent.slug)
+                          ? `One-time unlock. Lifetime access to ${agent.name} on your account.`
+                          : "Available through a quick conversation — tell us your use case and we'll get you set up."}
+                    </p>
+                    <div className="mt-4">
+                      <UnlockButton kind="agent" slug={agent.slug} itemName={agent.name} />
+                    </div>
+                  </div>
+                ))}
+              {!owned && (
                 <div className="rounded-2xl border border-border bg-card p-6">
-                  <p className="text-sm font-medium">Premium agent</p>
+                  <p className="text-sm font-medium">Get early access</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {getPremiumEntry("agent", agent.slug)
-                      ? `One-time unlock. Lifetime access to ${agent.name} on your account.`
-                      : "Available through a quick conversation — tell us your use case and we'll get you set up."}
+                    We're onboarding builders for {agent.name}. Join the list to get a deployment
+                    invite.
                   </p>
                   <div className="mt-4">
-                    <UnlockButton kind="agent" slug={agent.slug} itemName={agent.name} />
+                    <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
                   </div>
                 </div>
               )}
-              <div className="rounded-2xl border border-border bg-card p-6">
-                <p className="text-sm font-medium">Get early access</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  We're onboarding builders for {agent.name}. Join the list to get a deployment
-                  invite.
-                </p>
-                <div className="mt-4">
-                  <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
-                </div>
-              </div>
             </div>
           </aside>
         </div>

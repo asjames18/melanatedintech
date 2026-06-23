@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { listDiscussionPosts, createDiscussionPost } from "@/lib/community.functions";
+import { COMMUNITY_CATEGORIES, COMMUNITY_CATEGORY_LABELS, type CommunityCategory } from "@/lib/community";
 import { toast } from "sonner";
 import { buildSeoMeta } from "@/lib/seo";
 import { timeAgo } from "@/lib/utils";
@@ -94,7 +96,11 @@ function NewPostDialog() {
   const create = useServerFn(createDiscussionPost);
   const [open, setOpen] = useState(false);
   const [authed, setAuthed] = useState<boolean | null>(null);
-  const [form, setForm] = useState({ title: "", body: "", category: "general" });
+  const [form, setForm] = useState<{ title: string; body: string; category: CommunityCategory }>({
+    title: "",
+    body: "",
+    category: "general",
+  });
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
@@ -136,7 +142,14 @@ function NewPostDialog() {
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="category">Category</Label>
-            <Input id="category" maxLength={40} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="general" />
+            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as CommunityCategory })}>
+              <SelectTrigger id="category"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {COMMUNITY_CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>{COMMUNITY_CATEGORY_LABELS[c]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="body">Body</Label>

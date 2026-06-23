@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Lock, Trash2, Unlock } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +11,11 @@ import {
   getDiscussionThread,
   createDiscussionComment,
   deleteDiscussionItem,
+  moderateDiscussionThread,
+  adminDeleteDiscussionItem,
 } from "@/lib/community.functions";
+import { checkAdminStatus } from "@/lib/admin.functions";
+import { useQuery } from "@tanstack/react-query";
 import { buildSeoMeta } from "@/lib/seo";
 import { timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
@@ -65,6 +69,17 @@ function ThreadView() {
 
   const create = useServerFn(createDiscussionComment);
   const del = useServerFn(deleteDiscussionItem);
+  const adminDel = useServerFn(adminDeleteDiscussionItem);
+  const moderate = useServerFn(moderateDiscussionThread);
+  const checkAdmin = useServerFn(checkAdminStatus);
+
+  const adminQ = useQuery({
+    queryKey: ["admin-status"],
+    queryFn: () => checkAdmin(),
+    enabled: !!me,
+    staleTime: 60_000,
+  });
+  const isAdmin = !!adminQ.data?.isAdmin;
 
   const replyMut = useMutation({
     mutationFn: () => create({ data: { post_id: id, body: reply } }),
@@ -76,8 +91,11 @@ function ThreadView() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  // Owners delete their own content; admins can delete anyone's (via the
+  // service-role fn, which isn't bound by RLS).
   const delMut = useMutation({
-    mutationFn: (args: { id: string; kind: "post" | "comment" }) => del({ data: args }),
+    mutationFn: (args: { id: string; kind: "post" | "comment"; asAdmin?: boolean }) =>
+      (args.asAdmin ? adminDel : del)({ data: { id: args.id, kind: args.kind } }),
     onSuccess: (_r, args) => {
       toast.success(args.kind === "post" ? "Thread deleted." : "Comment deleted.");
       if (args.kind === "post") {
@@ -90,7 +108,18 @@ function ThreadView() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const lockMut = useMutation({
+    mutationFn: (locked: boolean) => moderate({ data: { id, locked } }),
+    onSuccess: (_r, locked) => {
+      toast.success(locked ? "Thread locked." : "Thread unlocked.");
+      qc.invalidateQueries({ queryKey: ["discussion-thread", id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const { post, comments } = thread!;
+  const ownsPost = me === post.user_id;
+  const canRemovePost = ownsPost || isAdmin;
 
   return (
     <SiteLayout>
@@ -110,16 +139,30 @@ function ThreadView() {
           <div className="prose prose-sm mt-6 max-w-none whitespace-pre-wrap text-foreground">
             {post.body}
           </div>
-          {me === post.user_id && (
-            <div className="mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-                onClick={() => delMut.mutate({ id: post.id, kind: "post" })}
-              >
-                <Trash2 className="h-4 w-4" /> Delete thread
-              </Button>
+          {(canRemovePost || isAdmin) && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  disabled={lockMut.isPending}
+                  onClick={() => lockMut.mutate(!post.locked)}
+                >
+                  {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                  {post.locked ? "Unlock thread" : "Lock thread"}
+                </Button>
+              )}
+              {canRemovePost && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={() => delMut.mutate({ id: post.id, kind: "post", asAdmin: !ownsPost })}
+                >
+                  <Trash2 className="h-4 w-4" /> Delete thread
+                </Button>
+              )}
             </div>
           )}
         </header>
@@ -135,9 +178,9 @@ function ThreadView() {
                   <p className="text-xs text-muted-foreground">
                     {c.author?.display_name ?? "Someone"} · {timeAgo(c.created_at)}
                   </p>
-                  {me === c.user_id && (
+                  {(me === c.user_id || isAdmin) && (
                     <button
-                      onClick={() => delMut.mutate({ id: c.id, kind: "comment" })}
+                      onClick={() => delMut.mutate({ id: c.id, kind: "comment", asAdmin: me !== c.user_id })}
                       className="text-xs text-muted-foreground hover:text-foreground"
                       aria-label="Delete comment"
                     >
@@ -153,7 +196,11 @@ function ThreadView() {
 
         <section className="mt-8 rounded-2xl border border-border bg-card p-5">
           <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">Reply</h3>
-          {me === null ? (
+          {post.locked ? (
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+              <Lock className="h-3.5 w-3.5" /> This thread is locked. New replies are turned off.
+            </p>
+          ) : me === null ? (
             <p className="mt-3 text-sm text-muted-foreground">
               <Link to="/auth" className="text-primary">Sign in</Link> to join the conversation.
             </p>

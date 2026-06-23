@@ -10,7 +10,7 @@ import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
-import { ProductDelivery } from "@/components/product-delivery";
+import { ProductDelivery, ProductFreePack } from "@/components/product-delivery";
 import { useHasEntitlement } from "@/hooks/use-entitlement";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
@@ -219,6 +219,9 @@ function ProductDetail() {
             <div className="mt-3">
               <Markdown md={product.description} />
             </div>
+            {product.tier === "free" && product.unlock_content && (
+              <ProductFreePack slug={product.slug} content={product.unlock_content} />
+            )}
             {owned && <ProductDelivery slug={product.slug} />}
           </div>
           <aside className="md:col-span-1">

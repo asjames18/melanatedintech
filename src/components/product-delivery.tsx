@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Download, PackageCheck } from "lucide-react";
+import { Download, Gift, PackageCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Markdown } from "@/components/markdown";
 import { getProductFulfillment } from "@/lib/fulfillment.functions";
@@ -15,6 +15,29 @@ function downloadMarkdown(filename: string, content: string) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Free pack — content ships publicly with the product, so it renders inline for
+ * everyone (no entitlement). Premium packs go through ProductDelivery instead.
+ */
+export function ProductFreePack({ slug, content }: { slug: string; content: string }) {
+  return (
+    <section className="mt-10 rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Gift className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="font-display text-lg font-semibold">What's inside — free</h2>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => downloadMarkdown(`${slug}.md`, content)}>
+          <Download className="h-4 w-4" /> Download .md
+        </Button>
+      </div>
+      <div className="mt-5 border-t border-border pt-5">
+        <Markdown md={content} />
+      </div>
+    </section>
+  );
 }
 
 /**

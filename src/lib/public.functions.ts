@@ -94,7 +94,14 @@ export const getProduct = createServerFn({ method: "GET" })
     if (!row) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { unlock_content, asset_path, ...rest } = row as any;
-    return { ...rest, has_fulfillment: !!unlock_content || !!asset_path };
+    // Free packs are public — return their content. Premium content stays gated
+    // and is only served by getProductFulfillment to a verified owner.
+    const isFree = rest.tier === "free";
+    return {
+      ...rest,
+      has_fulfillment: !!unlock_content || !!asset_path,
+      unlock_content: isFree ? (unlock_content ?? null) : undefined,
+    };
   });
 
 export const listServices = createServerFn({ method: "GET" }).handler(async () => {

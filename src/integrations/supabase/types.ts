@@ -272,6 +272,7 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          ip_hash: string | null
           message: string
           name: string
           organization: string | null
@@ -281,6 +282,7 @@ export type Database = {
           created_at?: string
           email: string
           id?: string
+          ip_hash?: string | null
           message: string
           name: string
           organization?: string | null
@@ -290,6 +292,7 @@ export type Database = {
           created_at?: string
           email?: string
           id?: string
+          ip_hash?: string | null
           message?: string
           name?: string
           organization?: string | null
@@ -371,6 +374,8 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          asset_name: string | null
+          asset_path: string | null
           category: string
           created_at: string
           description: string
@@ -381,10 +386,13 @@ export type Database = {
           slug: string
           tagline: string
           tier: Database["public"]["Enums"]["agent_tier"]
+          unlock_content: string | null
           updated_at: string
         }
         Insert: {
           active?: boolean
+          asset_name?: string | null
+          asset_path?: string | null
           category: string
           created_at?: string
           description: string
@@ -395,10 +403,13 @@ export type Database = {
           slug: string
           tagline: string
           tier?: Database["public"]["Enums"]["agent_tier"]
+          unlock_content?: string | null
           updated_at?: string
         }
         Update: {
           active?: boolean
+          asset_name?: string | null
+          asset_path?: string | null
           category?: string
           created_at?: string
           description?: string
@@ -409,6 +420,7 @@ export type Database = {
           slug?: string
           tagline?: string
           tier?: Database["public"]["Enums"]["agent_tier"]
+          unlock_content?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -630,6 +642,7 @@ export type Database = {
           email: string
           id: string
           interest: string | null
+          ip_hash: string | null
           product_slug: string | null
           source: string | null
         }
@@ -638,6 +651,7 @@ export type Database = {
           email: string
           id?: string
           interest?: string | null
+          ip_hash?: string | null
           product_slug?: string | null
           source?: string | null
         }
@@ -646,6 +660,7 @@ export type Database = {
           email?: string
           id?: string
           interest?: string | null
+          ip_hash?: string | null
           product_slug?: string | null
           source?: string | null
         }

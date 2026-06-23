@@ -13,7 +13,7 @@ import {
   deleteDiscussionItem,
 } from "@/lib/community.functions";
 import { buildSeoMeta } from "@/lib/seo";
-import { timeAgo } from "./community";
+import { timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
 
 const threadQO = (id: string) =>

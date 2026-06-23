@@ -21,6 +21,10 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
+import { Route as CommunityIndexRouteImport } from './routes/community.index'
+import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
@@ -95,6 +99,26 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => KnowledgeRoute,
+} as any)
+const CommunityIndexRoute = CommunityIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CommunityRoute,
+} as any)
+const AgentsIndexRoute = AgentsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AgentsRoute,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/$slug',
@@ -201,6 +225,10 @@ export interface FileRoutesByFullPath {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/agents/': typeof AgentsIndexRoute
+  '/community/': typeof CommunityIndexRoute
+  '/knowledge/': typeof KnowledgeIndexRoute
+  '/products/': typeof ProductsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -209,12 +237,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
-  '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
-  '/knowledge': typeof KnowledgeRouteWithChildren
-  '/products': typeof ProductsRouteWithChildren
   '/search': typeof SearchRoute
   '/services': typeof ServicesRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -229,6 +253,10 @@ export interface FileRoutesByTo {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/agents': typeof AgentsIndexRoute
+  '/community': typeof CommunityIndexRoute
+  '/knowledge': typeof KnowledgeIndexRoute
+  '/products': typeof ProductsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -259,6 +287,10 @@ export interface FileRoutesById {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/agents/': typeof AgentsIndexRoute
+  '/community/': typeof CommunityIndexRoute
+  '/knowledge/': typeof KnowledgeIndexRoute
+  '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -289,6 +321,10 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/agents/'
+    | '/community/'
+    | '/knowledge/'
+    | '/products/'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
@@ -297,12 +333,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/agents'
     | '/auth'
-    | '/community'
     | '/contact'
-    | '/knowledge'
-    | '/products'
     | '/search'
     | '/services'
     | '/sitemap.xml'
@@ -317,6 +349,10 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/agents'
+    | '/community'
+    | '/knowledge'
+    | '/products'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
@@ -346,6 +382,10 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/agents/'
+    | '/community/'
+    | '/knowledge/'
+    | '/products/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/submissions/$id'
@@ -455,6 +495,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/products/': {
+      id: '/products/'
+      path: '/'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/knowledge/': {
+      id: '/knowledge/'
+      path: '/'
+      fullPath: '/knowledge/'
+      preLoaderRoute: typeof KnowledgeIndexRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/community/': {
+      id: '/community/'
+      path: '/'
+      fullPath: '/community/'
+      preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof CommunityRoute
+    }
+    '/agents/': {
+      id: '/agents/'
+      path: '/'
+      fullPath: '/agents/'
+      preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof AgentsRoute
     }
     '/products/$slug': {
       id: '/products/$slug'
@@ -612,10 +680,12 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface AgentsRouteChildren {
   AgentsSlugRoute: typeof AgentsSlugRoute
+  AgentsIndexRoute: typeof AgentsIndexRoute
 }
 
 const AgentsRouteChildren: AgentsRouteChildren = {
   AgentsSlugRoute: AgentsSlugRoute,
+  AgentsIndexRoute: AgentsIndexRoute,
 }
 
 const AgentsRouteWithChildren =
@@ -623,10 +693,12 @@ const AgentsRouteWithChildren =
 
 interface CommunityRouteChildren {
   CommunityIdRoute: typeof CommunityIdRoute
+  CommunityIndexRoute: typeof CommunityIndexRoute
 }
 
 const CommunityRouteChildren: CommunityRouteChildren = {
   CommunityIdRoute: CommunityIdRoute,
+  CommunityIndexRoute: CommunityIndexRoute,
 }
 
 const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
@@ -635,10 +707,12 @@ const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
 
 interface KnowledgeRouteChildren {
   KnowledgeSlugRoute: typeof KnowledgeSlugRoute
+  KnowledgeIndexRoute: typeof KnowledgeIndexRoute
 }
 
 const KnowledgeRouteChildren: KnowledgeRouteChildren = {
   KnowledgeSlugRoute: KnowledgeSlugRoute,
+  KnowledgeIndexRoute: KnowledgeIndexRoute,
 }
 
 const KnowledgeRouteWithChildren = KnowledgeRoute._addFileChildren(
@@ -647,10 +721,12 @@ const KnowledgeRouteWithChildren = KnowledgeRoute._addFileChildren(
 
 interface ProductsRouteChildren {
   ProductsSlugRoute: typeof ProductsSlugRoute
+  ProductsIndexRoute: typeof ProductsIndexRoute
 }
 
 const ProductsRouteChildren: ProductsRouteChildren = {
   ProductsSlugRoute: ProductsSlugRoute,
+  ProductsIndexRoute: ProductsIndexRoute,
 }
 
 const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
@@ -677,3 +753,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

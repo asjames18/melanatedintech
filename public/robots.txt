@@ -7,4 +7,4 @@ Disallow: /admin/
 Disallow: /auth
 Disallow: /api/
 
-Sitemap: /sitemap.xml
+Sitemap: https://melanatedintech.com/sitemap.xml

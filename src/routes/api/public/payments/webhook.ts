@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type StripeEnv, verifyWebhook, createStripeClient } from "@/lib/stripe.server";
+import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
 
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -9,9 +10,8 @@ async function getAdmin() {
 async function grantFromSession(sessionObj: any, env: StripeEnv) {
   const meta = sessionObj?.metadata ?? {};
   const userId = meta.userId;
-  const kind = meta.unlock_kind;
+  const kind = meta.unlock_kind as PremiumKind | undefined;
   const slug = meta.unlock_slug;
-  const priceId = meta.price_id ?? null;
   const sessionId = sessionObj?.id ?? null;
 
   if (!userId || !kind || !slug) {
@@ -19,9 +19,31 @@ async function grantFromSession(sessionObj: any, env: StripeEnv) {
     return;
   }
   if (sessionObj?.payment_status && sessionObj.payment_status !== "paid") {
-    console.log("[payments-webhook] not paid yet", { sessionId, status: sessionObj.payment_status });
+    console.log("[payments-webhook] not paid yet", {
+      sessionId,
+      status: sessionObj.payment_status,
+    });
     return;
   }
+
+  // Never trust metadata for what was purchased: resolve (kind, slug) against the
+  // catalog, and confirm the amount actually paid matches the catalog price before
+  // granting. This defeats a forged/mismatched checkout.
+  const entry = getPremiumEntry(kind, slug);
+  if (!entry) {
+    console.warn("[payments-webhook] skipping: unknown catalog item", { sessionId, kind, slug });
+    return;
+  }
+  const amountPaid = sessionObj?.amount_total;
+  if (typeof amountPaid === "number" && amountPaid !== entry.amountCents) {
+    console.warn("[payments-webhook] skipping: amount mismatch", {
+      sessionId,
+      expected: entry.amountCents,
+      got: amountPaid,
+    });
+    return;
+  }
+  const priceId = entry.priceId;
 
   const admin = await getAdmin();
   const { error } = await admin.from("user_entitlements").upsert(
@@ -48,8 +70,7 @@ async function handleEvent(event: { type: string; data: { object: any } }, env: 
       return;
     case "transaction.completed": {
       // Lovable-normalized event — try to resolve back to a checkout session
-      const sessionId =
-        obj?.checkout_session_id ?? obj?.session_id ?? obj?.metadata?.session_id;
+      const sessionId = obj?.checkout_session_id ?? obj?.session_id ?? obj?.metadata?.session_id;
       if (sessionId) {
         try {
           const stripe = createStripeClient(env);

@@ -1,3 +1,7 @@
+// Canonical production origin. Used for the sitemap, SEO canonical/OG URLs,
+// and structured data. No trailing slash.
+export const SITE_URL = "https://melanatedintech.com";
+
 export const SITE = {
   name: "Melanated In Tech",
   short: "MIT",
@@ -18,19 +22,22 @@ export const PILLARS = [
   {
     title: "Agent Marketplace",
     href: "/agents" as const,
-    blurb: "Discover production-grade AI agents for ministries, businesses, sales, support, research, and creators.",
+    blurb:
+      "Discover production-grade AI agents for ministries, businesses, sales, support, research, and creators.",
     tag: "Pillar 01",
   },
   {
     title: "Agent Knowledge Hub",
     href: "/knowledge" as const,
-    blurb: "Guides, frameworks, and field notes on memory, skills, MCP, multi-agent systems, local AI, and more.",
+    blurb:
+      "Guides, frameworks, and field notes on memory, skills, MCP, multi-agent systems, local AI, and more.",
     tag: "Pillar 02",
   },
   {
     title: "Agent Digital Products",
     href: "/products" as const,
-    blurb: "Starter kits, blueprints, prompt libraries, SOPs, and memory systems to ship agents faster.",
+    blurb:
+      "Starter kits, blueprints, prompt libraries, SOPs, and memory systems to ship agents faster.",
     tag: "Pillar 03",
   },
   {

@@ -1,11 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import {
-  type StripeEnv,
-  createStripeClient,
-  getStripeErrorMessage,
-} from "@/lib/stripe.server";
+import { type StripeEnv, createStripeClient, getStripeErrorMessage } from "@/lib/stripe.server";
+import { getPremiumEntry } from "@/lib/premium-catalog";
 
 const envSchema = z.enum(["sandbox", "live"]);
 
@@ -42,30 +39,44 @@ async function resolveOrCreateCustomer(
 
 export const createUnlockCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: {
-    priceId: string;
-    kind: "agent" | "product";
-    slug: string;
-    returnUrl: string;
-    environment: StripeEnv;
-  }) =>
-    z
-      .object({
-        priceId: z.string().regex(/^[a-zA-Z0-9_-]+$/),
-        kind: z.enum(["agent", "product"]),
-        slug: z.string().min(1).max(120),
-        returnUrl: z.string().url(),
-        environment: envSchema,
-      })
-      .parse(data),
+  .inputValidator(
+    (data: {
+      // priceId is accepted for backwards-compat but ignored: the server derives
+      // the real price from (kind, slug) so a client cannot pay for one item and
+      // claim entitlement to a different/pricier one.
+      priceId?: string;
+      kind: "agent" | "product";
+      slug: string;
+      returnUrl: string;
+      environment: StripeEnv;
+    }) =>
+      z
+        .object({
+          priceId: z
+            .string()
+            .regex(/^[a-zA-Z0-9_-]+$/)
+            .optional(),
+          kind: z.enum(["agent", "product"]),
+          slug: z.string().min(1).max(120),
+          returnUrl: z.string().url(),
+          environment: envSchema,
+        })
+        .parse(data),
   )
   .handler(async ({ data, context }): Promise<CheckoutResult> => {
     try {
       const { userId, supabase } = context;
-      const { data: { user } } = await supabase.auth.getUser();
+
+      // Source of truth: derive the Stripe price from our catalog, never the client.
+      const entry = getPremiumEntry(data.kind, data.slug);
+      if (!entry) throw new Error("This item is not available for purchase.");
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       const stripe = createStripeClient(data.environment);
 
-      const prices = await stripe.prices.list({ lookup_keys: [data.priceId] });
+      const prices = await stripe.prices.list({ lookup_keys: [entry.priceId] });
       if (!prices.data.length) throw new Error("Price not found");
       const stripePrice = prices.data[0];
 
@@ -75,9 +86,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
       });
 
       const productId =
-        typeof stripePrice.product === "string"
-          ? stripePrice.product
-          : stripePrice.product.id;
+        typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
       const product = await stripe.products.retrieve(productId);
 
       const session = await stripe.checkout.sessions.create({
@@ -91,7 +100,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
           userId,
           unlock_kind: data.kind,
           unlock_slug: data.slug,
-          price_id: data.priceId,
+          price_id: entry.priceId,
         },
       } as any);
 

@@ -9,8 +9,13 @@ import { toast } from "sonner";
 
 export function ContactForm() {
   const [form, setForm] = useState({
-    name: "", email: "", organization: "", topic: "", message: "",
+    name: "",
+    email: "",
+    organization: "",
+    topic: "",
+    message: "",
   });
+  const [hp, setHp] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const send = useServerFn(submitContact);
@@ -23,13 +28,16 @@ export function ContactForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await send({ data: {
-        name: form.name,
-        email: form.email,
-        organization: form.organization || undefined,
-        topic: form.topic || undefined,
-        message: form.message,
-      }});
+      await send({
+        data: {
+          name: form.name,
+          email: form.email,
+          organization: form.organization || undefined,
+          topic: form.topic || undefined,
+          message: form.message,
+          hp: hp || undefined,
+        },
+      });
       setDone(true);
       toast.success("Message sent — we'll be in touch.");
     } catch (err) {
@@ -49,27 +57,70 @@ export function ContactForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-4">
+      {/* Honeypot — hidden from real users; bots fill it and get silently dropped. */}
+      <input
+        type="text"
+        name="company_website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={hp}
+        onChange={(e) => setHp(e.target.value)}
+        className="absolute left-[-9999px] h-0 w-0 opacity-0"
+      />
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="name">Name</Label>
-          <Input id="name" required maxLength={100} value={form.name} onChange={(e) => update("name", e.target.value)} />
+          <Input
+            id="name"
+            required
+            maxLength={100}
+            value={form.name}
+            onChange={(e) => update("name", e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" required type="email" maxLength={255} value={form.email} onChange={(e) => update("email", e.target.value)} />
+          <Input
+            id="email"
+            required
+            type="email"
+            maxLength={255}
+            value={form.email}
+            onChange={(e) => update("email", e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="organization">Organization</Label>
-          <Input id="organization" maxLength={120} value={form.organization} onChange={(e) => update("organization", e.target.value)} />
+          <Input
+            id="organization"
+            maxLength={120}
+            value={form.organization}
+            onChange={(e) => update("organization", e.target.value)}
+          />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="topic">Topic</Label>
-          <Input id="topic" maxLength={80} placeholder="e.g. Custom agent build" value={form.topic} onChange={(e) => update("topic", e.target.value)} />
+          <Input
+            id="topic"
+            maxLength={80}
+            placeholder="e.g. Custom agent build"
+            value={form.topic}
+            onChange={(e) => update("topic", e.target.value)}
+          />
         </div>
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="message">How can we help?</Label>
-        <Textarea id="message" required minLength={10} maxLength={2000} rows={6} value={form.message} onChange={(e) => update("message", e.target.value)} />
+        <Textarea
+          id="message"
+          required
+          minLength={10}
+          maxLength={2000}
+          rows={6}
+          value={form.message}
+          onChange={(e) => update("message", e.target.value)}
+        />
       </div>
       <Button type="submit" disabled={loading} className="w-full sm:w-auto">
         {loading ? "Sending…" : "Send message"}

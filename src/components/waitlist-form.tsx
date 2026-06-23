@@ -16,6 +16,7 @@ export function WaitlistForm({
   compact?: boolean;
 }) {
   const [email, setEmail] = useState("");
+  const [hp, setHp] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const join = useServerFn(joinWaitlist);
@@ -29,7 +30,7 @@ export function WaitlistForm({
     }
     setLoading(true);
     try {
-      await join({ data: { email, source, interest } });
+      await join({ data: { email, source, interest, hp: hp || undefined } });
       setDone(true);
       setEmail("");
       toast.success("You're on the list.");
@@ -53,6 +54,17 @@ export function WaitlistForm({
       onSubmit={onSubmit}
       className={compact ? "flex w-full gap-2" : "flex w-full max-w-md flex-col gap-2 sm:flex-row"}
     >
+      {/* Honeypot — hidden from real users; bots fill it and get silently dropped. */}
+      <input
+        type="text"
+        name="company_website"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        value={hp}
+        onChange={(e) => setHp(e.target.value)}
+        className="absolute left-[-9999px] h-0 w-0 opacity-0"
+      />
       <Input
         type="email"
         required

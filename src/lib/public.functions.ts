@@ -4,11 +4,9 @@ import { z } from "zod";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export const listAgents = createServerFn({ method: "GET" }).handler(async () => {
@@ -97,10 +95,14 @@ const waitlistSchema = z.object({
   email: z.string().trim().email().max(255),
   source: z.string().trim().max(80).optional(),
   interest: z.string().trim().max(200).optional(),
+  // Honeypot: real users never fill this hidden field; bots do.
+  hp: z.string().trim().max(200).optional(),
 });
 export const joinWaitlist = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => waitlistSchema.parse(d))
   .handler(async ({ data }) => {
+    // Silently accept honeypot hits so bots can't distinguish a rejection.
+    if (data.hp) return { ok: true };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("waitlist_signups").insert({
       email: data.email.toLowerCase(),
@@ -119,10 +121,14 @@ const contactSchema = z.object({
   organization: z.string().trim().max(120).optional(),
   topic: z.string().trim().max(80).optional(),
   message: z.string().trim().min(10).max(2000),
+  // Honeypot: real users never fill this hidden field; bots do.
+  hp: z.string().trim().max(200).optional(),
 });
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
+    // Silently accept honeypot hits so bots can't distinguish a rejection.
+    if (data.hp) return { ok: true };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("contact_messages").insert({
       name: data.name,

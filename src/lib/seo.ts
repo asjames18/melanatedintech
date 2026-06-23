@@ -1,3 +1,5 @@
+import { SITE_URL } from "@/lib/site";
+
 type MetaTag = Record<string, string>;
 
 export type SeoInput = {
@@ -51,6 +53,7 @@ export function organizationLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: DEFAULT_SITE,
+    url: SITE_URL,
     description:
       "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
   };

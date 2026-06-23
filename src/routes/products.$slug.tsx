@@ -9,6 +9,7 @@ import { ShareBar } from "@/components/share-bar";
 import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
+import { Markdown } from "@/components/markdown";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -212,7 +213,9 @@ function ProductDetail() {
         <div className="grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
             <h2 className="font-display text-xl font-semibold">About this product</h2>
-            <p className="mt-3 whitespace-pre-line text-muted-foreground">{product.description}</p>
+            <div className="mt-3">
+              <Markdown md={product.description} />
+            </div>
           </div>
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">

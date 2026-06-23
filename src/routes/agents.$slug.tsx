@@ -8,6 +8,7 @@ import { SaveAgentButton } from "@/components/save-agent-button";
 import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
+import { Markdown } from "@/components/markdown";
 import { ShareBar } from "@/components/share-bar";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
@@ -215,7 +216,9 @@ function AgentDetail() {
         <div className="grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
             <h2 className="font-display text-xl font-semibold">About this agent</h2>
-            <p className="mt-3 whitespace-pre-line text-muted-foreground">{agent.description}</p>
+            <div className="mt-3">
+              <Markdown md={agent.description} />
+            </div>
 
             {agent.capabilities && agent.capabilities.length > 0 && (
               <>

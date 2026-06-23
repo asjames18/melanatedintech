@@ -38,6 +38,7 @@ type FormState = {
   website_url: string;
   demo_url: string;
   repo_url: string;
+  image_url: string;
   contact_email: string;
   pricing_notes: string;
 };
@@ -45,7 +46,7 @@ type FormState = {
 const emptyForm: FormState = {
   name: "", tagline: "", description: "",
   category: CATEGORIES[0], capabilities: "",
-  website_url: "", demo_url: "", repo_url: "",
+  website_url: "", demo_url: "", repo_url: "", image_url: "",
   contact_email: "", pricing_notes: "",
 };
 
@@ -69,6 +70,7 @@ function validate(form: FormState): Record<string, string> {
   if (!urlOk(form.website_url)) errors.website_url = "Use a full http(s):// URL.";
   if (!urlOk(form.demo_url)) errors.demo_url = "Use a full http(s):// URL.";
   if (!urlOk(form.repo_url)) errors.repo_url = "Use a full http(s):// URL.";
+  if (!urlOk(form.image_url)) errors.image_url = "Use a full http(s):// URL.";
   if (form.pricing_notes.length > 280) errors.pricing_notes = "Max 280 characters.";
   return errors;
 }
@@ -160,6 +162,7 @@ function SubmitAgentPage() {
           website_url: form.website_url || undefined,
           demo_url: form.demo_url || undefined,
           repo_url: form.repo_url || undefined,
+          image_url: form.image_url || undefined,
           contact_email: form.contact_email,
           pricing_notes: form.pricing_notes || null,
         },
@@ -253,6 +256,13 @@ function SubmitAgentPage() {
               <Input type="url" value={form.repo_url} onChange={(e) => update("repo_url", e.target.value)} placeholder="https://" aria-invalid={!!errors.repo_url} />
             </Field>
           </div>
+
+          <Field label="Screenshot / logo URL" hint="Shown on your listing once approved." error={errors.image_url} field="image_url">
+            <Input type="url" value={form.image_url} onChange={(e) => update("image_url", e.target.value)} placeholder="https://…/screenshot.png" aria-invalid={!!errors.image_url} />
+            {urlOk(form.image_url) && form.image_url && (
+              <img src={form.image_url} alt="" className="mt-2 max-h-32 rounded-lg border border-border object-contain" />
+            )}
+          </Field>
 
           <div className="grid gap-6 sm:grid-cols-2">
             <Field label="Contact email *" error={errors.contact_email} field="contact_email">

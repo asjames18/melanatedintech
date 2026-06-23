@@ -620,6 +620,11 @@ function SubmissionCard({
         </span>
       </div>
       <p className="mt-3 text-sm">{submission.tagline}</p>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      {(submission as any).image_url && (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <img src={(submission as any).image_url} alt="" className="mt-3 max-h-40 rounded-lg border border-border object-contain" />
+      )}
       <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{submission.description}</p>
       {(submission.website_url || submission.demo_url || submission.repo_url || submission.published_agent_id) && (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">

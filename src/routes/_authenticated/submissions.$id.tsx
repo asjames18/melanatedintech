@@ -25,7 +25,7 @@ const CATEGORIES = [
 type FormState = {
   name: string; tagline: string; description: string;
   category: string; capabilities: string;
-  website_url: string; demo_url: string; repo_url: string;
+  website_url: string; demo_url: string; repo_url: string; image_url: string;
   contact_email: string; pricing_notes: string;
 };
 
@@ -44,6 +44,7 @@ function validate(f: FormState): Record<string, string> {
   if (!urlOk(f.website_url)) e.website_url = "Use a full http(s):// URL.";
   if (!urlOk(f.demo_url)) e.demo_url = "Use a full http(s):// URL.";
   if (!urlOk(f.repo_url)) e.repo_url = "Use a full http(s):// URL.";
+  if (!urlOk(f.image_url)) e.image_url = "Use a full http(s):// URL.";
   return e;
 }
 
@@ -70,6 +71,8 @@ function SubmissionEditor() {
         website_url: sub.data.website_url ?? "",
         demo_url: sub.data.demo_url ?? "",
         repo_url: sub.data.repo_url ?? "",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        image_url: (sub.data as any).image_url ?? "",
         contact_email: sub.data.contact_email,
         pricing_notes: sub.data.pricing_notes ?? "",
       });
@@ -116,6 +119,7 @@ function SubmissionEditor() {
           website_url: form.website_url || undefined,
           demo_url: form.demo_url || undefined,
           repo_url: form.repo_url || undefined,
+          image_url: form.image_url || undefined,
           contact_email: form.contact_email,
           pricing_notes: form.pricing_notes || null,
         },
@@ -213,6 +217,12 @@ function SubmissionEditor() {
                 <Input type="url" value={form.repo_url} onChange={(e) => setForm({ ...form, repo_url: e.target.value })} placeholder="https://" />
               </Field>
             </div>
+            <Field label="Screenshot / logo URL" error={errors.image_url}>
+              <Input type="url" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…/screenshot.png" />
+              {urlOk(form.image_url) && form.image_url && (
+                <img src={form.image_url} alt="" className="mt-2 max-h-32 rounded-lg border border-border object-contain" />
+              )}
+            </Field>
             <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Contact email *" error={errors.contact_email}>
                 <Input type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} maxLength={255} />

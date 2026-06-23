@@ -9,6 +9,27 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Sparkles } from "lucide-react";
 
+/** Map raw Supabase/OAuth error text to something a person can act on. */
+function friendlyAuthError(raw: string, mode: "signin" | "signup"): string {
+  const m = raw.toLowerCase();
+  if (m.includes("already registered") || m.includes("already been registered")) {
+    return "That email already has an account. Try signing in instead.";
+  }
+  if (m.includes("invalid login credentials")) {
+    return "Email or password doesn't match. Check both, or reset your password.";
+  }
+  if (m.includes("email not confirmed")) {
+    return "Confirm your email first — check your inbox for the link we sent.";
+  }
+  if (m.includes("token already in use") || m.includes("already in use")) {
+    return "That Google account is already linked elsewhere. Try signing in with email and password.";
+  }
+  if (m.includes("rate") && m.includes("limit")) {
+    return "Too many attempts. Wait a minute and try again.";
+  }
+  return raw || (mode === "signup" ? "Could not create your account." : "Authentication failed.");
+}
+
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
@@ -49,7 +70,7 @@ function AuthPage() {
         navigate({ to: "/account" });
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Authentication failed.");
+      toast.error(friendlyAuthError(err instanceof Error ? err.message : "", mode));
     } finally {
       setLoading(false);
     }
@@ -61,13 +82,15 @@ function AuthPage() {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error("Google sign-in failed.");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const msg = (result.error as any)?.message ?? String(result.error);
+        toast.error(friendlyAuthError(msg, mode));
         return;
       }
       if (result.redirected) return;
       navigate({ to: "/account" });
-    } catch {
-      toast.error("Google sign-in failed.");
+    } catch (err) {
+      toast.error(friendlyAuthError(err instanceof Error ? err.message : "", mode));
     }
   }
 

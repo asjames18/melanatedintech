@@ -24,6 +24,7 @@ const submissionSchema = z.object({
   website_url: urlOrEmpty,
   demo_url: urlOrEmpty,
   repo_url: urlOrEmpty,
+  image_url: urlOrEmpty,
   contact_email: z.string().trim().email("Enter a valid email").max(255),
   pricing_notes: z.string().trim().max(280).nullable().optional(),
 });
@@ -56,9 +57,10 @@ export const submitAgent = createServerFn({ method: "POST" })
         website_url: data.website_url ?? null,
         demo_url: data.demo_url ?? null,
         repo_url: data.repo_url ?? null,
+        image_url: data.image_url ?? null,
         contact_email: data.contact_email,
         pricing_notes: data.pricing_notes ?? null,
-      })
+      } as never)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -123,6 +125,7 @@ export const updateMySubmission = createServerFn({ method: "POST" })
         website_url: data.website_url ?? null,
         demo_url: data.demo_url ?? null,
         repo_url: data.repo_url ?? null,
+        image_url: data.image_url ?? null,
         contact_email: data.contact_email,
         pricing_notes: data.pricing_notes ?? null,
         // Resubmission flips back to pending and clears reviewer state.
@@ -130,7 +133,7 @@ export const updateMySubmission = createServerFn({ method: "POST" })
         review_notes: null,
         reviewed_at: null,
         reviewed_by: null,
-      })
+      } as never)
       .eq("id", data.id)
       .eq("submitter_id", context.userId);
     if (error) throw new Error(error.message);
@@ -220,11 +223,13 @@ export const adminReviewSubmission = createServerFn({ method: "POST" })
             description: sub.description,
             category: sub.category,
             capabilities: sub.capabilities ?? [],
+            // Carry the submitter's screenshot/logo through to the live listing.
+            image_url: (sub as { image_url?: string | null }).image_url ?? null,
             tier: "free",
             featured: false,
             active: true,
             status: "published",
-          })
+          } as never)
           .select("id, slug")
           .single();
         if (insErr) throw new Error(insErr.message);

@@ -13,7 +13,6 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -80,18 +79,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Melanated In Tech — The home for AI agents" },
-      { name: "description", content: "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents." },
+      {
+        name: "description",
+        content:
+          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+      },
       { name: "author", content: "Melanated In Tech" },
       { property: "og:title", content: "Melanated In Tech — The home for AI agents" },
-      { property: "og:description", content: "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents." },
+      {
+        property: "og:description",
+        content:
+          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Melanated In Tech — The home for AI agents" },
-      { name: "twitter:description", content: "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de7a44fd-3ee6-432a-9533-e19d7f75cdb0/id-preview-2c0e691e--7c05ad8b-1800-49cf-95ce-593fa251c44c.lovable.app-1782175986393.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/de7a44fd-3ee6-432a-9533-e19d7f75cdb0/id-preview-2c0e691e--7c05ad8b-1800-49cf-95ce-593fa251c44c.lovable.app-1782175986393.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+      },
+      {
+        property: "og:image",
+        content: "https://melanatedintech.com/og-default.png",
+      },
+      {
+        name: "twitter:image",
+        content: "https://melanatedintech.com/og-default.png",
+      },
     ],
     links: [
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       {
         rel: "stylesheet",
         href: appCss,
@@ -104,7 +124,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "Organization",
           name: "Melanated In Tech",
-          description: "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+          description:
+            "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
         }),
       },
     ],
@@ -140,4 +161,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

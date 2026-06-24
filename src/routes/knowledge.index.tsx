@@ -30,16 +30,32 @@ export const Route = createFileRoute("/knowledge/")({
   head: () => ({
     meta: [
       { title: "Agent Knowledge Hub — Melanated In Tech" },
-      { name: "description", content: "Guides, frameworks, and field notes on AI agents — memory, MCP, multi-agent systems, local AI, and more." },
+      {
+        name: "description",
+        content:
+          "Guides, frameworks, and field notes on AI agents — memory, MCP, multi-agent systems, local AI, and more.",
+      },
       { property: "og:title", content: "AI Agent Knowledge Hub" },
       { property: "og:description", content: "Practical knowledge for people building AI agents." },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,
-  pendingComponent: () => <SiteLayout><ListingPendingShell variant="article" label="articles" /></SiteLayout>,
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  pendingComponent: () => (
+    <SiteLayout>
+      <ListingPendingShell variant="article" label="articles" />
+    </SiteLayout>
+  ),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: KnowledgeIndex,
 });
 
@@ -57,7 +73,9 @@ function KnowledgeIndex() {
   const [q, setQ] = useState("");
 
   // Keep local state in sync when URL changes (e.g. clicking a reason chip).
-  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (urlCategory && urlCategory !== cat) setCat(urlCategory);
+  }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = articles.filter((a) => {
     const matchCat = cat === "All" || a.category === cat;
@@ -77,7 +95,11 @@ function KnowledgeIndex() {
   // When filter changes, reset page + reflect category in URL.
   useEffect(() => {
     navigate({
-      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      search: (prev: { page: number; category: string }) => ({
+        ...prev,
+        page: 1,
+        category: cat === "All" ? "All" : cat,
+      }),
       replace: true,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,14 +172,26 @@ function KnowledgeIndex() {
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background text-muted-foreground hover:text-foreground"
                 }`}
-                title={l === "Quick" ? "≤ 5 min" : l === "Medium" ? "6–9 min" : l === "Deep" ? "10+ min" : "Any length"}
+                title={
+                  l === "Quick"
+                    ? "≤ 5 min"
+                    : l === "Medium"
+                      ? "6–9 min"
+                      : l === "Deep"
+                        ? "10+ min"
+                        : "Any length"
+                }
               >
                 {l}
               </button>
             ))}
             {hasFilters && (
               <button
-                onClick={() => { setCat("All"); setLen("All"); setQ(""); }}
+                onClick={() => {
+                  setCat("All");
+                  setLen("All");
+                  setQ("");
+                }}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
                 Reset filters
@@ -166,7 +200,10 @@ function KnowledgeIndex() {
           </div>
         </div>
 
-        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div
+          key={safePage}
+          className="mt-8 grid animate-fade-in gap-5 md:grid-cols-2 lg:grid-cols-3"
+        >
           {paged.map((a) => (
             <ArticleCard key={a.id} {...a} />
           ))}
@@ -174,7 +211,9 @@ function KnowledgeIndex() {
         {filtered.length === 0 && (
           <div className="mt-12 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
             <p className="text-sm font-medium">No articles match this filter.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Try clearing filters or searching a different keyword.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Try clearing filters or searching a different keyword.
+            </p>
           </div>
         )}
 
@@ -193,7 +232,17 @@ function KnowledgeIndex() {
   );
 }
 
-function ContinueReading({ articles }: { articles: Array<{ id: string; slug: string; title: string; category: string; read_minutes: number }> }) {
+function ContinueReading({
+  articles,
+}: {
+  articles: Array<{
+    id: string;
+    slug: string;
+    title: string;
+    category: string;
+    read_minutes: number;
+  }>;
+}) {
   const rows = useReadingProgressList();
   const inProgress = rows
     .filter((r) => r.percent > 5 && r.percent < 95)
@@ -208,10 +257,16 @@ function ContinueReading({ articles }: { articles: Array<{ id: string; slug: str
       <ul className="mt-5 grid gap-4 md:grid-cols-3">
         {inProgress.map(({ row, article }) => (
           <li key={row.slug} className="rounded-2xl border bg-card p-4">
-            <Link to="/knowledge/$slug" params={{ slug: article!.slug }} className="font-medium hover:text-primary">
+            <Link
+              to="/knowledge/$slug"
+              params={{ slug: article!.slug }}
+              className="font-medium hover:text-primary"
+            >
               {article!.title}
             </Link>
-            <p className="mt-1 text-xs text-muted-foreground">{article!.category} · {article!.read_minutes} min</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {article!.category} · {article!.read_minutes} min
+            </p>
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div className="h-full bg-primary" style={{ width: `${row.percent}%` }} />
             </div>

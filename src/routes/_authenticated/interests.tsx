@@ -11,7 +11,14 @@ import { getMyInterests, saveMyInterests, resetMyInterests } from "@/lib/interes
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 
-const CONTENT_TYPES = ["Article", "Tutorial", "Framework", "Research", "Best Practice", "Implementation Guide"];
+const CONTENT_TYPES = [
+  "Article",
+  "Tutorial",
+  "Framework",
+  "Research",
+  "Best Practice",
+  "Implementation Guide",
+];
 
 export const Route = createFileRoute("/_authenticated/interests")({
   head: () => ({ meta: [{ title: "Interests — Melanated In Tech" }] }),
@@ -100,16 +107,22 @@ function InterestsPage() {
       <section className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/account"><ArrowLeft className="mr-1 h-4 w-4" /> Back to account</Link>
+            <Link to="/account">
+              <ArrowLeft className="mr-1 h-4 w-4" /> Back to account
+            </Link>
           </Button>
         </div>
 
         <div className="space-y-8 rounded-2xl border bg-card p-6">
           <div>
             <h2 className="font-display text-lg font-semibold">Categories</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Pick any topics you want surfaced first across agents, knowledge, and products.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Pick any topics you want surfaced first across agents, knowledge, and products.
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              {allCategories.length === 0 && <p className="text-sm text-muted-foreground">Loading categories…</p>}
+              {allCategories.length === 0 && (
+                <p className="text-sm text-muted-foreground">Loading categories…</p>
+              )}
               {allCategories.map((c) => {
                 const on = selectedCats.includes(c);
                 return (
@@ -118,7 +131,9 @@ function InterestsPage() {
                     type="button"
                     onClick={() => setSelectedCats((arr) => toggle(arr, c))}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                      on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-foreground/30"
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background hover:border-foreground/30"
                     }`}
                   >
                     {c}
@@ -140,7 +155,9 @@ function InterestsPage() {
                     type="button"
                     onClick={() => setSelectedTypes((arr) => toggle(arr, c))}
                     className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                      on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:border-foreground/30"
+                      on
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-border bg-background hover:border-foreground/30"
                     }`}
                   >
                     {c}
@@ -161,9 +178,13 @@ function InterestsPage() {
         </div>
 
         <div className="mt-8 rounded-2xl border bg-card/50 p-5">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Currently saved</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            Currently saved
+          </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Badge variant="secondary" className="gap-1"><Sparkles className="h-3 w-3" /> {selectedCats.length} categories</Badge>
+            <Badge variant="secondary" className="gap-1">
+              <Sparkles className="h-3 w-3" /> {selectedCats.length} categories
+            </Badge>
             <Badge variant="secondary">{selectedTypes.length} content types</Badge>
           </div>
         </div>

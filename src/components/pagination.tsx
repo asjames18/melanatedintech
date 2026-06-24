@@ -12,7 +12,9 @@ type Props = {
 function pageWindow(page: number, pageCount: number): (number | "…")[] {
   if (pageCount <= 7) return Array.from({ length: pageCount }, (_, i) => i + 1);
   const set = new Set<number>([1, pageCount, page, page - 1, page + 1]);
-  const sorted = Array.from(set).filter((n) => n >= 1 && n <= pageCount).sort((a, b) => a - b);
+  const sorted = Array.from(set)
+    .filter((n) => n >= 1 && n <= pageCount)
+    .sort((a, b) => a - b);
   const out: (number | "…")[] = [];
   for (let i = 0; i < sorted.length; i++) {
     out.push(sorted[i]);
@@ -30,8 +32,11 @@ export function Pagination({ page, pageCount, total, pageSize, label, onChange }
   return (
     <div className="mt-10 flex flex-col items-center justify-between gap-4 sm:flex-row">
       <p className="text-xs text-muted-foreground" aria-live="polite">
-        Showing <span className="font-medium text-foreground">{start}–{end}</span> of{" "}
-        <span className="font-medium text-foreground">{total}</span> {label}
+        Showing{" "}
+        <span className="font-medium text-foreground">
+          {start}–{end}
+        </span>{" "}
+        of <span className="font-medium text-foreground">{total}</span> {label}
       </p>
       {pageCount > 1 && (
         <nav className="flex items-center gap-1" aria-label="Pagination">
@@ -45,7 +50,9 @@ export function Pagination({ page, pageCount, total, pageSize, label, onChange }
           </button>
           {items.map((it, i) =>
             it === "…" ? (
-              <span key={`e${i}`} className="px-2 text-xs text-muted-foreground">…</span>
+              <span key={`e${i}`} className="px-2 text-xs text-muted-foreground">
+                …
+              </span>
             ) : (
               <button
                 key={it}

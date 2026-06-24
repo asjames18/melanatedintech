@@ -8,7 +8,7 @@ export function getStripeEnvironment(): StripeEnv {
   if (clientToken?.startsWith("pk_test_")) return "sandbox";
   if (clientToken?.startsWith("pk_live_")) return "live";
   throw new Error(
-    "Payments are not configured for this build. Complete go-live in your Lovable project to enable production checkout.",
+    "Payments are not configured for this build. Configure the Stripe publishable key in Cloudflare to enable checkout.",
   );
 }
 

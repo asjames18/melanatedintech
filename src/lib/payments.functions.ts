@@ -9,9 +9,7 @@ const envSchema = z.enum(["sandbox", "live"]);
 
 type CheckoutResult = { clientSecret: string } | { error: string };
 
-type ConfirmResult =
-  | { owned: true; kind: PremiumKind; slug: string }
-  | { owned: false };
+type ConfirmResult = { owned: true; kind: PremiumKind; slug: string } | { owned: false };
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -44,7 +42,7 @@ async function resolveOrCreateCustomer(
 
 export const createUnlockCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
+  .validator(
     (data: {
       // priceId is accepted for backwards-compat but ignored: the server derives
       // the real price from (kind, slug) so a client cannot pay for one item and
@@ -97,7 +95,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
       const session = await stripe.checkout.sessions.create({
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: "payment",
-        ui_mode: "embedded_page",
+        ui_mode: "embedded",
         return_url: data.returnUrl,
         customer: customerId,
         payment_intent_data: { description: product.name },
@@ -107,7 +105,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
           unlock_slug: data.slug,
           price_id: entry.priceId,
         },
-      } as any);
+      });
 
       return { clientSecret: session.client_secret ?? "" };
     } catch (error) {
@@ -119,12 +117,12 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
 /**
  * Self-healing fulfillment: grant the entitlement straight from a paid checkout
  * session when the buyer lands back on /checkout/return, so delivery does NOT depend
- * on the Stripe webhook firing. The webhook remains a backup. Idempotent — re-calling
+ * on the Stripe webhook firing. The webhook remains a backup. Idempotent - re-calling
  * for the same session is a no-op thanks to the upsert in grantFromSession.
  */
 export const confirmCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { sessionId: string; environment: StripeEnv }) =>
+  .validator((data: { sessionId: string; environment: StripeEnv }) =>
     z
       .object({
         sessionId: z.string().min(1).max(200),
@@ -141,7 +139,7 @@ export const confirmCheckoutSession = createServerFn({ method: "POST" })
       // Ownership guard: unlike the webhook (whose payload is Stripe-signed), this path
       // is user-triggered, so we must confirm the session belongs to the caller before
       // trusting its metadata. A user can only confirm their own checkout.
-      if ((session as any)?.metadata?.userId !== userId) {
+      if (session.metadata?.userId !== userId) {
         return { owned: false };
       }
 

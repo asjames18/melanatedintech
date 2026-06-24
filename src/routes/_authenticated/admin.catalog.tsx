@@ -26,7 +26,9 @@ function CatalogPage() {
       <section className="mx-auto max-w-6xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mb-6">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/admin"><ArrowLeft className="mr-1 h-4 w-4" /> Back to admin</Link>
+            <Link to="/admin">
+              <ArrowLeft className="mr-1 h-4 w-4" /> Back to admin
+            </Link>
           </Button>
         </div>
         {q.isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
@@ -53,7 +55,9 @@ function CatalogPage() {
                         )}
                         {b.label}
                       </span>
-                      <span className={b.missing ? "text-muted-foreground" : "font-medium"}>{b.count}</span>
+                      <span className={b.missing ? "text-muted-foreground" : "font-medium"}>
+                        {b.count}
+                      </span>
                     </li>
                   ))}
                 </ul>

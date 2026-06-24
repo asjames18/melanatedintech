@@ -14,12 +14,11 @@ export function Hero() {
             The home for AI agents
           </span>
           <h1 className="mt-6 font-display text-5xl font-semibold tracking-tight sm:text-6xl lg:text-7xl">
-            Build, deploy, and benefit from{" "}
-            <span className="text-gradient-brand">AI agents.</span>
+            Build, deploy, and benefit from <span className="text-gradient-brand">AI agents.</span>
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Melanated In Tech is the marketplace, knowledge hub, and build partner for people putting AI
-            agents to work — in businesses, ministries, creator studios, and beyond.
+            Melanated In Tech is the marketplace, knowledge hub, and build partner for people
+            putting AI agents to work — in businesses, ministries, creator studios, and beyond.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
@@ -37,9 +36,15 @@ export function Hero() {
           </div>
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-accent2" /> Production-ready agents</span>
-            <span className="inline-flex items-center gap-1.5"><Zap className="h-3.5 w-3.5 text-primary" /> Ministry &amp; business ready</span>
-            <span className="inline-flex items-center gap-1.5"><Workflow className="h-3.5 w-3.5 text-accent2" /> Built by operators, not theorists</span>
+            <span className="inline-flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-accent2" /> Production-ready agents
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Zap className="h-3.5 w-3.5 text-primary" /> Ministry &amp; business ready
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <Workflow className="h-3.5 w-3.5 text-accent2" /> Built by operators, not theorists
+            </span>
           </div>
         </div>
       </div>

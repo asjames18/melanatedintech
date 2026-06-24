@@ -32,20 +32,14 @@ function listingPathFor(itemType: RecMeta["itemType"]): "/agents" | "/knowledge"
  * the "Because you're…" reason underneath. The reason is a Link that filters
  * the matching listing by the item's category.
  */
-export function RecommendationItem({
-  meta,
-  children,
-}: {
-  meta: RecMeta;
-  children: ReactNode;
-}) {
-  const ref = useImpression<HTMLDivElement>(
-    () => trackEvent("recommendation_impression", meta),
-    { key: `${meta.surface}:${meta.itemSlug}:${meta.sourceSlug}` },
-  );
-  const matched = meta.sourceCategory && meta.itemCategory === meta.sourceCategory
-    ? meta.sourceCategory
-    : meta.itemCategory;
+export function RecommendationItem({ meta, children }: { meta: RecMeta; children: ReactNode }) {
+  const ref = useImpression<HTMLDivElement>(() => trackEvent("recommendation_impression", meta), {
+    key: `${meta.surface}:${meta.itemSlug}:${meta.sourceSlug}`,
+  });
+  const matched =
+    meta.sourceCategory && meta.itemCategory === meta.sourceCategory
+      ? meta.sourceCategory
+      : meta.itemCategory;
   const path = listingPathFor(meta.itemType);
   return (
     <div

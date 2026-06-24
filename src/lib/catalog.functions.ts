@@ -42,7 +42,10 @@ export const adminCatalogStats = createServerFn({ method: "GET" })
     const errs = [agents.error, articles.error, products.error, services.error].filter(Boolean);
     if (errs.length) throw new Error(errs.map((e) => e!.message).join("; "));
 
-    const groupBy = (rows: Array<{ category?: string | null }> | null, fallback = "Uncategorized") => {
+    const groupBy = (
+      rows: Array<{ category?: string | null }> | null,
+      fallback = "Uncategorized",
+    ) => {
       const m = new Map<string, number>();
       for (const r of rows ?? []) {
         const k = (r.category ?? fallback) || fallback;
@@ -94,9 +97,7 @@ export const adminCatalogStats = createServerFn({ method: "GET" })
         kind: "services",
         title: "Service lines",
         total: services.data?.length ?? 0,
-        buckets: groupBy(
-          (services.data ?? []).map((r) => ({ category: r.name })),
-        ),
+        buckets: groupBy((services.data ?? []).map((r) => ({ category: r.name }))),
       },
     ];
   });

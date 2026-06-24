@@ -1,8 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type StripeEnv, verifyWebhook, createStripeClient } from "@/lib/stripe.server";
+import {
+  type StripeEnv,
+  verifyWebhook,
+  createStripeClient,
+  type StripeEventLike,
+} from "@/lib/stripe.server";
 import { grantFromSession } from "@/lib/fulfillment-grant.server";
 
-async function handleEvent(event: { type: string; data: { object: any } }, env: StripeEnv) {
+async function handleEvent(event: StripeEventLike, env: StripeEnv) {
   const obj = event.data.object;
   switch (event.type) {
     case "checkout.session.completed":
@@ -10,7 +15,7 @@ async function handleEvent(event: { type: string; data: { object: any } }, env: 
       await grantFromSession(obj, env);
       return;
     case "transaction.completed": {
-      // Lovable-normalized event — try to resolve back to a checkout session
+      // Lovable-normalized event - try to resolve back to a checkout session
       const sessionId = obj?.checkout_session_id ?? obj?.session_id ?? obj?.metadata?.session_id;
       if (sessionId) {
         try {

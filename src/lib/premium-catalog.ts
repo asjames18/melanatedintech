@@ -12,13 +12,25 @@ export interface PremiumEntry {
 
 export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> = {
   agent: {
-    "marketing-campaign-strategist": { priceId: "agent_marketing_campaign_strategist_onetime", amountCents: 4900 },
+    "marketing-campaign-strategist": {
+      priceId: "agent_marketing_campaign_strategist_onetime",
+      amountCents: 4900,
+    },
     "pa-inbox-zero": { priceId: "agent_pa_inbox_zero_onetime", amountCents: 3900 },
-    "marketing-seo-researcher": { priceId: "agent_marketing_seo_researcher_onetime", amountCents: 5900 },
+    "marketing-seo-researcher": {
+      priceId: "agent_marketing_seo_researcher_onetime",
+      amountCents: 5900,
+    },
   },
   product: {
-    "agent-skill-pack-core": { priceId: "product_agent_skill_pack_core_onetime", amountCents: 4900 },
-    "workflow-templates-ops": { priceId: "product_workflow_templates_ops_onetime", amountCents: 3900 },
+    "agent-skill-pack-core": {
+      priceId: "product_agent_skill_pack_core_onetime",
+      amountCents: 4900,
+    },
+    "workflow-templates-ops": {
+      priceId: "product_workflow_templates_ops_onetime",
+      amountCents: 3900,
+    },
   },
 };
 

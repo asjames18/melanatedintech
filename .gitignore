@@ -19,6 +19,15 @@ dist-ssr
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
+.cloudflare.env
+
+# Supabase local CLI state
+supabase/.temp/
+
+# Local secrets
+.env
+.env.*
+!.env.example
 
 # Editor directories and files
 .vscode/*

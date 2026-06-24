@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 import { SITE_URL } from "@/lib/site";
 
@@ -28,11 +29,9 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const supabase = createClient<Database>(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_PUBLISHABLE_KEY!,
-          { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-        );
+        const supabase = createClient<Database>(getSupabaseUrl()!, getSupabasePublishableKey()!, {
+          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        });
 
         const [agents, articles, products] = await Promise.all([
           supabase.from("agents").select("slug, updated_at"),

@@ -37,9 +37,21 @@ export const Route = createFileRoute("/search")({
     ]);
     return null;
   },
-  pendingComponent: () => <SiteLayout><ListingPendingShell variant="article" label="results" /></SiteLayout>,
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  pendingComponent: () => (
+    <SiteLayout>
+      <ListingPendingShell variant="article" label="results" />
+    </SiteLayout>
+  ),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: SearchPage,
 });
 
@@ -86,9 +98,13 @@ function SearchPage() {
   );
 
   const needle = q.trim();
-  const articleHits = needle ? articlesFuse.search(needle).map((r) => r.item) : articles.slice(0, 6);
+  const articleHits = needle
+    ? articlesFuse.search(needle).map((r) => r.item)
+    : articles.slice(0, 6);
   const agentHits = needle ? agentsFuse.search(needle).map((r) => r.item) : agents.slice(0, 6);
-  const productHits = needle ? productsFuse.search(needle).map((r) => r.item) : products.slice(0, 6);
+  const productHits = needle
+    ? productsFuse.search(needle).map((r) => r.item)
+    : products.slice(0, 6);
 
   const showAgents = type === "all" || type === "agents";
   const showArticles = type === "all" || type === "articles";
@@ -100,9 +116,15 @@ function SearchPage() {
     (showProducts ? productHits.length : 0);
 
   const setQ = (next: string) =>
-    navigate({ search: (prev: { q: string; type: typeof type }) => ({ ...prev, q: next }), replace: true });
+    navigate({
+      search: (prev: { q: string; type: typeof type }) => ({ ...prev, q: next }),
+      replace: true,
+    });
   const setType = (next: typeof type) =>
-    navigate({ search: (prev: { q: string; type: typeof type }) => ({ ...prev, type: next }), replace: true });
+    navigate({
+      search: (prev: { q: string; type: typeof type }) => ({ ...prev, type: next }),
+      replace: true,
+    });
 
   return (
     <SiteLayout>
@@ -155,24 +177,32 @@ function SearchPage() {
 
         {showAgents && agentHits.length > 0 && (
           <ResultGroup title="Agents" href="/agents">
-            {agentHits.slice(0, 9).map((a) => <AgentCard key={a.id} {...a} />)}
+            {agentHits.slice(0, 9).map((a) => (
+              <AgentCard key={a.id} {...a} />
+            ))}
           </ResultGroup>
         )}
         {showArticles && articleHits.length > 0 && (
           <ResultGroup title="Knowledge" href="/knowledge">
-            {articleHits.slice(0, 9).map((a) => <ArticleCard key={a.id} {...a} />)}
+            {articleHits.slice(0, 9).map((a) => (
+              <ArticleCard key={a.id} {...a} />
+            ))}
           </ResultGroup>
         )}
         {showProducts && productHits.length > 0 && (
           <ResultGroup title="Products" href="/products">
-            {productHits.slice(0, 9).map((p) => <ProductCard key={p.id} {...p} />)}
+            {productHits.slice(0, 9).map((p) => (
+              <ProductCard key={p.id} {...p} />
+            ))}
           </ResultGroup>
         )}
 
         {needle && totalHits === 0 && (
           <div className="mt-10 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
             <p className="text-sm font-medium">No matches for "{needle}".</p>
-            <p className="mt-1 text-xs text-muted-foreground">Try a broader keyword or switch the type filter.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Try a broader keyword or switch the type filter.
+            </p>
           </div>
         )}
       </section>
@@ -180,12 +210,22 @@ function SearchPage() {
   );
 }
 
-function ResultGroup({ title, href, children }: { title: string; href: "/agents" | "/knowledge" | "/products"; children: React.ReactNode }) {
+function ResultGroup({
+  title,
+  href,
+  children,
+}: {
+  title: string;
+  href: "/agents" | "/knowledge" | "/products";
+  children: React.ReactNode;
+}) {
   return (
     <div className="mt-10">
       <div className="mb-4 flex items-baseline justify-between">
         <h2 className="font-display text-xl font-semibold">{title}</h2>
-        <Link to={href} className="text-xs text-muted-foreground hover:text-foreground">Browse all →</Link>
+        <Link to={href} className="text-xs text-muted-foreground hover:text-foreground">
+          Browse all →
+        </Link>
       </div>
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">{children}</div>
     </div>

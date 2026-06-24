@@ -18,12 +18,17 @@ function read(): ProgressRow[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
     return parsed.slice(0, MAX);
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function write(rows: ProgressRow[]) {
-  try { window.localStorage.setItem(KEY, JSON.stringify(rows.slice(0, MAX))); }
-  catch { /* ignore */ }
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify(rows.slice(0, MAX)));
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Reads + subscribes to the persisted reading-progress map. */
@@ -31,7 +36,9 @@ export function useReadingProgressList() {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   useEffect(() => {
     setRows(read());
-    const onStorage = (e: StorageEvent) => { if (e.key === KEY) setRows(read()); };
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === KEY) setRows(read());
+    };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
@@ -42,12 +49,15 @@ export function useReadingProgressList() {
 export function useTrackReadingProgress(slug: string | undefined, title: string | undefined) {
   const [pct, setPct] = useState(0);
 
-  const persist = useCallback((percent: number) => {
-    if (!slug || !title) return;
-    const next = read().filter((r) => r.slug !== slug);
-    next.unshift({ slug, title, percent, updated_at: Date.now() });
-    write(next);
-  }, [slug, title]);
+  const persist = useCallback(
+    (percent: number) => {
+      if (!slug || !title) return;
+      const next = read().filter((r) => r.slug !== slug);
+      next.unshift({ slug, title, percent, updated_at: Date.now() });
+      write(next);
+    },
+    [slug, title],
+  );
 
   useEffect(() => {
     if (!slug) return;

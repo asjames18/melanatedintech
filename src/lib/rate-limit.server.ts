@@ -41,9 +41,8 @@ export async function tooManyRecent(
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const since = new Date(Date.now() - windowMinutes * 60_000).toISOString();
-    // ip_hash is not in the generated Database types yet; cast to keep this query
-    // decoupled from the schema regen.
-    const { count, error } = await (supabaseAdmin.from(table) as any)
+    const { count, error } = await supabaseAdmin
+      .from(table)
       .select("*", { count: "exact", head: true })
       .eq("ip_hash", ipHash)
       .gte("created_at", since);

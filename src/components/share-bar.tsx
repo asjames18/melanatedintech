@@ -51,19 +51,39 @@ export function ShareBar({ title, text, className }: Props) {
         className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-xs font-medium text-foreground transition-colors hover:bg-muted"
         aria-label="Copy link"
       >
-        {copied ? <Check className="h-3.5 w-3.5 text-accent2" /> : <LinkIcon className="h-3.5 w-3.5" />}
+        {copied ? (
+          <Check className="h-3.5 w-3.5 text-accent2" />
+        ) : (
+          <LinkIcon className="h-3.5 w-3.5" />
+        )}
         {copied ? "Copied" : "Copy link"}
       </button>
       <span className="mx-1 hidden h-5 w-px bg-border sm:inline-block" />
-      <ShareLink href={xUrl} label="Share on X">𝕏</ShareLink>
-      <ShareLink href={liUrl} label="Share on LinkedIn">in</ShareLink>
-      <ShareLink href={fbUrl} label="Share on Facebook">f</ShareLink>
-      <ShareLink href={mailUrl} label="Email this">@</ShareLink>
+      <ShareLink href={xUrl} label="Share on X">
+        𝕏
+      </ShareLink>
+      <ShareLink href={liUrl} label="Share on LinkedIn">
+        in
+      </ShareLink>
+      <ShareLink href={fbUrl} label="Share on Facebook">
+        f
+      </ShareLink>
+      <ShareLink href={mailUrl} label="Email this">
+        @
+      </ShareLink>
     </div>
   );
 }
 
-function ShareLink({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+function ShareLink({
+  href,
+  label,
+  children,
+}: {
+  href: string;
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <a
       href={href}

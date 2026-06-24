@@ -15,8 +15,14 @@ export function SiteLayout({ children }: { children: ReactNode }) {
 }
 
 export function PageHeader({
-  eyebrow, title, description,
-}: { eyebrow?: string; title: string; description?: string }) {
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+}) {
   return (
     <section className="border-b border-border bg-muted/30">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

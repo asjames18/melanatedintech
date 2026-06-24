@@ -1,9 +1,37 @@
 import Stripe from "stripe";
 
-const getEnv = (key: string): string => {
+type StripeErrorLike = {
+  message?: string;
+  type?: string;
+  code?: string;
+  decline_code?: string;
+  raw?: {
+    message?: string;
+    type?: string;
+    code?: string;
+    decline_code?: string;
+  };
+};
+
+export type StripeEventLike = {
+  type: string;
+  data: {
+    object: Stripe.Checkout.Session | Record<string, unknown>;
+  };
+};
+
+const getOptionalEnv = (key: string): string | undefined => {
   const value = process.env[key];
-  if (!value) throw new Error(`${key} is not configured`);
-  return value;
+  return value?.trim() ? value : undefined;
+};
+
+const getEnv = (keys: string | string[]): string => {
+  const names = Array.isArray(keys) ? keys : [keys];
+  for (const name of names) {
+    const value = getOptionalEnv(name);
+    if (value) return value;
+  }
+  throw new Error(`${names.join(" or ")} is not configured`);
 };
 
 export type StripeEnv = "sandbox" | "live";
@@ -12,16 +40,22 @@ const GATEWAY_STRIPE_BASE = "https://connector-gateway.lovable.dev/stripe";
 
 export function getConnectionApiKey(env: StripeEnv): string {
   return env === "sandbox"
-    ? getEnv("STRIPE_SANDBOX_API_KEY")
-    : getEnv("STRIPE_LIVE_API_KEY");
+    ? getEnv(["STRIPE_SANDBOX_SECRET_KEY", "STRIPE_SANDBOX_API_KEY", "STRIPE_SECRET_KEY"])
+    : getEnv(["STRIPE_LIVE_SECRET_KEY", "STRIPE_LIVE_API_KEY"]);
 }
 
 export function createStripeClient(env: StripeEnv): Stripe {
   const connectionApiKey = getConnectionApiKey(env);
-  const lovableApiKey = getEnv("LOVABLE_API_KEY");
+  const lovableApiKey = getOptionalEnv("LOVABLE_API_KEY");
+
+  if (!lovableApiKey) {
+    return new Stripe(connectionApiKey, {
+      apiVersion: Stripe.API_VERSION,
+    });
+  }
 
   return new Stripe(connectionApiKey, {
-    apiVersion: "2026-03-25.dahlia" as any,
+    apiVersion: Stripe.API_VERSION,
     httpClient: Stripe.createFetchHttpClient((input, init) => {
       const stripeUrl = input instanceof Request ? input.url : input.toString();
       const gatewayUrl = stripeUrl.replace("https://api.stripe.com", GATEWAY_STRIPE_BASE);
@@ -37,13 +71,13 @@ export function createStripeClient(env: StripeEnv): Stripe {
           "Lovable-API-Key": lovableApiKey,
         },
       });
-    }) as any,
+    }),
   });
 }
 
 export function getStripeErrorMessage(error: unknown): string {
   if (error && typeof error === "object") {
-    const e = error as any;
+    const e = error as StripeErrorLike;
     const message = e.raw?.message ?? e.message;
     if (message) {
       const details = [
@@ -57,15 +91,12 @@ export function getStripeErrorMessage(error: unknown): string {
   return "Stripe request failed";
 }
 
-export async function verifyWebhook(
-  req: Request,
-  env: StripeEnv,
-): Promise<{ type: string; data: { object: any } }> {
+export async function verifyWebhook(req: Request, env: StripeEnv): Promise<StripeEventLike> {
   const signature = req.headers.get("stripe-signature");
   const body = await req.text();
   const secret =
     env === "sandbox"
-      ? getEnv("PAYMENTS_SANDBOX_WEBHOOK_SECRET")
+      ? getEnv(["PAYMENTS_SANDBOX_WEBHOOK_SECRET", "STRIPE_WEBHOOK_SECRET"])
       : getEnv("PAYMENTS_LIVE_WEBHOOK_SECRET");
 
   if (!signature || !body) throw new Error("Missing signature or body");

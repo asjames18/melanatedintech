@@ -1,14 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient<Database>(getSupabaseUrl()!, getSupabasePublishableKey()!, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
 }
 
 const joinSchema = z.object({
@@ -18,7 +17,7 @@ const joinSchema = z.object({
 });
 
 export const joinProductWaitlist = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => joinSchema.parse(d))
+  .validator((d: unknown) => joinSchema.parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { error } = await sb.from("waitlist_signups").insert({
@@ -36,9 +35,7 @@ export const joinProductWaitlist = createServerFn({ method: "POST" })
   });
 
 export const getProductWaitlistCount = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) =>
-    z.object({ product_slug: z.string().trim().min(1).max(120) }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ product_slug: z.string().trim().min(1).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { count, error } = await sb

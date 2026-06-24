@@ -1,0 +1,5 @@
+.env -diff
+.env.* -diff
+.env.example diff
+.cloudflare.env -diff
+.dev.vars -diff

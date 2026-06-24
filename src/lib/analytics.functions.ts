@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const eventSchema = z.object({
@@ -18,11 +19,11 @@ const recordEventsSchema = z.object({
  * RLS enforces caller can only attribute events to themselves.
  */
 export const recordEvents = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => recordEventsSchema.parse(d))
+  .validator((d: unknown) => recordEventsSchema.parse(d))
   .handler(async ({ data }) => {
     const { createClient } = await import("@supabase/supabase-js");
-    const url = process.env.SUPABASE_URL!;
-    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const url = getSupabaseUrl()!;
+    const key = getSupabasePublishableKey()!;
     const supabase = createClient(url, key, {
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
@@ -63,7 +64,7 @@ type EventRow = {
 
 export const adminAnalyticsSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => summarySchema.parse(d ?? {}))
+  .validator((d: unknown) => summarySchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -80,7 +81,10 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
 
     type Bucket = { impressions: number; clicks: number };
     const surfaces = new Map<string, Bucket>();
-    const items = new Map<string, Bucket & { itemType: string; itemSlug: string; itemCategory: string }>();
+    const items = new Map<
+      string,
+      Bucket & { itemType: string; itemSlug: string; itemCategory: string }
+    >();
     const reasons = new Map<string, Bucket>();
     let totalImpressions = 0;
     let totalClicks = 0;
@@ -100,16 +104,25 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       else totalClicks++;
 
       const sBucket = surfaces.get(surface) ?? { impressions: 0, clicks: 0 };
-      if (isImp) sBucket.impressions++; else sBucket.clicks++;
+      if (isImp) sBucket.impressions++;
+      else sBucket.clicks++;
       surfaces.set(surface, sBucket);
 
       const itemKey = `${itemType}:${itemSlug}`;
-      const iBucket = items.get(itemKey) ?? { impressions: 0, clicks: 0, itemType, itemSlug, itemCategory };
-      if (isImp) iBucket.impressions++; else iBucket.clicks++;
+      const iBucket = items.get(itemKey) ?? {
+        impressions: 0,
+        clicks: 0,
+        itemType,
+        itemSlug,
+        itemCategory,
+      };
+      if (isImp) iBucket.impressions++;
+      else iBucket.clicks++;
       items.set(itemKey, iBucket);
 
       const rBucket = reasons.get(reason) ?? { impressions: 0, clicks: 0 };
-      if (isImp) rBucket.impressions++; else rBucket.clicks++;
+      if (isImp) rBucket.impressions++;
+      else rBucket.clicks++;
       reasons.set(reason, rBucket);
     }
 

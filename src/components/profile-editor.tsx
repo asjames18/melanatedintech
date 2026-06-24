@@ -34,7 +34,8 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
   const previewUrl = useAvatarUrl(avatarPath);
 
   const save = useMutation({
-    mutationFn: () => update({ data: { display_name: displayName, bio: bio || null, avatar_url: avatarPath } }),
+    mutationFn: () =>
+      update({ data: { display_name: displayName, bio: bio || null, avatar_url: avatarPath } }),
     onSuccess: () => {
       toast.success("Profile saved.");
       qc.invalidateQueries({ queryKey: ["me"] });
@@ -57,7 +58,9 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
       if (!u.user) throw new Error("Not signed in.");
       const ext = file.name.split(".").pop()?.toLowerCase() || "png";
       const path = `${u.user.id}/avatar-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+      const { error } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
       if (error) throw error;
       // best-effort cleanup of the previous file
       if (avatarPath && avatarPath !== path) {
@@ -104,7 +107,13 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
               e.target.value = "";
             }}
           />
-          <Button type="button" variant="outline" size="sm" onClick={() => fileInput.current?.click()} disabled={uploading}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading}
+          >
             <Upload className="h-4 w-4" /> {avatarPath ? "Replace photo" : "Upload photo"}
           </Button>
           {avatarPath && (
@@ -114,7 +123,10 @@ export function ProfileEditor({ profile }: { profile: Profile }) {
               size="sm"
               className="text-muted-foreground"
               onClick={async () => {
-                await supabase.storage.from("avatars").remove([avatarPath]).catch(() => {});
+                await supabase.storage
+                  .from("avatars")
+                  .remove([avatarPath])
+                  .catch(() => {});
                 setAvatarPath(null);
               }}
             >

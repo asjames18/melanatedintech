@@ -6,9 +6,16 @@ export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
       { title: "About — Melanated In Tech" },
-      { name: "description", content: "We exist to help individuals, entrepreneurs, churches, nonprofits, creators, and businesses understand, build, and deploy AI agents." },
+      {
+        name: "description",
+        content:
+          "We exist to help individuals, entrepreneurs, churches, nonprofits, creators, and businesses understand, build, and deploy AI agents.",
+      },
       { property: "og:title", content: "About Melanated In Tech" },
-      { property: "og:description", content: "The vision, mission, and beliefs behind the home for AI agents." },
+      {
+        property: "og:description",
+        content: "The vision, mission, and beliefs behind the home for AI agents.",
+      },
     ],
   }),
   component: About,
@@ -27,14 +34,15 @@ function About() {
         <div className="prose prose-slate dark:prose-invert max-w-none">
           <h2>Our vision</h2>
           <p>
-            AI agents will become one of the most transformative technologies of this generation. We want to
-            help people participate in that future rather than be left behind by it.
+            AI agents will become one of the most transformative technologies of this generation. We
+            want to help people participate in that future rather than be left behind by it.
           </p>
 
           <h2>Our mission</h2>
           <p>
             We make AI agents understandable, accessible, and useful — through education, a curated
-            marketplace, practical digital products, professional services, and a community of builders.
+            marketplace, practical digital products, professional services, and a community of
+            builders.
           </p>
 
           <h2>What we believe</h2>
@@ -46,8 +54,11 @@ function About() {
           </ul>
 
           <h2>How we measure success</h2>
-          <p>We succeed when users can learn AI agent concepts with confidence, build useful AI solutions,
-          implement AI in their organizations, save time, and generate value in the growing agent economy.</p>
+          <p>
+            We succeed when users can learn AI agent concepts with confidence, build useful AI
+            solutions, implement AI in their organizations, save time, and generate value in the
+            growing agent economy.
+          </p>
         </div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2">

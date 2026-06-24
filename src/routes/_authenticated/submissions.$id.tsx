@@ -18,21 +18,40 @@ export const Route = createFileRoute("/_authenticated/submissions/$id")({
 });
 
 const CATEGORIES = [
-  "Research", "Writing", "Coding", "Design", "Marketing",
-  "Sales", "Operations", "Data", "Education", "Other",
+  "Research",
+  "Writing",
+  "Coding",
+  "Design",
+  "Marketing",
+  "Sales",
+  "Operations",
+  "Data",
+  "Education",
+  "Other",
 ];
 
 type FormState = {
-  name: string; tagline: string; description: string;
-  category: string; capabilities: string;
-  website_url: string; demo_url: string; repo_url: string; image_url: string;
-  contact_email: string; pricing_notes: string;
+  name: string;
+  tagline: string;
+  description: string;
+  category: string;
+  capabilities: string;
+  website_url: string;
+  demo_url: string;
+  repo_url: string;
+  image_url: string;
+  contact_email: string;
+  pricing_notes: string;
 };
 
 const urlOk = (v: string) => {
   if (!v) return true;
-  try { const u = new URL(v); return u.protocol === "http:" || u.protocol === "https:"; }
-  catch { return false; }
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
 };
 
 function validate(f: FormState): Record<string, string> {
@@ -40,7 +59,8 @@ function validate(f: FormState): Record<string, string> {
   if (f.name.trim().length < 2) e.name = "Name is required.";
   if (f.tagline.trim().length < 5) e.tagline = "Tagline is required.";
   if (f.description.trim().length < 20) e.description = "Add at least 20 characters.";
-  if (!f.contact_email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.contact_email)) e.contact_email = "Valid email required.";
+  if (!f.contact_email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.contact_email))
+    e.contact_email = "Valid email required.";
   if (!urlOk(f.website_url)) e.website_url = "Use a full http(s):// URL.";
   if (!urlOk(f.demo_url)) e.demo_url = "Use a full http(s):// URL.";
   if (!urlOk(f.repo_url)) e.repo_url = "Use a full http(s):// URL.";
@@ -80,16 +100,24 @@ function SubmissionEditor() {
   }, [sub.data, form]);
 
   if (sub.isLoading) {
-    return <SiteLayout><div className="p-12 text-sm text-muted-foreground">Loading…</div></SiteLayout>;
+    return (
+      <SiteLayout>
+        <div className="p-12 text-sm text-muted-foreground">Loading…</div>
+      </SiteLayout>
+    );
   }
   if (sub.error || !sub.data) {
     return (
       <SiteLayout>
         <div className="mx-auto max-w-2xl px-4 py-24 text-center">
           <h1 className="font-display text-3xl font-semibold">Submission not found</h1>
-          <p className="mt-2 text-sm text-muted-foreground">It may have been removed, or you may not own it.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            It may have been removed, or you may not own it.
+          </p>
           <Button asChild className="mt-6">
-            <Link to="/submissions"><ArrowLeft className="mr-1 h-4 w-4" /> Back to submissions</Link>
+            <Link to="/submissions">
+              <ArrowLeft className="mr-1 h-4 w-4" /> Back to submissions
+            </Link>
           </Button>
         </div>
       </SiteLayout>
@@ -110,12 +138,19 @@ function SubmissionEditor() {
     }
     setSaving(true);
     try {
-      const capabilities = form.capabilities.split(",").map((x) => x.trim()).filter(Boolean).slice(0, 12);
+      const capabilities = form.capabilities
+        .split(",")
+        .map((x) => x.trim())
+        .filter(Boolean)
+        .slice(0, 12);
       await update({
         data: {
           id,
-          name: form.name, tagline: form.tagline, description: form.description,
-          category: form.category, capabilities,
+          name: form.name,
+          tagline: form.tagline,
+          description: form.description,
+          category: form.category,
+          capabilities,
           website_url: form.website_url || undefined,
           demo_url: form.demo_url || undefined,
           repo_url: form.repo_url || undefined,
@@ -140,7 +175,13 @@ function SubmissionEditor() {
     <SiteLayout>
       <PageHeader
         eyebrow="Builders"
-        title={isApproved ? "Submission details" : s.status === "rejected" ? "Edit & resubmit" : "Edit submission"}
+        title={
+          isApproved
+            ? "Submission details"
+            : s.status === "rejected"
+              ? "Edit & resubmit"
+              : "Edit submission"
+        }
         description={
           isApproved
             ? "This submission has been approved and published. Approved listings can no longer be edited here."
@@ -153,7 +194,9 @@ function SubmissionEditor() {
       <section className="mx-auto max-w-3xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/submissions"><ArrowLeft className="mr-1 h-4 w-4" /> Back to submissions</Link>
+            <Link to="/submissions">
+              <ArrowLeft className="mr-1 h-4 w-4" /> Back to submissions
+            </Link>
           </Button>
           <StatusBadge status={s.status} />
         </div>
@@ -170,9 +213,7 @@ function SubmissionEditor() {
         {isApproved && s.published_agent_id && (
           <div className="mb-6 rounded-xl border bg-card p-4">
             <p className="text-sm font-medium">Live in the marketplace</p>
-            <p className="text-sm text-muted-foreground">
-              Your agent was published when approved.
-            </p>
+            <p className="text-sm text-muted-foreground">Your agent was published when approved.</p>
             <Button asChild className="mt-3" variant="outline" size="sm">
               <Link to="/agents">
                 <ExternalLink className="mr-1 h-3 w-3" /> Browse marketplace
@@ -184,13 +225,30 @@ function SubmissionEditor() {
         {!isApproved && form && (
           <form onSubmit={onSubmit} noValidate className="space-y-6 rounded-2xl border bg-card p-6">
             <Field label="Agent name *" error={errors.name}>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} maxLength={80} />
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                maxLength={80}
+              />
             </Field>
             <Field label="Tagline *" error={errors.tagline}>
-              <Input value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} maxLength={140} />
+              <Input
+                value={form.tagline}
+                onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+                maxLength={140}
+              />
             </Field>
-            <Field label="Description *" hint={`${form.description.length} / 2000 characters`} error={errors.description}>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={5} maxLength={2000} />
+            <Field
+              label="Description *"
+              hint={`${form.description.length} / 2000 characters`}
+              error={errors.description}
+            >
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                rows={5}
+                maxLength={2000}
+              />
             </Field>
             <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Category *" error={errors.category}>
@@ -199,41 +257,83 @@ function SubmissionEditor() {
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
                   className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                 >
-                  {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                  {CATEGORIES.map((c) => (
+                    <option key={c}>{c}</option>
+                  ))}
                 </select>
               </Field>
               <Field label="Capabilities" hint="Comma-separated, up to 12.">
-                <Input value={form.capabilities} onChange={(e) => setForm({ ...form, capabilities: e.target.value })} />
+                <Input
+                  value={form.capabilities}
+                  onChange={(e) => setForm({ ...form, capabilities: e.target.value })}
+                />
               </Field>
             </div>
             <div className="grid gap-6 sm:grid-cols-3">
               <Field label="Website" error={errors.website_url}>
-                <Input type="url" value={form.website_url} onChange={(e) => setForm({ ...form, website_url: e.target.value })} placeholder="https://" />
+                <Input
+                  type="url"
+                  value={form.website_url}
+                  onChange={(e) => setForm({ ...form, website_url: e.target.value })}
+                  placeholder="https://"
+                />
               </Field>
               <Field label="Demo URL" error={errors.demo_url}>
-                <Input type="url" value={form.demo_url} onChange={(e) => setForm({ ...form, demo_url: e.target.value })} placeholder="https://" />
+                <Input
+                  type="url"
+                  value={form.demo_url}
+                  onChange={(e) => setForm({ ...form, demo_url: e.target.value })}
+                  placeholder="https://"
+                />
               </Field>
               <Field label="Repo" error={errors.repo_url}>
-                <Input type="url" value={form.repo_url} onChange={(e) => setForm({ ...form, repo_url: e.target.value })} placeholder="https://" />
+                <Input
+                  type="url"
+                  value={form.repo_url}
+                  onChange={(e) => setForm({ ...form, repo_url: e.target.value })}
+                  placeholder="https://"
+                />
               </Field>
             </div>
             <Field label="Screenshot / logo URL" error={errors.image_url}>
-              <Input type="url" value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://…/screenshot.png" />
+              <Input
+                type="url"
+                value={form.image_url}
+                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                placeholder="https://…/screenshot.png"
+              />
               {urlOk(form.image_url) && form.image_url && (
-                <img src={form.image_url} alt="" className="mt-2 max-h-32 rounded-lg border border-border object-contain" />
+                <img
+                  src={form.image_url}
+                  alt=""
+                  className="mt-2 max-h-32 rounded-lg border border-border object-contain"
+                />
               )}
             </Field>
             <div className="grid gap-6 sm:grid-cols-2">
               <Field label="Contact email *" error={errors.contact_email}>
-                <Input type="email" value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} maxLength={255} />
+                <Input
+                  type="email"
+                  value={form.contact_email}
+                  onChange={(e) => setForm({ ...form, contact_email: e.target.value })}
+                  maxLength={255}
+                />
               </Field>
               <Field label="Pricing notes">
-                <Input value={form.pricing_notes} onChange={(e) => setForm({ ...form, pricing_notes: e.target.value })} maxLength={280} />
+                <Input
+                  value={form.pricing_notes}
+                  onChange={(e) => setForm({ ...form, pricing_notes: e.target.value })}
+                  maxLength={280}
+                />
               </Field>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="submit" disabled={saving}>
-                {saving ? "Saving…" : s.status === "rejected" ? "Resubmit for review" : "Save changes"}
+                {saving
+                  ? "Saving…"
+                  : s.status === "rejected"
+                    ? "Resubmit for review"
+                    : "Save changes"}
               </Button>
             </div>
           </form>
@@ -244,8 +344,16 @@ function SubmissionEditor() {
 }
 
 function Field({
-  label, hint, error, children,
-}: { label: string; hint?: string; error?: string; children: React.ReactNode }) {
+  label,
+  hint,
+  error,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <Label className="text-sm font-medium">{label}</Label>
@@ -257,7 +365,21 @@ function Field({
 }
 
 function StatusBadge({ status }: { status: "pending" | "approved" | "rejected" }) {
-  if (status === "approved") return <Badge variant="secondary" className="gap-1"><CheckCircle2 className="h-3 w-3" /> Approved</Badge>;
-  if (status === "rejected") return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Rejected</Badge>;
-  return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" /> Pending</Badge>;
+  if (status === "approved")
+    return (
+      <Badge variant="secondary" className="gap-1">
+        <CheckCircle2 className="h-3 w-3" /> Approved
+      </Badge>
+    );
+  if (status === "rejected")
+    return (
+      <Badge variant="destructive" className="gap-1">
+        <XCircle className="h-3 w-3" /> Rejected
+      </Badge>
+    );
+  return (
+    <Badge variant="outline" className="gap-1">
+      <Clock className="h-3 w-3" /> Pending
+    </Badge>
+  );
 }

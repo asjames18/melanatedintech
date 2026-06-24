@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Melanated In Tech social preview">
+  <rect width="1200" height="630" fill="#f8fafc"/>
+  <path d="M0 520C180 455 355 458 525 516s345 66 675-28v142H0z" fill="#e0f2fe"/>
+  <path d="M0 0h1200v630H0z" fill="none" stroke="#dbe4ea" stroke-width="2"/>
+  <g transform="translate(92 92)">
+    <rect width="112" height="112" rx="26" fill="#0b1020"/>
+    <path d="M56 18l5.5 16.7 17.7 2.5-12.8 12.3 3 17.4L56 58.6 42.6 66.9l3-17.4-12.8-12.3 17.7-2.5L56 18z" fill="#2dd4bf"/>
+    <path d="M30 80h52" stroke="#f8fafc" stroke-width="7" stroke-linecap="round"/>
+    <circle cx="83" cy="30" r="6" fill="#c77b45"/>
+  </g>
+  <text x="92" y="280" fill="#0b1020" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="800">Melanated In Tech</text>
+  <text x="94" y="360" fill="#0f172a" font-family="Inter, Arial, sans-serif" font-size="44" font-weight="700">The home for AI agents</text>
+  <text x="94" y="430" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="30">Marketplace, knowledge hub, products, and services</text>
+  <text x="94" y="472" fill="#475569" font-family="Inter, Arial, sans-serif" font-size="30">for people putting agents to work.</text>
+  <rect x="92" y="525" width="250" height="54" rx="27" fill="#0b1020"/>
+  <text x="124" y="560" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">melanatedintech.com</text>
+</svg>

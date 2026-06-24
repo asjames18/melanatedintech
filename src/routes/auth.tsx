@@ -34,7 +34,11 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Melanated In Tech" },
-      { name: "description", content: "Sign in or create your Melanated In Tech account to save agents and access the builder community." },
+      {
+        name: "description",
+        content:
+          "Sign in or create your Melanated In Tech account to save agents and access the builder community.",
+      },
     ],
   }),
   component: AuthPage,
@@ -59,7 +63,8 @@ function AuthPage() {
     try {
       if (mode === "signup") {
         const { error } = await supabase.auth.signUp({
-          email, password,
+          email,
+          password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
@@ -121,11 +126,24 @@ function AuthPage() {
           <form onSubmit={onSubmit} className="space-y-3">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                id="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
+              <Input
+                id="password"
+                type="password"
+                required
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "…" : mode === "signin" ? "Sign in" : "Create account"}
@@ -144,7 +162,9 @@ function AuthPage() {
           </button>
         </p>
         <p className="mt-2 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">Back home</Link>
+          <Link to="/" className="hover:text-foreground">
+            Back home
+          </Link>
         </p>
       </section>
     </SiteLayout>

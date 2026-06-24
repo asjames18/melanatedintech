@@ -134,7 +134,6 @@ export function trackEvent(name: string, props: Record<string, unknown> = {}) {
   scheduleFlush();
 
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.debug("[analytics]", name, props);
   }
   window.dispatchEvent(new CustomEvent("mit:analytics", { detail: event }));

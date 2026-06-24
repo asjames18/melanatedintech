@@ -5,7 +5,11 @@ import { useState } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { adminAnalyticsSummary } from "@/lib/analytics.functions";
 import { Download, ShieldCheck } from "lucide-react";
@@ -61,7 +65,9 @@ function AdminAnalytics() {
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Window</span>
             <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-              <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1">Last day</SelectItem>
                 <SelectItem value="7">Last 7 days</SelectItem>
@@ -150,13 +156,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-function Table({
-  headers,
-  rows,
-}: {
-  headers: string[];
-  rows: (string | number)[][];
-}) {
+function Table({ headers, rows }: { headers: string[]; rows: (string | number)[][] }) {
   if (rows.length === 0) {
     return <div className="px-3 py-6 text-sm text-muted-foreground">No data yet.</div>;
   }
@@ -165,7 +165,9 @@ function Table({
       <thead>
         <tr className="text-left text-xs uppercase tracking-wide text-muted-foreground">
           {headers.map((h) => (
-            <th key={h} className="px-3 py-2 font-medium">{h}</th>
+            <th key={h} className="px-3 py-2 font-medium">
+              {h}
+            </th>
           ))}
         </tr>
       </thead>
@@ -173,7 +175,9 @@ function Table({
         {rows.map((r, i) => (
           <tr key={i} className="border-t border-border">
             {r.map((c, j) => (
-              <td key={j} className="px-3 py-2">{c}</td>
+              <td key={j} className="px-3 py-2">
+                {c}
+              </td>
             ))}
           </tr>
         ))}
@@ -190,7 +194,12 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
     const s = String(v ?? "");
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const row = (cells: (string | number)[]) => esc(cells[0]) + cells.slice(1).map((c) => "," + esc(c)).join("");
+  const row = (cells: (string | number)[]) =>
+    esc(cells[0]) +
+    cells
+      .slice(1)
+      .map((c) => "," + esc(c))
+      .join("");
 
   lines.push(`# Recommendation analytics — last ${days} days`);
   lines.push("");
@@ -203,17 +212,29 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
 
   lines.push("By surface");
   lines.push(row(["Surface", "Impressions", "Clicks", "CTR"]));
-  for (const r of data.bySurface) lines.push(row([r.surface, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+  for (const r of data.bySurface)
+    lines.push(row([r.surface, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
   lines.push("");
 
   lines.push("Top items");
   lines.push(row(["Type", "Slug", "Category", "Impressions", "Clicks", "CTR"]));
-  for (const r of data.topItems) lines.push(row([r.itemType, r.itemSlug, r.itemCategory, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+  for (const r of data.topItems)
+    lines.push(
+      row([
+        r.itemType,
+        r.itemSlug,
+        r.itemCategory,
+        r.impressions,
+        r.clicks,
+        (r.ctr * 100).toFixed(2) + "%",
+      ]),
+    );
   lines.push("");
 
   lines.push("Top reasons");
   lines.push(row(["Reason", "Impressions", "Clicks", "CTR"]));
-  for (const r of data.topReasons) lines.push(row([r.reason, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
+  for (const r of data.topReasons)
+    lines.push(row([r.reason, r.impressions, r.clicks, (r.ctr * 100).toFixed(2) + "%"]));
 
   const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);

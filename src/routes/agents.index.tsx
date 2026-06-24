@@ -25,16 +25,35 @@ export const Route = createFileRoute("/agents/")({
   head: () => ({
     meta: [
       { title: "Agent Marketplace — Melanated In Tech" },
-      { name: "description", content: "Browse production-ready AI agents for ministries, businesses, sales, support, research, and creators." },
+      {
+        name: "description",
+        content:
+          "Browse production-ready AI agents for ministries, businesses, sales, support, research, and creators.",
+      },
       { property: "og:title", content: "AI Agent Marketplace" },
-      { property: "og:description", content: "Discover AI agents that ship real outcomes — not demos." },
+      {
+        property: "og:description",
+        content: "Discover AI agents that ship real outcomes — not demos.",
+      },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,
-  pendingComponent: () => <SiteLayout><ListingPendingShell variant="agent" label="agents" /></SiteLayout>,
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  pendingComponent: () => (
+    <SiteLayout>
+      <ListingPendingShell variant="agent" label="agents" />
+    </SiteLayout>
+  ),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: AgentsIndex,
 });
 
@@ -51,7 +70,9 @@ function AgentsIndex() {
   const [tier, setTier] = useState<string>("All");
   const [q, setQ] = useState("");
 
-  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (urlCategory && urlCategory !== cat) setCat(urlCategory);
+  }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = agents.filter((a) => {
     const matchCat = cat === "All" || a.category === cat;
@@ -71,7 +92,11 @@ function AgentsIndex() {
 
   useEffect(() => {
     navigate({
-      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      search: (prev: { page: number; category: string }) => ({
+        ...prev,
+        page: 1,
+        category: cat === "All" ? "All" : cat,
+      }),
       replace: true,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,7 +121,9 @@ function AgentsIndex() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">Built something? Get it featured here.</p>
           <Button asChild size="sm" variant="outline">
-            <Link to="/submit-agent"><Plus className="mr-1 h-4 w-4" /> Submit an agent</Link>
+            <Link to="/submit-agent">
+              <Plus className="mr-1 h-4 w-4" /> Submit an agent
+            </Link>
           </Button>
         </div>
 
@@ -157,7 +184,11 @@ function AgentsIndex() {
             ))}
             {hasFilters && (
               <button
-                onClick={() => { setCat("All"); setTier("All"); setQ(""); }}
+                onClick={() => {
+                  setCat("All");
+                  setTier("All");
+                  setQ("");
+                }}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
                 Reset filters
@@ -166,7 +197,10 @@ function AgentsIndex() {
           </div>
         </div>
 
-        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          key={safePage}
+          className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
           {paged.map((a) => (
             <AgentCard key={a.id} {...a} capabilities={a.capabilities} />
           ))}
@@ -174,7 +208,9 @@ function AgentsIndex() {
         {filtered.length === 0 && (
           <div className="mt-12 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
             <p className="text-sm font-medium">No agents match this filter.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Try clearing filters or searching a different keyword.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Try clearing filters or searching a different keyword.
+            </p>
           </div>
         )}
 

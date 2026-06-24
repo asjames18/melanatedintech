@@ -24,16 +24,35 @@ export const Route = createFileRoute("/products/")({
   head: () => ({
     meta: [
       { title: "Agent Digital Products — Melanated In Tech" },
-      { name: "description", content: "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders." },
+      {
+        name: "description",
+        content:
+          "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
+      },
       { property: "og:title", content: "AI Agent Digital Products" },
-      { property: "og:description", content: "Ship agents faster with battle-tested kits and blueprints." },
+      {
+        property: "og:description",
+        content: "Ship agents faster with battle-tested kits and blueprints.",
+      },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,
-  pendingComponent: () => <SiteLayout><ListingPendingShell variant="product" label="products" /></SiteLayout>,
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  pendingComponent: () => (
+    <SiteLayout>
+      <ListingPendingShell variant="product" label="products" />
+    </SiteLayout>
+  ),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: ProductsIndex,
 });
 
@@ -50,16 +69,16 @@ function ProductsIndex() {
   const [tier, setTier] = useState("All");
   const [q, setQ] = useState("");
 
-  useEffect(() => { if (urlCategory && urlCategory !== cat) setCat(urlCategory); }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (urlCategory && urlCategory !== cat) setCat(urlCategory);
+  }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = products.filter((p) => {
     const matchCat = cat === "All" || p.category === cat;
     const matchTier = tier === "All" || p.tier === tier;
     const needle = q.trim().toLowerCase();
     const matchQ =
-      !needle ||
-      p.name.toLowerCase().includes(needle) ||
-      p.tagline.toLowerCase().includes(needle);
+      !needle || p.name.toLowerCase().includes(needle) || p.tagline.toLowerCase().includes(needle);
     return matchCat && matchTier && matchQ;
   });
 
@@ -69,7 +88,11 @@ function ProductsIndex() {
 
   useEffect(() => {
     navigate({
-      search: (prev: { page: number; category: string }) => ({ ...prev, page: 1, category: cat === "All" ? "All" : cat }),
+      search: (prev: { page: number; category: string }) => ({
+        ...prev,
+        page: 1,
+        category: cat === "All" ? "All" : cat,
+      }),
       replace: true,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -147,7 +170,11 @@ function ProductsIndex() {
             ))}
             {hasFilters && (
               <button
-                onClick={() => { setCat("All"); setTier("All"); setQ(""); }}
+                onClick={() => {
+                  setCat("All");
+                  setTier("All");
+                  setQ("");
+                }}
                 className="ml-auto text-xs text-muted-foreground hover:text-foreground"
               >
                 Reset filters
@@ -156,13 +183,20 @@ function ProductsIndex() {
           </div>
         </div>
 
-        <div key={safePage} className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {paged.map((p) => <ProductCard key={p.id} {...p} />)}
+        <div
+          key={safePage}
+          className="mt-8 grid animate-fade-in gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {paged.map((p) => (
+            <ProductCard key={p.id} {...p} />
+          ))}
         </div>
         {filtered.length === 0 && (
           <div className="mt-12 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
             <p className="text-sm font-medium">No products match this filter.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Try clearing filters or searching a different keyword.</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Try clearing filters or searching a different keyword.
+            </p>
           </div>
         )}
 

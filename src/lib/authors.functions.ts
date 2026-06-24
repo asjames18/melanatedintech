@@ -1,18 +1,17 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
-  );
+  return createClient<Database>(getSupabaseUrl()!, getSupabasePublishableKey()!, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
 }
 
 export const getAuthor = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const [{ data: author, error }, { data: articles }] = await Promise.all([
@@ -29,7 +28,7 @@ export const getAuthor = createServerFn({ method: "GET" })
   });
 
 export const getArticleAuthor = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ author_id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ author_id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: author, error } = await sb

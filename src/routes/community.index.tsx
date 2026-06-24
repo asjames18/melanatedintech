@@ -8,16 +8,36 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { listDiscussionPosts, createDiscussionPost } from "@/lib/community.functions";
-import { COMMUNITY_CATEGORIES, COMMUNITY_CATEGORY_LABELS, type CommunityCategory } from "@/lib/community";
+import {
+  COMMUNITY_CATEGORIES,
+  COMMUNITY_CATEGORY_LABELS,
+  type CommunityCategory,
+} from "@/lib/community";
 import { toast } from "sonner";
 import { buildSeoMeta } from "@/lib/seo";
 import { timeAgo } from "@/lib/utils";
 
-const postsQO = queryOptions({ queryKey: ["discussion-posts"], queryFn: () => listDiscussionPosts() });
+const postsQO = queryOptions({
+  queryKey: ["discussion-posts"],
+  queryFn: () => listDiscussionPosts(),
+});
 
 export const Route = createFileRoute("/community/")({
   head: () => ({
@@ -28,8 +48,16 @@ export const Route = createFileRoute("/community/")({
     }),
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(postsQO),
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
-  notFoundComponent: () => <SiteLayout><div className="p-12">Not found.</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
+  notFoundComponent: () => (
+    <SiteLayout>
+      <div className="p-12">Not found.</div>
+    </SiteLayout>
+  ),
   component: Community,
 });
 
@@ -134,30 +162,54 @@ function NewPostDialog() {
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader><DialogTitle>Start a thread</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Start a thread</DialogTitle>
+        </DialogHeader>
         <div className="grid gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" maxLength={140} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="What's on your mind?" />
+            <Input
+              id="title"
+              maxLength={140}
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="What's on your mind?"
+            />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="category">Category</Label>
-            <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as CommunityCategory })}>
-              <SelectTrigger id="category"><SelectValue /></SelectTrigger>
+            <Select
+              value={form.category}
+              onValueChange={(v) => setForm({ ...form, category: v as CommunityCategory })}
+            >
+              <SelectTrigger id="category">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
                 {COMMUNITY_CATEGORIES.map((c) => (
-                  <SelectItem key={c} value={c}>{COMMUNITY_CATEGORY_LABELS[c]}</SelectItem>
+                  <SelectItem key={c} value={c}>
+                    {COMMUNITY_CATEGORY_LABELS[c]}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="body">Body</Label>
-            <Textarea id="body" rows={6} maxLength={4000} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Share details, questions, or context." />
+            <Textarea
+              id="body"
+              rows={6}
+              maxLength={4000}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              placeholder="Share details, questions, or context."
+            />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
           <Button
             onClick={() => mut.mutate()}
             disabled={mut.isPending || form.title.trim().length < 3 || form.body.trim().length < 1}
@@ -169,4 +221,3 @@ function NewPostDialog() {
     </Dialog>
   );
 }
-

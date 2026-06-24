@@ -6,11 +6,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  getMyProfile,
-  listMySavedAgents,
-  listMySavedArticles,
-} from "@/lib/account.functions";
+import { getMyProfile, listMySavedAgents, listMySavedArticles } from "@/lib/account.functions";
 import { listArticles, listAgents } from "@/lib/public.functions";
 import { ProfileEditor } from "@/components/profile-editor";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
@@ -34,7 +30,10 @@ function Account() {
 
   const profile = useQuery({ queryKey: ["me"], queryFn: () => getProfile() });
   const savedAgents = useQuery({ queryKey: ["saved-agents"], queryFn: () => getSavedAgents() });
-  const savedArticles = useQuery({ queryKey: ["saved-articles"], queryFn: () => getSavedArticles() });
+  const savedArticles = useQuery({
+    queryKey: ["saved-articles"],
+    queryFn: () => getSavedArticles(),
+  });
   const entitlements = useEntitlements();
   const avatarUrl = useAvatarUrl(profile.data?.avatar_url);
 
@@ -81,10 +80,14 @@ function Account() {
               <Link to="/submissions">My submissions</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/interests"><Sparkles className="h-4 w-4" /> Interests</Link>
+              <Link to="/interests">
+                <Sparkles className="h-4 w-4" /> Interests
+              </Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
-              <Link to="/admin"><ShieldCheck className="h-4 w-4" /> Admin</Link>
+              <Link to="/admin">
+                <ShieldCheck className="h-4 w-4" /> Admin
+              </Link>
             </Button>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOut className="h-4 w-4" /> Sign out
@@ -121,25 +124,36 @@ function Account() {
               <Empty
                 title="No saved agents yet"
                 body="Browse the marketplace and save the agents you want to follow."
-                cta={<Button asChild className="mt-4"><Link to="/agents">Browse the marketplace</Link></Button>}
+                cta={
+                  <Button asChild className="mt-4">
+                    <Link to="/agents">Browse the marketplace</Link>
+                  </Button>
+                }
               />
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {(savedAgents.data ?? []).map((s) => s.agents && (
-                  <Link
-                    key={s.agent_id}
-                    to="/agents/$slug"
-                    params={{ slug: s.agents.slug }}
-                    className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
-                  >
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">{s.agents.category}</p>
-                      <TierBadge tier={s.agents.tier} />
-                    </div>
-                    <p className="mt-1 font-display text-lg font-semibold group-hover:text-primary">{s.agents.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{s.agents.tagline}</p>
-                  </Link>
-                ))}
+                {(savedAgents.data ?? []).map(
+                  (s) =>
+                    s.agents && (
+                      <Link
+                        key={s.agent_id}
+                        to="/agents/$slug"
+                        params={{ slug: s.agents.slug }}
+                        className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                            {s.agents.category}
+                          </p>
+                          <TierBadge tier={s.agents.tier} />
+                        </div>
+                        <p className="mt-1 font-display text-lg font-semibold group-hover:text-primary">
+                          {s.agents.name}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">{s.agents.tagline}</p>
+                      </Link>
+                    ),
+                )}
               </div>
             )}
           </TabsContent>
@@ -151,23 +165,38 @@ function Account() {
               <Empty
                 title="No saved articles yet"
                 body="Use the Save button on any article to build your reading list."
-                cta={<Button asChild className="mt-4"><Link to="/knowledge">Browse the knowledge hub</Link></Button>}
+                cta={
+                  <Button asChild className="mt-4">
+                    <Link to="/knowledge">Browse the knowledge hub</Link>
+                  </Button>
+                }
               />
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {(savedArticles.data ?? []).map((s) => s.articles && (
-                  <Link
-                    key={s.article_id}
-                    to="/knowledge/$slug"
-                    params={{ slug: s.articles.slug }}
-                    className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
-                  >
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{s.articles.category}</p>
-                    <p className="mt-1 font-display text-lg font-semibold group-hover:text-primary">{s.articles.title}</p>
-                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{s.articles.excerpt}</p>
-                    <p className="mt-3 text-xs text-muted-foreground">{s.articles.read_minutes} min read</p>
-                  </Link>
-                ))}
+                {(savedArticles.data ?? []).map(
+                  (s) =>
+                    s.articles && (
+                      <Link
+                        key={s.article_id}
+                        to="/knowledge/$slug"
+                        params={{ slug: s.articles.slug }}
+                        className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+                      >
+                        <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                          {s.articles.category}
+                        </p>
+                        <p className="mt-1 font-display text-lg font-semibold group-hover:text-primary">
+                          {s.articles.title}
+                        </p>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                          {s.articles.excerpt}
+                        </p>
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          {s.articles.read_minutes} min read
+                        </p>
+                      </Link>
+                    ),
+                )}
               </div>
             )}
           </TabsContent>
@@ -179,14 +208,23 @@ function Account() {
               <Empty
                 title="Nothing unlocked yet"
                 body="Premium agents and products you purchase will appear here."
-                cta={<Button asChild className="mt-4"><Link to="/agents">Browse the marketplace</Link></Button>}
+                cta={
+                  <Button asChild className="mt-4">
+                    <Link to="/agents">Browse the marketplace</Link>
+                  </Button>
+                }
               />
             ) : (
               <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
                 {(entitlements.data ?? []).map((e) => (
-                  <li key={`${e.kind}-${e.slug}-${e.environment}`} className="flex items-center justify-between gap-4 p-4">
+                  <li
+                    key={`${e.kind}-${e.slug}-${e.environment}`}
+                    className="flex items-center justify-between gap-4 p-4"
+                  >
                     <div>
-                      <p className="text-xs uppercase tracking-wider text-muted-foreground">{e.kind}</p>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        {e.kind}
+                      </p>
                       <Link
                         to={e.kind === "agent" ? "/agents/$slug" : "/products/$slug"}
                         params={{ slug: e.slug }}
@@ -248,20 +286,22 @@ function ReadingHistory() {
   const listAgentsFn = useServerFn(listAgents);
   const articles = useQuery({ queryKey: ["articles"], queryFn: () => listArticlesFn() });
   const agents = useQuery({ queryKey: ["agents"], queryFn: () => listAgentsFn() });
+  const articleRows = articles.data;
+  const agentRows = agents.data;
   const [hydrated, setHydrated] = useState(false);
   useEffect(() => setHydrated(true), []);
 
   const recentArticles = useMemo(() => {
-    if (!articles.data) return [];
-    const map = new Map(articles.data.map((a) => [a.slug, a]));
-    return articleInterests.recent.map((s) => map.get(s)).filter(Boolean) as typeof articles.data;
-  }, [articles.data, articleInterests.recent]);
+    if (!articleRows) return [];
+    const map = new Map(articleRows.map((a) => [a.slug, a]));
+    return articleInterests.recent.map((s) => map.get(s)).filter(Boolean) as typeof articleRows;
+  }, [articleRows, articleInterests.recent]);
 
   const recentAgents = useMemo(() => {
-    if (!agents.data) return [];
-    const map = new Map(agents.data.map((a) => [a.slug, a]));
-    return agentInterests.recent.map((s) => map.get(s)).filter(Boolean) as typeof agents.data;
-  }, [agents.data, agentInterests.recent]);
+    if (!agentRows) return [];
+    const map = new Map(agentRows.map((a) => [a.slug, a]));
+    return agentInterests.recent.map((s) => map.get(s)).filter(Boolean) as typeof agentRows;
+  }, [agentRows, agentInterests.recent]);
 
   if (!hydrated) return <Loading />;
 
@@ -280,18 +320,33 @@ function ReadingHistory() {
       {recentArticles.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">Recently read</h3>
-            <button onClick={clearArticles} className="text-xs text-muted-foreground hover:text-foreground">Clear</button>
+            <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+              Recently read
+            </h3>
+            <button
+              onClick={clearArticles}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
           </div>
           <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
             {recentArticles.slice(0, 10).map((a) => (
               <li key={a.id}>
-                <Link to="/knowledge/$slug" params={{ slug: a.slug }} className="flex items-start justify-between gap-4 p-4 transition-colors hover:bg-muted/50">
+                <Link
+                  to="/knowledge/$slug"
+                  params={{ slug: a.slug }}
+                  className="flex items-start justify-between gap-4 p-4 transition-colors hover:bg-muted/50"
+                >
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{a.category}</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {a.category}
+                    </p>
                     <p className="mt-0.5 text-sm font-medium">{a.title}</p>
                   </div>
-                  <span className="shrink-0 text-xs text-muted-foreground">{a.read_minutes} min</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {a.read_minutes} min
+                  </span>
                 </Link>
               </li>
             ))}
@@ -302,15 +357,28 @@ function ReadingHistory() {
       {recentAgents.length > 0 && (
         <div>
           <div className="mb-3 flex items-center justify-between">
-            <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">Recently viewed agents</h3>
-            <button onClick={clearAgents} className="text-xs text-muted-foreground hover:text-foreground">Clear</button>
+            <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+              Recently viewed agents
+            </h3>
+            <button
+              onClick={clearAgents}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
           </div>
           <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
             {recentAgents.slice(0, 10).map((a) => (
               <li key={a.id}>
-                <Link to="/agents/$slug" params={{ slug: a.slug }} className="flex items-start justify-between gap-4 p-4 transition-colors hover:bg-muted/50">
+                <Link
+                  to="/agents/$slug"
+                  params={{ slug: a.slug }}
+                  className="flex items-start justify-between gap-4 p-4 transition-colors hover:bg-muted/50"
+                >
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-muted-foreground">{a.category}</p>
+                    <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                      {a.category}
+                    </p>
                     <p className="mt-0.5 text-sm font-medium">{a.name}</p>
                   </div>
                   <TierBadge tier={a.tier} />

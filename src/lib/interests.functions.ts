@@ -32,19 +32,17 @@ export const getMyInterests = createServerFn({ method: "GET" })
 
 export const saveMyInterests = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => saveSchema.parse(d))
+  .validator((d: unknown) => saveSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("user_interests")
-      .upsert(
-        {
-          user_id: context.userId,
-          categories: data.categories,
-          content_types: data.content_types,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
+    const { error } = await context.supabase.from("user_interests").upsert(
+      {
+        user_id: context.userId,
+        categories: data.categories,
+        content_types: data.content_types,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });

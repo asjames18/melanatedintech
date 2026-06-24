@@ -7,7 +7,9 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "deploy:cloudflare": "npm run build && npx nitro deploy --prebuilt",
+    "preview": "npx wrangler dev --config dist/server/wrangler.json",
+    "preview:env": "npx wrangler dev --config dist/server/wrangler.json --env-file .env",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -91,6 +93,7 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^8.0.16",
+    "wrangler": "^4.104.0"
   }
 }

@@ -37,14 +37,27 @@ async function resolveFulfillment(
     .maybeSingle();
 
   if (!ent) {
-    return { owned: false, unlockContent: null, downloadUrl: null, assetName: null, itemName: null };
+    return {
+      owned: false,
+      unlockContent: null,
+      downloadUrl: null,
+      assetName: null,
+      itemName: null,
+    };
   }
 
-  const table = kind === "agent" ? "agents" : "products";
-  const { data: item, error } = await (supabaseAdmin.from(table) as any)
-    .select("name, unlock_content, asset_path, asset_name")
-    .eq("slug", slug)
-    .maybeSingle();
+  const { data: item, error } =
+    kind === "agent"
+      ? await supabaseAdmin
+          .from("agents")
+          .select("name, unlock_content, asset_path, asset_name")
+          .eq("slug", slug)
+          .maybeSingle()
+      : await supabaseAdmin
+          .from("products")
+          .select("name, unlock_content, asset_path, asset_name")
+          .eq("slug", slug)
+          .maybeSingle();
   if (error) throw new Error(error.message);
 
   let downloadUrl: string | null = null;
@@ -67,14 +80,16 @@ async function resolveFulfillment(
 
 export const getProductFulfillment = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
-  .handler(({ data, context }): Promise<Fulfillment> =>
-    resolveFulfillment("product", data.slug, context.userId),
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .handler(
+    ({ data, context }): Promise<Fulfillment> =>
+      resolveFulfillment("product", data.slug, context.userId),
   );
 
 export const getAgentFulfillment = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
-  .handler(({ data, context }): Promise<Fulfillment> =>
-    resolveFulfillment("agent", data.slug, context.userId),
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .handler(
+    ({ data, context }): Promise<Fulfillment> =>
+      resolveFulfillment("agent", data.slug, context.userId),
   );

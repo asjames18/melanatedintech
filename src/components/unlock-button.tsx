@@ -90,8 +90,8 @@ export function UnlockButton({ kind, slug, itemName }: Props) {
       if (!result.clientSecret) throw new Error("No client secret returned");
       setClientSecret(result.clientSecret);
       setOpen(true);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Could not start checkout");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not start checkout");
     } finally {
       setLoading(false);
     }

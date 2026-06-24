@@ -1,6 +1,13 @@
 import { type StripeEnv } from "@/lib/stripe.server";
 import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
 
+type CheckoutSessionLike = {
+  id?: string | null;
+  metadata?: Record<string, string> | null;
+  payment_status?: string | null;
+  amount_total?: number | null;
+};
+
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
@@ -8,7 +15,10 @@ async function getAdmin() {
 
 export type GrantResult =
   | { granted: true; kind: PremiumKind; slug: string }
-  | { granted: false; reason: "missing-metadata" | "not-paid" | "unknown-item" | "amount-mismatch" | "db-error" };
+  | {
+      granted: false;
+      reason: "missing-metadata" | "not-paid" | "unknown-item" | "amount-mismatch" | "db-error";
+    };
 
 /**
  * Grant the entitlement implied by a paid Stripe checkout session. Shared by the
@@ -20,7 +30,10 @@ export type GrantResult =
  * this helper trusts the metadata for what was purchased but verifies it against the
  * catalog + amount paid.
  */
-export async function grantFromSession(sessionObj: any, env: StripeEnv): Promise<GrantResult> {
+export async function grantFromSession(
+  sessionObj: CheckoutSessionLike,
+  env: StripeEnv,
+): Promise<GrantResult> {
   const meta = sessionObj?.metadata ?? {};
   const userId = meta.userId;
   const kind = meta.unlock_kind as PremiumKind | undefined;

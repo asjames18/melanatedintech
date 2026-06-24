@@ -21,8 +21,16 @@ export const checkAdminStatus = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: me }, { count }] = await Promise.all([
-      supabaseAdmin.from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle(),
-      supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin"),
+      supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId)
+        .eq("role", "admin")
+        .maybeSingle(),
+      supabaseAdmin
+        .from("user_roles")
+        .select("*", { count: "exact", head: true })
+        .eq("role", "admin"),
     ]);
     return { isAdmin: !!me, adminCount: count ?? 0 };
   });
@@ -50,7 +58,10 @@ export const adminListAgents = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("agents").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("agents")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -60,7 +71,10 @@ export const adminListArticles = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("articles").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("articles")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -70,7 +84,10 @@ export const adminListServices = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("services").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("services")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -80,7 +97,10 @@ export const adminListWaitlist = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("waitlist_signups").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("waitlist_signups")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -90,7 +110,10 @@ export const adminListMessages = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data, error } = await supabaseAdmin.from("contact_messages").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabaseAdmin
+      .from("contact_messages")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
   });
@@ -99,9 +122,7 @@ export const adminListMessages = createServerFn({ method: "GET" })
 
 export const adminUpdateMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), handled: z.boolean() }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ id: z.string().uuid(), handled: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -116,7 +137,7 @@ export const adminUpdateMessage = createServerFn({ method: "POST" })
 
 export const adminDeleteMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -139,30 +160,36 @@ function refinePublish<T extends z.ZodTypeAny>(schema: T) {
   return schema.superRefine((val, ctx) => {
     const v = val as { status: string; scheduled_at?: string | null };
     if (v.status === "scheduled" && !v.scheduled_at) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scheduled_at"], message: "Pick a date and time to schedule." });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scheduled_at"],
+        message: "Pick a date and time to schedule.",
+      });
     }
   });
 }
 
-const agentSchema = refinePublish(z.object({
-  id: z.string().uuid().optional(),
-  slug: z.string().trim().min(1).max(120),
-  name: z.string().trim().min(1).max(120),
-  tagline: z.string().trim().min(1).max(240),
-  description: z.string().trim().min(1),
-  category: z.string().trim().min(1).max(80),
-  tier: tierEnum,
-  capabilities: z.array(z.string().trim().min(1)).default([]),
-  price_cents: z.number().int().nullable().optional(),
-  featured: z.boolean().default(false),
-  // Owner-only deliverable (the paid pack). Empty string clears it.
-  unlock_content: z.string().nullable().optional(),
-  ...publishFields,
-}));
+const agentSchema = refinePublish(
+  z.object({
+    id: z.string().uuid().optional(),
+    slug: z.string().trim().min(1).max(120),
+    name: z.string().trim().min(1).max(120),
+    tagline: z.string().trim().min(1).max(240),
+    description: z.string().trim().min(1),
+    category: z.string().trim().min(1).max(80),
+    tier: tierEnum,
+    capabilities: z.array(z.string().trim().min(1)).default([]),
+    price_cents: z.number().int().nullable().optional(),
+    featured: z.boolean().default(false),
+    // Owner-only deliverable (the paid pack). Empty string clears it.
+    unlock_content: z.string().nullable().optional(),
+    ...publishFields,
+  }),
+);
 
 export const adminUpsertAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => agentSchema.parse(d))
+  .validator((d: unknown) => agentSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -176,20 +203,22 @@ export const adminUpsertAgent = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const articleSchema = refinePublish(z.object({
-  id: z.string().uuid().optional(),
-  slug: z.string().trim().min(1).max(160),
-  title: z.string().trim().min(1).max(200),
-  excerpt: z.string().trim().min(1).max(400),
-  body: z.string().trim().min(1),
-  category: z.string().trim().min(1).max(80),
-  read_minutes: z.number().int().min(1).max(120).default(5),
-  ...publishFields,
-}));
+const articleSchema = refinePublish(
+  z.object({
+    id: z.string().uuid().optional(),
+    slug: z.string().trim().min(1).max(160),
+    title: z.string().trim().min(1).max(200),
+    excerpt: z.string().trim().min(1).max(400),
+    body: z.string().trim().min(1),
+    category: z.string().trim().min(1).max(80),
+    read_minutes: z.number().int().min(1).max(120).default(5),
+    ...publishFields,
+  }),
+);
 
 export const adminUpsertArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => articleSchema.parse(d))
+  .validator((d: unknown) => articleSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -199,20 +228,22 @@ export const adminUpsertArticle = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const serviceSchema = refinePublish(z.object({
-  id: z.string().uuid().optional(),
-  slug: z.string().trim().min(1).max(120),
-  name: z.string().trim().min(1).max(120),
-  tagline: z.string().trim().min(1).max(240),
-  description: z.string().trim().min(1),
-  outcomes: z.array(z.string().trim().min(1)).default([]),
-  starting_price_cents: z.number().int().nullable().optional(),
-  ...publishFields,
-}));
+const serviceSchema = refinePublish(
+  z.object({
+    id: z.string().uuid().optional(),
+    slug: z.string().trim().min(1).max(120),
+    name: z.string().trim().min(1).max(120),
+    tagline: z.string().trim().min(1).max(240),
+    description: z.string().trim().min(1),
+    outcomes: z.array(z.string().trim().min(1)).default([]),
+    starting_price_cents: z.number().int().nullable().optional(),
+    ...publishFields,
+  }),
+);
 
 export const adminUpsertService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => serviceSchema.parse(d))
+  .validator((d: unknown) => serviceSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -231,7 +262,7 @@ const deleteSchema = z.object({
 
 export const adminDelete = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => deleteSchema.parse(d))
+  .validator((d: unknown) => deleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

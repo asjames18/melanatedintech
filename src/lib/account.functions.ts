@@ -22,7 +22,7 @@ const profileSchema = z.object({
 
 export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => profileSchema.parse(d))
+  .validator((d: unknown) => profileSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("profiles")
@@ -50,16 +50,14 @@ export const listMySavedAgents = createServerFn({ method: "GET" })
 export const listMySavedAgentIds = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("saved_agents")
-      .select("agent_id");
+    const { data, error } = await context.supabase.from("saved_agents").select("agent_id");
     if (error) throw new Error(error.message);
     return (data ?? []).map((r) => r.agent_id);
   });
 
 export const toggleSavedAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ agentId: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ agentId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const existing = await context.supabase
       .from("saved_agents")
@@ -85,7 +83,9 @@ export const listMySavedArticles = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("saved_articles")
-      .select("article_id, created_at, articles(id, slug, title, excerpt, category, read_minutes, published_at)")
+      .select(
+        "article_id, created_at, articles(id, slug, title, excerpt, category, read_minutes, published_at)",
+      )
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return data ?? [];
@@ -101,7 +101,7 @@ export const listMySavedArticleIds = createServerFn({ method: "GET" })
 
 export const toggleSavedArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ articleId: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ articleId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const existing = await context.supabase
       .from("saved_articles")

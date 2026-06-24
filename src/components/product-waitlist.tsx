@@ -35,7 +35,9 @@ export function ProductWaitlist({ productSlug }: { productSlug: string }) {
       <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/5 p-5 text-center">
         <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-600" />
         <p className="mt-2 font-display text-base font-semibold">You're on the waitlist</p>
-        <p className="mt-1 text-sm text-muted-foreground">We'll email you the moment this product opens up.</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          We'll email you the moment this product opens up.
+        </p>
       </div>
     );
   }

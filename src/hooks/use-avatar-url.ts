@@ -15,12 +15,17 @@ export function useAvatarUrl(path: string | null | undefined): string | null {
       return;
     }
     async function load() {
-      const { data, error } = await supabase.storage.from("avatars").createSignedUrl(path!, 60 * 60);
-      if (!cancelled) setUrl(error ? null : data?.signedUrl ?? null);
+      const { data, error } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(path!, 60 * 60);
+      if (!cancelled) setUrl(error ? null : (data?.signedUrl ?? null));
     }
     load();
     const t = setInterval(load, 1000 * 60 * 45);
-    return () => { cancelled = true; clearInterval(t); };
+    return () => {
+      cancelled = true;
+      clearInterval(t);
+    };
   }, [path]);
 
   return url;

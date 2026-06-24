@@ -1,10 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 
 function publicClient() {
-  return createClient<Database>(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+  return createClient<Database>(getSupabaseUrl()!, getSupabasePublishableKey()!, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
@@ -21,7 +22,7 @@ export const listAgents = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const getAgent = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const baseCols =
@@ -30,7 +31,8 @@ export const getAgent = createServerFn({ method: "GET" })
     // hand the paid pack to anyone. Fetch the gated fields only to derive a
     // boolean, then strip them. Degrade gracefully if the columns aren't there
     // yet (code deployed ahead of the migration). Mirrors getProduct below.
-    let { data: row, error } = await (sb.from("agents") as any)
+    let { data: row, error } = await sb
+      .from("agents")
       .select(`${baseCols},unlock_content,asset_path`)
       .eq("slug", data.slug)
       .maybeSingle();
@@ -60,7 +62,7 @@ export const listArticles = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getArticle = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: row, error } = await sb
@@ -84,7 +86,7 @@ export const listProducts = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getProduct = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const baseCols =
@@ -93,7 +95,8 @@ export const getProduct = createServerFn({ method: "GET" })
     // hand the paid pack to anyone. Fetch the gated fields only to derive a
     // boolean, then strip them. Degrade gracefully if the columns aren't there
     // yet (code deployed ahead of the migration).
-    let { data: row, error } = await (sb.from("products") as any)
+    let { data: row, error } = await sb
+      .from("products")
       .select(`${baseCols},unlock_content,asset_path`)
       .eq("slug", data.slug)
       .eq("active", true)
@@ -138,7 +141,7 @@ const waitlistSchema = z.object({
   hp: z.string().trim().max(200).optional(),
 });
 export const joinWaitlist = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => waitlistSchema.parse(d))
+  .validator((d: unknown) => waitlistSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };
@@ -178,7 +181,7 @@ const contactSchema = z.object({
   hp: z.string().trim().max(200).optional(),
 });
 export const submitContact = createServerFn({ method: "POST" })
-  .inputValidator((d: unknown) => contactSchema.parse(d))
+  .validator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };

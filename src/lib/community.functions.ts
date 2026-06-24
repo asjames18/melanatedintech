@@ -49,26 +49,27 @@ export const listDiscussionPosts = createServerFn({ method: "GET" }).handler(asy
 });
 
 export const getDiscussionThread = createServerFn({ method: "GET" })
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const postCols =
       "id, user_id, title, body, category, comment_count, last_activity_at, created_at, updated_at";
     const [postRes, commentsRes] = await Promise.all([
       // Degrade gracefully if `locked` isn't there yet (code ahead of migration).
-      // `locked` isn't in the generated types, so query through `any`.
       (async () => {
-        let res = await (supabaseAdmin.from("discussion_posts") as any)
+        let res = await supabaseAdmin
+          .from("discussion_posts")
           .select(`${postCols}, locked`)
           .eq("id", data.id)
           .maybeSingle();
         if (res.error && /locked|column/i.test(res.error.message)) {
-          res = await (supabaseAdmin.from("discussion_posts") as any)
+          res = await supabaseAdmin
+            .from("discussion_posts")
             .select(postCols)
             .eq("id", data.id)
             .maybeSingle();
         }
-        return res as { data: any; error: { message: string } | null };
+        return res;
       })(),
       supabaseAdmin
         .from("discussion_comments")
@@ -108,7 +109,7 @@ const createPostSchema = z.object({
 
 export const createDiscussionPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => createPostSchema.parse(d))
+  .validator((d: unknown) => createPostSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("discussion_posts")
@@ -131,10 +132,11 @@ const createCommentSchema = z.object({
 
 export const createDiscussionComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => createCommentSchema.parse(d))
+  .validator((d: unknown) => createCommentSchema.parse(d))
   .handler(async ({ data, context }) => {
     // Reject replies on a locked thread. Degrade open if the column isn't there yet.
-    const { data: post } = await (context.supabase.from("discussion_posts") as any)
+    const { data: post } = await context.supabase
+      .from("discussion_posts")
       .select("locked")
       .eq("id", data.post_id)
       .maybeSingle();
@@ -151,9 +153,7 @@ export const createDiscussionComment = createServerFn({ method: "POST" })
 
 export const moderateDiscussionThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
-    z.object({ id: z.string().uuid(), locked: z.boolean() }).parse(d),
-  )
+  .validator((d: unknown) => z.object({ id: z.string().uuid(), locked: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -169,7 +169,7 @@ export const moderateDiscussionThread = createServerFn({ method: "POST" })
 // runs under RLS and can't remove other people's content).
 export const adminDeleteDiscussionItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) =>
+  .validator((d: unknown) =>
     z.object({ id: z.string().uuid(), kind: z.enum(["post", "comment"]) }).parse(d),
   )
   .handler(async ({ data, context }) => {
@@ -185,7 +185,7 @@ const deleteSchema = z.object({ id: z.string().uuid(), kind: z.enum(["post", "co
 
 export const deleteDiscussionItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => deleteSchema.parse(d))
+  .validator((d: unknown) => deleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
     const { error } = await context.supabase.from(table).delete().eq("id", data.id);

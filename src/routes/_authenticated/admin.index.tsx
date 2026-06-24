@@ -10,25 +10,48 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Pencil, Plus, Trash2, ShieldCheck, Mail, Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
 import {
-  adminListAgents, adminListArticles, adminListServices,
-  adminListWaitlist, adminListMessages,
-  adminUpdateMessage, adminDeleteMessage,
-  adminUpsertAgent, adminUpsertArticle, adminUpsertService,
-  adminDelete, checkAdminStatus, claimFirstAdmin,
+  adminListAgents,
+  adminListArticles,
+  adminListServices,
+  adminListWaitlist,
+  adminListMessages,
+  adminUpdateMessage,
+  adminDeleteMessage,
+  adminUpsertAgent,
+  adminUpsertArticle,
+  adminUpsertService,
+  adminDelete,
+  checkAdminStatus,
+  claimFirstAdmin,
 } from "@/lib/admin.functions";
 import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
 
@@ -42,13 +65,23 @@ function AdminPage() {
   const status = useQuery({ queryKey: ["admin-status"], queryFn: () => check() });
 
   if (status.isLoading) {
-    return <SiteLayout><div className="p-12 text-sm text-muted-foreground">Loading…</div></SiteLayout>;
+    return (
+      <SiteLayout>
+        <div className="p-12 text-sm text-muted-foreground">Loading…</div>
+      </SiteLayout>
+    );
   }
   if (status.error) {
-    return <SiteLayout><div className="p-12 text-sm text-destructive">{(status.error as Error).message}</div></SiteLayout>;
+    return (
+      <SiteLayout>
+        <div className="p-12 text-sm text-destructive">{(status.error as Error).message}</div>
+      </SiteLayout>
+    );
   }
   if (!status.data?.isAdmin) {
-    return <NoAccess adminCount={status.data?.adminCount ?? 0} onClaimed={() => status.refetch()} />;
+    return (
+      <NoAccess adminCount={status.data?.adminCount ?? 0} onClaimed={() => status.refetch()} />
+    );
   }
 
   return (
@@ -76,12 +109,24 @@ function AdminPage() {
             <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
           </TabsList>
-          <TabsContent value="agents" className="mt-6"><AgentsPanel /></TabsContent>
-          <TabsContent value="articles" className="mt-6"><ArticlesPanel /></TabsContent>
-          <TabsContent value="services" className="mt-6"><ServicesPanel /></TabsContent>
-          <TabsContent value="submissions" className="mt-6"><SubmissionsPanel /></TabsContent>
-          <TabsContent value="waitlist" className="mt-6"><WaitlistPanel /></TabsContent>
-          <TabsContent value="messages" className="mt-6"><MessagesPanel /></TabsContent>
+          <TabsContent value="agents" className="mt-6">
+            <AgentsPanel />
+          </TabsContent>
+          <TabsContent value="articles" className="mt-6">
+            <ArticlesPanel />
+          </TabsContent>
+          <TabsContent value="services" className="mt-6">
+            <ServicesPanel />
+          </TabsContent>
+          <TabsContent value="submissions" className="mt-6">
+            <SubmissionsPanel />
+          </TabsContent>
+          <TabsContent value="waitlist" className="mt-6">
+            <WaitlistPanel />
+          </TabsContent>
+          <TabsContent value="messages" className="mt-6">
+            <MessagesPanel />
+          </TabsContent>
         </Tabs>
       </section>
     </SiteLayout>
@@ -92,7 +137,10 @@ function NoAccess({ adminCount, onClaimed }: { adminCount: number; onClaimed: ()
   const claim = useServerFn(claimFirstAdmin);
   const mut = useMutation({
     mutationFn: () => claim(),
-    onSuccess: () => { toast.success("You're now an admin."); onClaimed(); },
+    onSuccess: () => {
+      toast.success("You're now an admin.");
+      onClaimed();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   return (
@@ -104,15 +152,21 @@ function NoAccess({ adminCount, onClaimed }: { adminCount: number; onClaimed: ()
         <h1 className="mt-4 font-display text-2xl font-semibold">Admin access required</h1>
         {adminCount === 0 ? (
           <>
-            <p className="mt-2 text-sm text-muted-foreground">No admins exist yet. Claim the first admin seat for this workspace.</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              No admins exist yet. Claim the first admin seat for this workspace.
+            </p>
             <Button className="mt-6" onClick={() => mut.mutate()} disabled={mut.isPending}>
               {mut.isPending ? "Claiming…" : "Claim admin access"}
             </Button>
           </>
         ) : (
           <>
-            <p className="mt-2 text-sm text-muted-foreground">Your account doesn't have admin permissions. Ask an existing admin to grant access.</p>
-            <Button asChild variant="outline" className="mt-6"><Link to="/account">Back to account</Link></Button>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your account doesn't have admin permissions. Ask an existing admin to grant access.
+            </p>
+            <Button asChild variant="outline" className="mt-6">
+              <Link to="/account">Back to account</Link>
+            </Button>
           </>
         )}
       </div>
@@ -131,7 +185,11 @@ function AgentsPanel() {
   const q = useQuery({ queryKey: ["admin-agents"], queryFn: () => list() });
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { table: "agents", id } }),
-    onSuccess: () => { toast.success("Agent deleted."); qc.invalidateQueries({ queryKey: ["admin-agents"] }); qc.invalidateQueries({ queryKey: ["agents"] }); },
+    onSuccess: () => {
+      toast.success("Agent deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-agents"] });
+      qc.invalidateQueries({ queryKey: ["agents"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -140,20 +198,41 @@ function AgentsPanel() {
       <Toolbar
         title="Marketplace agents"
         count={q.data?.length ?? 0}
-        action={<AgentEditor trigger={<Button size="sm"><Plus className="h-4 w-4" /> New agent</Button>} />}
+        action={
+          <AgentEditor
+            trigger={
+              <Button size="sm">
+                <Plus className="h-4 w-4" /> New agent
+              </Button>
+            }
+          />
+        }
       />
       <DataTable
         loading={q.isLoading}
         rows={q.data ?? []}
         columns={[
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
-          { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
+          {
+            header: "Category",
+            cell: (r) => <span className="text-muted-foreground">{r.category}</span>,
+          },
           { header: "Tier", cell: (r) => <span className="capitalize">{r.tier}</span> },
-          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
+          {
+            header: "Status",
+            cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} />,
+          },
         ]}
         actions={(r) => (
           <>
-            <AgentEditor existing={r} trigger={<IconBtn label="Edit"><Pencil className="h-3.5 w-3.5" /></IconBtn>} />
+            <AgentEditor
+              existing={r}
+              trigger={
+                <IconBtn label="Edit">
+                  <Pencil className="h-3.5 w-3.5" />
+                </IconBtn>
+              }
+            />
             <DeleteBtn onConfirm={() => delMut.mutate(r.id)} name={r.name} />
           </>
         )}
@@ -183,12 +262,16 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
   }));
 
   const mut = useMutation({
-    mutationFn: () => upsert({
-      data: {
-        ...form,
-        capabilities: form.capabilities.split("\n").map((s) => s.trim()).filter(Boolean),
-      },
-    }),
+    mutationFn: () =>
+      upsert({
+        data: {
+          ...form,
+          capabilities: form.capabilities
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        },
+      }),
     onSuccess: () => {
       toast.success(existing ? "Agent saved." : "Agent created.");
       qc.invalidateQueries({ queryKey: ["admin-agents"] });
@@ -206,15 +289,44 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
           <DialogTitle>{existing ? "Edit agent" : "New agent"}</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          <Field label="Name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-          <Field label="Slug"><Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} placeholder="kebab-case-url" /></Field>
-          <Field label="Tagline"><Input value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} /></Field>
-          <Field label="Description"><Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+          <Field label="Name">
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+          <Field label="Slug">
+            <Input
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              placeholder="kebab-case-url"
+            />
+          </Field>
+          <Field label="Tagline">
+            <Input
+              value={form.tagline}
+              onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+            />
+          </Field>
+          <Field label="Description">
+            <Textarea
+              rows={5}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Category"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
+            <Field label="Category">
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              />
+            </Field>
             <Field label="Tier">
-              <Select value={form.tier} onValueChange={(v) => setForm({ ...form, tier: v as typeof form.tier })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select
+                value={form.tier}
+                onValueChange={(v) => setForm({ ...form, tier: v as typeof form.tier })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="free">Free</SelectItem>
                   <SelectItem value="premium">Premium</SelectItem>
@@ -224,9 +336,17 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             </Field>
           </div>
           <Field label="Capabilities (one per line)">
-            <Textarea rows={4} value={form.capabilities} onChange={(e) => setForm({ ...form, capabilities: e.target.value })} />
+            <Textarea
+              rows={4}
+              value={form.capabilities}
+              onChange={(e) => setForm({ ...form, capabilities: e.target.value })}
+            />
           </Field>
-          <ToggleField label="Featured" checked={form.featured} onChange={(v) => setForm({ ...form, featured: v })} />
+          <ToggleField
+            label="Featured"
+            checked={form.featured}
+            onChange={(v) => setForm({ ...form, featured: v })}
+          />
           <FulfillmentField
             label="Unlock pack (markdown) — delivered to buyers only"
             value={form.unlock_content}
@@ -240,8 +360,12 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -259,7 +383,11 @@ function ArticlesPanel() {
   const q = useQuery({ queryKey: ["admin-articles"], queryFn: () => list() });
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { table: "articles", id } }),
-    onSuccess: () => { toast.success("Article deleted."); qc.invalidateQueries({ queryKey: ["admin-articles"] }); qc.invalidateQueries({ queryKey: ["articles"] }); },
+    onSuccess: () => {
+      toast.success("Article deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-articles"] });
+      qc.invalidateQueries({ queryKey: ["articles"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -268,20 +396,41 @@ function ArticlesPanel() {
       <Toolbar
         title="Knowledge hub articles"
         count={q.data?.length ?? 0}
-        action={<ArticleEditor trigger={<Button size="sm"><Plus className="h-4 w-4" /> New article</Button>} />}
+        action={
+          <ArticleEditor
+            trigger={
+              <Button size="sm">
+                <Plus className="h-4 w-4" /> New article
+              </Button>
+            }
+          />
+        }
       />
       <DataTable
         loading={q.isLoading}
         rows={q.data ?? []}
         columns={[
           { header: "Title", cell: (r) => <span className="font-medium">{r.title}</span> },
-          { header: "Category", cell: (r) => <span className="text-muted-foreground">{r.category}</span> },
+          {
+            header: "Category",
+            cell: (r) => <span className="text-muted-foreground">{r.category}</span>,
+          },
           { header: "Read", cell: (r) => <span>{r.read_minutes} min</span> },
-          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
+          {
+            header: "Status",
+            cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} />,
+          },
         ]}
         actions={(r) => (
           <>
-            <ArticleEditor existing={r} trigger={<IconBtn label="Edit"><Pencil className="h-3.5 w-3.5" /></IconBtn>} />
+            <ArticleEditor
+              existing={r}
+              trigger={
+                <IconBtn label="Edit">
+                  <Pencil className="h-3.5 w-3.5" />
+                </IconBtn>
+              }
+            />
             <DeleteBtn onConfirm={() => delMut.mutate(r.id)} name={r.title} />
           </>
         )}
@@ -321,15 +470,47 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogHeader><DialogTitle>{existing ? "Edit article" : "New article"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{existing ? "Edit article" : "New article"}</DialogTitle>
+        </DialogHeader>
         <div className="grid gap-4">
-          <Field label="Title"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></Field>
-          <Field label="Slug"><Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></Field>
-          <Field label="Excerpt"><Textarea rows={2} value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} /></Field>
-          <Field label="Body (markdown)"><Textarea rows={10} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></Field>
+          <Field label="Title">
+            <Input
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+            />
+          </Field>
+          <Field label="Slug">
+            <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          </Field>
+          <Field label="Excerpt">
+            <Textarea
+              rows={2}
+              value={form.excerpt}
+              onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
+            />
+          </Field>
+          <Field label="Body (markdown)">
+            <Textarea
+              rows={10}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+            />
+          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Category"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></Field>
-            <Field label="Read minutes"><Input type="number" value={form.read_minutes} onChange={(e) => setForm({ ...form, read_minutes: Number(e.target.value) })} /></Field>
+            <Field label="Category">
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              />
+            </Field>
+            <Field label="Read minutes">
+              <Input
+                type="number"
+                value={form.read_minutes}
+                onChange={(e) => setForm({ ...form, read_minutes: Number(e.target.value) })}
+              />
+            </Field>
           </div>
           <PublishControls
             status={form.status}
@@ -338,8 +519,12 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -357,7 +542,11 @@ function ServicesPanel() {
   const q = useQuery({ queryKey: ["admin-services"], queryFn: () => list() });
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { table: "services", id } }),
-    onSuccess: () => { toast.success("Service deleted."); qc.invalidateQueries({ queryKey: ["admin-services"] }); qc.invalidateQueries({ queryKey: ["services"] }); },
+    onSuccess: () => {
+      toast.success("Service deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-services"] });
+      qc.invalidateQueries({ queryKey: ["services"] });
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -366,19 +555,40 @@ function ServicesPanel() {
       <Toolbar
         title="Professional services"
         count={q.data?.length ?? 0}
-        action={<ServiceEditor trigger={<Button size="sm"><Plus className="h-4 w-4" /> New service</Button>} />}
+        action={
+          <ServiceEditor
+            trigger={
+              <Button size="sm">
+                <Plus className="h-4 w-4" /> New service
+              </Button>
+            }
+          />
+        }
       />
       <DataTable
         loading={q.isLoading}
         rows={q.data ?? []}
         columns={[
           { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
-          { header: "Outcomes", cell: (r) => <span className="text-muted-foreground">{r.outcomes.length}</span> },
-          { header: "Status", cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} /> },
+          {
+            header: "Outcomes",
+            cell: (r) => <span className="text-muted-foreground">{r.outcomes.length}</span>,
+          },
+          {
+            header: "Status",
+            cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} />,
+          },
         ]}
         actions={(r) => (
           <>
-            <ServiceEditor existing={r} trigger={<IconBtn label="Edit"><Pencil className="h-3.5 w-3.5" /></IconBtn>} />
+            <ServiceEditor
+              existing={r}
+              trigger={
+                <IconBtn label="Edit">
+                  <Pencil className="h-3.5 w-3.5" />
+                </IconBtn>
+              }
+            />
             <DeleteBtn onConfirm={() => delMut.mutate(r.id)} name={r.name} />
           </>
         )}
@@ -403,12 +613,16 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
   }));
 
   const mut = useMutation({
-    mutationFn: () => upsert({
-      data: {
-        ...form,
-        outcomes: form.outcomes.split("\n").map((s) => s.trim()).filter(Boolean),
-      },
-    }),
+    mutationFn: () =>
+      upsert({
+        data: {
+          ...form,
+          outcomes: form.outcomes
+            .split("\n")
+            .map((s) => s.trim())
+            .filter(Boolean),
+        },
+      }),
     onSuccess: () => {
       toast.success(existing ? "Service saved." : "Service created.");
       qc.invalidateQueries({ queryKey: ["admin-services"] });
@@ -422,14 +636,35 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-        <DialogHeader><DialogTitle>{existing ? "Edit service" : "New service"}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>{existing ? "Edit service" : "New service"}</DialogTitle>
+        </DialogHeader>
         <div className="grid gap-4">
-          <Field label="Name"><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
-          <Field label="Slug"><Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} /></Field>
-          <Field label="Tagline"><Input value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} /></Field>
-          <Field label="Description"><Textarea rows={5} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></Field>
+          <Field label="Name">
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+          <Field label="Slug">
+            <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          </Field>
+          <Field label="Tagline">
+            <Input
+              value={form.tagline}
+              onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+            />
+          </Field>
+          <Field label="Description">
+            <Textarea
+              rows={5}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </Field>
           <Field label="Outcomes (one per line)">
-            <Textarea rows={4} value={form.outcomes} onChange={(e) => setForm({ ...form, outcomes: e.target.value })} />
+            <Textarea
+              rows={4}
+              value={form.outcomes}
+              onChange={(e) => setForm({ ...form, outcomes: e.target.value })}
+            />
           </Field>
           <PublishControls
             status={form.status}
@@ -438,8 +673,12 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
           />
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>{mut.isPending ? "Saving…" : saveLabel(form.status)}</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -467,7 +706,12 @@ function WaitlistPanel() {
               downloadCsv(
                 "waitlist-signups",
                 ["Email", "Source", "Interest", "When"],
-                rows.map((r) => [r.email, r.source ?? "", r.interest ?? "", new Date(r.created_at).toISOString()]),
+                rows.map((r) => [
+                  r.email,
+                  r.source ?? "",
+                  r.interest ?? "",
+                  new Date(r.created_at).toISOString(),
+                ]),
               )
             }
           >
@@ -480,9 +724,22 @@ function WaitlistPanel() {
         rows={q.data ?? []}
         columns={[
           { header: "Email", cell: (r) => <span className="font-medium">{r.email}</span> },
-          { header: "Source", cell: (r) => <span className="text-muted-foreground">{r.source ?? "—"}</span> },
-          { header: "Interest", cell: (r) => <span className="text-muted-foreground">{r.interest ?? "—"}</span> },
-          { header: "When", cell: (r) => <span className="text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span> },
+          {
+            header: "Source",
+            cell: (r) => <span className="text-muted-foreground">{r.source ?? "—"}</span>,
+          },
+          {
+            header: "Interest",
+            cell: (r) => <span className="text-muted-foreground">{r.interest ?? "—"}</span>,
+          },
+          {
+            header: "When",
+            cell: (r) => (
+              <span className="text-muted-foreground">
+                {new Date(r.created_at).toLocaleDateString()}
+              </span>
+            ),
+          },
         ]}
       />
     </div>
@@ -499,38 +756,66 @@ function MessagesPanel() {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-messages"] });
   const updateMut = useMutation({
     mutationFn: (args: { id: string; handled: boolean }) => update({ data: args }),
-    onSuccess: (_r, args) => { toast.success(args.handled ? "Marked handled." : "Reopened."); invalidate(); },
+    onSuccess: (_r, args) => {
+      toast.success(args.handled ? "Marked handled." : "Reopened.");
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
-    onSuccess: () => { toast.success("Message deleted."); invalidate(); },
+    onSuccess: () => {
+      toast.success("Message deleted.");
+      invalidate();
+    },
     onError: (e: Error) => toast.error(e.message),
   });
 
   return (
     <div>
-      <Toolbar title="Contact messages" count={q.data?.length ?? 0} icon={<Mail className="h-4 w-4" />} />
+      <Toolbar
+        title="Contact messages"
+        count={q.data?.length ?? 0}
+        icon={<Mail className="h-4 w-4" />}
+      />
       <div className="mt-4 grid gap-3">
         {(q.data ?? []).map((m) => {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const handled = !!(m as any).handled;
           return (
-            <div key={m.id} className={`rounded-xl border border-border bg-card p-4 ${handled ? "opacity-60" : ""}`}>
+            <div
+              key={m.id}
+              className={`rounded-xl border border-border bg-card p-4 ${handled ? "opacity-60" : ""}`}
+            >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div>
                   <p className="font-medium">
                     {m.name} <span className="text-muted-foreground">· {m.email}</span>
-                    {handled && <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">Handled</span>}
+                    {handled && (
+                      <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">
+                        Handled
+                      </span>
+                    )}
                   </p>
-                  {m.organization && <p className="text-xs text-muted-foreground">{m.organization}{m.topic ? ` · ${m.topic}` : ""}</p>}
+                  {m.organization && (
+                    <p className="text-xs text-muted-foreground">
+                      {m.organization}
+                      {m.topic ? ` · ${m.topic}` : ""}
+                    </p>
+                  )}
                 </div>
-                <span className="text-xs text-muted-foreground">{new Date(m.created_at).toLocaleString()}</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(m.created_at).toLocaleString()}
+                </span>
               </div>
               <p className="mt-2 whitespace-pre-line text-sm">{m.message}</p>
               <div className="mt-3 flex flex-wrap justify-end gap-2">
-                <Button variant="outline" size="sm" disabled={updateMut.isPending}
-                  onClick={() => updateMut.mutate({ id: m.id, handled: !handled })}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={updateMut.isPending}
+                  onClick={() => updateMut.mutate({ id: m.id, handled: !handled })}
+                >
                   {handled ? "Reopen" : "Mark handled"}
                 </Button>
                 <DeleteBtn onConfirm={() => delMut.mutate(m.id)} name={`message from ${m.name}`} />
@@ -539,7 +824,9 @@ function MessagesPanel() {
           );
         })}
         {!q.isLoading && (q.data ?? []).length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">No messages yet.</div>
+          <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
+            No messages yet.
+          </div>
         )}
       </div>
     </div>
@@ -553,8 +840,11 @@ function SubmissionsPanel() {
   const q = useQuery({ queryKey: ["admin-submissions"], queryFn: () => list() });
 
   const reviewMut = useMutation({
-    mutationFn: (args: { id: string; status: "approved" | "rejected" | "pending"; notes: string }) =>
-      review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
+    mutationFn: (args: {
+      id: string;
+      status: "approved" | "rejected" | "pending";
+      notes: string;
+    }) => review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
     onSuccess: (res) => {
       if (res?.publishedSlug) {
         toast.success(`Approved — published as /agents/${res.publishedSlug}`);
@@ -568,7 +858,11 @@ function SubmissionsPanel() {
 
   return (
     <div>
-      <Toolbar title="Agent submissions" count={q.data?.length ?? 0} icon={<Inbox className="h-4 w-4" />} />
+      <Toolbar
+        title="Agent submissions"
+        count={q.data?.length ?? 0}
+        icon={<Inbox className="h-4 w-4" />}
+      />
       <div className="mt-4 grid gap-3">
         {(q.data ?? []).map((s) => (
           <SubmissionCard
@@ -601,9 +895,11 @@ function SubmissionCard({
 }) {
   const [notes, setNotes] = useState(submission.review_notes ?? "");
   const statusTone =
-    submission.status === "approved" ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20"
-    : submission.status === "rejected" ? "bg-red-500/10 text-red-700 ring-red-500/20"
-    : "bg-muted text-muted-foreground ring-border";
+    submission.status === "approved"
+      ? "bg-emerald-500/10 text-emerald-700 ring-emerald-500/20"
+      : submission.status === "rejected"
+        ? "bg-red-500/10 text-red-700 ring-red-500/20"
+        : "bg-muted text-muted-foreground ring-border";
 
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -620,19 +916,55 @@ function SubmissionCard({
         </span>
       </div>
       <p className="mt-3 text-sm">{submission.tagline}</p>
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      {(submission as any).image_url && (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        <img src={(submission as any).image_url} alt="" className="mt-3 max-h-40 rounded-lg border border-border object-contain" />
+      {submission.image_url && (
+        <img
+          src={submission.image_url}
+          alt=""
+          className="mt-3 max-h-40 rounded-lg border border-border object-contain"
+        />
       )}
-      <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">{submission.description}</p>
-      {(submission.website_url || submission.demo_url || submission.repo_url || submission.published_agent_id) && (
+      <p className="mt-2 whitespace-pre-line text-sm text-muted-foreground">
+        {submission.description}
+      </p>
+      {(submission.website_url ||
+        submission.demo_url ||
+        submission.repo_url ||
+        submission.published_agent_id) && (
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          {submission.website_url && <a href={submission.website_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Website ↗</a>}
-          {submission.demo_url && <a href={submission.demo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Demo ↗</a>}
-          {submission.repo_url && <a href={submission.repo_url} target="_blank" rel="noreferrer" className="text-primary hover:underline">Repo ↗</a>}
+          {submission.website_url && (
+            <a
+              href={submission.website_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              Website ↗
+            </a>
+          )}
+          {submission.demo_url && (
+            <a
+              href={submission.demo_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              Demo ↗
+            </a>
+          )}
+          {submission.repo_url && (
+            <a
+              href={submission.repo_url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-primary hover:underline"
+            >
+              Repo ↗
+            </a>
+          )}
           {submission.published_agent_id && (
-            <Link to="/agents" className="text-emerald-700 hover:underline">Live agent ↗</Link>
+            <Link to="/agents" className="text-emerald-700 hover:underline">
+              Live agent ↗
+            </Link>
           )}
         </div>
       )}
@@ -644,10 +976,20 @@ function SubmissionCard({
         onChange={(e) => setNotes(e.target.value)}
       />
       <div className="mt-3 flex flex-wrap justify-end gap-2">
-        <Button variant="outline" size="sm" disabled={pending} onClick={() => onReview("pending", notes)}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pending}
+          onClick={() => onReview("pending", notes)}
+        >
           Mark pending
         </Button>
-        <Button variant="outline" size="sm" disabled={pending} onClick={() => onReview("rejected", notes)}>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={pending}
+          onClick={() => onReview("rejected", notes)}
+        >
           Reject
         </Button>
         <Button size="sm" disabled={pending} onClick={() => onReview("approved", notes)}>
@@ -658,8 +1000,6 @@ function SubmissionCard({
   );
 }
 
-
-
 // ---------- Shared bits ----------
 
 function downloadCsv(name: string, headers: string[], rows: (string | number)[][]) {
@@ -668,6 +1008,7 @@ function downloadCsv(name: string, headers: string[], rows: (string | number)[][
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const csv = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
+  // eslint-disable-next-line no-irregular-whitespace
   const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -679,13 +1020,25 @@ function downloadCsv(name: string, headers: string[], rows: (string | number)[][
   URL.revokeObjectURL(url);
 }
 
-function Toolbar({ title, count, action, icon }: { title: string; count: number; action?: React.ReactNode; icon?: React.ReactNode }) {
+function Toolbar({
+  title,
+  count,
+  action,
+  icon,
+}: {
+  title: string;
+  count: number;
+  action?: React.ReactNode;
+  icon?: React.ReactNode;
+}) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-2">
         {icon}
         <h3 className="font-display text-lg font-semibold">{title}</h3>
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{count}</span>
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {count}
+        </span>
       </div>
       {action}
     </div>
@@ -694,8 +1047,16 @@ function Toolbar({ title, count, action, icon }: { title: string; count: number;
 
 type Col<T> = { header: string; cell: (r: T) => React.ReactNode };
 function DataTable<T extends { id: string }>({
-  rows, columns, actions, loading,
-}: { rows: T[]; columns: Col<T>[]; actions?: (r: T) => React.ReactNode; loading?: boolean }) {
+  rows,
+  columns,
+  actions,
+  loading,
+}: {
+  rows: T[];
+  columns: Col<T>[];
+  actions?: (r: T) => React.ReactNode;
+  loading?: boolean;
+}) {
   if (loading) return <p className="mt-6 text-sm text-muted-foreground">Loading…</p>;
   if (rows.length === 0) {
     return (
@@ -709,15 +1070,27 @@ function DataTable<T extends { id: string }>({
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
-            {columns.map((c) => <th key={c.header} className="px-4 py-2.5 text-left font-medium">{c.header}</th>)}
+            {columns.map((c) => (
+              <th key={c.header} className="px-4 py-2.5 text-left font-medium">
+                {c.header}
+              </th>
+            ))}
             {actions && <th className="px-4 py-2.5 text-right font-medium">Actions</th>}
           </tr>
         </thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.id} className="border-t border-border">
-              {columns.map((c, i) => <td key={i} className="px-4 py-3">{c.cell(r)}</td>)}
-              {actions && <td className="px-4 py-3"><div className="flex justify-end gap-1">{actions(r)}</div></td>}
+              {columns.map((c, i) => (
+                <td key={i} className="px-4 py-3">
+                  {c.cell(r)}
+                </td>
+              ))}
+              {actions && (
+                <td className="px-4 py-3">
+                  <div className="flex justify-end gap-1">{actions(r)}</div>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>
@@ -729,20 +1102,32 @@ function DataTable<T extends { id: string }>({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="grid gap-1.5">
-      <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
+      <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </Label>
       {children}
     </div>
   );
 }
 
 function FulfillmentField({
-  label, value, onChange, hint,
-}: { label: string; value: string; onChange: (v: string) => void; hint?: string }) {
+  label,
+  value,
+  onChange,
+  hint,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  hint?: string;
+}) {
   const [preview, setPreview] = useState(false);
   return (
     <div className="grid gap-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</Label>
+        <Label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {label}
+        </Label>
         <Button
           type="button"
           variant="ghost"
@@ -772,7 +1157,15 @@ function FulfillmentField({
   );
 }
 
-function ToggleField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function ToggleField({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
     <label className="flex items-center gap-2 text-sm">
       <Switch checked={checked} onCheckedChange={onChange} />
@@ -784,7 +1177,9 @@ function ToggleField({ label, checked, onChange }: { label: string; checked: boo
 function StatusDot({ active, label }: { active: boolean; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5 text-xs">
-      <span className={`h-1.5 w-1.5 rounded-full ${active ? "bg-accent2" : "bg-muted-foreground/40"}`} />
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${active ? "bg-accent2" : "bg-muted-foreground/40"}`}
+      />
       {label}
     </span>
   );
@@ -802,7 +1197,12 @@ function DeleteBtn({ onConfirm, name }: { onConfirm: () => void; name: string })
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" aria-label="Delete">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          aria-label="Delete"
+        >
           <Trash2 className="h-3.5 w-3.5" />
         </Button>
       </AlertDialogTrigger>
@@ -845,7 +1245,9 @@ function localInputToIso(v: string) {
 }
 
 function PublishControls({
-  status, scheduledAt, onChange,
+  status,
+  scheduledAt,
+  onChange,
 }: {
   status: PublishStatus;
   scheduledAt: string | null;
@@ -862,7 +1264,9 @@ function PublishControls({
               onChange(next, next === "scheduled" ? scheduledAt : null);
             }}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="draft">Draft — hidden</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
@@ -882,29 +1286,49 @@ function PublishControls({
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
         {status === "draft" && "Only admins can see this. Nothing is visible on the public site."}
-        {status === "scheduled" && (scheduledAt
-          ? `Goes live on ${new Date(scheduledAt).toLocaleString()}.`
-          : "Pick a date and time to schedule.")}
+        {status === "scheduled" &&
+          (scheduledAt
+            ? `Goes live on ${new Date(scheduledAt).toLocaleString()}.`
+            : "Pick a date and time to schedule.")}
         {status === "published" && "Visible to everyone on the public site."}
       </p>
     </div>
   );
 }
 
-function PublishBadge({ status, scheduledAt }: { status: PublishStatus; scheduledAt: string | null }) {
-  const live = status === "published" || (status === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
+function PublishBadge({
+  status,
+  scheduledAt,
+}: {
+  status: PublishStatus;
+  scheduledAt: string | null;
+}) {
+  const live =
+    status === "published" ||
+    (status === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
   const tone =
-    status === "published" ? "bg-accent2/15 text-accent2 ring-accent2/30"
-    : status === "scheduled" ? "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-400"
-    : "bg-muted text-muted-foreground ring-border";
+    status === "published"
+      ? "bg-accent2/15 text-accent2 ring-accent2/30"
+      : status === "scheduled"
+        ? "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-400"
+        : "bg-muted text-muted-foreground ring-border";
   const label =
-    status === "published" ? "Published"
-    : status === "scheduled"
-      ? (scheduledAt ? (live ? "Live (scheduled)" : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`) : "Scheduled")
-      : "Draft";
+    status === "published"
+      ? "Published"
+      : status === "scheduled"
+        ? scheduledAt
+          ? live
+            ? "Live (scheduled)"
+            : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`
+          : "Scheduled"
+        : "Draft";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ring-1 ${tone}`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current opacity-50"}`} />
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ring-1 ${tone}`}
+    >
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${live ? "bg-current" : "bg-current opacity-50"}`}
+      />
       {label}
     </span>
   );

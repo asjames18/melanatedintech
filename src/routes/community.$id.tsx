@@ -21,7 +21,10 @@ import { timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
 
 const threadQO = (id: string) =>
-  queryOptions({ queryKey: ["discussion-thread", id], queryFn: () => getDiscussionThread({ data: { id } }) });
+  queryOptions({
+    queryKey: ["discussion-thread", id],
+    queryFn: () => getDiscussionThread({ data: { id } }),
+  });
 
 export const Route = createFileRoute("/community/$id")({
   loader: async ({ context, params }) => {
@@ -41,12 +44,19 @@ export const Route = createFileRoute("/community/$id")({
       }),
     };
   },
-  errorComponent: ({ error }) => <SiteLayout><div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div></SiteLayout>,
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold">Thread not found</h1>
-        <Link to="/community" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
+        <Link
+          to="/community"
+          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to community
         </Link>
       </div>
@@ -124,7 +134,10 @@ function ThreadView() {
   return (
     <SiteLayout>
       <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <Link to="/community" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/community"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Community
         </Link>
 
@@ -180,7 +193,9 @@ function ThreadView() {
                   </p>
                   {(me === c.user_id || isAdmin) && (
                     <button
-                      onClick={() => delMut.mutate({ id: c.id, kind: "comment", asAdmin: me !== c.user_id })}
+                      onClick={() =>
+                        delMut.mutate({ id: c.id, kind: "comment", asAdmin: me !== c.user_id })
+                      }
                       className="text-xs text-muted-foreground hover:text-foreground"
                       aria-label="Delete comment"
                     >
@@ -195,14 +210,19 @@ function ThreadView() {
         </section>
 
         <section className="mt-8 rounded-2xl border border-border bg-card p-5">
-          <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">Reply</h3>
+          <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+            Reply
+          </h3>
           {post.locked ? (
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
               <Lock className="h-3.5 w-3.5" /> This thread is locked. New replies are turned off.
             </p>
           ) : me === null ? (
             <p className="mt-3 text-sm text-muted-foreground">
-              <Link to="/auth" className="text-primary">Sign in</Link> to join the conversation.
+              <Link to="/auth" className="text-primary">
+                Sign in
+              </Link>{" "}
+              to join the conversation.
             </p>
           ) : (
             <>

@@ -1,7 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { COMMUNITY_CATEGORIES } from "@/lib/community";
+import {
+  COMMUNITY_CATEGORIES,
+  REACTION_KINDS,
+  type Author,
+  type FeedPage,
+  type FeedPost,
+  type FeedReply,
+  type FeedThread,
+  type PublicProfile,
+  type ReactionKind,
+  type TrendingTag,
+} from "@/lib/community";
 
 async function assertAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -15,9 +26,7 @@ async function assertAdmin(userId: string) {
   if (!data) throw new Error("Forbidden: admin role required.");
 }
 
-// ---------- Public reads (anyone) ----------
-
-type AuthorMap = Map<string, { display_name: string | null; avatar_url: string | null }>;
+type AuthorMap = Map<string, Author>;
 
 async function getAuthorMap(userIds: string[]): Promise<AuthorMap> {
   const map: AuthorMap = new Map();
@@ -35,6 +44,606 @@ async function getAuthorMap(userIds: string[]): Promise<AuthorMap> {
   return map;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function asRow<T = any>(r: any): T {
+  return r as T;
+}
+
+const POST_COLS =
+  "id, user_id, title, body, category, media_urls, reply_count, reaction_count, locked, last_activity_at, created_at, updated_at";
+const REPLY_COLS =
+  "id, post_id, user_id, parent_reply_id, body, path, depth, reaction_count, created_at, updated_at";
+
+async function resolveReactionsByMe(
+  userId: string | undefined,
+  postIds: string[],
+  replyIds: string[],
+): Promise<{ posts: Map<string, string[]>; replies: Map<string, string[]> }> {
+  const posts = new Map<string, string[]>();
+  const replies = new Map<string, string[]>();
+  if (!userId) return { posts, replies };
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  if (postIds.length) {
+    const { data } = await supabaseAdmin
+      .from("post_reactions")
+      .select("post_id, kind")
+      .eq("user_id", userId)
+      .in("post_id", postIds);
+    for (const r of data ?? []) posts.set(r.post_id, [...(posts.get(r.post_id) ?? []), r.kind]);
+  }
+  if (replyIds.length) {
+    const { data } = await supabaseAdmin
+      .from("reply_reactions")
+      .select("reply_id, kind")
+      .eq("user_id", userId)
+      .in("reply_id", replyIds);
+    for (const r of data ?? [])
+      replies.set(r.reply_id, [...(replies.get(r.reply_id) ?? []), r.kind]);
+  }
+  return { posts, replies };
+}
+
+function normalizeReactionCount(c: unknown): Record<string, number> {
+  return c && typeof c === "object" ? (c as Record<string, number>) : {};
+}
+
+// ---------------------------------------------------------------------------
+// Feed reads (anyone — viewer's reactions require auth, resolved server-side)
+// ---------------------------------------------------------------------------
+
+const listFeedSchema = z.object({
+  cursor: z.string().datetime().optional(),
+  limit: z.number().int().min(1).max(50).default(20),
+  tab: z.enum(["for-you", "following"]).default("for-you"),
+  tag: z.string().optional(),
+});
+
+export const listFeed = createServerFn({ method: "GET" })
+  .validator((d: unknown) => listFeedSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { supabase } = await import("@/integrations/supabase/client");
+
+    // Best-effort viewer id (optional — drives reactions_by_me).
+    let viewerId: string | undefined;
+    try {
+      const req = (await import("@tanstack/react-start/server")).getRequest();
+      const authHeader = req?.headers?.get?.("authorization") ?? null;
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.replace("Bearer ", "");
+        if (token.split(".").length === 3) {
+          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { data: claims } = await authed.auth.getClaims(token);
+          viewerId = claims?.claims?.sub;
+        }
+      }
+    } catch {
+      // not authenticated — fine for a public read
+    }
+    void supabase;
+
+    let q = supabaseAdmin
+      .from("discussion_posts")
+      .select(POST_COLS)
+      .order("created_at", { ascending: false })
+      .limit(data.limit + 1);
+
+    if (data.cursor) q = q.lt("created_at", data.cursor);
+    if (data.tab === "following" && viewerId) {
+      // Posts from users this viewer follows.
+      q = q.in(
+        "user_id",
+        supabaseAdmin.from("user_follows").select("followee_id").eq("follower_id", viewerId),
+      );
+    }
+
+    if (data.tag) {
+      q = q.in(
+        "id",
+        supabaseAdmin
+          .from("post_hashtags")
+          .select("post_id")
+          .in(
+            "hashtag_id",
+            supabaseAdmin.from("hashtags").select("id").eq("tag", data.tag.toLowerCase()),
+          ),
+      );
+    }
+
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const hasMore = (rows?.length ?? 0) > data.limit;
+    const slice = (rows ?? []).slice(0, data.limit);
+    const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
+
+    const authors = await getAuthorMap(slice.map((r) => r.user_id));
+    const { posts: myReactions } = await resolveReactionsByMe(
+      viewerId,
+      slice.map((r) => r.id),
+      [],
+    );
+
+    const posts: FeedPost[] = slice.map((r) => {
+      const row = asRow(r);
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        title: row.title ?? null,
+        body: row.body,
+        category: row.category,
+        media_urls: (row.media_urls ?? []) as string[],
+        reply_count: row.reply_count ?? 0,
+        reaction_count: normalizeReactionCount(row.reaction_count),
+        reactions_by_me: myReactions.get(row.id) ?? [],
+        locked: !!row.locked,
+        last_activity_at: row.last_activity_at,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        author: authors.get(row.user_id) ?? null,
+      };
+    });
+
+    const result: FeedPage = { posts, next_cursor };
+    return result;
+  });
+
+const listUserPostsSchema = z.object({
+  user_id: z.string().uuid(),
+  cursor: z.string().datetime().optional(),
+  limit: z.number().int().min(1).max(50).default(20),
+});
+
+export const listUserPosts = createServerFn({ method: "GET" })
+  .validator((d: unknown) => listUserPostsSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let viewerId: string | undefined;
+    try {
+      const req = (await import("@tanstack/react-start/server")).getRequest();
+      const authHeader = req?.headers?.get?.("authorization") ?? null;
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.replace("Bearer ", "");
+        if (token.split(".").length === 3) {
+          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { data: claims } = await authed.auth.getClaims(token);
+          viewerId = claims?.claims?.sub;
+        }
+      }
+    } catch {
+      // public read
+    }
+
+    let q = supabaseAdmin
+      .from("discussion_posts")
+      .select(POST_COLS)
+      .eq("user_id", data.user_id)
+      .order("created_at", { ascending: false })
+      .limit(data.limit + 1);
+
+    if (data.cursor) q = q.lt("created_at", data.cursor);
+
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const hasMore = (rows?.length ?? 0) > data.limit;
+    const slice = (rows ?? []).slice(0, data.limit);
+    const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
+
+    const authors = await getAuthorMap(slice.map((r) => r.user_id));
+    const { posts: myReactions } = await resolveReactionsByMe(
+      viewerId,
+      slice.map((r) => r.id),
+      [],
+    );
+
+    const posts: FeedPost[] = slice.map((r) => {
+      const row = asRow(r);
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        title: row.title ?? null,
+        body: row.body,
+        category: row.category,
+        media_urls: (row.media_urls ?? []) as string[],
+        reply_count: row.reply_count ?? 0,
+        reaction_count: normalizeReactionCount(row.reaction_count),
+        reactions_by_me: myReactions.get(row.id) ?? [],
+        locked: !!row.locked,
+        last_activity_at: row.last_activity_at,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        author: authors.get(row.user_id) ?? null,
+      };
+    });
+
+    const result: FeedPage = { posts, next_cursor };
+    return result;
+  });
+
+const getThreadSchema = z.object({ id: z.string().uuid() });
+
+export const getThread = createServerFn({ method: "GET" })
+  .validator((d: unknown) => getThreadSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let viewerId: string | undefined;
+    try {
+      const req = (await import("@tanstack/react-start/server")).getRequest();
+      const authHeader = req?.headers?.get?.("authorization") ?? null;
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.replace("Bearer ", "");
+        if (token.split(".").length === 3) {
+          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { data: claims } = await authed.auth.getClaims(token);
+          viewerId = claims?.claims?.sub;
+        }
+      }
+    } catch {
+      // public read; viewer optional
+    }
+
+    const [postRes, repliesRes] = await Promise.all([
+      supabaseAdmin.from("discussion_posts").select(POST_COLS).eq("id", data.id).maybeSingle(),
+      supabaseAdmin
+        .from("discussion_comments")
+        .select(REPLY_COLS)
+        .eq("post_id", data.id)
+        .order("path", { ascending: true }),
+    ]);
+    if (postRes.error) throw new Error(postRes.error.message);
+    if (repliesRes.error) throw new Error(repliesRes.error.message);
+    if (!postRes.data) return null;
+
+    const authors = await getAuthorMap([
+      postRes.data.user_id,
+      ...(repliesRes.data ?? []).map((c) => c.user_id),
+    ]);
+    const { posts: myPostR, replies: myReplyR } = await resolveReactionsByMe(
+      viewerId,
+      [postRes.data.id],
+      (repliesRes.data ?? []).map((c) => c.id),
+    );
+
+    const prow = asRow(postRes.data);
+    const post: FeedPost = {
+      id: prow.id,
+      user_id: prow.user_id,
+      title: prow.title ?? null,
+      body: prow.body,
+      category: prow.category,
+      media_urls: (prow.media_urls ?? []) as string[],
+      reply_count: prow.reply_count ?? 0,
+      reaction_count: normalizeReactionCount(prow.reaction_count),
+      reactions_by_me: myPostR.get(prow.id) ?? [],
+      locked: !!prow.locked,
+      last_activity_at: prow.last_activity_at,
+      created_at: prow.created_at,
+      updated_at: prow.updated_at,
+      author: authors.get(prow.user_id) ?? null,
+    };
+
+    const replies: FeedReply[] = (repliesRes.data ?? []).map((c) => {
+      const row = asRow(c);
+      return {
+        id: row.id,
+        post_id: row.post_id,
+        user_id: row.user_id,
+        parent_reply_id: row.parent_reply_id ?? null,
+        body: row.body,
+        path: row.path ?? row.id,
+        depth: row.depth ?? 0,
+        reaction_count: normalizeReactionCount(row.reaction_count),
+        reactions_by_me: myReplyR.get(row.id) ?? [],
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        author: authors.get(row.user_id) ?? null,
+      };
+    });
+
+    const thread: FeedThread = { post, replies };
+    return thread;
+  });
+
+// ---------------------------------------------------------------------------
+// Authenticated writes — posts + replies
+// ---------------------------------------------------------------------------
+
+const createPostSchema = z.object({
+  title: z.string().trim().max(140).optional(),
+  body: z.string().trim().min(1).max(1000),
+  category: z.enum(COMMUNITY_CATEGORIES).default("general"),
+  media_urls: z.array(z.string()).max(4).default([]),
+});
+
+export const createPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => createPostSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: row, error } = await context.supabase
+      .from("discussion_posts")
+      .insert({
+        user_id: context.userId,
+        title: data.title || null,
+        body: data.body,
+        category: data.category,
+        media_urls: data.media_urls,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: row.id };
+  });
+
+const replySchema = z.object({
+  post_id: z.string().uuid(),
+  body: z.string().trim().min(1).max(2000),
+  parent_reply_id: z.string().uuid().nullable().optional(),
+});
+
+export const replyToPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => replySchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: post } = await context.supabase
+      .from("discussion_posts")
+      .select("locked")
+      .eq("id", data.post_id)
+      .maybeSingle();
+    if (post?.locked) throw new Error("This thread is locked.");
+
+    const { data: row, error } = await context.supabase
+      .from("discussion_comments")
+      .insert({
+        post_id: data.post_id,
+        user_id: context.userId,
+        body: data.body,
+        parent_reply_id: data.parent_reply_id ?? null,
+      })
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { ok: true, id: row.id };
+  });
+
+// ---------------------------------------------------------------------------
+// Reactions
+// ---------------------------------------------------------------------------
+
+const REACTION_KIND_TUPLE: [ReactionKind, ...ReactionKind[]] = [...REACTION_KINDS] as [
+  ReactionKind,
+  ...ReactionKind[],
+];
+
+const reactSchema = z.object({
+  post_id: z.string().uuid(),
+  kind: z.enum(REACTION_KIND_TUPLE),
+});
+
+export const reactPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => reactSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    // Insert idempotently — re-reacting the same kind is a no-op (UNIQUE constraint).
+    const { error } = await context.supabase.from("post_reactions").upsert(
+      {
+        user_id: context.userId,
+        post_id: data.post_id,
+        kind: data.kind,
+      },
+      { onConflict: "user_id,post_id,kind" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const unreactPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => reactSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("post_reactions")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("post_id", data.post_id)
+      .eq("kind", data.kind);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const replyReactSchema = z.object({
+  reply_id: z.string().uuid(),
+  kind: z.enum(REACTION_KIND_TUPLE),
+});
+
+export const reactReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => replyReactSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.from("reply_reactions").upsert(
+      {
+        user_id: context.userId,
+        reply_id: data.reply_id,
+        kind: data.kind,
+      },
+      { onConflict: "user_id,reply_id,kind" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const unreactReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => replyReactSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("reply_reactions")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("reply_id", data.reply_id)
+      .eq("kind", data.kind);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
+// Follows
+// ---------------------------------------------------------------------------
+
+const followSchema = z.object({ followee_id: z.string().uuid() });
+
+export const toggleFollow = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => followSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    if (data.followee_id === context.userId) throw new Error("You can't follow yourself.");
+    // Try delete first (toggle off); if no row matched, insert (toggle on).
+    const { count: deleted } = await context.supabase
+      .from("user_follows")
+      .delete({ count: "exact" })
+      .eq("follower_id", context.userId)
+      .eq("followee_id", data.followee_id);
+    if ((deleted ?? 0) > 0) return { ok: true, following: false };
+    const { error } = await context.supabase.from("user_follows").insert({
+      follower_id: context.userId,
+      followee_id: data.followee_id,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, following: true };
+  });
+
+// ---------------------------------------------------------------------------
+// Public profile + author posts
+// ---------------------------------------------------------------------------
+
+const publicProfileSchema = z.object({ user_id: z.string().uuid() });
+
+export const getPublicProfile = createServerFn({ method: "GET" })
+  .validator((d: unknown) => publicProfileSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let viewerId: string | undefined;
+    try {
+      const req = (await import("@tanstack/react-start/server")).getRequest();
+      const authHeader = req?.headers?.get?.("authorization") ?? null;
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.replace("Bearer ", "");
+        if (token.split(".").length === 3) {
+          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { data: claims } = await authed.auth.getClaims(token);
+          viewerId = claims?.claims?.sub;
+        }
+      }
+    } catch {
+      // public read
+    }
+
+    const [profRes, countRes, followRes] = await Promise.all([
+      supabaseAdmin
+        .from("profiles")
+        .select("id, display_name, avatar_url, bio, followers_count, following_count")
+        .eq("id", data.user_id)
+        .maybeSingle(),
+      supabaseAdmin
+        .from("discussion_posts")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", data.user_id),
+      viewerId
+        ? supabaseAdmin
+            .from("user_follows")
+            .select("id", { count: "exact", head: true })
+            .eq("follower_id", viewerId)
+            .eq("followee_id", data.user_id)
+        : Promise.resolve({ count: 0 }),
+    ]);
+    if (profRes.error) throw new Error(profRes.error.message);
+    if (!profRes.data) return null;
+
+    const p = asRow(profRes.data);
+    const profile: PublicProfile = {
+      id: p.id,
+      display_name: p.display_name ?? null,
+      avatar_url: p.avatar_url ?? null,
+      bio: p.bio ?? null,
+      followers_count: p.followers_count ?? 0,
+      following_count: p.following_count ?? 0,
+      post_count: countRes.count ?? 0,
+      is_following: (followRes.count ?? 0) > 0,
+    };
+    return profile;
+  });
+
+// ---------------------------------------------------------------------------
+// Trending hashtags
+// ---------------------------------------------------------------------------
+
+const trendingSchema = z.object({ limit: z.number().int().min(1).max(20).default(8) });
+
+export const listTrending = createServerFn({ method: "GET" })
+  .validator((d: unknown) => trendingSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("hashtags")
+      .select("tag, usage_count")
+      .order("usage_count", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as TrendingTag[];
+  });
+
+// ---------------------------------------------------------------------------
+// Deletes + moderation (owner-scoped via RLS, admin via service role)
+// ---------------------------------------------------------------------------
+
+const deleteSchema = z.object({ id: z.string().uuid(), kind: z.enum(["post", "reply"]) });
+
+export const deleteItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => deleteSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
+    const { error } = await context.supabase.from(table).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const adminDeleteItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => deleteSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
+    const { error } = await supabaseAdmin.from(table).delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+const moderateSchema = z.object({ id: z.string().uuid(), locked: z.boolean() });
+
+export const moderateThread = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => moderateSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("discussion_posts")
+      .update({ locked: data.locked } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
+// Legacy exports — kept so the previous community routes keep compiling while
+// we migrate them to the new feed UI. These simply proxy to the new fns.
+// ---------------------------------------------------------------------------
+
 export const listDiscussionPosts = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
@@ -51,65 +660,36 @@ export const listDiscussionPosts = createServerFn({ method: "GET" }).handler(asy
 export const getDiscussionThread = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const postCols =
-      "id, user_id, title, body, category, comment_count, last_activity_at, created_at, updated_at";
-    const [postRes, commentsRes] = await Promise.all([
-      // Degrade gracefully if `locked` isn't there yet (code ahead of migration).
-      (async () => {
-        let res = await supabaseAdmin
-          .from("discussion_posts")
-          .select(`${postCols}, locked`)
-          .eq("id", data.id)
-          .maybeSingle();
-        if (res.error && /locked|column/i.test(res.error.message)) {
-          res = await supabaseAdmin
-            .from("discussion_posts")
-            .select(postCols)
-            .eq("id", data.id)
-            .maybeSingle();
-        }
-        return res;
-      })(),
-      supabaseAdmin
-        .from("discussion_comments")
-        .select("id, user_id, body, created_at, updated_at")
-        .eq("post_id", data.id)
-        .order("created_at", { ascending: true }),
-    ]);
-    if (postRes.error) throw new Error(postRes.error.message);
-    if (commentsRes.error) throw new Error(commentsRes.error.message);
-    if (!postRes.data) return null;
-
-    const authors = await getAuthorMap([
-      postRes.data.user_id,
-      ...(commentsRes.data ?? []).map((c) => c.user_id),
-    ]);
+    const t = await getThread({ data: { id: data.id } });
+    if (!t) return null;
     return {
       post: {
-        ...postRes.data,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        locked: !!(postRes.data as any).locked,
-        author: authors.get(postRes.data.user_id) ?? null,
+        ...t.post,
+        comment_count: t.post.reply_count,
       },
-      comments: (commentsRes.data ?? []).map((c) => ({
-        ...c,
-        author: authors.get(c.user_id) ?? null,
+      comments: t.replies.map((r) => ({
+        id: r.id,
+        post_id: r.post_id,
+        user_id: r.user_id,
+        body: r.body,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        author: r.author,
       })),
     };
   });
 
-// ---------- Authenticated writes ----------
-
-const createPostSchema = z.object({
-  title: z.string().trim().min(3).max(140),
-  body: z.string().trim().min(1).max(4000),
-  category: z.enum(COMMUNITY_CATEGORIES).default("general"),
-});
-
 export const createDiscussionPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => createPostSchema.parse(d))
+  .validator((d: unknown) =>
+    z
+      .object({
+        title: z.string().trim().min(3).max(140),
+        body: z.string().trim().min(1).max(4000),
+        category: z.enum(COMMUNITY_CATEGORIES).default("general"),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("discussion_posts")
@@ -125,70 +705,16 @@ export const createDiscussionPost = createServerFn({ method: "POST" })
     return { ok: true, id: row.id };
   });
 
-const createCommentSchema = z.object({
-  post_id: z.string().uuid(),
-  body: z.string().trim().min(1).max(2000),
-});
-
 export const createDiscussionComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => createCommentSchema.parse(d))
-  .handler(async ({ data, context }) => {
-    // Reject replies on a locked thread. Degrade open if the column isn't there yet.
-    const { data: post } = await context.supabase
-      .from("discussion_posts")
-      .select("locked")
-      .eq("id", data.post_id)
-      .maybeSingle();
-    if (post?.locked) throw new Error("This thread is locked.");
-
-    const { error } = await context.supabase
-      .from("discussion_comments")
-      .insert({ post_id: data.post_id, user_id: context.userId, body: data.body });
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-// ---------- Admin moderation ----------
-
-export const moderateDiscussionThread = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid(), locked: z.boolean() }).parse(d))
-  .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("discussion_posts")
-      .update({ locked: data.locked } as never)
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-// Admin-only delete of ANY post/comment (the owner-scoped deleteDiscussionItem
-// runs under RLS and can't remove other people's content).
-export const adminDeleteDiscussionItem = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((d: unknown) =>
-    z.object({ id: z.string().uuid(), kind: z.enum(["post", "comment"]) }).parse(d),
+    z.object({ post_id: z.string().uuid(), body: z.string().trim().min(1).max(2000) }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    await assertAdmin(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
-    const { error } = await supabaseAdmin.from(table).delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
+    const r = await replyToPost({ data: { post_id: data.post_id, body: data.body } });
+    return r;
   });
 
-const deleteSchema = z.object({ id: z.string().uuid(), kind: z.enum(["post", "comment"]) });
-
-export const deleteDiscussionItem = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => deleteSchema.parse(d))
-  .handler(async ({ data, context }) => {
-    const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
-    const { error } = await context.supabase.from(table).delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
+export const deleteDiscussionItem = deleteItem;
+export const adminDeleteDiscussionItem = adminDeleteItem;
+export const moderateDiscussionThread = moderateThread;

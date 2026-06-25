@@ -54,6 +54,9 @@ Server env (Cloudflare Worker/Pages environment variables):
 - `STRIPE_LIVE_SECRET_KEY` - live secret key.
 - `PAYMENTS_LIVE_WEBHOOK_SECRET` - from the webhook endpoint created in step 4.
 - `VITE_PAYMENTS_CLIENT_TOKEN=pk_live_...` - flips the whole app to live.
+- `RESEND_API_KEY` - transactional email API key for Cloudflare queue processing.
+- `RESEND_FROM_EMAIL` - verified sender, for example
+  `Melanated In Tech <hello@melanatedintech.com>`.
 
 (Already set: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`. Keep the sandbox
 `STRIPE_SANDBOX_SECRET_KEY` / `PAYMENTS_SANDBOX_WEBHOOK_SECRET` for test runs.

@@ -25,6 +25,8 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
+import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as TTagRouteImport } from './routes/t.$tag'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
@@ -122,6 +124,16 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AgentsRoute,
+} as any)
+const UUserIdRoute = UUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TTagRoute = TTagRouteImport.update({
+  id: '/t/$tag',
+  path: '/t/$tag',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/$slug',
@@ -245,6 +257,8 @@ export interface FileRoutesByFullPath {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/t/$tag': typeof TTagRoute
+  '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
@@ -274,6 +288,8 @@ export interface FileRoutesByTo {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/t/$tag': typeof TTagRoute
+  '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/community': typeof CommunityIndexRoute
   '/knowledge': typeof KnowledgeIndexRoute
@@ -311,6 +327,8 @@ export interface FileRoutesById {
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/t/$tag': typeof TTagRoute
+  '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
@@ -348,6 +366,8 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/t/$tag'
+    | '/u/$userId'
     | '/agents/'
     | '/community/'
     | '/knowledge/'
@@ -377,6 +397,8 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/t/$tag'
+    | '/u/$userId'
     | '/agents'
     | '/community'
     | '/knowledge'
@@ -413,6 +435,8 @@ export interface FileRouteTypes {
     | '/community/$id'
     | '/knowledge/$slug'
     | '/products/$slug'
+    | '/t/$tag'
+    | '/u/$userId'
     | '/agents/'
     | '/community/'
     | '/knowledge/'
@@ -441,6 +465,8 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  TTagRoute: typeof TTagRoute
+  UUserIdRoute: typeof UUserIdRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -558,6 +584,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/agents/'
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof AgentsRoute
+    }
+    '/u/$userId': {
+      id: '/u/$userId'
+      path: '/u/$userId'
+      fullPath: '/u/$userId'
+      preLoaderRoute: typeof UUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$tag': {
+      id: '/t/$tag'
+      path: '/t/$tag'
+      fullPath: '/t/$tag'
+      preLoaderRoute: typeof TTagRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/products/$slug': {
       id: '/products/$slug'
@@ -808,6 +848,8 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  TTagRoute: TTagRoute,
+  UUserIdRoute: UUserIdRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }

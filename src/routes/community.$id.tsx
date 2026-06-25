@@ -1,29 +1,40 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  useSuspenseQuery,
+  queryOptions,
+} from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Lock, Trash2, Unlock } from "lucide-react";
+import { ArrowLeft, Lock, Unlock } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { PostCard } from "@/components/feed/post-card";
+import { ReplyThread } from "@/components/feed/reply-thread";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  getDiscussionThread,
-  createDiscussionComment,
-  deleteDiscussionItem,
-  moderateDiscussionThread,
-  adminDeleteDiscussionItem,
+  getThread,
+  replyToPost,
+  reactPost,
+  unreactPost,
+  reactReply,
+  unreactReply,
+  deleteItem,
+  adminDeleteItem,
+  moderateThread,
 } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
-import { useQuery } from "@tanstack/react-query";
+import { REPLY_BODY_MAX, type FeedThread, type ReactionKind } from "@/lib/community";
 import { buildSeoMeta } from "@/lib/seo";
-import { timeAgo } from "@/lib/utils";
 import { toast } from "sonner";
 
 const threadQO = (id: string) =>
   queryOptions({
-    queryKey: ["discussion-thread", id],
-    queryFn: () => getDiscussionThread({ data: { id } }),
+    queryKey: ["thread", id],
+    queryFn: () => getThread({ data: { id } }),
   });
 
 export const Route = createFileRoute("/community/$id")({
@@ -37,7 +48,7 @@ export const Route = createFileRoute("/community/$id")({
     if (!t) return { meta: [{ title: "Thread — Melanated In Tech" }] };
     return {
       meta: buildSeoMeta({
-        title: `${t.post.title} — Community`,
+        title: t.post.title ? `${t.post.title} — Community` : "Community thread",
         description: t.post.body.slice(0, 160),
         url: `/community/${t.post.id}`,
         type: "article",
@@ -77,10 +88,39 @@ function ThreadView() {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
 
-  const create = useServerFn(createDiscussionComment);
-  const del = useServerFn(deleteDiscussionItem);
-  const adminDel = useServerFn(adminDeleteDiscussionItem);
-  const moderate = useServerFn(moderateDiscussionThread);
+  // Realtime: live-merge new replies (and detect new reactions on the post).
+  useEffect(() => {
+    const channel = supabase
+      .channel(`thread-${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "discussion_comments",
+          filter: `post_id=eq.${id}`,
+        },
+        () => qc.invalidateQueries({ queryKey: ["thread", id] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "post_reactions", filter: `post_id=eq.${id}` },
+        () => qc.invalidateQueries({ queryKey: ["thread", id] }),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
+  const replyFn = useServerFn(replyToPost);
+  const reactPostFn = useServerFn(reactPost);
+  const unreactPostFn = useServerFn(unreactPost);
+  const reactReplyFn = useServerFn(reactReply);
+  const unreactReplyFn = useServerFn(unreactReply);
+  const del = useServerFn(deleteItem);
+  const adminDel = useServerFn(adminDeleteItem);
+  const moderate = useServerFn(moderateThread);
   const checkAdmin = useServerFn(checkAdminStatus);
 
   const adminQ = useQuery({
@@ -91,29 +131,98 @@ function ThreadView() {
   });
   const isAdmin = !!adminQ.data?.isAdmin;
 
+  const invalidateThread = () => {
+    qc.invalidateQueries({ queryKey: ["thread", id] });
+    qc.invalidateQueries({ queryKey: ["feed"] });
+  };
+
   const replyMut = useMutation({
-    mutationFn: () => create({ data: { post_id: id, body: reply } }),
+    mutationFn: (args: { body: string; parent_reply_id?: string | null }) =>
+      replyFn({
+        data: { post_id: id, body: args.body, parent_reply_id: args.parent_reply_id ?? null },
+      }),
     onSuccess: () => {
       setReply("");
-      qc.invalidateQueries({ queryKey: ["discussion-thread", id] });
-      qc.invalidateQueries({ queryKey: ["discussion-posts"] });
+      invalidateThread();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Owners delete their own content; admins can delete anyone's (via the
-  // service-role fn, which isn't bound by RLS).
+  // --- Post reactions (optimistic on the thread cache) ---
+  const postReactMut = useMutation({
+    mutationFn: (args: { kind: ReactionKind; on: boolean }) =>
+      (args.on ? reactPostFn : unreactPostFn)({ data: { post_id: id, kind: args.kind } }),
+    onMutate: async ({ kind, on }) => {
+      await qc.cancelQueries({ queryKey: ["thread", id] });
+      const prev = qc.getQueryData<FeedThread>(["thread", id]);
+      if (!prev) return;
+      const mine = on
+        ? Array.from(new Set([...prev.post.reactions_by_me, kind]))
+        : prev.post.reactions_by_me.filter((k: string) => k !== kind);
+      const counts = { ...prev.post.reaction_count };
+      counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+      qc.setQueryData(["thread", id], {
+        ...prev,
+        post: { ...prev.post, reactions_by_me: mine, reaction_count: counts },
+      });
+    },
+    onError: () => invalidateThread(),
+  });
+
+  function togglePostReaction(kind: ReactionKind) {
+    const prev = qc.getQueryData<FeedThread>(["thread", id]);
+    const on = !prev?.post.reactions_by_me.includes(kind);
+    return postReactMut.mutate({ kind, on });
+  }
+
+  // --- Reply reactions (optimistic on the thread cache) ---
+  const replyReactMut = useMutation({
+    mutationFn: (args: { replyId: string; kind: ReactionKind; on: boolean }) =>
+      (args.on ? reactReplyFn : unreactReplyFn)({
+        data: { reply_id: args.replyId, kind: args.kind },
+      }),
+    onMutate: async ({ replyId, kind, on }) => {
+      await qc.cancelQueries({ queryKey: ["thread", id] });
+      const prev = qc.getQueryData<FeedThread>(["thread", id]);
+      if (!prev) return;
+      const replies = prev.replies.map((r) => {
+        if (r.id !== replyId) return r;
+        const mine = on
+          ? Array.from(new Set([...r.reactions_by_me, kind]))
+          : r.reactions_by_me.filter((k: string) => k !== kind);
+        const counts = { ...r.reaction_count };
+        counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+        return { ...r, reactions_by_me: mine, reaction_count: counts };
+      });
+      qc.setQueryData(["thread", id], { ...prev, replies });
+    },
+    onError: () => invalidateThread(),
+  });
+
+  function toggleReplyReaction(replyId: string, kind: ReactionKind) {
+    const prev = qc.getQueryData<FeedThread>(["thread", id]);
+    const reply = prev?.replies.find((r) => r.id === replyId);
+    const on = !reply?.reactions_by_me.includes(kind);
+    return replyReactMut.mutate({ replyId, kind, on });
+  }
+
   const delMut = useMutation({
-    mutationFn: (args: { id: string; kind: "post" | "comment"; asAdmin?: boolean }) =>
-      (args.asAdmin ? adminDel : del)({ data: { id: args.id, kind: args.kind } }),
-    onSuccess: (_r, args) => {
-      toast.success(args.kind === "post" ? "Thread deleted." : "Comment deleted.");
-      if (args.kind === "post") {
-        qc.invalidateQueries({ queryKey: ["discussion-posts"] });
-        navigate({ to: "/community" });
-      } else {
-        qc.invalidateQueries({ queryKey: ["discussion-thread", id] });
-      }
+    mutationFn: (args: { replyId: string; asAdmin: boolean }) =>
+      (args.asAdmin ? adminDel : del)({ data: { id: args.replyId, kind: "reply" } }),
+    onSuccess: () => {
+      toast.success("Reply deleted.");
+      invalidateThread();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const deletePostMut = useMutation({
+    mutationFn: (args: { asAdmin: boolean }) =>
+      (args.asAdmin ? adminDel : del)({ data: { id, kind: "post" } }),
+    onSuccess: () => {
+      toast.success("Post deleted.");
+      qc.invalidateQueries({ queryKey: ["feed"] });
+      navigate({ to: "/community" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -122,18 +231,17 @@ function ThreadView() {
     mutationFn: (locked: boolean) => moderate({ data: { id, locked } }),
     onSuccess: (_r, locked) => {
       toast.success(locked ? "Thread locked." : "Thread unlocked.");
-      qc.invalidateQueries({ queryKey: ["discussion-thread", id] });
+      invalidateThread();
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const { post, comments } = thread!;
+  const { post, replies } = thread!;
   const ownsPost = me === post.user_id;
-  const canRemovePost = ownsPost || isAdmin;
 
   return (
     <SiteLayout>
-      <article className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+      <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
         <Link
           to="/community"
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -141,72 +249,59 @@ function ThreadView() {
           <ArrowLeft className="h-4 w-4" /> Community
         </Link>
 
-        <header className="mt-6 border-b border-border pb-6">
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase tracking-wider text-muted-foreground">
-            {post.category}
-          </span>
-          <h1 className="mt-3 font-display text-3xl font-semibold">{post.title}</h1>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {post.author?.display_name ?? "Someone"} · {timeAgo(post.created_at)}
-          </p>
-          <div className="prose prose-sm mt-6 max-w-none whitespace-pre-wrap text-foreground">
-            {post.body}
+        <div className="mt-4">
+          <PostCard
+            post={post}
+            viewerId={me}
+            isAdmin={isAdmin}
+            onToggleReaction={togglePostReaction}
+            onDelete={(postId, asAdmin) => deletePostMut.mutate({ asAdmin })}
+            canReact={!!me}
+            hideReplyLink
+          />
+        </div>
+
+        {(isAdmin || ownsPost) && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                disabled={lockMut.isPending}
+                onClick={() => lockMut.mutate(!post.locked)}
+              >
+                {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                {post.locked ? "Unlock thread" : "Lock thread"}
+              </Button>
+            )}
           </div>
-          {(canRemovePost || isAdmin) && (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                  disabled={lockMut.isPending}
-                  onClick={() => lockMut.mutate(!post.locked)}
-                >
-                  {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                  {post.locked ? "Unlock thread" : "Lock thread"}
-                </Button>
-              )}
-              {canRemovePost && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                  onClick={() => delMut.mutate({ id: post.id, kind: "post", asAdmin: !ownsPost })}
-                >
-                  <Trash2 className="h-4 w-4" /> Delete thread
-                </Button>
-              )}
-            </div>
-          )}
-        </header>
+        )}
 
         <section className="mt-8">
           <h2 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
-            {comments.length} {comments.length === 1 ? "reply" : "replies"}
+            {replies.length} {replies.length === 1 ? "reply" : "replies"}
           </h2>
-          <ul className="mt-4 space-y-4">
-            {comments.map((c) => (
-              <li key={c.id} className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs text-muted-foreground">
-                    {c.author?.display_name ?? "Someone"} · {timeAgo(c.created_at)}
-                  </p>
-                  {(me === c.user_id || isAdmin) && (
-                    <button
-                      onClick={() =>
-                        delMut.mutate({ id: c.id, kind: "comment", asAdmin: me !== c.user_id })
-                      }
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                      aria-label="Delete comment"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </div>
-                <p className="mt-2 whitespace-pre-wrap text-sm">{c.body}</p>
-              </li>
-            ))}
-          </ul>
+
+          {replies.length > 0 ? (
+            <div className="mt-4">
+              <ReplyThread
+                replies={replies}
+                postId={id}
+                viewerId={me}
+                isAdmin={isAdmin}
+                locked={post.locked}
+                onToggleReplyReaction={toggleReplyReaction}
+                onReply={(args) => replyMut.mutateAsync(args)}
+                onDeleteReply={(replyId, asAdmin) => delMut.mutate({ replyId, asAdmin })}
+                pendingReply={replyMut.isPending}
+              />
+            </div>
+          ) : (
+            <p className="mt-4 text-sm text-muted-foreground">
+              No replies yet — start the conversation.
+            </p>
+          )}
         </section>
 
         <section className="mt-8 rounded-2xl border border-border bg-card p-5">
@@ -228,7 +323,7 @@ function ThreadView() {
             <>
               <Textarea
                 rows={4}
-                maxLength={2000}
+                maxLength={REPLY_BODY_MAX}
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Add to the discussion…"
@@ -236,7 +331,7 @@ function ThreadView() {
               />
               <div className="mt-3 flex justify-end">
                 <Button
-                  onClick={() => replyMut.mutate()}
+                  onClick={() => replyMut.mutate({ body: reply })}
                   disabled={replyMut.isPending || reply.trim().length === 0}
                 >
                   {replyMut.isPending ? "Posting…" : "Post reply"}

@@ -1,43 +1,32 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FeedComposer } from "@/components/feed/feed-composer";
+import { ArrowLeft, Hash } from "lucide-react";
+import { SiteLayout } from "@/components/site-layout";
 import { FeedList } from "@/components/feed/feed-list";
 import { TrendingSidebar } from "@/components/feed/trending-sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { reactPost, unreactPost, deleteItem, adminDeleteItem } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
-import { FEED_TABS, type FeedPage, type FeedTab, type ReactionKind } from "@/lib/community";
-import { toast } from "sonner";
+import { type FeedPage, type ReactionKind } from "@/lib/community";
 import { buildSeoMeta } from "@/lib/seo";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/community/")({
-  head: () => ({
+export const Route = createFileRoute("/t/$tag")({
+  head: ({ params }) => ({
     meta: buildSeoMeta({
-      title: "Community — Melanated In Tech",
-      description: "Discussions, questions, and field notes from people building AI agents.",
-      url: "/community",
+      title: `#${params.tag} — Community`,
+      description: `Posts tagged #${params.tag} on Melanated In Tech.`,
+      url: `/t/${params.tag}`,
     }),
   }),
-  errorComponent: ({ error }) => (
-    <SiteLayout>
-      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
-    </SiteLayout>
-  ),
-  notFoundComponent: () => (
-    <SiteLayout>
-      <div className="p-12">Not found.</div>
-    </SiteLayout>
-  ),
-  component: Community,
+  component: TagPage,
 });
 
-function Community() {
-  const [me, setMe] = useState<string | null>(undefined);
-  const [tab, setTab] = useState<FeedTab>("for-you");
+function TagPage() {
+  const { tag } = Route.useParams();
+  const [me, setMe] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -45,30 +34,21 @@ function Community() {
 
   return (
     <SiteLayout>
-      <PageHeader
-        eyebrow="Community"
-        title="The feed for agent builders."
-        description="Share what you're shipping, ask questions, and learn from the field — in real time."
-      />
-
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-          <div className="space-y-4">
-            <FeedComposer viewerId={me ?? null} />
+        <Link
+          to="/community"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" /> Community
+        </Link>
 
-            <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)}>
-              <TabsList>
-                {FEED_TABS.map((t) => (
-                  <TabsTrigger key={t} value={t} disabled={t === "following" && !me}>
-                    {t === "following" ? "Following" : "For you"}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+        <h1 className="mt-4 flex items-center gap-2 font-display text-2xl font-semibold">
+          <Hash className="h-5 w-5 text-primary" />
+          {tag}
+        </h1>
 
-            <FeedController viewerId={me ?? null} tab={tab} />
-          </div>
-
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
+          <TagFeed tag={tag} viewerId={me} />
           <aside className="hidden lg:block">
             <TrendingSidebar />
           </aside>
@@ -78,7 +58,7 @@ function Community() {
   );
 }
 
-function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedTab }) {
+function TagFeed({ tag, viewerId }: { tag: string; viewerId: string | null }) {
   const qc = useQueryClient();
   const react = useServerFn(reactPost);
   const unreact = useServerFn(unreactPost);
@@ -98,8 +78,10 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
     mutationFn: (args: { postId: string; kind: ReactionKind; on: boolean }) =>
       (args.on ? react : unreact)({ data: { post_id: args.postId, kind: args.kind } }),
     onMutate: async ({ postId, kind, on }) => {
-      await qc.cancelQueries({ queryKey: ["feed"] });
-      const cache = qc.getQueriesData<{ pages: FeedPage[] }>({ queryKey: ["feed"] });
+      await qc.cancelQueries({ queryKey: ["feed", "for-you", tag] });
+      const cache = qc.getQueriesData<{ pages: FeedPage[] }>({
+        queryKey: ["feed", "for-you", tag],
+      });
       for (const [key, value] of cache) {
         if (!value) continue;
         const next = {
@@ -112,8 +94,7 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
                 ? Array.from(new Set([...post.reactions_by_me, kind]))
                 : post.reactions_by_me.filter((k: string) => k !== kind);
               const counts = { ...post.reaction_count };
-              if (on) counts[kind] = (counts[kind] ?? 0) + 1;
-              else counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+              counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
               return { ...post, reactions_by_me: mine, reaction_count: counts };
             }),
           })),
@@ -121,12 +102,13 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
         qc.setQueryData(key, next);
       }
     },
-    onError: () => qc.invalidateQueries({ queryKey: ["feed"] }),
+    onError: () => qc.invalidateQueries({ queryKey: ["feed", "for-you", tag] }),
   });
 
   function toggleReaction(postId: string, kind: ReactionKind) {
-    // Inspect cache to decide whether this is an add or remove.
-    const cache = qc.getQueriesData<{ pages: FeedPage[] }>({ queryKey: ["feed"] });
+    const cache = qc.getQueriesData<{ pages: FeedPage[] }>({
+      queryKey: ["feed", "for-you", tag],
+    });
     let on = true;
     for (const [, value] of cache) {
       if (!value) continue;
@@ -146,7 +128,7 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
       (args.asAdmin ? adminDel : del)({ data: { id: args.postId, kind: "post" } }),
     onSuccess: () => {
       toast.success("Post deleted.");
-      qc.invalidateQueries({ queryKey: ["feed"] });
+      qc.invalidateQueries({ queryKey: ["feed", "for-you", tag] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -155,7 +137,7 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
     <FeedList
       viewerId={viewerId}
       isAdmin={isAdmin}
-      tab={tab}
+      tag={tag}
       onToggleReaction={toggleReaction}
       onDelete={(postId, asAdmin) => delMut.mutate({ postId, asAdmin })}
     />

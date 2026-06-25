@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X, Sparkles, Search } from "lucide-react";
+import { Menu, X, Search, UserRound } from "lucide-react";
 import { NAV } from "@/lib/site";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,22 @@ export function SiteHeader() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link
-          to="/"
-          className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight"
-        >
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-foreground text-background">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span>
-            Melanated <span className="text-muted-foreground">In Tech</span>
+        <Link to="/" className="flex min-w-0 items-center" aria-label="Melanated In Tech home">
+          <img
+            src="/brand/mit-monogram.svg"
+            alt=""
+            className="h-9 w-9 rounded-lg"
+            aria-hidden="true"
+          />
+          <span className="ml-2 hidden leading-tight sm:block">
+            <span className="block font-display text-sm font-semibold text-foreground">
+              Melanated
+            </span>
+            <span className="block font-display text-xs font-medium text-muted-foreground">
+              In Tech
+            </span>
           </span>
         </Link>
 
@@ -35,8 +40,8 @@ export function SiteHeader() {
             <Link
               key={n.to}
               to={n.to}
-              className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-              activeProps={{ className: "text-foreground" }}
+              className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              activeProps={{ className: "bg-muted text-foreground" }}
             >
               {n.label}
             </Link>
@@ -46,14 +51,14 @@ export function SiteHeader() {
         <div className="hidden items-center gap-2 md:flex">
           <Link
             to="/search"
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             aria-label="Search"
           >
             <Search className="h-4 w-4" />
           </Link>
           <Link
             to="/contact"
-            className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground"
+            className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             Contact
           </Link>
@@ -70,6 +75,7 @@ export function SiteHeader() {
 
         <button
           className="rounded-md p-2 md:hidden"
+          aria-expanded={open}
           aria-label="Toggle menu"
           onClick={() => setOpen((o) => !o)}
         >
@@ -78,23 +84,26 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-background md:hidden">
-          <div className="space-y-1 px-4 py-3">
+        <div className="border-t border-border bg-background shadow-lg md:hidden">
+          <div className="space-y-1 px-4 py-4">
             {NAV.map((n) => (
               <Link
                 key={n.to}
                 to={n.to}
                 onClick={() => setOpen(false)}
                 className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+                activeProps={{ className: "bg-muted text-foreground" }}
               >
                 {n.label}
               </Link>
             ))}
+            <div className="my-3 h-px bg-border" />
             <Link
               to="/search"
               onClick={() => setOpen(false)}
-              className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
             >
+              <Search className="h-4 w-4" />
               Search
             </Link>
             <Link
@@ -107,8 +116,9 @@ export function SiteHeader() {
             <Link
               to={signedIn ? "/account" : "/auth"}
               onClick={() => setOpen(false)}
-              className="mt-2 block rounded-md bg-primary px-3 py-2 text-center text-sm font-medium text-primary-foreground"
+              className="mt-3 flex items-center justify-center gap-2 rounded-md bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground"
             >
+              <UserRound className="h-4 w-4" />
               {signedIn ? "Account" : "Sign in"}
             </Link>
           </div>

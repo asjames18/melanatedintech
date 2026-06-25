@@ -4,10 +4,25 @@ import { WaitlistForm } from "./waitlist-form";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="border-t border-border bg-[linear-gradient(180deg,var(--color-background),var(--color-muted))]">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-3 lg:px-8">
         <div className="lg:col-span-1">
-          <p className="font-display text-lg font-semibold">{SITE.name}</p>
+          <Link to="/" aria-label={`${SITE.name} home`} className="inline-flex">
+            <img
+              src="/brand/mit-monogram.svg"
+              alt=""
+              className="h-10 w-10 rounded-lg"
+              aria-hidden="true"
+            />
+            <span className="ml-2 leading-tight">
+              <span className="block font-display text-sm font-semibold text-foreground">
+                Melanated
+              </span>
+              <span className="block font-display text-xs font-medium text-muted-foreground">
+                In Tech
+              </span>
+            </span>
+          </Link>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             The home for AI agents — knowledge, marketplace, products, and services for the people
             putting agents to work.
@@ -43,6 +58,16 @@ export function SiteFooter() {
               <li>
                 <Link to="/auth" className="hover:text-foreground">
                   Sign in
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-foreground">
+                  Privacy
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-foreground">
+                  Terms
                 </Link>
               </li>
             </ul>

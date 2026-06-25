@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listProducts } from "@/lib/public.functions";
+import { buildSeoMeta } from "@/lib/seo";
 
 const PAGE_SIZE = 9;
 
@@ -22,19 +23,12 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/products/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
-    meta: [
-      { title: "Agent Digital Products — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
-      },
-      { property: "og:title", content: "AI Agent Digital Products" },
-      {
-        property: "og:description",
-        content: "Ship agents faster with battle-tested kits and blueprints.",
-      },
-    ],
+    ...buildSeoMeta({
+      title: "Agent Digital Products — Melanated In Tech",
+      description:
+        "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
+      url: "/products",
+    }),
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,

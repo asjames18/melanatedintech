@@ -12,29 +12,41 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PathsRouteImport } from './routes/paths'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as FitFinderRouteImport } from './routes/fit-finder'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as PathsIndexRouteImport } from './routes/paths.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
+import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
 import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
 import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
 import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
+import { Route as AuthenticatedSellerRouteImport } from './routes/_authenticated/seller'
+import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated/prompts'
+import { Route as AuthenticatedMcpRouteImport } from './routes/_authenticated/mcp'
 import { Route as AuthenticatedInterestsRouteImport } from './routes/_authenticated/interests'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
@@ -45,6 +57,7 @@ import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -61,14 +74,29 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProofRoute = ProofRouteImport.update({
+  id: '/proof',
+  path: '/proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PathsRoute = PathsRouteImport.update({
+  id: '/paths',
+  path: '/paths',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KnowledgeRoute = KnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FitFinderRoute = FitFinderRouteImport.update({
+  id: '/fit-finder',
+  path: '/fit-finder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -79,6 +107,11 @@ const ContactRoute = ContactRouteImport.update({
 const CommunityRoute = CommunityRouteImport.update({
   id: '/community',
   path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesRoute = ChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -110,6 +143,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProductsRoute,
 } as any)
+const PathsIndexRoute = PathsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PathsRoute,
+} as any)
 const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -119,6 +157,11 @@ const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CommunityRoute,
+} as any)
+const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChallengesRoute,
 } as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/',
@@ -135,10 +178,20 @@ const TTagRoute = TTagRouteImport.update({
   path: '/t/$tag',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesSlugRoute = ServicesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ServicesRoute,
+} as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => ProductsRoute,
+} as any)
+const PathsSlugRoute = PathsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PathsRoute,
 } as any)
 const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
   id: '/$slug',
@@ -154,6 +207,11 @@ const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesSlugRoute = ChallengesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ChallengesRoute,
 } as any)
 const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
   id: '/authors/$slug',
@@ -177,6 +235,21 @@ const AuthenticatedSubmissionsRoute =
     path: '/submissions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSellerRoute = AuthenticatedSellerRouteImport.update({
+  id: '/seller',
+  path: '/seller',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPromptsRoute = AuthenticatedPromptsRouteImport.update({
+  id: '/prompts',
+  path: '/prompts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMcpRoute = AuthenticatedMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInterestsRoute = AuthenticatedInterestsRouteImport.update({
   id: '/interests',
   path: '/interests',
@@ -233,41 +306,59 @@ const ApiPublicPaymentsWebhookRoute =
     path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAgentsChatRoute = ApiPublicAgentsChatRouteImport.update({
+  id: '/api/public/agents/chat',
+  path: '/api/public/agents/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
+  '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
+  '/fit-finder': typeof FitFinderRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/paths': typeof PathsRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRoute
+  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/interests': typeof AuthenticatedInterestsRoute
+  '/mcp': typeof AuthenticatedMcpRoute
+  '/prompts': typeof AuthenticatedPromptsRoute
+  '/seller': typeof AuthenticatedSellerRoute
   '/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/authors/$slug': typeof AuthorsSlugRoute
+  '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
+  '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
+  '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -276,29 +367,40 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/fit-finder': typeof FitFinderRoute
+  '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRoute
+  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/account': typeof AuthenticatedAccountRoute
   '/interests': typeof AuthenticatedInterestsRoute
+  '/mcp': typeof AuthenticatedMcpRoute
+  '/prompts': typeof AuthenticatedPromptsRoute
+  '/seller': typeof AuthenticatedSellerRoute
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/authors/$slug': typeof AuthorsSlugRoute
+  '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
+  '/challenges': typeof ChallengesIndexRoute
   '/community': typeof CommunityIndexRoute
   '/knowledge': typeof KnowledgeIndexRoute
+  '/paths': typeof PathsIndexRoute
   '/products': typeof ProductsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
+  '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -309,35 +411,48 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
   '/auth': typeof AuthRoute
+  '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
+  '/fit-finder': typeof FitFinderRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/paths': typeof PathsRouteWithChildren
   '/products': typeof ProductsRouteWithChildren
+  '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRoute
+  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/interests': typeof AuthenticatedInterestsRoute
+  '/_authenticated/mcp': typeof AuthenticatedMcpRoute
+  '/_authenticated/prompts': typeof AuthenticatedPromptsRoute
+  '/_authenticated/seller': typeof AuthenticatedSellerRoute
   '/_authenticated/submissions': typeof AuthenticatedSubmissionsRouteWithChildren
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/authors/$slug': typeof AuthorsSlugRoute
+  '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
+  '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
+  '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
+  '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
+  '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
@@ -348,35 +463,48 @@ export interface FileRouteTypes {
     | '/about'
     | '/agents'
     | '/auth'
+    | '/challenges'
     | '/community'
     | '/contact'
+    | '/fit-finder'
     | '/knowledge'
+    | '/paths'
     | '/products'
+    | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/account'
     | '/admin'
     | '/interests'
+    | '/mcp'
+    | '/prompts'
+    | '/seller'
     | '/submissions'
     | '/submit-agent'
     | '/agents/$slug'
     | '/authors/$slug'
+    | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
+    | '/paths/$slug'
     | '/products/$slug'
+    | '/services/$slug'
     | '/t/$tag'
     | '/u/$userId'
     | '/agents/'
+    | '/challenges/'
     | '/community/'
     | '/knowledge/'
+    | '/paths/'
     | '/products/'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
     | '/admin/'
     | '/submissions/'
+    | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
@@ -385,29 +513,40 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/fit-finder'
+    | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/account'
     | '/interests'
+    | '/mcp'
+    | '/prompts'
+    | '/seller'
     | '/submit-agent'
     | '/agents/$slug'
     | '/authors/$slug'
+    | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
+    | '/paths/$slug'
     | '/products/$slug'
+    | '/services/$slug'
     | '/t/$tag'
     | '/u/$userId'
     | '/agents'
+    | '/challenges'
     | '/community'
     | '/knowledge'
+    | '/paths'
     | '/products'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
     | '/admin'
     | '/submissions'
+    | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
   id:
@@ -417,35 +556,48 @@ export interface FileRouteTypes {
     | '/about'
     | '/agents'
     | '/auth'
+    | '/challenges'
     | '/community'
     | '/contact'
+    | '/fit-finder'
     | '/knowledge'
+    | '/paths'
     | '/products'
+    | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/interests'
+    | '/_authenticated/mcp'
+    | '/_authenticated/prompts'
+    | '/_authenticated/seller'
     | '/_authenticated/submissions'
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
     | '/authors/$slug'
+    | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
     | '/knowledge/$slug'
+    | '/paths/$slug'
     | '/products/$slug'
+    | '/services/$slug'
     | '/t/$tag'
     | '/u/$userId'
     | '/agents/'
+    | '/challenges/'
     | '/community/'
     | '/knowledge/'
+    | '/paths/'
     | '/products/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/submissions/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
+    | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
@@ -456,17 +608,22 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ChallengesRoute: typeof ChallengesRouteWithChildren
   CommunityRoute: typeof CommunityRouteWithChildren
   ContactRoute: typeof ContactRoute
+  FitFinderRoute: typeof FitFinderRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
+  PathsRoute: typeof PathsRouteWithChildren
   ProductsRoute: typeof ProductsRouteWithChildren
+  ProofRoute: typeof ProofRoute
   SearchRoute: typeof SearchRoute
-  ServicesRoute: typeof ServicesRoute
+  ServicesRoute: typeof ServicesRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   TTagRoute: typeof TTagRoute
   UUserIdRoute: typeof UUserIdRoute
+  ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
@@ -494,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/proof': {
+      id: '/proof'
+      path: '/proof'
+      fullPath: '/proof'
+      preLoaderRoute: typeof ProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -501,11 +665,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/paths': {
+      id: '/paths'
+      path: '/paths'
+      fullPath: '/paths'
+      preLoaderRoute: typeof PathsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/knowledge': {
       id: '/knowledge'
       path: '/knowledge'
       fullPath: '/knowledge'
       preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fit-finder': {
+      id: '/fit-finder'
+      path: '/fit-finder'
+      fullPath: '/fit-finder'
+      preLoaderRoute: typeof FitFinderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -520,6 +698,13 @@ declare module '@tanstack/react-router' {
       path: '/community'
       fullPath: '/community'
       preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges': {
+      id: '/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof ChallengesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -564,6 +749,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/paths/': {
+      id: '/paths/'
+      path: '/'
+      fullPath: '/paths/'
+      preLoaderRoute: typeof PathsIndexRouteImport
+      parentRoute: typeof PathsRoute
+    }
     '/knowledge/': {
       id: '/knowledge/'
       path: '/'
@@ -577,6 +769,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/community/'
       preLoaderRoute: typeof CommunityIndexRouteImport
       parentRoute: typeof CommunityRoute
+    }
+    '/challenges/': {
+      id: '/challenges/'
+      path: '/'
+      fullPath: '/challenges/'
+      preLoaderRoute: typeof ChallengesIndexRouteImport
+      parentRoute: typeof ChallengesRoute
     }
     '/agents/': {
       id: '/agents/'
@@ -599,12 +798,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TTagRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services/$slug': {
+      id: '/services/$slug'
+      path: '/$slug'
+      fullPath: '/services/$slug'
+      preLoaderRoute: typeof ServicesSlugRouteImport
+      parentRoute: typeof ServicesRoute
+    }
     '/products/$slug': {
       id: '/products/$slug'
       path: '/$slug'
       fullPath: '/products/$slug'
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof ProductsRoute
+    }
+    '/paths/$slug': {
+      id: '/paths/$slug'
+      path: '/$slug'
+      fullPath: '/paths/$slug'
+      preLoaderRoute: typeof PathsSlugRouteImport
+      parentRoute: typeof PathsRoute
     }
     '/knowledge/$slug': {
       id: '/knowledge/$slug'
@@ -626,6 +839,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/checkout/return'
       preLoaderRoute: typeof CheckoutReturnRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/challenges/$slug': {
+      id: '/challenges/$slug'
+      path: '/$slug'
+      fullPath: '/challenges/$slug'
+      preLoaderRoute: typeof ChallengesSlugRouteImport
+      parentRoute: typeof ChallengesRoute
     }
     '/authors/$slug': {
       id: '/authors/$slug'
@@ -653,6 +873,27 @@ declare module '@tanstack/react-router' {
       path: '/submissions'
       fullPath: '/submissions'
       preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/seller': {
+      id: '/_authenticated/seller'
+      path: '/seller'
+      fullPath: '/seller'
+      preLoaderRoute: typeof AuthenticatedSellerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prompts': {
+      id: '/_authenticated/prompts'
+      path: '/prompts'
+      fullPath: '/prompts'
+      preLoaderRoute: typeof AuthenticatedPromptsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mcp': {
+      id: '/_authenticated/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof AuthenticatedMcpRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/interests': {
@@ -725,6 +966,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/agents/chat': {
+      id: '/api/public/agents/chat'
+      path: '/api/public/agents/chat'
+      fullPath: '/api/public/agents/chat'
+      preLoaderRoute: typeof ApiPublicAgentsChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -763,6 +1011,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedInterestsRoute: typeof AuthenticatedInterestsRoute
+  AuthenticatedMcpRoute: typeof AuthenticatedMcpRoute
+  AuthenticatedPromptsRoute: typeof AuthenticatedPromptsRoute
+  AuthenticatedSellerRoute: typeof AuthenticatedSellerRoute
   AuthenticatedSubmissionsRoute: typeof AuthenticatedSubmissionsRouteWithChildren
   AuthenticatedSubmitAgentRoute: typeof AuthenticatedSubmitAgentRoute
 }
@@ -771,6 +1022,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedInterestsRoute: AuthenticatedInterestsRoute,
+  AuthenticatedMcpRoute: AuthenticatedMcpRoute,
+  AuthenticatedPromptsRoute: AuthenticatedPromptsRoute,
+  AuthenticatedSellerRoute: AuthenticatedSellerRoute,
   AuthenticatedSubmissionsRoute: AuthenticatedSubmissionsRouteWithChildren,
   AuthenticatedSubmitAgentRoute: AuthenticatedSubmitAgentRoute,
 }
@@ -790,6 +1044,20 @@ const AgentsRouteChildren: AgentsRouteChildren = {
 
 const AgentsRouteWithChildren =
   AgentsRoute._addFileChildren(AgentsRouteChildren)
+
+interface ChallengesRouteChildren {
+  ChallengesSlugRoute: typeof ChallengesSlugRoute
+  ChallengesIndexRoute: typeof ChallengesIndexRoute
+}
+
+const ChallengesRouteChildren: ChallengesRouteChildren = {
+  ChallengesSlugRoute: ChallengesSlugRoute,
+  ChallengesIndexRoute: ChallengesIndexRoute,
+}
+
+const ChallengesRouteWithChildren = ChallengesRoute._addFileChildren(
+  ChallengesRouteChildren,
+)
 
 interface CommunityRouteChildren {
   CommunityIdRoute: typeof CommunityIdRoute
@@ -819,6 +1087,18 @@ const KnowledgeRouteWithChildren = KnowledgeRoute._addFileChildren(
   KnowledgeRouteChildren,
 )
 
+interface PathsRouteChildren {
+  PathsSlugRoute: typeof PathsSlugRoute
+  PathsIndexRoute: typeof PathsIndexRoute
+}
+
+const PathsRouteChildren: PathsRouteChildren = {
+  PathsSlugRoute: PathsSlugRoute,
+  PathsIndexRoute: PathsIndexRoute,
+}
+
+const PathsRouteWithChildren = PathsRoute._addFileChildren(PathsRouteChildren)
+
 interface ProductsRouteChildren {
   ProductsSlugRoute: typeof ProductsSlugRoute
   ProductsIndexRoute: typeof ProductsIndexRoute
@@ -833,23 +1113,40 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
   ProductsRouteChildren,
 )
 
+interface ServicesRouteChildren {
+  ServicesSlugRoute: typeof ServicesSlugRoute
+}
+
+const ServicesRouteChildren: ServicesRouteChildren = {
+  ServicesSlugRoute: ServicesSlugRoute,
+}
+
+const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
+  ServicesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRouteWithChildren,
   AuthRoute: AuthRoute,
+  ChallengesRoute: ChallengesRouteWithChildren,
   CommunityRoute: CommunityRouteWithChildren,
   ContactRoute: ContactRoute,
+  FitFinderRoute: FitFinderRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
+  PathsRoute: PathsRouteWithChildren,
   ProductsRoute: ProductsRouteWithChildren,
+  ProofRoute: ProofRoute,
   SearchRoute: SearchRoute,
-  ServicesRoute: ServicesRoute,
+  ServicesRoute: ServicesRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   TTagRoute: TTagRoute,
   UUserIdRoute: UUserIdRoute,
+  ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }

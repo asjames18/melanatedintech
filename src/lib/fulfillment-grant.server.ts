@@ -72,6 +72,25 @@ export async function grantFromSession(
   const priceId = entry.priceId;
 
   const admin = await getAdmin();
+
+  // Look up the seller who owns this listing (if any).
+  let sellerId: string | null = null;
+  if (kind === "agent") {
+    const { data: agent } = await admin
+      .from("agents")
+      .select("seller_id")
+      .eq("slug", slug)
+      .maybeSingle();
+    sellerId = agent?.seller_id ?? null;
+  } else if (kind === "product") {
+    const { data: product } = await admin
+      .from("products")
+      .select("seller_id")
+      .eq("slug", slug)
+      .maybeSingle();
+    sellerId = product?.seller_id ?? null;
+  }
+
   const { error } = await admin.from("user_entitlements").upsert(
     {
       user_id: userId,
@@ -81,7 +100,8 @@ export async function grantFromSession(
       stripe_session_id: sessionId,
       environment: env,
       granted_at: new Date().toISOString(),
-    },
+      seller_id: sellerId,
+    } as never,
     { onConflict: "user_id,kind,slug,environment" },
   );
   if (error) {

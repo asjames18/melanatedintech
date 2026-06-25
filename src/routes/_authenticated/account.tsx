@@ -8,12 +8,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyProfile, listMySavedAgents, listMySavedArticles } from "@/lib/account.functions";
 import { listArticles, listAgents } from "@/lib/public.functions";
+import { getMyFitFinderResult, listMyLearningProgress } from "@/lib/retention.functions";
 import { ProfileEditor } from "@/components/profile-editor";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { useInterests } from "@/hooks/use-interests";
 import { TierBadge } from "@/components/cards";
 import { useEntitlements } from "@/hooks/use-entitlement";
-import { Bookmark, BookOpen, Clock, LogOut, ShieldCheck, Sparkles, User } from "lucide-react";
+import {
+  Bookmark,
+  BookOpen,
+  Clock,
+  GraduationCap,
+  LogOut,
+  ShieldCheck,
+  Server,
+  Sparkles,
+  Store,
+  User,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/account")({
@@ -27,6 +39,8 @@ function Account() {
   const getProfile = useServerFn(getMyProfile);
   const getSavedAgents = useServerFn(listMySavedAgents);
   const getSavedArticles = useServerFn(listMySavedArticles);
+  const getProgress = useServerFn(listMyLearningProgress);
+  const getFitFinder = useServerFn(getMyFitFinderResult);
 
   const profile = useQuery({ queryKey: ["me"], queryFn: () => getProfile() });
   const savedAgents = useQuery({ queryKey: ["saved-agents"], queryFn: () => getSavedAgents() });
@@ -34,6 +48,8 @@ function Account() {
     queryKey: ["saved-articles"],
     queryFn: () => getSavedArticles(),
   });
+  const pathProgress = useQuery({ queryKey: ["learning-progress"], queryFn: () => getProgress() });
+  const fitFinder = useQuery({ queryKey: ["fit-finder-profile"], queryFn: () => getFitFinder() });
   const entitlements = useEntitlements();
   const avatarUrl = useAvatarUrl(profile.data?.avatar_url);
 
@@ -74,6 +90,21 @@ function Account() {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" asChild>
+              <Link to="/seller">
+                <Store className="h-4 w-4" /> Seller dashboard
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/prompts">
+                <BookOpen className="h-4 w-4" /> Prompts
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/mcp">
+                <Server className="h-4 w-4" /> MCP servers
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link to="/submit-agent">Submit an agent</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
@@ -108,6 +139,10 @@ function Account() {
             <TabsTrigger value="unlocked">
               <Sparkles className="h-4 w-4" /> Unlocked
               <Count n={entitlements.data?.length ?? 0} />
+            </TabsTrigger>
+            <TabsTrigger value="learning">
+              <GraduationCap className="h-4 w-4" /> Learning
+              <Count n={pathProgress.data?.length ?? 0} />
             </TabsTrigger>
             <TabsTrigger value="history">
               <Clock className="h-4 w-4" /> Reading history
@@ -246,6 +281,10 @@ function Account() {
             <ReadingHistory />
           </TabsContent>
 
+          <TabsContent value="learning" className="mt-6">
+            <LearningProgress rows={pathProgress.data ?? []} fitFinder={fitFinder.data} />
+          </TabsContent>
+
           <TabsContent value="profile" className="mt-6">
             {profile.isLoading || !profile.data ? (
               <Loading />
@@ -275,6 +314,99 @@ function Empty({ title, body, cta }: { title: string; body: string; cta?: React.
       <p className="font-display text-lg font-semibold">{title}</p>
       <p className="mt-1 text-sm text-muted-foreground">{body}</p>
       {cta}
+    </div>
+  );
+}
+
+function LearningProgress({
+  rows,
+  fitFinder,
+}: {
+  rows: Array<{
+    id: string;
+    completed_at: string | null;
+    completed_item_ids: string[];
+    learning_paths:
+      | { slug: string; title: string; excerpt: string }
+      | Array<{ slug: string; title: string; excerpt: string }>
+      | null;
+  }>;
+  fitFinder: unknown;
+}) {
+  const progressRows = rows
+    .map((row) => ({
+      row,
+      path: Array.isArray(row.learning_paths) ? row.learning_paths[0] : row.learning_paths,
+    }))
+    .filter((item) => item.path);
+
+  if (progressRows.length === 0 && !fitFinder) {
+    return (
+      <Empty
+        title="No learning progress yet"
+        body="Start a learning path or run the fit finder to create your builder loop."
+        cta={
+          <div className="mt-4 flex justify-center gap-2">
+            <Button asChild>
+              <Link to="/paths">View paths</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/fit-finder">Open fit finder</Link>
+            </Button>
+          </div>
+        }
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {progressRows.length > 0 && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {progressRows.map(({ row, path }) => (
+            <Link
+              key={row.id}
+              to="/paths/$slug"
+              params={{ slug: path!.slug }}
+              className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+            >
+              <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                {row.completed_at ? "Completed" : "In progress"}
+              </p>
+              <p className="mt-1 font-display text-lg font-semibold">{path!.title}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{path!.excerpt}</p>
+              <p className="mt-3 text-xs text-muted-foreground">
+                {row.completed_item_ids.length} steps completed
+              </p>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {fitFinder ? (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <p className="text-xs uppercase tracking-wider text-muted-foreground">Saved fit finder</p>
+          <p className="mt-1 font-display text-lg font-semibold">
+            Your latest recommendation set is saved.
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Reopen the finder any time to refresh your agent, article, and product recommendations.
+          </p>
+          <Button asChild className="mt-4" variant="outline">
+            <Link to="/fit-finder">Open fit finder</Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-border bg-card p-5">
+          <p className="font-display text-lg font-semibold">No fit finder result saved yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Answer five questions and save your recommendation set to your profile.
+          </p>
+          <Button asChild className="mt-4" variant="outline">
+            <Link to="/fit-finder">Open fit finder</Link>
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

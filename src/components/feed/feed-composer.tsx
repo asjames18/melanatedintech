@@ -149,7 +149,7 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
         </div>
       )}
 
-      <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
         <input
           ref={fileInput}
           type="file"
@@ -174,7 +174,7 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
         </Button>
 
         <Select value={category} onValueChange={(v) => setCategory(v as CommunityCategory)}>
-          <SelectTrigger className="h-8 w-[140px] border-0 bg-muted text-xs">
+          <SelectTrigger className="h-8 w-auto min-w-[120px] border-0 bg-muted text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

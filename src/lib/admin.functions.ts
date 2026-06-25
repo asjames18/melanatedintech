@@ -181,6 +181,10 @@ const agentSchema = refinePublish(
     capabilities: z.array(z.string().trim().min(1)).default([]),
     price_cents: z.number().int().nullable().optional(),
     featured: z.boolean().default(false),
+    model: z.string().trim().min(1).max(80).default("gpt-4o-mini"),
+    system_prompt: z.string().max(10000).nullable().optional(),
+    max_tokens: z.number().int().min(100).max(128000).default(1000),
+    temperature: z.number().min(0).max(2).default(0.7),
     // Owner-only deliverable (the paid pack). Empty string clears it.
     unlock_content: z.string().nullable().optional(),
     ...publishFields,
@@ -256,7 +260,7 @@ export const adminUpsertService = createServerFn({ method: "POST" })
 // ---------- Deletes ----------
 
 const deleteSchema = z.object({
-  table: z.enum(["agents", "articles", "services"]),
+  table: z.enum(["agents", "products", "articles", "services"]),
   id: z.string().uuid(),
 });
 

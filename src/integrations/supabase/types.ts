@@ -8,6 +8,54 @@ export type Database = {
   };
   public: {
     Tables: {
+      seller_profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          display_name: string;
+          slug: string;
+          bio: string | null;
+          avatar_url: string | null;
+          website_url: string | null;
+          stripe_account_id: string | null;
+          stripe_account_status: Database["public"]["Enums"]["stripe_account_status"];
+          payout_enabled: boolean;
+          commission_rate: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          display_name: string;
+          slug: string;
+          bio?: string | null;
+          avatar_url?: string | null;
+          website_url?: string | null;
+          stripe_account_id?: string | null;
+          stripe_account_status?: Database["public"]["Enums"]["stripe_account_status"];
+          payout_enabled?: boolean;
+          commission_rate?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          display_name?: string;
+          slug?: string;
+          bio?: string | null;
+          avatar_url?: string | null;
+          website_url?: string | null;
+          stripe_account_id?: string | null;
+          stripe_account_status?: Database["public"]["Enums"]["stripe_account_status"];
+          payout_enabled?: boolean;
+          commission_rate?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       agent_submissions: {
         Row: {
           capabilities: string[];
@@ -97,12 +145,17 @@ export type Database = {
           featured: boolean;
           id: string;
           image_url: string | null;
+          max_tokens: number;
+          model: string;
           name: string;
           price_cents: number | null;
           scheduled_at: string | null;
+          seller_id: string | null;
           slug: string;
           status: Database["public"]["Enums"]["publish_status"];
+          system_prompt: string | null;
           tagline: string;
+          temperature: number;
           tier: Database["public"]["Enums"]["agent_tier"];
           unlock_content: string | null;
           updated_at: string;
@@ -118,12 +171,17 @@ export type Database = {
           featured?: boolean;
           id?: string;
           image_url?: string | null;
+          max_tokens?: number;
+          model?: string;
           name: string;
           price_cents?: number | null;
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug: string;
           status?: Database["public"]["Enums"]["publish_status"];
+          system_prompt?: string | null;
           tagline: string;
+          temperature?: number;
           tier?: Database["public"]["Enums"]["agent_tier"];
           unlock_content?: string | null;
           updated_at?: string;
@@ -139,17 +197,30 @@ export type Database = {
           featured?: boolean;
           id?: string;
           image_url?: string | null;
+          max_tokens?: number;
+          model?: string;
           name?: string;
           price_cents?: number | null;
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug?: string;
           status?: Database["public"]["Enums"]["publish_status"];
+          system_prompt?: string | null;
           tagline?: string;
+          temperature?: number;
           tier?: Database["public"]["Enums"]["agent_tier"];
           unlock_content?: string | null;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "agents_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       analytics_events: {
         Row: {
@@ -193,6 +264,7 @@ export type Database = {
           published_at: string;
           read_minutes: number;
           scheduled_at: string | null;
+          seller_id: string | null;
           slug: string;
           status: Database["public"]["Enums"]["publish_status"];
           title: string;
@@ -209,6 +281,7 @@ export type Database = {
           published_at?: string;
           read_minutes?: number;
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug: string;
           status?: Database["public"]["Enums"]["publish_status"];
           title: string;
@@ -225,6 +298,7 @@ export type Database = {
           published_at?: string;
           read_minutes?: number;
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug?: string;
           status?: Database["public"]["Enums"]["publish_status"];
           title?: string;
@@ -236,6 +310,13 @@ export type Database = {
             columns: ["author_id"];
             isOneToOne: false;
             referencedRelation: "authors";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "articles_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_profiles";
             referencedColumns: ["id"];
           },
         ];
@@ -269,6 +350,48 @@ export type Database = {
           links?: Json;
           name?: string;
           slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      builder_challenges: {
+        Row: {
+          created_at: string;
+          ends_at: string;
+          excerpt: string;
+          id: string;
+          prompt: string;
+          published: boolean;
+          related_category: string;
+          slug: string;
+          starts_at: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          ends_at: string;
+          excerpt: string;
+          id?: string;
+          prompt: string;
+          published?: boolean;
+          related_category: string;
+          slug: string;
+          starts_at: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          ends_at?: string;
+          excerpt?: string;
+          id?: string;
+          prompt?: string;
+          published?: boolean;
+          related_category?: string;
+          slug?: string;
+          starts_at?: string;
+          title?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -391,12 +514,20 @@ export type Database = {
           category: string;
           created_at: string;
           description: string;
+          featured: boolean;
           id: string;
           image_url: string | null;
+          max_tokens: number;
+          model: string;
           name: string;
           price_cents: number | null;
+          scheduled_at: string | null;
+          seller_id: string | null;
           slug: string;
+          status: Database["public"]["Enums"]["publish_status"];
+          system_prompt: string | null;
           tagline: string;
+          temperature: number;
           tier: Database["public"]["Enums"]["agent_tier"];
           unlock_content: string | null;
           updated_at: string;
@@ -408,12 +539,20 @@ export type Database = {
           category: string;
           created_at?: string;
           description: string;
+          featured?: boolean;
           id?: string;
           image_url?: string | null;
+          max_tokens?: number;
+          model?: string;
           name: string;
           price_cents?: number | null;
+          scheduled_at?: string | null;
+          seller_id?: string | null;
           slug: string;
+          status?: Database["public"]["Enums"]["publish_status"];
+          system_prompt?: string | null;
           tagline: string;
+          temperature?: number;
           tier?: Database["public"]["Enums"]["agent_tier"];
           unlock_content?: string | null;
           updated_at?: string;
@@ -425,14 +564,149 @@ export type Database = {
           category?: string;
           created_at?: string;
           description?: string;
+          featured?: boolean;
           id?: string;
           image_url?: string | null;
+          max_tokens?: number;
+          model?: string;
           name?: string;
           price_cents?: number | null;
+          scheduled_at?: string | null;
+          seller_id?: string | null;
           slug?: string;
+          status?: Database["public"]["Enums"]["publish_status"];
+          system_prompt?: string | null;
           tagline?: string;
+          temperature?: number;
           tier?: Database["public"]["Enums"]["agent_tier"];
           unlock_content?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "products_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      prompts: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          content: string;
+          category: string;
+          tags: string[];
+          is_public: boolean;
+          usage_count: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title: string;
+          content: string;
+          category?: string;
+          tags?: string[];
+          is_public?: boolean;
+          usage_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          content?: string;
+          category?: string;
+          tags?: string[];
+          is_public?: boolean;
+          usage_count?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      learning_path_items: {
+        Row: {
+          created_at: string;
+          excerpt: string | null;
+          id: string;
+          item_slug: string;
+          item_type: string;
+          path_id: string;
+          sort_order: number;
+          title: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          excerpt?: string | null;
+          id?: string;
+          item_slug: string;
+          item_type: string;
+          path_id: string;
+          sort_order?: number;
+          title?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          excerpt?: string | null;
+          id?: string;
+          item_slug?: string;
+          item_type?: string;
+          path_id?: string;
+          sort_order?: number;
+          title?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "learning_path_items_path_id_fkey";
+            columns: ["path_id"];
+            isOneToOne: false;
+            referencedRelation: "learning_paths";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      learning_paths: {
+        Row: {
+          audience: string;
+          created_at: string;
+          difficulty: string;
+          excerpt: string;
+          id: string;
+          published: boolean;
+          slug: string;
+          sort_order: number;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          audience: string;
+          created_at?: string;
+          difficulty: string;
+          excerpt: string;
+          id?: string;
+          published?: boolean;
+          slug: string;
+          sort_order?: number;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          audience?: string;
+          created_at?: string;
+          difficulty?: string;
+          excerpt?: string;
+          id?: string;
+          published?: boolean;
+          slug?: string;
+          sort_order?: number;
+          title?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -443,6 +717,7 @@ export type Database = {
           bio: string | null;
           created_at: string;
           display_name: string | null;
+          fit_finder_result: Json | null;
           id: string;
           updated_at: string;
         };
@@ -451,6 +726,7 @@ export type Database = {
           bio?: string | null;
           created_at?: string;
           display_name?: string | null;
+          fit_finder_result?: Json | null;
           id: string;
           updated_at?: string;
         };
@@ -459,6 +735,7 @@ export type Database = {
           bio?: string | null;
           created_at?: string;
           display_name?: string | null;
+          fit_finder_result?: Json | null;
           id?: string;
           updated_at?: string;
         };
@@ -531,6 +808,7 @@ export type Database = {
           name: string;
           outcomes: string[];
           scheduled_at: string | null;
+          seller_id: string | null;
           slug: string;
           starting_price_cents: number | null;
           status: Database["public"]["Enums"]["publish_status"];
@@ -545,6 +823,7 @@ export type Database = {
           name: string;
           outcomes?: string[];
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug: string;
           starting_price_cents?: number | null;
           status?: Database["public"]["Enums"]["publish_status"];
@@ -559,49 +838,75 @@ export type Database = {
           name?: string;
           outcomes?: string[];
           scheduled_at?: string | null;
+          seller_id?: string | null;
           slug?: string;
           starting_price_cents?: number | null;
           status?: Database["public"]["Enums"]["publish_status"];
           tagline?: string;
           updated_at?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "services_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_entitlements: {
         Row: {
           created_at: string;
+          commission_cents: number | null;
           environment: string;
           granted_at: string;
           id: string;
           kind: string;
           price_id: string | null;
+          seller_id: string | null;
+          seller_paid: boolean;
           slug: string;
           stripe_session_id: string | null;
           user_id: string;
         };
         Insert: {
           created_at?: string;
+          commission_cents?: number | null;
           environment?: string;
           granted_at?: string;
           id?: string;
           kind: string;
           price_id?: string | null;
+          seller_id?: string | null;
+          seller_paid?: boolean;
           slug: string;
           stripe_session_id?: string | null;
           user_id: string;
         };
         Update: {
           created_at?: string;
+          commission_cents?: number | null;
           environment?: string;
           granted_at?: string;
           id?: string;
           kind?: string;
           price_id?: string | null;
+          seller_id?: string | null;
+          seller_paid?: boolean;
           slug?: string;
           stripe_session_id?: string | null;
           user_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_entitlements_seller_id_fkey";
+            columns: ["seller_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       user_interests: {
         Row: {
@@ -648,6 +953,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_learning_progress: {
+        Row: {
+          completed_at: string | null;
+          completed_item_ids: string[];
+          created_at: string;
+          current_item_id: string | null;
+          id: string;
+          path_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          completed_at?: string | null;
+          completed_item_ids?: string[];
+          created_at?: string;
+          current_item_id?: string | null;
+          id?: string;
+          path_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          completed_at?: string | null;
+          completed_item_ids?: string[];
+          created_at?: string;
+          current_item_id?: string | null;
+          id?: string;
+          path_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_learning_progress_current_item_id_fkey";
+            columns: ["current_item_id"];
+            isOneToOne: false;
+            referencedRelation: "learning_path_items";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_learning_progress_path_id_fkey";
+            columns: ["path_id"];
+            isOneToOne: false;
+            referencedRelation: "learning_paths";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       waitlist_signups: {
         Row: {
           created_at: string;
@@ -678,6 +1031,51 @@ export type Database = {
         };
         Relationships: [];
       };
+      mcp_servers: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          url: string;
+          provider: "anthropic" | "openai" | "custom";
+          category: string;
+          tags: string[];
+          is_public: boolean;
+          is_approved: boolean;
+          submitted_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          description?: string | null;
+          url: string;
+          provider?: "anthropic" | "openai" | "custom";
+          category?: string;
+          tags?: string[];
+          is_public?: boolean;
+          is_approved?: boolean;
+          submitted_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          description?: string | null;
+          url?: string;
+          provider?: "anthropic" | "openai" | "custom";
+          category?: string;
+          tags?: string[];
+          is_public?: boolean;
+          is_approved?: boolean;
+          submitted_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -695,6 +1093,7 @@ export type Database = {
       agent_tier: "free" | "premium" | "custom";
       app_role: "admin" | "member";
       publish_status: "draft" | "scheduled" | "published";
+      stripe_account_status: "pending" | "connected" | "disabled";
       submission_status: "pending" | "approved" | "rejected";
     };
     CompositeTypes: {
@@ -824,6 +1223,7 @@ export const Constants = {
       agent_tier: ["free", "premium", "custom"],
       app_role: ["admin", "member"],
       publish_status: ["draft", "scheduled", "published"],
+      stripe_account_status: ["pending", "connected", "disabled"],
       submission_status: ["pending", "approved", "rejected"],
     },
   },

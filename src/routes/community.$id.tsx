@@ -28,7 +28,7 @@ import {
 } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { REPLY_BODY_MAX, type FeedThread, type ReactionKind } from "@/lib/community";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, discussionLd, breadcrumbLd } from "@/lib/seo";
 import { toast } from "sonner";
 
 const threadQO = (id: string) =>
@@ -46,13 +46,33 @@ export const Route = createFileRoute("/community/$id")({
   head: ({ loaderData }) => {
     const t = loaderData?.thread;
     if (!t) return { meta: [{ title: "Thread — Melanated In Tech" }] };
+    const seo = buildSeoMeta({
+      title: t.post.title ? `${t.post.title} — Community` : "Community thread",
+      description: t.post.body.slice(0, 160),
+      url: `/community/${t.post.id}`,
+      type: "article",
+    });
     return {
-      meta: buildSeoMeta({
-        title: t.post.title ? `${t.post.title} — Community` : "Community thread",
-        description: t.post.body.slice(0, 160),
-        url: `/community/${t.post.id}`,
-        type: "article",
-      }),
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          discussionLd({
+            title: t.post.title,
+            body: t.post.body,
+            url: `/community/${t.post.id}`,
+            authorName: t.post.author?.display_name ?? null,
+            createdAt: t.post.created_at,
+            replyCount: t.post.reply_count,
+          }),
+        ),
+        ldScript(
+          breadcrumbLd([
+            { name: "Community", path: "/community" },
+            { name: t.post.title ?? "Thread", path: `/community/${t.post.id}` },
+          ]),
+        ),
+      ],
     };
   },
   errorComponent: ({ error }) => (

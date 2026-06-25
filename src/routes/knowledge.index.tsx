@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BookMarked, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, BookMarked, PlayCircle, Search, SlidersHorizontal, X } from "lucide-react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -9,6 +10,9 @@ import { ArticleCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles } from "@/lib/public.functions";
+import { buildSeoMeta } from "@/lib/seo";
+import { listMyLearningProgress } from "@/lib/retention.functions";
+import { supabase } from "@/integrations/supabase/client";
 import { useReadingProgressList } from "@/hooks/use-reading-progress";
 
 const PAGE_SIZE = 9;
@@ -57,16 +61,12 @@ const LEARNING_PATHS = [
 export const Route = createFileRoute("/knowledge/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
-    meta: [
-      { title: "Agent Knowledge Hub - Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Guides, frameworks, and field notes on AI agents - memory, MCP, multi-agent systems, local AI, and more.",
-      },
-      { property: "og:title", content: "AI Agent Knowledge Hub" },
-      { property: "og:description", content: "Practical knowledge for people building AI agents." },
-    ],
+    ...buildSeoMeta({
+      title: "Agent Knowledge Hub — Melanated In Tech",
+      description:
+        "Guides, frameworks, and field notes on AI agents — memory, MCP, multi-agent systems, local AI, and more.",
+      url: "/knowledge",
+    }),
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,
@@ -297,9 +297,73 @@ function KnowledgeIndex() {
           onChange={setPage}
         />
 
+        <ContinueLearningPaths />
         <ContinueReading articles={articles} />
       </section>
     </SiteLayout>
+  );
+}
+
+function ContinueLearningPaths() {
+  const getProgress = useServerFn(listMyLearningProgress);
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+  }, []);
+  const progress = useQuery({
+    queryKey: ["learning-progress"],
+    queryFn: () => getProgress(),
+    enabled: signedIn,
+  });
+  const rows = (progress.data ?? [])
+    .filter((row) => !row.completed_at)
+    .map((row) => ({
+      row,
+      path: Array.isArray(row.learning_paths) ? row.learning_paths[0] : row.learning_paths,
+    }))
+    .filter((item) => item.path)
+    .slice(0, 3);
+  if (rows.length === 0) return null;
+  return (
+    <div className="mt-16 border-t pt-10">
+      <div className="flex items-end justify-between gap-4">
+        <div>
+          <h2 className="font-display text-xl font-semibold">Continue learning</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Resume the path that ties these articles to agents, products, and community practice.
+          </p>
+        </div>
+        <Link
+          to="/paths"
+          className="hidden text-sm font-medium text-primary hover:underline sm:block"
+        >
+          View all paths
+        </Link>
+      </div>
+      <ul className="mt-5 grid gap-4 md:grid-cols-3">
+        {rows.map(({ row, path }) => (
+          <li key={row.id} className="rounded-2xl border bg-card p-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <PlayCircle className="h-4 w-4" />
+              </div>
+              <div>
+                <Link
+                  to="/paths/$slug"
+                  params={{ slug: path!.slug }}
+                  className="font-medium hover:text-primary"
+                >
+                  {path!.title}
+                </Link>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {row.completed_item_ids.length} steps completed
+                </p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

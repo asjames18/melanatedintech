@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -53,6 +54,7 @@ import {
   checkAdminStatus,
   claimFirstAdmin,
 } from "@/lib/admin.functions";
+import { adminListProducts, adminUpsertProduct, type ProductRow } from "@/lib/product.functions";
 import {
   adminListPosts,
   adminListReplies,
@@ -114,8 +116,9 @@ function AdminPage() {
           </Button>
         </div>
         <Tabs defaultValue="agents">
-          <TabsList className="flex flex-wrap">
+          <TabsList className="flex h-auto flex-wrap justify-start gap-1">
             <TabsTrigger value="agents">Agents</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="articles">Knowledge</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
@@ -125,6 +128,9 @@ function AdminPage() {
           </TabsList>
           <TabsContent value="agents" className="mt-6">
             <AgentsPanel />
+          </TabsContent>
+          <TabsContent value="products" className="mt-6">
+            <ProductsPanel />
           </TabsContent>
           <TabsContent value="articles" className="mt-6">
             <ArticlesPanel />
@@ -194,6 +200,13 @@ function NoAccess({ adminCount, onClaimed }: { adminCount: number; onClaimed: ()
 // ---------- Agents ----------
 
 type AgentRow = Awaited<ReturnType<typeof adminListAgents>>[number];
+type AgentConfigRow = AgentRow & {
+  model?: string | null;
+  system_prompt?: string | null;
+  max_tokens?: number | null;
+  temperature?: number | null;
+  unlock_content?: string | null;
+};
 
 function AgentsPanel() {
   const qc = useQueryClient();
@@ -262,6 +275,7 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
   const qc = useQueryClient();
   const upsert = useServerFn(adminUpsertAgent);
   const [open, setOpen] = useState(false);
+  const config = existing as AgentConfigRow | undefined;
   const [form, setForm] = useState(() => ({
     id: existing?.id,
     slug: existing?.slug ?? "",
@@ -272,8 +286,11 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
     tier: (existing?.tier ?? "free") as "free" | "premium" | "custom",
     capabilities: (existing?.capabilities ?? []).join("\n"),
     featured: existing?.featured ?? false,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    unlock_content: ((existing as any)?.unlock_content ?? "") as string,
+    model: config?.model ?? "gpt-4o-mini",
+    system_prompt: config?.system_prompt ?? "",
+    max_tokens: config?.max_tokens ?? 1000,
+    temperature: config?.temperature ?? 0.7,
+    unlock_content: config?.unlock_content ?? "",
     status: (existing?.status ?? "draft") as PublishStatus,
     scheduled_at: existing?.scheduled_at ?? null,
   }));
@@ -364,6 +381,33 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             checked={form.featured}
             onChange={(v) => setForm({ ...form, featured: v })}
           />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="AI model">
+              <Input
+                value={form.model}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+                placeholder="gpt-4o-mini"
+              />
+            </Field>
+            <Field label="Temperature">
+              <Input
+                type="number"
+                min={0}
+                max={2}
+                step={0.1}
+                value={form.temperature}
+                onChange={(e) => setForm({ ...form, temperature: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <Field label="System prompt (optional — used as the agent's instructions when buyers chat)">
+            <Textarea
+              rows={4}
+              value={form.system_prompt}
+              onChange={(e) => setForm({ ...form, system_prompt: e.target.value })}
+              placeholder="Define the agent's personality, role, and instructions for buyers."
+            />
+          </Field>
           <FulfillmentField
             label="Unlock pack (markdown) — delivered to buyers only"
             value={form.unlock_content}
@@ -529,6 +573,249 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
               />
             </Field>
           </div>
+          <PublishControls
+            status={form.status}
+            scheduledAt={form.scheduled_at}
+            onChange={(status, scheduled_at) => setForm({ ...form, status, scheduled_at })}
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------- Products ----------
+
+function ProductsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListProducts);
+  const del = useServerFn(adminDelete);
+  const q = useQuery({ queryKey: ["admin-products"], queryFn: () => list() });
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { table: "products", id } }),
+    onSuccess: () => {
+      toast.success("Product deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <div>
+      <Toolbar
+        title="Digital products"
+        count={q.data?.length ?? 0}
+        action={
+          <ProductEditor
+            trigger={
+              <Button size="sm">
+                <Plus className="h-4 w-4" /> New product
+              </Button>
+            }
+          />
+        }
+      />
+      <DataTable
+        loading={q.isLoading}
+        rows={q.data ?? []}
+        columns={[
+          { header: "Name", cell: (r) => <span className="font-medium">{r.name}</span> },
+          {
+            header: "Category",
+            cell: (r) => <span className="text-muted-foreground">{r.category}</span>,
+          },
+          {
+            header: "Price",
+            cell: (r) => (r.price_cents ? `$${(r.price_cents / 100).toFixed(2)}` : "—"),
+          },
+          {
+            header: "Tier",
+            cell: (r) => <Badge variant="outline">{r.tier}</Badge>,
+          },
+          {
+            header: "Status",
+            cell: (r) => <PublishBadge status={r.status} scheduledAt={r.scheduled_at} />,
+          },
+        ]}
+        actions={(r) => (
+          <>
+            <ProductEditor
+              existing={r}
+              trigger={
+                <IconBtn label="Edit">
+                  <Pencil className="h-3.5 w-3.5" />
+                </IconBtn>
+              }
+            />
+            <DeleteBtn onConfirm={() => delMut.mutate(r.id)} name={r.name} />
+          </>
+        )}
+      />
+    </div>
+  );
+}
+
+function ProductEditor({ existing, trigger }: { existing?: ProductRow; trigger: React.ReactNode }) {
+  const qc = useQueryClient();
+  const upsert = useServerFn(adminUpsertProduct);
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(() => ({
+    id: existing?.id,
+    slug: existing?.slug ?? "",
+    name: existing?.name ?? "",
+    tagline: existing?.tagline ?? "",
+    description: existing?.description ?? "",
+    category: existing?.category ?? "",
+    tier: (existing?.tier ?? "free") as "free" | "premium" | "custom",
+    price_cents: existing?.price_cents ?? null,
+    image_url: existing?.image_url ?? "",
+    featured: existing?.featured ?? false,
+    model: (existing?.model ?? "gpt-4o-mini") as string,
+    system_prompt: (existing?.system_prompt ?? "") as string,
+    max_tokens: existing?.max_tokens ?? 1000,
+    temperature: existing?.temperature ?? 0.7,
+    unlock_content: (existing?.unlock_content ?? "") as string,
+    status: (existing?.status ?? "draft") as PublishStatus,
+    scheduled_at: existing?.scheduled_at ?? null,
+  }));
+
+  const mut = useMutation({
+    mutationFn: () =>
+      upsert({
+        data: {
+          ...form,
+          price_cents: form.price_cents ?? null,
+          image_url: form.image_url || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success(existing ? "Product saved." : "Product created.");
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{existing ? "Edit product" : "New product"}</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4">
+          <Field label="Name">
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+          <Field label="Slug">
+            <Input value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} />
+          </Field>
+          <Field label="Tagline">
+            <Input
+              value={form.tagline}
+              onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+            />
+          </Field>
+          <Field label="Description">
+            <Textarea
+              rows={4}
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Category">
+              <Input
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+              />
+            </Field>
+            <Field label="Tier">
+              <Select
+                value={form.tier}
+                onValueChange={(v) => setForm({ ...form, tier: v as typeof form.tier })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Price (cents)">
+              <Input
+                type="number"
+                min={0}
+                value={form.price_cents ?? ""}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    price_cents: e.target.value ? Number(e.target.value) : null,
+                  })
+                }
+                placeholder="0 for free"
+              />
+            </Field>
+            <Field label="Image URL">
+              <Input
+                value={form.image_url ?? ""}
+                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                placeholder="https://…"
+              />
+            </Field>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="AI model">
+              <Input
+                value={form.model}
+                onChange={(e) => setForm({ ...form, model: e.target.value })}
+              />
+            </Field>
+            <Field label="Temperature">
+              <Input
+                type="number"
+                min={0}
+                max={2}
+                step={0.1}
+                value={form.temperature}
+                onChange={(e) => setForm({ ...form, temperature: Number(e.target.value) })}
+              />
+            </Field>
+          </div>
+          <Field label="System prompt (optional)">
+            <Textarea
+              rows={3}
+              value={form.system_prompt}
+              onChange={(e) => setForm({ ...form, system_prompt: e.target.value })}
+            />
+          </Field>
+          <Field label="Unlock content (markdown, buyers only)">
+            <Textarea
+              rows={5}
+              value={form.unlock_content}
+              onChange={(e) => setForm({ ...form, unlock_content: e.target.value })}
+            />
+          </Field>
+          <ToggleField
+            label="Featured"
+            checked={form.featured}
+            onChange={(v) => setForm({ ...form, featured: v })}
+          />
           <PublishControls
             status={form.status}
             scheduledAt={form.scheduled_at}
@@ -1083,8 +1370,8 @@ function DataTable<T extends { id: string }>({
     );
   }
   return (
-    <div className="mt-4 overflow-hidden rounded-xl border border-border">
-      <table className="w-full text-sm">
+    <div className="mt-4 overflow-x-auto rounded-xl border border-border">
+      <table className="w-full min-w-[640px] text-sm">
         <thead className="bg-muted/50 text-xs uppercase tracking-wider text-muted-foreground">
           <tr>
             {columns.map((c) => (
@@ -1356,7 +1643,7 @@ function PublishBadge({
 function CommunityPanel() {
   return (
     <Tabs defaultValue="posts">
-      <TabsList>
+      <TabsList className="flex h-auto flex-wrap gap-1">
         <TabsTrigger value="posts">Posts</TabsTrigger>
         <TabsTrigger value="replies">Replies</TabsTrigger>
         <TabsTrigger value="hashtags">Hashtags</TabsTrigger>

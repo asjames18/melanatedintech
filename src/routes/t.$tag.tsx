@@ -10,16 +10,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { reactPost, unreactPost, deleteItem, adminDeleteItem } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { type FeedPage, type ReactionKind } from "@/lib/community";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, collectionLd } from "@/lib/seo";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/t/$tag")({
   head: ({ params }) => ({
-    meta: buildSeoMeta({
+    ...buildSeoMeta({
       title: `#${params.tag} — Community`,
       description: `Posts tagged #${params.tag} on Melanated In Tech.`,
       url: `/t/${params.tag}`,
     }),
+    scripts: [
+      ldScript(
+        collectionLd({
+          name: `#${params.tag}`,
+          url: `/t/${params.tag}`,
+          description: `Posts tagged #${params.tag} on Melanated In Tech.`,
+        }),
+      ),
+    ],
   }),
   component: TagPage,
 });

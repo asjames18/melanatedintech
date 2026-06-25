@@ -26,7 +26,7 @@ export const getAgent = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const sb = publicClient();
     const baseCols =
-      "id,slug,name,tagline,description,category,capabilities,tier,price_cents,image_url,featured";
+      "id,slug,name,tagline,description,category,capabilities,tier,price_cents,image_url,featured,model";
     // Never select unlock_content here — RLS is row-level, so select("*") would
     // hand the paid pack to anyone. Fetch the gated fields only to derive a
     // boolean, then strip them. Degrade gracefully if the columns aren't there

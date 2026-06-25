@@ -13,7 +13,7 @@ import { getArticleAuthor } from "@/lib/authors.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { useTrackReadingProgress } from "@/hooks/use-reading-progress";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, articleLd, breadcrumbLd } from "@/lib/seo";
 import { ArrowLeft, Sparkles, Link as LinkIcon } from "lucide-react";
 
 const qo = (slug: string) =>
@@ -34,15 +34,16 @@ export const Route = createFileRoute("/knowledge/$slug")({
   head: ({ params, loaderData }) => {
     const a = loaderData?.article;
     const path = `/knowledge/${params.slug}`;
-    if (!a) return { meta: [{ title: "Article - Melanated In Tech" }] };
+    if (!a) return { meta: [{ title: "Article — Melanated In Tech" }] };
+    const seo = buildSeoMeta({
+      title: `${a.title} — Melanated In Tech`,
+      description: a.excerpt,
+      url: path,
+      type: "article",
+    });
     return {
       meta: [
-        ...buildSeoMeta({
-          title: `${a.title} - Melanated In Tech`,
-          description: a.excerpt,
-          url: path,
-          type: "article",
-        }),
+        ...seo.meta,
         { property: "article:section", content: a.category },
         ...(a.published_at
           ? [
@@ -57,21 +58,24 @@ export const Route = createFileRoute("/knowledge/$slug")({
         { name: "twitter:label2", content: "Topic" },
         { name: "twitter:data2", content: a.category },
       ],
-      links: [{ rel: "canonical", href: path }],
+      links: seo.links,
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Article",
-            headline: a.title,
-            description: a.excerpt,
-            articleSection: a.category,
-            datePublished: a.published_at ?? undefined,
-            author: { "@type": "Organization", name: "Melanated In Tech" },
-            publisher: { "@type": "Organization", name: "Melanated In Tech" },
+        ldScript(
+          articleLd({
+            title: a.title,
+            excerpt: a.excerpt,
+            category: a.category,
+            published_at: a.published_at,
+            url: path,
+            image: null,
           }),
-        },
+        ),
+        ldScript(
+          breadcrumbLd([
+            { name: "Knowledge Hub", path: "/knowledge" },
+            { name: a.title, path },
+          ]),
+        ),
       ],
     };
   },

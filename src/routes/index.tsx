@@ -5,7 +5,8 @@ import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
-import { PILLARS, SITE_URL } from "@/lib/site";
+import { PILLARS } from "@/lib/site";
+import { buildSeoMeta } from "@/lib/seo";
 import { ArrowRight, Compass, ShieldCheck, Wrench } from "lucide-react";
 
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
@@ -14,21 +15,12 @@ const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listPro
 
 export const Route = createFileRoute("/")({
   head: () => ({
-    meta: [
-      { title: "Melanated In Tech — The home for AI agents" },
-      {
-        name: "description",
-        content:
-          "Marketplace, knowledge hub, products, and services for people building, deploying, and benefiting from AI agents.",
-      },
-      { property: "og:title", content: "Melanated In Tech — The home for AI agents" },
-      {
-        property: "og:description",
-        content: "The destination for AI agent knowledge, solutions, and innovation.",
-      },
-      { property: "og:url", content: `${SITE_URL}/` },
-    ],
-    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+    ...buildSeoMeta({
+      title: "Melanated In Tech — The home for AI agents",
+      description:
+        "Marketplace, knowledge hub, products, and services for people building, deploying, and benefiting from AI agents.",
+      url: "/",
+    }),
   }),
   loader: async ({ context }) => {
     await Promise.all([
@@ -233,7 +225,7 @@ function Home() {
       {/* Waitlist */}
       <section>
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-foreground p-10 text-background sm:p-14">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-foreground p-6 text-background sm:p-10 sm:p-14">
             <div className="bg-grid absolute inset-0 opacity-[0.08]" />
             <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
               <div>

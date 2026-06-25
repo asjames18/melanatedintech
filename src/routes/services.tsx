@@ -3,24 +3,18 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ServiceCard } from "@/components/cards";
 import { listServices } from "@/lib/public.functions";
+import { buildSeoMeta } from "@/lib/seo";
 
 const qo = queryOptions({ queryKey: ["services"], queryFn: () => listServices() });
 
 export const Route = createFileRoute("/services")({
   head: () => ({
-    meta: [
-      { title: "AI Agent Services — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Strategy sprints, custom agent builds, ministry implementations, and workshops — done with you.",
-      },
-      { property: "og:title", content: "AI Agent Services" },
-      {
-        property: "og:description",
-        content: "We design, build, and deploy AI agents alongside your team.",
-      },
-    ],
+    ...buildSeoMeta({
+      title: "AI Agent Services — Melanated In Tech",
+      description:
+        "Strategy sprints, custom agent builds, ministry implementations, and workshops — done with you.",
+      url: "/services",
+    }),
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   errorComponent: ({ error }) => (
@@ -48,7 +42,14 @@ function ServicesIndex() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-5 sm:grid-cols-2">
           {services.map((s) => (
-            <ServiceCard key={s.id} {...s} />
+            <Link
+              key={s.id}
+              to="/services/$slug"
+              params={{ slug: s.slug }}
+              className="block transition-opacity hover:opacity-90"
+            >
+              <ServiceCard {...s} />
+            </Link>
           ))}
         </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-6 text-center">

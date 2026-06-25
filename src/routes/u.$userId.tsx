@@ -27,7 +27,7 @@ import {
 } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { type FeedPage, type PublicProfile, type ReactionKind } from "@/lib/community";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, profileLd } from "@/lib/seo";
 import { toast } from "sonner";
 
 const profileQO = (userId: string) =>
@@ -44,12 +44,27 @@ export const Route = createFileRoute("/u/$userId")({
   },
   head: ({ loaderData }) => {
     const p = loaderData?.profile;
+    const seo = buildSeoMeta({
+      title: p ? `${p.display_name ?? "Someone"} — Melanated In Tech` : "Profile",
+      description: p?.bio ?? `Community profile on Melanated In Tech.`,
+      url: p ? `/u/${p.id}` : undefined,
+      type: "profile",
+    });
     return {
-      meta: buildSeoMeta({
-        title: p ? `${p.display_name ?? "Someone"} — Melanated In Tech` : "Profile",
-        description: p?.bio ?? undefined,
-        url: p ? `/u/${p.id}` : undefined,
-      }),
+      meta: seo.meta,
+      links: seo.links,
+      scripts: p
+        ? [
+            ldScript(
+              profileLd({
+                name: p.display_name,
+                bio: p.bio,
+                url: `/u/${p.id}`,
+                followersCount: p.followers_count,
+              }),
+            ),
+          ]
+        : undefined,
     };
   },
   notFoundComponent: () => (

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ContactForm } from "@/components/contact-form";
+import { buildSeoMeta } from "@/lib/seo";
 
 const searchSchema = z.object({
   topic: fallback(z.string().max(120), "").default(""),
@@ -11,16 +12,12 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/contact")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
-    meta: [
-      { title: "Contact — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Tell us about your AI agent project — strategy, custom build, ministry implementation, or workshop.",
-      },
-      { property: "og:title", content: "Contact Melanated In Tech" },
-      { property: "og:description", content: "Tell us about your AI agent project." },
-    ],
+    ...buildSeoMeta({
+      title: "Contact — Melanated In Tech",
+      description:
+        "Tell us about your AI agent project — strategy, custom build, ministry implementation, or workshop.",
+      url: "/contact",
+    }),
   }),
   component: Contact,
 });

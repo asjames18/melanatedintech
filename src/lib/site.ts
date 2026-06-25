@@ -12,6 +12,7 @@ export const SITE = {
 
 export const NAV = [
   { to: "/agents", label: "Marketplace" },
+  { to: "/paths", label: "Paths" },
   { to: "/knowledge", label: "Knowledge Hub" },
   { to: "/products", label: "Products" },
   { to: "/services", label: "Services" },
@@ -34,23 +35,30 @@ export const PILLARS = [
     tag: "Pillar 02",
   },
   {
+    title: "Agent Learning Paths",
+    href: "/paths" as const,
+    blurb:
+      "Guided paths that connect articles, agents, products, and community prompts into a weekly builder loop.",
+    tag: "Pillar 03",
+  },
+  {
     title: "Agent Digital Products",
     href: "/products" as const,
     blurb:
       "Starter kits, blueprints, prompt libraries, SOPs, and memory systems to ship agents faster.",
-    tag: "Pillar 03",
+    tag: "Pillar 04",
   },
   {
     title: "Agent Services",
     href: "/services" as const,
     blurb: "Strategy sprints, custom agent builds, and ministry implementations — done with you.",
-    tag: "Pillar 04",
+    tag: "Pillar 05",
   },
   {
     title: "Agent Builder Community",
     href: "/community" as const,
     blurb: "A community for people building, deploying, and benefiting from AI agents.",
-    tag: "Pillar 05",
+    tag: "Pillar 06",
   },
 ];
 

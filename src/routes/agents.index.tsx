@@ -10,6 +10,7 @@ import { Pagination } from "@/components/pagination";
 import { Button } from "@/components/ui/button";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listAgents } from "@/lib/public.functions";
+import { buildSeoMeta } from "@/lib/seo";
 
 const PAGE_SIZE = 9;
 
@@ -23,19 +24,12 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/agents/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
-    meta: [
-      { title: "Agent Marketplace — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Browse production-ready AI agents for ministries, businesses, sales, support, research, and creators.",
-      },
-      { property: "og:title", content: "AI Agent Marketplace" },
-      {
-        property: "og:description",
-        content: "Discover AI agents that ship real outcomes — not demos.",
-      },
-    ],
+    ...buildSeoMeta({
+      title: "Agent Marketplace — Melanated In Tech",
+      description:
+        "Browse production-ready AI agents for ministries, businesses, sales, support, research, and creators.",
+      url: "/agents",
+    }),
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,

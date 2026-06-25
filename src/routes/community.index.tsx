@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedComposer } from "@/components/feed/feed-composer";
@@ -9,6 +10,7 @@ import { FeedList } from "@/components/feed/feed-list";
 import { TrendingSidebar } from "@/components/feed/trending-sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { reactPost, unreactPost, deleteItem, adminDeleteItem } from "@/lib/community.functions";
+import { listBuilderChallenges } from "@/lib/retention.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { FEED_TABS, type FeedPage, type FeedTab, type ReactionKind } from "@/lib/community";
 import { toast } from "sonner";
@@ -16,7 +18,7 @@ import { buildSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/community/")({
   head: () => ({
-    meta: buildSeoMeta({
+    ...buildSeoMeta({
       title: "Community — Melanated In Tech",
       description: "Discussions, questions, and field notes from people building AI agents.",
       url: "/community",
@@ -38,6 +40,19 @@ export const Route = createFileRoute("/community/")({
 function Community() {
   const [me, setMe] = useState<string | null>(undefined);
   const [tab, setTab] = useState<FeedTab>("for-you");
+  const listChallenges = useServerFn(listBuilderChallenges);
+  const challenges = useQuery({
+    queryKey: ["builder-challenges"],
+    queryFn: () => listChallenges(),
+  });
+  const currentChallenge =
+    (challenges.data ?? []).find((challenge) => {
+      const now = Date.now();
+      return (
+        now >= new Date(challenge.starts_at).getTime() &&
+        now <= new Date(challenge.ends_at).getTime()
+      );
+    }) ?? challenges.data?.[0];
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -54,6 +69,22 @@ function Community() {
       <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
           <div className="space-y-4">
+            {currentChallenge && (
+              <Link
+                to="/challenges/$slug"
+                params={{ slug: currentChallenge.slug }}
+                className="block rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+              >
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                  Weekly builder challenge
+                </p>
+                <h2 className="mt-1 font-display text-xl font-semibold">
+                  {currentChallenge.title}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">{currentChallenge.excerpt}</p>
+              </Link>
+            )}
+
             <FeedComposer viewerId={me ?? null} />
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)}>

@@ -3,7 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ArticleCard } from "@/components/cards";
 import { getAuthor } from "@/lib/authors.functions";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ArrowLeft, Link as LinkIcon, BookOpen } from "lucide-react";
 
 const qo = (slug: string) =>
@@ -18,15 +18,34 @@ export const Route = createFileRoute("/authors/$slug")({
   head: ({ params, loaderData }) => {
     if (!loaderData) return { meta: [{ title: "Author — Melanated In Tech" }] };
     const { author } = loaderData;
+    const path = `/authors/${params.slug}`;
+    const seo = buildSeoMeta({
+      title: `${author.name} — Melanated In Tech`,
+      description: author.bio ?? `Articles by ${author.name}.`,
+      url: path,
+      type: "profile",
+      image: author.avatar_url ?? null,
+    });
     return {
-      meta: buildSeoMeta({
-        title: `${author.name} — Melanated In Tech`,
-        description: author.bio ?? `Articles by ${author.name}.`,
-        url: `/authors/${params.slug}`,
-        type: "website",
-        image: author.avatar_url ?? null,
-      }),
-      links: [{ rel: "canonical", href: `/authors/${params.slug}` }],
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript({
+          "@context": "https://schema.org",
+          "@type": "Person",
+          name: author.name,
+          description: author.bio ?? undefined,
+          image: author.avatar_url ?? undefined,
+          url: path,
+        }),
+        ldScript(
+          breadcrumbLd([
+            { name: "Knowledge Hub", path: "/knowledge" },
+            { name: "Authors", path: "/knowledge" },
+            { name: author.name, path },
+          ]),
+        ),
+      ],
     };
   },
   errorComponent: ({ error }) => (

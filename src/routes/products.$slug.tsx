@@ -16,7 +16,7 @@ import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
 import { ArrowLeft, Package, Sparkles, Tag, Wallet } from "lucide-react";
 
 const productQO = (slug: string) =>
@@ -45,44 +45,39 @@ export const Route = createFileRoute("/products/$slug")({
     const p = loaderData?.product;
     const path = `/products/${params.slug}`;
     if (!p) return { meta: [{ title: "Product — Melanated In Tech" }] };
+    const seo = buildSeoMeta({
+      title: `${p.name} — Digital Product | Melanated In Tech`,
+      description: p.tagline,
+      url: path,
+      type: "product",
+      image: p.image_url ?? null,
+    });
     return {
       meta: [
-        ...buildSeoMeta({
-          title: `${p.name} — Digital Product | Melanated In Tech`,
-          description: p.tagline,
-          url: path,
-          type: "product",
-          image: p.image_url ?? null,
-        }),
+        ...seo.meta,
         { name: "twitter:label1", content: "Category" },
         { name: "twitter:data1", content: p.category },
         { name: "twitter:label2", content: "Price" },
         { name: "twitter:data2", content: formatPrice(p.price_cents, p.tier) },
       ],
-      links: [{ rel: "canonical", href: path }],
+      links: seo.links,
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
+        ldScript(
+          productLd({
             name: p.name,
-            description: p.tagline,
+            tagline: p.tagline,
             category: p.category,
-            image: p.image_url ?? undefined,
-            brand: { "@type": "Organization", name: "Melanated In Tech" },
-            offers:
-              p.price_cents != null
-                ? {
-                    "@type": "Offer",
-                    price: (p.price_cents / 100).toFixed(2),
-                    priceCurrency: "USD",
-                    availability: "https://schema.org/InStock",
-                    url: path,
-                  }
-                : undefined,
+            image: p.image_url,
+            price_cents: p.price_cents,
+            url: path,
           }),
-        },
+        ),
+        ldScript(
+          breadcrumbLd([
+            { name: "Products", path: "/products" },
+            { name: p.name, path },
+          ]),
+        ),
       ],
     };
   },

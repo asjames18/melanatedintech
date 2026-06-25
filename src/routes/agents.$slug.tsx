@@ -16,8 +16,9 @@ import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
 import { ArrowLeft, Bot, CheckCircle2, Layers, Sparkles, Tag } from "lucide-react";
+import { Chat } from "@/components/agents/Chat";
 
 const agentQO = (slug: string) =>
   queryOptions({ queryKey: ["agent", slug], queryFn: () => getAgent({ data: { slug } }) });
@@ -38,34 +39,38 @@ export const Route = createFileRoute("/agents/$slug")({
     const a = loaderData?.agent;
     const path = `/agents/${params.slug}`;
     if (!a) return { meta: [{ title: "Agent — Melanated In Tech" }] };
+    const seo = buildSeoMeta({
+      title: `${a.name} — AI Agent | Melanated In Tech`,
+      description: a.tagline,
+      url: path,
+      type: "product",
+      image: a.image_url ?? null,
+    });
     return {
       meta: [
-        ...buildSeoMeta({
-          title: `${a.name} — AI Agent | Melanated In Tech`,
-          description: a.tagline,
-          url: path,
-          type: "product",
-          image: a.image_url ?? null,
-        }),
+        ...seo.meta,
         { name: "twitter:label1", content: "Category" },
         { name: "twitter:data1", content: a.category },
         { name: "twitter:label2", content: "Tier" },
         { name: "twitter:data2", content: a.tier },
       ],
-      links: [{ rel: "canonical", href: path }],
+      links: seo.links,
       scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
+        ldScript(
+          productLd({
             name: a.name,
-            description: a.tagline,
+            tagline: a.tagline,
             category: a.category,
-            image: a.image_url ?? undefined,
-            brand: { "@type": "Organization", name: "Melanated In Tech" },
+            image: a.image_url,
+            url: path,
           }),
-        },
+        ),
+        ldScript(
+          breadcrumbLd([
+            { name: "Marketplace", path: "/agents" },
+            { name: a.name, path },
+          ]),
+        ),
       ],
     };
   },
@@ -241,6 +246,20 @@ function AgentDetail() {
             )}
 
             {owned && <AgentDelivery slug={agent.slug} />}
+
+            {owned && (
+              <div className="mt-8">
+                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+                  <Bot className="h-5 w-5" /> Chat with {agent.name}
+                </h2>
+                <Chat
+                  agentId={agent.id}
+                  agentSlug={agent.slug}
+                  agentName={agent.name}
+                  defaultModel={agent.model ?? "gpt-4o-mini"}
+                />
+              </div>
+            )}
           </div>
 
           <aside className="md:col-span-1">

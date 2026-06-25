@@ -138,7 +138,7 @@ function ReplyNode({
                 <button
                   type="button"
                   onClick={() => setShowReplyBox((s) => !s)}
-                  className="rounded-full px-2 py-1 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className="rounded-full px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                 >
                   Reply
                 </button>

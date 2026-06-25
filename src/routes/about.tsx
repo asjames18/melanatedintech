@@ -1,22 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { PILLARS } from "@/lib/site";
+import { buildSeoMeta } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
-    meta: [
-      { title: "About — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "We exist to help individuals, entrepreneurs, churches, nonprofits, creators, and businesses understand, build, and deploy AI agents.",
-      },
-      { property: "og:title", content: "About Melanated In Tech" },
-      {
-        property: "og:description",
-        content: "The vision, mission, and beliefs behind the home for AI agents.",
-      },
-    ],
+    ...buildSeoMeta({
+      title: "About — Melanated In Tech",
+      description:
+        "We exist to help individuals, entrepreneurs, churches, nonprofits, creators, and businesses understand, build, and deploy AI agents.",
+      url: "/about",
+    }),
   }),
   component: About,
 });

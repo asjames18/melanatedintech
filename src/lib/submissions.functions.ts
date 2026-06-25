@@ -195,14 +195,30 @@ export const adminReviewSubmission = createServerFn({ method: "POST" })
     let publishedSlug: string | null = null;
 
     if (data.status === "approved") {
+      // Find the submitter's seller profile so the agent is seller-managed.
+      const { data: sellerProfile } = await supabaseAdmin
+        .from("seller_profiles")
+        .select("id")
+        .eq("user_id", sub.submitter_id)
+        .maybeSingle();
+      const sellerId = sellerProfile?.id ?? null;
+
       if (publishedAgentId) {
-        // Already published — fetch slug for the response.
+        // Already published — fetch slug for the response and ensure seller_id is set.
         const { data: existing } = await supabaseAdmin
           .from("agents")
           .select("slug")
           .eq("id", publishedAgentId)
           .maybeSingle();
         publishedSlug = existing?.slug ?? null;
+
+        // Backfill seller_id if the agent was previously admin-owned.
+        if (sellerId) {
+          await supabaseAdmin
+            .from("agents")
+            .update({ seller_id: sellerId } as never)
+            .eq("id", publishedAgentId);
+        }
       } else {
         // Find a unique slug.
         const base = slugify(sub.name);
@@ -227,6 +243,7 @@ export const adminReviewSubmission = createServerFn({ method: "POST" })
             capabilities: sub.capabilities ?? [],
             // Carry the submitter's screenshot/logo through to the live listing.
             image_url: (sub as { image_url?: string | null }).image_url ?? null,
+            seller_id: sellerId,
             tier: "free",
             featured: false,
             active: true,

@@ -39,6 +39,7 @@ export const Route = createFileRoute("/auth")({
         content:
           "Sign in or create your Melanated In Tech account to save agents and access the builder community.",
       },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AuthPage,

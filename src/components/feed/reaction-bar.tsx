@@ -16,7 +16,7 @@ type Props = {
 export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm" }: Props) {
   const [open, setOpen] = useState(false);
   const total = REACTION_KINDS.reduce((acc, k) => acc + (counts[k] ?? 0), 0);
-  const pad = size === "md" ? "px-3 py-1.5" : "px-2 py-1";
+  const pad = size === "md" ? "px-3 py-1.5" : "px-2.5 py-1.5";
 
   // Show the top reaction kind's emoji + total, defaulting to 👍 when none yet.
   const topKind = REACTION_KINDS.find((k) => (counts[k] ?? 0) > 0) ?? "like";
@@ -43,7 +43,7 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm" }: P
           {total > 0 && <span>{total}</span>}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto p-1.5">
+      <PopoverContent align="start" collisionPadding={8} className="w-auto p-1.5">
         <div className="flex items-center gap-0.5">
           {REACTION_KINDS.map((k) => {
             const has = mine.includes(k);

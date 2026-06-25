@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { organizationLd, ldScript } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -78,6 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#3a2f24" },
       { title: "Melanated In Tech — The home for AI agents" },
       {
         name: "description",
@@ -117,18 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
     ],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "Organization",
-          name: "Melanated In Tech",
-          description:
-            "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
-        }),
-      },
-    ],
+    scripts: [ldScript(organizationLd())],
   }),
 
   shellComponent: RootShell,

@@ -640,6 +640,255 @@ export const moderateThread = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
+// Admin: community moderation views (posts / replies / hashtags / stats)
+// ---------------------------------------------------------------------------
+
+const adminListPostsSchema = z.object({
+  cursor: z.string().datetime().optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+  locked: z.enum(["all", "locked", "open"]).default("all"),
+  category: z.string().optional(),
+  user_id: z.string().uuid().optional(),
+});
+
+export type AdminPostRow = {
+  id: string;
+  user_id: string;
+  title: string | null;
+  body: string;
+  category: string;
+  media_urls: string[];
+  reply_count: number;
+  reaction_count: Record<string, number>;
+  locked: boolean;
+  created_at: string;
+  last_activity_at: string;
+  author: Author | null;
+};
+
+export const adminListPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => adminListPostsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let q = supabaseAdmin
+      .from("discussion_posts")
+      .select(POST_COLS)
+      .order("created_at", { ascending: false })
+      .limit(data.limit + 1);
+
+    if (data.cursor) q = q.lt("created_at", data.cursor);
+    if (data.locked === "locked") q = q.eq("locked", true);
+    if (data.locked === "open") q = q.eq("locked", false);
+    if (data.category) q = q.eq("category", data.category);
+    if (data.user_id) q = q.eq("user_id", data.user_id);
+
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const slice = (rows ?? []).slice(0, data.limit);
+    const authors = await getAuthorMap(slice.map((r) => r.user_id));
+
+    const posts: AdminPostRow[] = slice.map((r) => {
+      const row = asRow(r);
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        title: row.title ?? null,
+        body: row.body,
+        category: row.category,
+        media_urls: (row.media_urls ?? []) as string[],
+        reply_count: row.reply_count ?? 0,
+        reaction_count: normalizeReactionCount(row.reaction_count),
+        locked: !!row.locked,
+        created_at: row.created_at,
+        last_activity_at: row.last_activity_at,
+        author: authors.get(row.user_id) ?? null,
+      };
+    });
+    return posts;
+  });
+
+export type AdminReplyRow = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  parent_reply_id: string | null;
+  body: string;
+  depth: number;
+  reaction_count: Record<string, number>;
+  created_at: string;
+  author: Author | null;
+  post_title: string | null;
+};
+
+const adminListRepliesSchema = z.object({
+  post_id: z.string().uuid().optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+});
+
+export const adminListReplies = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => adminListRepliesSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let q = supabaseAdmin
+      .from("discussion_comments")
+      .select(REPLY_COLS)
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (data.post_id) q = q.eq("post_id", data.post_id);
+
+    const { data: rows, error } = await q;
+    if (error) throw new Error(error.message);
+
+    const slice = rows ?? [];
+    const authorIds = slice.map((r) => r.user_id);
+    const postIds = Array.from(new Set(slice.map((r) => r.post_id)));
+    const [authors, posts] = await Promise.all([
+      getAuthorMap(authorIds),
+      (async () => {
+        if (postIds.length === 0) return new Map<string, string | null>();
+        const { data: p } = await supabaseAdmin
+          .from("discussion_posts")
+          .select("id, title")
+          .in("id", postIds);
+        const m = new Map<string, string | null>();
+        for (const x of p ?? []) m.set(x.id, x.title ?? null);
+        return m;
+      })(),
+    ]);
+
+    const replies: AdminReplyRow[] = slice.map((r) => {
+      const row = asRow(r);
+      return {
+        id: row.id,
+        post_id: row.post_id,
+        user_id: row.user_id,
+        parent_reply_id: row.parent_reply_id ?? null,
+        body: row.body,
+        depth: row.depth ?? 0,
+        reaction_count: normalizeReactionCount(row.reaction_count),
+        created_at: row.created_at,
+        author: authors.get(row.user_id) ?? null,
+        post_title: posts.get(row.post_id) ?? null,
+      };
+    });
+    return replies;
+  });
+
+export type AdminHashtagRow = {
+  id: string;
+  tag: string;
+  usage_count: number;
+  suppressed: boolean;
+  created_at: string;
+};
+
+const adminListHashtagsSchema = z.object({
+  limit: z.number().int().min(1).max(200).default(100),
+});
+
+export const adminListHashtags = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => adminListHashtagsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("hashtags")
+      .select("id, tag, usage_count, suppressed, created_at")
+      .order("usage_count", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    return (rows ?? []) as AdminHashtagRow[];
+  });
+
+const suppressSchema = z.object({ id: z.string().uuid(), suppressed: z.boolean() });
+
+export const adminSuppressHashtag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => suppressSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("hashtags")
+      .update({ suppressed: data.suppressed } as never)
+      .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export type CommunityStats = {
+  posts_7d: number;
+  replies_7d: number;
+  reactions_7d: number;
+  follows_7d: number;
+  total_posts: number;
+  total_replies: number;
+  total_users: number;
+};
+
+export const adminCommunityStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [
+      posts7,
+      replies7,
+      postReactions7,
+      replyReactions7,
+      follows7,
+      totalPosts,
+      totalReplies,
+      totalUsers,
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("discussion_posts")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("discussion_comments")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("post_reactions")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("reply_reactions")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabaseAdmin
+        .from("user_follows")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", since),
+      supabaseAdmin.from("discussion_posts").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("discussion_comments").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
+    ]);
+
+    const stats: CommunityStats = {
+      posts_7d: posts7.count ?? 0,
+      replies_7d: replies7.count ?? 0,
+      reactions_7d: (postReactions7.count ?? 0) + (replyReactions7.count ?? 0),
+      follows_7d: follows7.count ?? 0,
+      total_posts: totalPosts.count ?? 0,
+      total_replies: totalReplies.count ?? 0,
+      total_users: totalUsers.count ?? 0,
+    };
+    return stats;
+  });
+
+// ---------------------------------------------------------------------------
 // Legacy exports — kept so the previous community routes keep compiling while
 // we migrate them to the new feed UI. These simply proxy to the new fns.
 // ---------------------------------------------------------------------------

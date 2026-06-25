@@ -35,7 +35,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Pencil, Plus, Trash2, ShieldCheck, Mail, Inbox } from "lucide-react";
+import { Pencil, Plus, Trash2, ShieldCheck, Mail, Inbox, Lock, Unlock } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
 import {
@@ -53,6 +53,19 @@ import {
   checkAdminStatus,
   claimFirstAdmin,
 } from "@/lib/admin.functions";
+import {
+  adminListPosts,
+  adminListReplies,
+  adminListHashtags,
+  adminSuppressHashtag,
+  adminDeleteItem,
+  moderateThread,
+  adminCommunityStats,
+  type AdminPostRow,
+  type AdminReplyRow,
+  type AdminHashtagRow,
+  type CommunityStats,
+} from "@/lib/community.functions";
 import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -108,6 +121,7 @@ function AdminPage() {
             <TabsTrigger value="submissions">Submissions</TabsTrigger>
             <TabsTrigger value="waitlist">Waitlist</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
           </TabsList>
           <TabsContent value="agents" className="mt-6">
             <AgentsPanel />
@@ -126,6 +140,9 @@ function AdminPage() {
           </TabsContent>
           <TabsContent value="messages" className="mt-6">
             <MessagesPanel />
+          </TabsContent>
+          <TabsContent value="community" className="mt-6">
+            <CommunityPanel />
           </TabsContent>
         </Tabs>
       </section>
@@ -1331,5 +1348,314 @@ function PublishBadge({
       />
       {label}
     </span>
+  );
+}
+
+// ---------- Community moderation ----------
+
+function CommunityPanel() {
+  return (
+    <Tabs defaultValue="posts">
+      <TabsList>
+        <TabsTrigger value="posts">Posts</TabsTrigger>
+        <TabsTrigger value="replies">Replies</TabsTrigger>
+        <TabsTrigger value="hashtags">Hashtags</TabsTrigger>
+        <TabsTrigger value="stats">Stats</TabsTrigger>
+      </TabsList>
+      <TabsContent value="posts" className="mt-6">
+        <AdminPostsPanel />
+      </TabsContent>
+      <TabsContent value="replies" className="mt-6">
+        <AdminRepliesPanel />
+      </TabsContent>
+      <TabsContent value="hashtags" className="mt-6">
+        <AdminHashtagsPanel />
+      </TabsContent>
+      <TabsContent value="stats" className="mt-6">
+        <AdminCommunityStatsPanel />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+function AdminPostsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListPosts);
+  const del = useServerFn(adminDeleteItem);
+  const moderate = useServerFn(moderateThread);
+  const [locked, setLocked] = useState<"all" | "locked" | "open">("all");
+  const [category, setCategory] = useState<string>("");
+
+  const q = useQuery({
+    queryKey: ["admin-posts", locked, category],
+    queryFn: () => list({ data: { locked, category: category || undefined, limit: 50 } }),
+  });
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id, kind: "post" } }),
+    onSuccess: () => {
+      toast.success("Post deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-posts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const lockMut = useMutation({
+    mutationFn: (args: { id: string; locked: boolean }) =>
+      moderate({ data: { id: args.id, locked: args.locked } }),
+    onSuccess: (_r, args) => {
+      toast.success(args.locked ? "Thread locked." : "Thread unlocked.");
+      qc.invalidateQueries({ queryKey: ["admin-posts"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = q.data ?? [];
+
+  return (
+    <div>
+      <Toolbar
+        title="Community posts"
+        count={rows.length}
+        action={
+          <div className="flex items-center gap-2">
+            <Select value={locked} onValueChange={(v) => setLocked(v as typeof locked)}>
+              <SelectTrigger className="h-8 w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="open">Open</SelectItem>
+                <SelectItem value="locked">Locked</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Category filter"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="h-8 w-40"
+            />
+          </div>
+        }
+      />
+      <DataTable
+        loading={q.isLoading}
+        rows={rows}
+        columns={[
+          {
+            header: "Author",
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
+          },
+          {
+            header: "Post",
+            cell: (r) => (
+              <div className="max-w-md">
+                {r.title && <p className="font-medium">{r.title}</p>}
+                <p className="line-clamp-1 text-xs text-muted-foreground">{r.body}</p>
+              </div>
+            ),
+          },
+          {
+            header: "Category",
+            cell: (r) => <span className="text-muted-foreground">{r.category}</span>,
+          },
+          {
+            header: "Replies",
+            cell: (r) => <span>{r.reply_count}</span>,
+          },
+          {
+            header: "Reactions",
+            cell: (r) => <span>{Object.values(r.reaction_count).reduce((a, b) => a + b, 0)}</span>,
+          },
+          {
+            header: "Status",
+            cell: (r) =>
+              r.locked ? (
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs text-amber-600 ring-1 ring-amber-500/30">
+                  Locked
+                </span>
+              ) : (
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">
+                  Open
+                </span>
+              ),
+          },
+        ]}
+        actions={(r) => (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title={r.locked ? "Unlock" : "Lock"}
+              disabled={lockMut.isPending}
+              onClick={() => lockMut.mutate({ id: r.id, locked: !r.locked })}
+            >
+              {r.locked ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
+            </Button>
+            <DeleteBtn
+              onConfirm={() => delMut.mutate(r.id)}
+              name={r.title ?? r.body.slice(0, 40)}
+            />
+          </>
+        )}
+      />
+    </div>
+  );
+}
+
+function AdminRepliesPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListReplies);
+  const del = useServerFn(adminDeleteItem);
+  const q = useQuery({
+    queryKey: ["admin-replies"],
+    queryFn: () => list({ data: { limit: 50 } }),
+  });
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id, kind: "reply" } }),
+    onSuccess: () => {
+      toast.success("Reply deleted.");
+      qc.invalidateQueries({ queryKey: ["admin-replies"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = q.data ?? [];
+
+  return (
+    <div>
+      <Toolbar title="Community replies" count={rows.length} />
+      <DataTable
+        loading={q.isLoading}
+        rows={rows}
+        columns={[
+          {
+            header: "Author",
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
+          },
+          {
+            header: "Reply",
+            cell: (r) => <p className="max-w-md line-clamp-2 text-xs">{r.body}</p>,
+          },
+          {
+            header: "On post",
+            cell: (r) => (
+              <Link
+                to="/community/$id"
+                params={{ id: r.post_id }}
+                className="text-primary hover:underline"
+              >
+                {r.post_title ?? r.post_id.slice(0, 8)}
+              </Link>
+            ),
+          },
+          { header: "Depth", cell: (r) => <span>{r.depth}</span> },
+          {
+            header: "Reactions",
+            cell: (r) => <span>{Object.values(r.reaction_count).reduce((a, b) => a + b, 0)}</span>,
+          },
+        ]}
+        actions={(r) => (
+          <DeleteBtn onConfirm={() => delMut.mutate(r.id)} name={r.body.slice(0, 40)} />
+        )}
+      />
+    </div>
+  );
+}
+
+function AdminHashtagsPanel() {
+  const qc = useQueryClient();
+  const list = useServerFn(adminListHashtags);
+  const suppress = useServerFn(adminSuppressHashtag);
+  const q = useQuery({
+    queryKey: ["admin-hashtags"],
+    queryFn: () => list({ data: { limit: 100 } }),
+  });
+
+  const suppressMut = useMutation({
+    mutationFn: (args: { id: string; suppressed: boolean }) =>
+      suppress({ data: { id: args.id, suppressed: args.suppressed } }),
+    onSuccess: (_r, args) => {
+      toast.success(args.suppressed ? "Hashtag suppressed." : "Hashtag restored.");
+      qc.invalidateQueries({ queryKey: ["admin-hashtags"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const rows = q.data ?? [];
+
+  return (
+    <div>
+      <Toolbar title="Hashtags" count={rows.length} />
+      <DataTable
+        loading={q.isLoading}
+        rows={rows}
+        columns={[
+          {
+            header: "Tag",
+            cell: (r) => <span className="font-medium">#{r.tag}</span>,
+          },
+          { header: "Posts", cell: (r) => <span>{r.usage_count}</span> },
+          {
+            header: "Status",
+            cell: (r) =>
+              r.suppressed ? (
+                <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-xs text-red-600 ring-1 ring-red-500/30">
+                  Suppressed
+                </span>
+              ) : (
+                <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">
+                  Active
+                </span>
+              ),
+          },
+        ]}
+        actions={(r) => (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={suppressMut.isPending}
+            onClick={() => suppressMut.mutate({ id: r.id, suppressed: !r.suppressed })}
+          >
+            {r.suppressed ? "Restore" : "Suppress"}
+          </Button>
+        )}
+      />
+    </div>
+  );
+}
+
+function AdminCommunityStatsPanel() {
+  const get = useServerFn(adminCommunityStats);
+  const q = useQuery({ queryKey: ["admin-community-stats"], queryFn: () => get() });
+  const s = q.data;
+
+  return (
+    <div>
+      <Toolbar title="Community health" count={0} />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Posts (7d)" value={s?.posts_7d ?? 0} />
+        <StatCard label="Replies (7d)" value={s?.replies_7d ?? 0} />
+        <StatCard label="Reactions (7d)" value={s?.reactions_7d ?? 0} />
+        <StatCard label="New follows (7d)" value={s?.follows_7d ?? 0} />
+      </div>
+      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <StatCard label="Total posts" value={s?.total_posts ?? 0} />
+        <StatCard label="Total replies" value={s?.total_replies ?? 0} />
+        <StatCard label="Total users" value={s?.total_users ?? 0} />
+      </div>
+      {q.error && <p className="mt-4 text-sm text-destructive">{(q.error as Error).message}</p>}
+    </div>
+  );
+}
+
+function StatCard({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-2 font-display text-2xl font-semibold">{value}</div>
+    </div>
   );
 }

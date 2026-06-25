@@ -34,11 +34,11 @@ export const Route = createFileRoute("/knowledge/$slug")({
   head: ({ params, loaderData }) => {
     const a = loaderData?.article;
     const path = `/knowledge/${params.slug}`;
-    if (!a) return { meta: [{ title: "Article — Melanated In Tech" }] };
+    if (!a) return { meta: [{ title: "Article - Melanated In Tech" }] };
     return {
       meta: [
         ...buildSeoMeta({
-          title: `${a.title} — Melanated In Tech`,
+          title: `${a.title} - Melanated In Tech`,
           description: a.excerpt,
           url: path,
           type: "article",
@@ -223,8 +223,21 @@ function ArticleView() {
           <Markdown md={article.body} />
         </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-5">
-          <p className="text-sm font-medium">Found this useful? Share it.</p>
-          <ShareBar title={article.title} text={article.excerpt} className="mt-3" />
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Found this useful?</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Share it, save it, or bring the idea into the community.
+              </p>
+            </div>
+            <Link
+              to="/community"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+            >
+              Discuss it
+            </Link>
+          </div>
+          <ShareBar title={article.title} text={article.excerpt} className="mt-4" />
         </div>
       </article>
 
@@ -243,7 +256,7 @@ function ArticleView() {
                 </h2>
               </div>
               <Link to="/knowledge" className="text-sm font-medium text-primary hover:underline">
-                All articles →
+                All articles
               </Link>
             </div>
             <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -287,7 +300,7 @@ function ArticleView() {
                 </h2>
               </div>
               <Link to="/agents" className="text-sm font-medium text-primary hover:underline">
-                Browse agents →
+                Browse agents
               </Link>
             </div>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

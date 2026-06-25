@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, Link as LinkIcon, Share2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -6,7 +6,11 @@ type Props = { title: string; text?: string; className?: string };
 
 export function ShareBar({ title, text, className }: Props) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window !== "undefined" ? window.location.href : "";
+  const [url, setUrl] = useState("");
+
+  useEffect(() => {
+    setUrl(window.location.href);
+  }, []);
 
   async function copy() {
     try {
@@ -25,7 +29,7 @@ export function ShareBar({ title, text, className }: Props) {
         await navigator.share({ title, text, url });
         return;
       } catch {
-        // user dismissed or unsupported — fall through to copy
+        // User dismissed or unsupported; fall through to copy.
       }
     }
     copy();
@@ -60,7 +64,7 @@ export function ShareBar({ title, text, className }: Props) {
       </button>
       <span className="mx-1 hidden h-5 w-px bg-border sm:inline-block" />
       <ShareLink href={xUrl} label="Share on X">
-        𝕏
+        X
       </ShareLink>
       <ShareLink href={liUrl} label="Share on LinkedIn">
         in

@@ -50,7 +50,7 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 /**
  * Minimal but correct Markdown renderer for article bodies. Supports headings
  * (#, ##, ###), unordered (-) and ordered (1.) lists, blockquotes (>), and the
- * inline formatting above. Intentionally tiny — no external dependency.
+ * inline formatting above. Intentionally tiny - no external dependency.
  */
 function splitTableRow(line: string): string[] {
   return line

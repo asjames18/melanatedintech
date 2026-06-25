@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowRight, BookMarked, Search, SlidersHorizontal, X } from "lucide-react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -25,15 +25,44 @@ const LENGTHS: Length[] = ["All", "Quick", "Medium", "Deep"];
 const lengthOf = (m: number): Exclude<Length, "All"> =>
   m <= 5 ? "Quick" : m <= 9 ? "Medium" : "Deep";
 
+const FEATURED_SLUGS = [
+  "agent-operating-system-for-small-teams",
+  "agent-evaluation-golden-set",
+  "mcp-security-checklist-non-security-teams",
+];
+
+const LEARNING_PATHS = [
+  {
+    title: "Start building",
+    category: "Getting Started",
+    body: "Pick a first workflow, write a stronger agent brief, and avoid early overreach.",
+  },
+  {
+    title: "Operate safely",
+    category: "Agent Security",
+    body: "Scope tools, design approval gates, and test the ways agents can be misled.",
+  },
+  {
+    title: "Prove it works",
+    category: "Evaluation",
+    body: "Create golden sets, inspect tool use, and measure improvement before scaling.",
+  },
+  {
+    title: "Keep people coming back",
+    category: "Community",
+    body: "Turn repeated questions and real experiments into useful guides and discussions.",
+  },
+];
+
 export const Route = createFileRoute("/knowledge/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
-      { title: "Agent Knowledge Hub — Melanated In Tech" },
+      { title: "Agent Knowledge Hub - Melanated In Tech" },
       {
         name: "description",
         content:
-          "Guides, frameworks, and field notes on AI agents — memory, MCP, multi-agent systems, local AI, and more.",
+          "Guides, frameworks, and field notes on AI agents - memory, MCP, multi-agent systems, local AI, and more.",
       },
       { property: "og:title", content: "AI Agent Knowledge Hub" },
       { property: "og:description", content: "Practical knowledge for people building AI agents." },
@@ -111,6 +140,9 @@ function KnowledgeIndex() {
   };
 
   const hasFilters = cat !== "All" || len !== "All" || q.length > 0;
+  const featured = FEATURED_SLUGS.map((slug) => articles.find((a) => a.slug === slug)).filter(
+    Boolean,
+  ) as typeof articles;
 
   return (
     <SiteLayout>
@@ -121,6 +153,45 @@ function KnowledgeIndex() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        {featured.length > 0 && (
+          <div className="mb-10">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl font-semibold">Start with these playbooks</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Practical guides built for repeat visits: launch, evaluate, secure, improve.
+                </p>
+              </div>
+              <BookMarked className="hidden h-6 w-6 text-primary sm:block" aria-hidden />
+            </div>
+            <div className="mt-5 grid gap-5 md:grid-cols-3">
+              {featured.map((a) => (
+                <ArticleCard key={a.id} {...a} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-10 grid gap-3 md:grid-cols-4">
+          {LEARNING_PATHS.map((path) => (
+            <button
+              key={path.title}
+              onClick={() => setCat(path.category)}
+              className="group rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+            >
+              <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                {path.category}
+              </p>
+              <h3 className="mt-2 font-display text-lg font-semibold">{path.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{path.body}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                Explore path{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </button>
+          ))}
+        </div>
+
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
@@ -128,7 +199,7 @@ function KnowledgeIndex() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search articles, topics, frameworks…"
+                placeholder="Search articles, topics, frameworks..."
                 className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-9 text-sm outline-none transition focus:border-foreground/30 focus:ring-2 focus:ring-primary/20"
                 aria-label="Search articles"
               />
@@ -174,9 +245,9 @@ function KnowledgeIndex() {
                 }`}
                 title={
                   l === "Quick"
-                    ? "≤ 5 min"
+                    ? "<= 5 min"
                     : l === "Medium"
-                      ? "6–9 min"
+                      ? "6-9 min"
                       : l === "Deep"
                         ? "10+ min"
                         : "Any length"

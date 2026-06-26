@@ -11,7 +11,7 @@ export type Database = {
       seller_profiles: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
           display_name: string;
           slug: string;
           bio: string | null;
@@ -26,7 +26,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
-          user_id: string;
+          user_id?: string | null;
           display_name: string;
           slug: string;
           bio?: string | null;
@@ -41,7 +41,7 @@ export type Database = {
         };
         Update: {
           id?: string;
-          user_id?: string;
+          user_id?: string | null;
           display_name?: string;
           slug?: string;
           bio?: string | null;

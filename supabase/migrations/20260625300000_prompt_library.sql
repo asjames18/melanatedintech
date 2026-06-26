@@ -3,7 +3,7 @@
 
 create table if not exists public.prompts (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
   title text not null,
   content text not null,
   category text not null default 'General',
@@ -44,10 +44,9 @@ grant select, insert, update, delete on public.prompts to authenticated;
 grant all on public.prompts to service_role;
 
 -- Seed a few community prompts so the library isn't empty on first load.
-insert into public.prompts (user_id, title, content, category, tags, is_public, usage_count)
+insert into public.prompts (title, content, category, tags, is_public, usage_count)
 values
   (
-    '00000000-0000-0000-0000-000000000000',
     'Agent Brief Template',
     'Define the agent in one paragraph: who it serves, what goal it pursues, what tools it can use, and what it must refuse to do. Then list three success criteria.',
     'Templates',
@@ -56,7 +55,6 @@ values
     12
   ),
   (
-    '00000000-0000-0000-0000-000000000000',
     'Prompt Injection Drill',
     'Write one plausible prompt injection attempt against your agent workflow. Then write the guardrail that would catch it. Share both for peer review.',
     'Security',
@@ -65,7 +63,6 @@ values
     8
   ),
   (
-    '00000000-0000-0000-0000-000000000000',
     'Golden Set Evaluator',
     'List five inputs that should produce a correct answer from your agent. For each one, write the expected output in one sentence. Use this set to catch regressions after changes.',
     'Evaluation',

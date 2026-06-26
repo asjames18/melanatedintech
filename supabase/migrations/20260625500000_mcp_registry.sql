@@ -20,25 +20,39 @@ create table if not exists public.mcp_servers (
 -- Users can manage their own submissions.
 alter table public.mcp_servers enable row level security;
 
+drop policy if exists "mcp_read_public" on public.mcp_servers;
 create policy "mcp_read_public" on public.mcp_servers
-  for select using (is_public and is_approved);
+  for select
+  using (is_public and is_approved);
 
+drop policy if exists "mcp_admin_all" on public.mcp_servers;
 create policy "mcp_admin_all" on public.mcp_servers
-  for all using (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid() and profiles.role = 'admin'
-    )
-  );
+  for all
+  using (public.has_role(auth.uid(), 'admin'))
+  with check (public.has_role(auth.uid(), 'admin'));
 
+drop policy if exists "mcp_insert_authenticated" on public.mcp_servers;
 create policy "mcp_insert_authenticated" on public.mcp_servers
-  for insert with check (auth.uid() is not null);
+  for insert
+  to authenticated
+  with check (submitted_by = auth.uid());
 
+drop policy if exists "mcp_update_owner" on public.mcp_servers;
 create policy "mcp_update_owner" on public.mcp_servers
-  for update using (submitted_by = auth.uid());
+  for update
+  to authenticated
+  using (submitted_by = auth.uid())
+  with check (submitted_by = auth.uid());
 
+drop policy if exists "mcp_delete_owner" on public.mcp_servers;
 create policy "mcp_delete_owner" on public.mcp_servers
-  for delete using (submitted_by = auth.uid());
+  for delete
+  to authenticated
+  using (submitted_by = auth.uid());
+
+grant select on public.mcp_servers to anon, authenticated;
+grant insert, update, delete on public.mcp_servers to authenticated;
+grant all on public.mcp_servers to service_role;
 
 -- Index for common filters.
 create index if not exists mcp_servers_provider_idx on public.mcp_servers (provider);

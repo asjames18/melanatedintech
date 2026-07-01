@@ -15,6 +15,8 @@ import { Button } from "@/components/ui/button";
 import { PostCard } from "@/components/feed/post-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
+import { LeftSidebar } from "@/components/feed/left-sidebar";
+import { TrendingSidebar } from "@/components/feed/trending-sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getPublicProfile,
@@ -91,7 +93,7 @@ function ProfilePage() {
   }, []);
 
   const follow = useServerFn(toggleFollow);
-  const avatarUrl = useAvatarUrl(profile.avatar_url);
+  const avatarUrl = useAvatarUrl(profile?.avatar_url ?? null);
 
   const followMut = useMutation({
     mutationFn: () => follow({ data: { followee_id: userId } }),
@@ -110,48 +112,61 @@ function ProfilePage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  if (!profile) return null;
   const isSelf = me === userId;
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
-        <Link to="/community" className="text-sm text-muted-foreground hover:text-foreground">
-          ← Community
-        </Link>
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
+          <LeftSidebar />
 
-        <header className="mt-6 flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-          <Avatar className="h-20 w-20">
-            {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
-            <AvatarFallback className="text-xl">
-              {(profile.display_name ?? "?").slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <h1 className="font-display text-2xl font-semibold">
-              {profile.display_name ?? "Someone"}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {profile.post_count} {profile.post_count === 1 ? "post" : "posts"} ·{" "}
-              {profile.followers_count} followers · {profile.following_count} following
-            </p>
-            {profile.bio && <p className="mt-3 text-sm">{profile.bio}</p>}
+          <div className="space-y-6 min-w-0">
+            <Link to="/community" className="text-sm text-muted-foreground hover:text-foreground">
+              ← Back to feed
+            </Link>
+
+            <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center bg-card border border-border rounded-2xl p-5 shadow-sm">
+              <Avatar className="h-20 w-20 ring-2 ring-primary/20">
+                {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+                <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
+                  {(profile.display_name ?? "?").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <h1 className="font-display text-2xl font-bold text-foreground">
+                  {profile.display_name ?? "Someone"}
+                </h1>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  <span className="font-semibold text-foreground">{profile.post_count}</span> {profile.post_count === 1 ? "post" : "posts"} ·{" "}
+                  <span className="font-semibold text-foreground">{profile.followers_count}</span> followers ·{" "}
+                  <span className="font-semibold text-foreground">{profile.following_count}</span> following
+                </p>
+                {profile.bio && <p className="mt-3 text-sm text-foreground/90 leading-relaxed">{profile.bio}</p>}
+              </div>
+              {!isSelf && me && (
+                <Button
+                  variant={profile.is_following ? "outline" : "default"}
+                  disabled={followMut.isPending}
+                  className="rounded-xl px-5"
+                  onClick={() => followMut.mutate()}
+                >
+                  {followMut.isPending ? "…" : profile.is_following ? "Following" : "Follow"}
+                </Button>
+              )}
+            </header>
+
+            <div className="border-t border-border/60 pt-4">
+              <h2 className="font-display text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-4">
+                Posts by {profile.display_name ?? "User"}
+              </h2>
+              <UserPosts userId={userId} viewerId={me} />
+            </div>
           </div>
-          {!isSelf && me && (
-            <Button
-              variant={profile.is_following ? "outline" : "default"}
-              disabled={followMut.isPending}
-              onClick={() => followMut.mutate()}
-            >
-              {followMut.isPending ? "…" : profile.is_following ? "Following" : "Follow"}
-            </Button>
-          )}
-        </header>
 
-        <div className="mt-8 border-t border-border pt-6">
-          <h2 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
-            Posts
-          </h2>
-          <UserPosts userId={userId} viewerId={me} />
+          <aside className="hidden lg:block">
+            <TrendingSidebar />
+          </aside>
         </div>
       </section>
     </SiteLayout>
@@ -217,11 +232,18 @@ function UserPosts({ userId, viewerId }: { userId: string; viewerId: string | nu
             ...p,
             posts: p.posts.map((post) => {
               if (post.id !== postId) return post;
-              const mine = on
-                ? Array.from(new Set([...post.reactions_by_me, kind]))
-                : post.reactions_by_me.filter((k: string) => k !== kind);
+              let mine = post.reactions_by_me;
               const counts = { ...post.reaction_count };
-              counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+              if (on) {
+                for (const prev of mine) {
+                  counts[prev] = Math.max((counts[prev] ?? 0) - 1, 0);
+                }
+                mine = [kind];
+                counts[kind] = (counts[kind] ?? 0) + 1;
+              } else {
+                mine = mine.filter((k: string) => k !== kind);
+                counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+              }
               return { ...post, reactions_by_me: mine, reaction_count: counts };
             }),
           })),

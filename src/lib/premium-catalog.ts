@@ -64,7 +64,7 @@ export async function resolvePremiumEntry(
     .select("price_cents")
     .eq("slug", slug)
     .eq("active", true)
-    .not("price_cents", null)
+    .not("price_cents", "is", null)
     .maybeSingle();
 
   if (data?.price_cents) {

@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div className="lg:col-span-1">
           <Link to="/" aria-label={`${SITE.name} home`} className="inline-flex">
             <img
-              src="/brand/mit-monogram.svg"
+              src="/brand/mit-logo.png"
               alt=""
               className="h-10 w-10 rounded-lg"
               aria-hidden="true"

@@ -11,6 +11,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check, MessageSquare, PlayCircle } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
+import { ShareBar } from "@/components/share-bar";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -95,6 +96,7 @@ function PathDetail() {
         eyebrow={`${path.audience} / ${path.difficulty}`}
         title={path.title}
         description={path.excerpt}
+        actions={<ShareBar title={path.title} text={path.excerpt} />}
       />
 
       <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
@@ -128,36 +130,53 @@ function PathDetail() {
           </div>
         </div>
 
-        <ol className="space-y-5">
-          {path.items.map((item, index) => (
-            <li key={item.id} className="rounded-2xl border border-border bg-card p-5">
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                    Step {index + 1} / {labelFor(item.item_type)}
-                  </p>
-                  {item.item_type === "community_prompt" && (
-                    <h2 className="mt-1 font-display text-xl font-semibold">{item.title}</h2>
+        <div className="relative border-l border-border/80 ml-4 pl-6 md:ml-8 md:pl-10 space-y-8">
+          {path.items.map((item, index) => {
+            const isDone = completed.has(item.id);
+            return (
+              <div key={item.id} className="relative">
+                {/* Timeline Node Bullet */}
+                <div className="absolute -left-[35px] md:-left-[51px] top-1.5 flex h-7 w-7 items-center justify-center rounded-full border bg-card text-[11px] font-semibold shadow-sm select-none">
+                  {isDone ? (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white animate-in zoom-in duration-300">
+                      <Check className="h-3 w-3 stroke-[3]" />
+                    </span>
+                  ) : (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground border border-border/50">
+                      {index + 1}
+                    </span>
                   )}
                 </div>
-                {signedIn && (
-                  <Button
-                    size="sm"
-                    variant={completed.has(item.id) ? "default" : "outline"}
-                    onClick={() =>
-                      progressMut.mutate({ itemId: item.id, completed: !completed.has(item.id) })
-                    }
-                    disabled={progressMut.isPending}
-                  >
-                    <Check className="h-4 w-4" />
-                    {completed.has(item.id) ? "Done" : "Mark done"}
-                  </Button>
-                )}
+
+                {/* Step Card */}
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:border-foreground/10 hover:shadow-md">
+                  <div className="mb-4 flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wider text-muted-foreground">
+                        Step {index + 1} / {labelFor(item.item_type)}
+                      </p>
+                      {item.item_type === "community_prompt" && (
+                        <h2 className="mt-1 font-display text-xl font-semibold">{item.title}</h2>
+                      )}
+                    </div>
+                    {signedIn && (
+                      <Button
+                        size="sm"
+                        variant={isDone ? "default" : "outline"}
+                        onClick={() => progressMut.mutate({ itemId: item.id, completed: !isDone })}
+                        disabled={progressMut.isPending}
+                      >
+                        <Check className="h-4 w-4" />
+                        {isDone ? "Done" : "Mark done"}
+                      </Button>
+                    )}
+                  </div>
+                  <PathItem item={item} pathSlug={path.slug} />
+                </div>
               </div>
-              <PathItem item={item} pathSlug={path.slug} />
-            </li>
-          ))}
-        </ol>
+            );
+          })}
+        </div>
       </section>
     </SiteLayout>
   );
@@ -181,15 +200,38 @@ function PathItem({ item, pathSlug }: { item: ResolvedLearningPathItem; pathSlug
     return <ProductCard {...item.resource} />;
   }
   if (item.item_type === "community_prompt") {
+    const isEvalPath = pathSlug === "evaluate-your-agent";
+    const isLaunchPath = pathSlug === "launch-a-paid-agent-product";
+
+    const toolLink = isEvalPath
+      ? "/tools/model-playground"
+      : isLaunchPath
+        ? "/tools/gpt-trainer"
+        : "/tools/prompt-pilot";
+
+    const toolLabel = isEvalPath
+      ? "Compare in Playground"
+      : isLaunchPath
+        ? "Compile in GPT Trainer"
+        : "Build in Prompt Pilot";
+
     return (
       <div className="rounded-xl bg-muted/50 p-5">
         <p className="text-sm text-muted-foreground">{item.excerpt}</p>
-        <Button asChild className="mt-5">
-          <Link to="/community" search={{ tag: pathSlug }}>
-            <MessageSquare className="h-4 w-4" />
-            Post your result
-          </Link>
-        </Button>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Button asChild>
+            <Link to={toolLink as any}>
+              <PlayCircle className="mr-1.5 h-4 w-4" />
+              {toolLabel}
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/community" search={{ tag: pathSlug }}>
+              <MessageSquare className="mr-1.5 h-4 w-4" />
+              Post your result
+            </Link>
+          </Button>
+        </div>
       </div>
     );
   }

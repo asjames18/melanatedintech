@@ -95,7 +95,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
       const session = await stripe.checkout.sessions.create({
         line_items: [{ price: stripePrice.id, quantity: 1 }],
         mode: "payment",
-        ui_mode: "embedded",
+        ui_mode: "embedded" as any,
         return_url: data.returnUrl,
         customer: customerId,
         payment_intent_data: { description: product.name },

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getBuilderChallenge } from "@/lib/retention.functions";
 import { buildSeoMeta } from "@/lib/seo";
 import { toast } from "sonner";
+import { ShareBar } from "@/components/share-bar";
 
 const qo = (slug: string) =>
   queryOptions({
@@ -77,6 +78,7 @@ function ChallengeDetail() {
                 Post your result
               </Link>
             </Button>
+            <ShareBar title={challenge.title} text={challenge.excerpt} />
           </div>
         </div>
 

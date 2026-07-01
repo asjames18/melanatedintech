@@ -11,9 +11,12 @@ import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft, Lock, Unlock } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
+import { ShareBar } from "@/components/share-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { PostCard } from "@/components/feed/post-card";
 import { ReplyThread } from "@/components/feed/reply-thread";
+import { LeftSidebar } from "@/components/feed/left-sidebar";
+import { TrendingSidebar } from "@/components/feed/trending-sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   getThread,
@@ -176,11 +179,18 @@ function ThreadView() {
       await qc.cancelQueries({ queryKey: ["thread", id] });
       const prev = qc.getQueryData<FeedThread>(["thread", id]);
       if (!prev) return;
-      const mine = on
-        ? Array.from(new Set([...prev.post.reactions_by_me, kind]))
-        : prev.post.reactions_by_me.filter((k: string) => k !== kind);
+      let mine = prev.post.reactions_by_me;
       const counts = { ...prev.post.reaction_count };
-      counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+      if (on) {
+        for (const prevKind of mine) {
+          counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
+        }
+        mine = [kind];
+        counts[kind] = (counts[kind] ?? 0) + 1;
+      } else {
+        mine = mine.filter((k: string) => k !== kind);
+        counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+      }
       qc.setQueryData(["thread", id], {
         ...prev,
         post: { ...prev.post, reactions_by_me: mine, reaction_count: counts },
@@ -207,11 +217,18 @@ function ThreadView() {
       if (!prev) return;
       const replies = prev.replies.map((r) => {
         if (r.id !== replyId) return r;
-        const mine = on
-          ? Array.from(new Set([...r.reactions_by_me, kind]))
-          : r.reactions_by_me.filter((k: string) => k !== kind);
+        let mine = r.reactions_by_me;
         const counts = { ...r.reaction_count };
-        counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+        if (on) {
+          for (const prevKind of mine) {
+            counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
+          }
+          mine = [kind];
+          counts[kind] = (counts[kind] ?? 0) + 1;
+        } else {
+          mine = mine.filter((k: string) => k !== kind);
+          counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+        }
         return { ...r, reactions_by_me: mine, reaction_count: counts };
       });
       qc.setQueryData(["thread", id], { ...prev, replies });
@@ -261,106 +278,124 @@ function ThreadView() {
 
   return (
     <SiteLayout>
-      <article className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link
-          to="/community"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Community
-        </Link>
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
+          <LeftSidebar />
 
-        <div className="mt-4">
-          <PostCard
-            post={post}
-            viewerId={me}
-            isAdmin={isAdmin}
-            onToggleReaction={togglePostReaction}
-            onDelete={(postId, asAdmin) => deletePostMut.mutate({ asAdmin })}
-            canReact={!!me}
-            hideReplyLink
-          />
-        </div>
+          <div className="space-y-4 min-w-0">
+            <Link
+              to="/community"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to feed
+            </Link>
 
-        {(isAdmin || ownsPost) && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground"
-                disabled={lockMut.isPending}
-                onClick={() => lockMut.mutate(!post.locked)}
-              >
-                {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
-                {post.locked ? "Unlock thread" : "Lock thread"}
-              </Button>
-            )}
-          </div>
-        )}
-
-        <section className="mt-8">
-          <h2 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
-            {replies.length} {replies.length === 1 ? "reply" : "replies"}
-          </h2>
-
-          {replies.length > 0 ? (
-            <div className="mt-4">
-              <ReplyThread
-                replies={replies}
-                postId={id}
+            <div>
+              <PostCard
+                post={post}
                 viewerId={me}
                 isAdmin={isAdmin}
-                locked={post.locked}
-                onToggleReplyReaction={toggleReplyReaction}
-                onReply={(args) => replyMut.mutateAsync(args)}
-                onDeleteReply={(replyId, asAdmin) => delMut.mutate({ replyId, asAdmin })}
-                pendingReply={replyMut.isPending}
+                onToggleReaction={(_, kind) => togglePostReaction(kind)}
+                onDelete={(postId, asAdmin) => deletePostMut.mutate({ asAdmin })}
+                canReact={!!me}
+                hideReplyLink
               />
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              No replies yet — start the conversation.
-            </p>
-          )}
-        </section>
-
-        <section className="mt-8 rounded-2xl border border-border bg-card p-5">
-          <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
-            Reply
-          </h3>
-          {post.locked ? (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Lock className="h-3.5 w-3.5" /> This thread is locked. New replies are turned off.
-            </p>
-          ) : me === null ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              <Link to="/auth" className="text-primary">
-                Sign in
-              </Link>{" "}
-              to join the conversation.
-            </p>
-          ) : (
-            <>
-              <Textarea
-                rows={4}
-                maxLength={REPLY_BODY_MAX}
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                placeholder="Add to the discussion…"
-                className="mt-3"
-              />
-              <div className="mt-3 flex justify-end">
-                <Button
-                  onClick={() => replyMut.mutate({ body: reply })}
-                  disabled={replyMut.isPending || reply.trim().length === 0}
-                >
-                  {replyMut.isPending ? "Posting…" : "Post reply"}
-                </Button>
+              <div className="mt-3">
+                <ShareBar
+                  title={post.title ?? "Community discussion"}
+                  text={post.body?.slice(0, 120)}
+                />
               </div>
-            </>
-          )}
-        </section>
-      </article>
+            </div>
+
+            {(isAdmin || ownsPost) && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    disabled={lockMut.isPending}
+                    onClick={() => lockMut.mutate(!post.locked)}
+                  >
+                    {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                    {post.locked ? "Unlock thread" : "Lock thread"}
+                  </Button>
+                )}
+              </div>
+            )}
+
+            <section className="mt-6">
+              <h2 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+                {replies.length} {replies.length === 1 ? "reply" : "replies"}
+              </h2>
+
+              {replies.length > 0 ? (
+                <div className="mt-4">
+                  <ReplyThread
+                    replies={replies}
+                    postId={id}
+                    viewerId={me}
+                    isAdmin={isAdmin}
+                    locked={post.locked}
+                    onToggleReplyReaction={toggleReplyReaction}
+                    onReply={async (args) => {
+                      await replyMut.mutateAsync(args);
+                    }}
+                    onDeleteReply={(replyId, asAdmin) => delMut.mutate({ replyId, asAdmin })}
+                    pendingReply={replyMut.isPending}
+                  />
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  No replies yet — start the conversation.
+                </p>
+              )}
+            </section>
+
+            <section className="mt-6 rounded-2xl border border-border bg-card p-5">
+              <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+                Reply
+              </h3>
+              {post.locked ? (
+                <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5" /> This thread is locked. New replies are turned off.
+                </p>
+              ) : me === null ? (
+                <p className="mt-3 text-sm text-muted-foreground">
+                  <Link to="/auth" className="text-primary">
+                    Sign in
+                  </Link>{" "}
+                  to join the conversation.
+                </p>
+              ) : (
+                <>
+                  <Textarea
+                    rows={4}
+                    maxLength={REPLY_BODY_MAX}
+                    value={reply}
+                    onChange={(e) => setReply(e.target.value)}
+                    placeholder="Add to the discussion…"
+                    className="mt-3"
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      onClick={() => replyMut.mutate({ body: reply })}
+                      disabled={replyMut.isPending || reply.trim().length === 0}
+                    >
+                      {replyMut.isPending ? "Posting…" : "Post reply"}
+                    </Button>
+                  </div>
+                </>
+              )}
+            </section>
+          </div>
+
+          <aside className="hidden lg:block">
+            <TrendingSidebar />
+          </aside>
+        </div>
+      </section>
     </SiteLayout>
   );
 }

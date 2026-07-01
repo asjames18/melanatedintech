@@ -39,8 +39,8 @@ export const Route = createFileRoute("/sitemap.xml")({
         });
 
         const [agents, articles, products, paths, challenges, posts, authors] = await Promise.all([
-          supabase.from("agents").select("slug, updated_at"),
-          supabase.from("articles").select("slug, updated_at, published_at"),
+          supabase.from("agents").select("slug, updated_at").eq("active", true),
+          supabase.from("articles").select("slug, updated_at, published_at").eq("published", true),
           supabase.from("products").select("slug, updated_at").eq("active", true),
           supabase.from("learning_paths").select("slug, updated_at").eq("published", true),
           supabase.from("builder_challenges").select("slug, updated_at").eq("published", true),

@@ -12,9 +12,11 @@ function publicClient() {
 
 export const listAgents = createServerFn({ method: "GET" }).handler(async () => {
   const sb = publicClient();
+  const now = new Date().toISOString();
   const { data, error } = await sb
     .from("agents")
     .select("id,slug,name,tagline,category,capabilities,tier,price_cents,image_url,featured")
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .order("featured", { ascending: false })
     .order("name");
   if (error) throw new Error(error.message);
@@ -25,6 +27,7 @@ export const getAgent = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
+    const now = new Date().toISOString();
     const baseCols =
       "id,slug,name,tagline,description,category,capabilities,tier,price_cents,image_url,featured,model";
     // Never select unlock_content here — RLS is row-level, so select("*") would
@@ -35,12 +38,14 @@ export const getAgent = createServerFn({ method: "GET" })
       .from("agents")
       .select(`${baseCols},unlock_content,asset_path`)
       .eq("slug", data.slug)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
     if (error && /unlock_content|asset_path|column/i.test(error.message)) {
       ({ data: row, error } = await sb
         .from("agents")
         .select(baseCols)
         .eq("slug", data.slug)
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
         .maybeSingle());
     }
     if (error) throw new Error(error.message);
@@ -53,9 +58,11 @@ export const getAgent = createServerFn({ method: "GET" })
 
 export const listArticles = createServerFn({ method: "GET" }).handler(async () => {
   const sb = publicClient();
+  const now = new Date().toISOString();
   const { data, error } = await sb
     .from("articles")
     .select("id,slug,title,excerpt,category,read_minutes,published_at")
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .order("published_at", { ascending: false });
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -65,10 +72,12 @@ export const getArticle = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
+    const now = new Date().toISOString();
     const { data: row, error } = await sb
       .from("articles")
       .select("*")
       .eq("slug", data.slug)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
     if (error) throw new Error(error.message);
     return row;
@@ -76,10 +85,11 @@ export const getArticle = createServerFn({ method: "GET" })
 
 export const listProducts = createServerFn({ method: "GET" }).handler(async () => {
   const sb = publicClient();
+  const now = new Date().toISOString();
   const { data, error } = await sb
     .from("products")
     .select("id,slug,name,tagline,category,tier,price_cents,image_url")
-    .eq("active", true)
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .order("name");
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -89,6 +99,7 @@ export const getProduct = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
+    const now = new Date().toISOString();
     const baseCols =
       "id,slug,name,tagline,description,category,tier,price_cents,image_url,active,created_at,updated_at";
     // Never select unlock_content here — RLS is row-level, so select("*") would
@@ -99,14 +110,14 @@ export const getProduct = createServerFn({ method: "GET" })
       .from("products")
       .select(`${baseCols},unlock_content,asset_path`)
       .eq("slug", data.slug)
-      .eq("active", true)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
     if (error && /unlock_content|asset_path|column/i.test(error.message)) {
       ({ data: row, error } = await sb
         .from("products")
         .select(baseCols)
         .eq("slug", data.slug)
-        .eq("active", true)
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
         .maybeSingle());
     }
     if (error) throw new Error(error.message);
@@ -125,9 +136,11 @@ export const getProduct = createServerFn({ method: "GET" })
 
 export const listServices = createServerFn({ method: "GET" }).handler(async () => {
   const sb = publicClient();
+  const now = new Date().toISOString();
   const { data, error } = await sb
     .from("services")
     .select("id,slug,name,tagline,description,outcomes,starting_price_cents")
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .order("name");
   if (error) throw new Error(error.message);
   return data ?? [];

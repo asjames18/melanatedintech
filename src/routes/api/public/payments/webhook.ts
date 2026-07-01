@@ -16,7 +16,11 @@ async function handleEvent(event: StripeEventLike, env: StripeEnv) {
       return;
     case "transaction.completed": {
       // Lovable-normalized event - try to resolve back to a checkout session
-      const sessionId = obj?.checkout_session_id ?? obj?.session_id ?? obj?.metadata?.session_id;
+      const sessionObj = obj as any;
+      const sessionId =
+        sessionObj?.checkout_session_id ??
+        sessionObj?.session_id ??
+        sessionObj?.metadata?.session_id;
       if (sessionId) {
         try {
           const stripe = createStripeClient(env);
@@ -25,7 +29,7 @@ async function handleEvent(event: StripeEventLike, env: StripeEnv) {
         } catch (e) {
           console.error("[payments-webhook] retrieve session failed", e);
         }
-      } else if (obj?.metadata?.userId) {
+      } else if (sessionObj?.metadata?.userId) {
         await grantFromSession(obj, env);
       }
       return;

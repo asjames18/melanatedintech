@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Markdown } from "@/components/markdown";
 import { Send, Loader2, Bot, User } from "lucide-react";
+import { toast } from "sonner";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -17,25 +18,40 @@ type ChatMessage = {
 };
 
 type ChatProps = {
-  agentId: string;
-  agentSlug: string;
+  agentId?: string;
+  agentSlug?: string;
   agentName: string;
   defaultModel: string;
   env?: "sandbox" | "live";
+  overrideSystemPrompt?: string;
 };
 
 const AVAILABLE_MODELS = [
-  { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-  { value: "gpt-4o", label: "GPT-4o" },
-  { value: "o1-mini", label: "o1 Mini" },
-  { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku" },
-  { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+  { value: "openrouter/openrouter/free", label: "Auto Free (OpenRouter)" },
+  { value: "openrouter/meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B (Free)" },
+  { value: "openrouter/google/gemini-2.5-flash:free", label: "Gemini 2.5 Flash (Free)" },
+  { value: "openrouter/deepseek/deepseek-chat:free", label: "DeepSeek V3 (Free)" },
+  { value: "openrouter/qwen/qwen-2.5-72b-instruct:free", label: "Qwen 2.5 72B (Free)" },
+  { value: "openrouter/google/gemma-2-9b-it:free", label: "Gemma 2 9B (Free)" },
+  { value: "openrouter/meta-llama/llama-3.1-8b-instruct:free", label: "Llama 3.1 8B (Free)" },
+  { value: "openrouter/qwen/qwen-2.5-7b-instruct:free", label: "Qwen 2.5 7B (Free)" },
+  { value: "openrouter/mistralai/mistral-7b-instruct:free", label: "Mistral 7B (Free)" },
 ];
 
-export function Chat({ agentId, agentSlug, agentName, defaultModel, env = "sandbox" }: ChatProps) {
+export function Chat({
+  agentId,
+  agentSlug,
+  agentName,
+  defaultModel,
+  env = "sandbox",
+  overrideSystemPrompt,
+}: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState(defaultModel);
+  const [model, setModel] = useState(() => {
+    const isFree = AVAILABLE_MODELS.some((m) => m.value === defaultModel);
+    return isFree ? defaultModel : "openrouter/openrouter/free";
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -64,6 +80,7 @@ export function Chat({ agentId, agentSlug, agentName, defaultModel, env = "sandb
           agent_slug: agentSlug,
           messages: newMessages,
           model,
+          override_system_prompt: overrideSystemPrompt,
         }),
       });
 
@@ -74,6 +91,18 @@ export function Chat({ agentId, agentSlug, agentName, defaultModel, env = "sandb
 
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.content ?? "" }]);
+
+      // Update model selector if a fallback occurred on the backend
+      if (data.model) {
+        const fullModelName = `openrouter/${data.model}`;
+        const hasModel = AVAILABLE_MODELS.some((m) => m.value === fullModelName);
+        if (hasModel && model !== fullModelName) {
+          setModel(fullModelName);
+          const modelLabel =
+            AVAILABLE_MODELS.find((m) => m.value === fullModelName)?.label ?? "Auto Free";
+          toast.info(`Switched to ${modelLabel} (auto-fallback from original model).`);
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Chat request failed");
     } finally {
@@ -191,6 +220,11 @@ export function Chat({ agentId, agentSlug, agentName, defaultModel, env = "sandb
         </div>
         <p className="mt-1.5 text-[10px] text-muted-foreground">
           Press Enter to send. Model: {model}
+        </p>
+        <p className="mt-2 text-[9px] leading-relaxed text-muted-foreground border-t border-dashed pt-2">
+          ⚠️ <strong>Note:</strong> Free models are subject to rate limits. If a model encounters a
+          limit, the system automatically falls back to <em>Auto Free</em>. If you experience
+          issues, please select the <strong>Auto Free (OpenRouter)</strong> option manually.
         </p>
       </div>
     </div>

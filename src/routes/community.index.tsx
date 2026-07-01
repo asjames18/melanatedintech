@@ -3,20 +3,35 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
-import { SiteLayout, PageHeader } from "@/components/site-layout";
+import { SiteLayout } from "@/components/site-layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FeedComposer } from "@/components/feed/feed-composer";
 import { FeedList } from "@/components/feed/feed-list";
+import { StoriesBar } from "@/components/feed/stories-bar";
 import { TrendingSidebar } from "@/components/feed/trending-sidebar";
+import { LeftSidebar } from "@/components/feed/left-sidebar";
 import { supabase } from "@/integrations/supabase/client";
-import { reactPost, unreactPost, deleteItem, adminDeleteItem } from "@/lib/community.functions";
-import { listBuilderChallenges } from "@/lib/retention.functions";
+import {
+  reactPost,
+  unreactPost,
+  deleteItem,
+  adminDeleteItem,
+} from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { FEED_TABS, type FeedPage, type FeedTab, type ReactionKind } from "@/lib/community";
 import { toast } from "sonner";
 import { buildSeoMeta } from "@/lib/seo";
+import { Button } from "@/components/ui/button";
+
+import { z } from "zod";
+import { zodValidator } from "@tanstack/zod-adapter";
+
+const searchSchema = z.object({
+  tag: z.string().optional(),
+});
 
 export const Route = createFileRoute("/community/")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
       title: "Community — Melanated In Tech",
@@ -38,21 +53,9 @@ export const Route = createFileRoute("/community/")({
 });
 
 function Community() {
-  const [me, setMe] = useState<string | null>(undefined);
+  const { tag } = Route.useSearch();
+  const [me, setMe] = useState<string | null>(null);
   const [tab, setTab] = useState<FeedTab>("for-you");
-  const listChallenges = useServerFn(listBuilderChallenges);
-  const challenges = useQuery({
-    queryKey: ["builder-challenges"],
-    queryFn: () => listChallenges(),
-  });
-  const currentChallenge =
-    (challenges.data ?? []).find((challenge) => {
-      const now = Date.now();
-      return (
-        now >= new Date(challenge.starts_at).getTime() &&
-        now <= new Date(challenge.ends_at).getTime()
-      );
-    }) ?? challenges.data?.[0];
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -60,46 +63,54 @@ function Community() {
 
   return (
     <SiteLayout>
-      <PageHeader
-        eyebrow="Community"
-        title="The feed for agent builders."
-        description="Share what you're shipping, ask questions, and learn from the field — in real time."
-      />
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
+          <LeftSidebar />
 
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_280px]">
-          <div className="space-y-4">
-            {currentChallenge && (
-              <Link
-                to="/challenges/$slug"
-                params={{ slug: currentChallenge.slug }}
-                className="block rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
-              >
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Weekly builder challenge
-                </p>
-                <h2 className="mt-1 font-display text-xl font-semibold">
-                  {currentChallenge.title}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">{currentChallenge.excerpt}</p>
-              </Link>
+          {/* Center Column: Feed */}
+          <div className="space-y-4 min-w-0">
+            {/* Horizontal Topics scroll list */}
+            <StoriesBar />
+
+            {/* Active filter banner if tag is set */}
+            {tag && (
+              <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-4 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Active Filter:</span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                    #{tag}
+                  </span>
+                </div>
+                <Button asChild size="sm" variant="ghost" className="h-7 rounded-lg text-xs hover:bg-primary/10 hover:text-primary">
+                  <Link to="/community">Clear</Link>
+                </Button>
+              </div>
             )}
 
-            <FeedComposer viewerId={me ?? null} />
+            {/* Post Composer */}
+            <FeedComposer viewerId={me ?? null} initialTag={tag} />
 
-            <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)}>
-              <TabsList>
+            {/* Tabs List Switcher */}
+            <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)} className="w-full">
+              <TabsList className="w-full justify-start rounded-none border-b border-border bg-transparent p-0 h-auto">
                 {FEED_TABS.map((t) => (
-                  <TabsTrigger key={t} value={t} disabled={t === "following" && !me}>
+                  <TabsTrigger
+                    key={t}
+                    value={t}
+                    disabled={t === "following" && !me}
+                    className="rounded-none border-b-2 border-transparent px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground data-[state=active]:border-primary data-[state=active]:text-foreground data-[state=active]:bg-transparent hover:text-foreground transition-all cursor-pointer"
+                  >
                     {t === "following" ? "Following" : "For you"}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </Tabs>
 
-            <FeedController viewerId={me ?? null} tab={tab} />
+            {/* Posts Feed list */}
+            <FeedController viewerId={me ?? null} tab={tab} tag={tag} />
           </div>
 
+          {/* Right Column: Sticky Trending rails */}
           <aside className="hidden lg:block">
             <TrendingSidebar />
           </aside>
@@ -109,7 +120,7 @@ function Community() {
   );
 }
 
-function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedTab }) {
+function FeedController({ viewerId, tab, tag }: { viewerId: string | null; tab: FeedTab; tag?: string }) {
   const qc = useQueryClient();
   const react = useServerFn(reactPost);
   const unreact = useServerFn(unreactPost);
@@ -139,12 +150,18 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
             ...p,
             posts: p.posts.map((post) => {
               if (post.id !== postId) return post;
-              const mine = on
-                ? Array.from(new Set([...post.reactions_by_me, kind]))
-                : post.reactions_by_me.filter((k: string) => k !== kind);
+              let mine = post.reactions_by_me;
               const counts = { ...post.reaction_count };
-              if (on) counts[kind] = (counts[kind] ?? 0) + 1;
-              else counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+              if (on) {
+                for (const prev of mine) {
+                  counts[prev] = Math.max((counts[prev] ?? 0) - 1, 0);
+                }
+                mine = [kind];
+                counts[kind] = (counts[kind] ?? 0) + 1;
+              } else {
+                mine = mine.filter((k: string) => k !== kind);
+                counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+              }
               return { ...post, reactions_by_me: mine, reaction_count: counts };
             }),
           })),
@@ -187,6 +204,7 @@ function FeedController({ viewerId, tab }: { viewerId: string | null; tab: FeedT
       viewerId={viewerId}
       isAdmin={isAdmin}
       tab={tab}
+      tag={tag}
       onToggleReaction={toggleReaction}
       onDelete={(postId, asAdmin) => delMut.mutate({ postId, asAdmin })}
     />

@@ -9,19 +9,20 @@ type Props = {
   onToggle: (kind: ReactionKind) => void | Promise<void>;
   disabled?: boolean;
   size?: "sm" | "md";
+  compact?: boolean;
 };
 
 /** Compact reaction bar: shows total count + a popover picker for the 5 kinds.
  *  Kinds the viewer has already reacted with are highlighted. */
-export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm" }: Props) {
+export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm", compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const total = REACTION_KINDS.reduce((acc, k) => acc + (counts[k] ?? 0), 0);
   const pad = size === "md" ? "px-3 py-1.5" : "px-2.5 py-1.5";
 
-  // Show the top reaction kind's emoji + total, defaulting to 👍 when none yet.
-  const topKind = REACTION_KINDS.find((k) => (counts[k] ?? 0) > 0) ?? "like";
-  const topEmoji = REACTION_META[topKind].emoji;
   const reacted = mine.length > 0;
+  const myReactionKind = reacted ? (mine[0] as ReactionKind) : null;
+  const buttonEmoji = myReactionKind ? REACTION_META[myReactionKind].emoji : "👍";
+  const buttonLabel = myReactionKind ? REACTION_META[myReactionKind].label : "React";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -30,17 +31,42 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm" }: P
           type="button"
           disabled={disabled}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full text-xs font-medium transition-colors",
+            "inline-flex items-center gap-1.5 rounded-xl text-xs font-semibold transition-all duration-200 hover:scale-[1.02] border",
             pad,
             reacted
-              ? "text-primary hover:bg-primary/10"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground",
-            disabled && "opacity-50",
+              ? "bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
+              : "border-border/60 hover:bg-muted hover:border-border text-muted-foreground hover:text-foreground",
+            disabled && "opacity-50 pointer-events-none",
           )}
           aria-label="React"
         >
-          <span className="text-sm leading-none">{topEmoji}</span>
-          {total > 0 && <span>{total}</span>}
+          {compact ? (
+            <>
+              <span className="text-sm leading-none select-none">{buttonEmoji}</span>
+              <span>{buttonLabel}</span>
+            </>
+          ) : (
+            <>
+              {total > 0 ? (
+                <div className="flex items-center -space-x-1.5 shrink-0 mr-1 select-none">
+                  {REACTION_KINDS.filter((k) => (counts[k] ?? 0) > 0)
+                    .slice(0, 3)
+                    .map((k) => (
+                      <span
+                        key={k}
+                        className="flex h-5 w-5 items-center justify-center rounded-full bg-card border border-background text-[11px] shadow-sm ring-1 ring-border/5"
+                        title={REACTION_META[k].label}
+                      >
+                        {REACTION_META[k].emoji}
+                      </span>
+                    ))}
+                </div>
+              ) : (
+                <span className="text-sm leading-none mr-1 select-none">{buttonEmoji}</span>
+              )}
+              <span>{total > 0 ? total : "React"}</span>
+            </>
+          )}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" collisionPadding={8} className="w-auto p-1.5">

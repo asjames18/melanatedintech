@@ -139,7 +139,7 @@ function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <p className="text-xs font-medium uppercase tracking-wider text-primary">The platform</p>
           <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
-            Five pillars. One focus: AI agents.
+            Seven pillars. One focus: AI agents.
           </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {PILLARS.map((p) => (

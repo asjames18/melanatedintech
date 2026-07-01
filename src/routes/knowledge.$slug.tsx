@@ -14,7 +14,8 @@ import { useInterests } from "@/hooks/use-interests";
 import { useTrackReadingProgress } from "@/hooks/use-reading-progress";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, articleLd, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Sparkles, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Sparkles, Link as LinkIcon, Timer, Wand2, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const qo = (slug: string) =>
   queryOptions({ queryKey: ["article", slug], queryFn: () => getArticle({ data: { slug } }) });
@@ -171,6 +172,51 @@ function ArticleView() {
     };
   }, [article, allArticles, allAgents, interests]);
 
+  const recommendedTool = useMemo(() => {
+    if (!article) return null;
+
+    // Map by category or slug
+    if (article.category === "Evaluation" || article.slug.includes("eval")) {
+      return {
+        title: "Model Playground",
+        callout:
+          "Compare prompt outputs, generation latency, and token efficiency side-by-side across Llama, Gemini, and Qwen in our parallel comparison sandbox.",
+        href: "/tools/model-playground",
+        Icon: Timer,
+      };
+    }
+
+    if (
+      article.category === "Agent Security" ||
+      article.slug.includes("secure") ||
+      article.slug.includes("injection")
+    ) {
+      return {
+        title: "GPT Trainer",
+        callout:
+          "Design strict custom agent parameters, tone rules, and safety guardrails, then compile them into custom system instructions.",
+        href: "/tools/gpt-trainer",
+        Icon: Sparkles,
+      };
+    }
+
+    if (
+      article.category === "Getting Started" ||
+      article.category === "Community" ||
+      article.slug.includes("prompt")
+    ) {
+      return {
+        title: "Prompt Pilot",
+        callout:
+          "Seed, build, and save your agent instructions using our visual template catalog and drag-and-drop prompt workspace.",
+        href: "/tools/prompt-pilot",
+        Icon: Wand2,
+      };
+    }
+
+    return null;
+  }, [article]);
+
   if (!article) return null;
 
   return (
@@ -244,6 +290,30 @@ function ArticleView() {
           <ShareBar title={article.title} text={article.excerpt} className="mt-4" />
         </div>
       </article>
+
+      {recommendedTool && (
+        <section className="border-t border-border bg-gradient-to-br from-primary/5 via-transparent to-transparent">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+            <div className="rounded-2xl border border-border bg-card p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <recommendedTool.Icon className="h-4 w-4" />
+                  Interactive AI Tool
+                </div>
+                <h2 className="font-display text-2xl font-bold tracking-tight">
+                  Try it yourself: {recommendedTool.title}
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-2xl">{recommendedTool.callout}</p>
+              </div>
+              <Button asChild size="lg" className="shrink-0">
+                <Link to={recommendedTool.href as any}>
+                  Launch Sandbox <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="border-t border-border bg-muted/30">

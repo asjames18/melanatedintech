@@ -6,6 +6,7 @@ import { ArrowLeft, Hash } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { FeedList } from "@/components/feed/feed-list";
 import { TrendingSidebar } from "@/components/feed/trending-sidebar";
+import { LeftSidebar } from "@/components/feed/left-sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { reactPost, unreactPost, deleteItem, adminDeleteItem } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
@@ -43,21 +44,26 @@ function TagPage() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link
-          to="/community"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> Community
-        </Link>
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
+          <LeftSidebar />
 
-        <h1 className="mt-4 flex items-center gap-2 font-display text-2xl font-semibold">
-          <Hash className="h-5 w-5 text-primary" />
-          {tag}
-        </h1>
+          <div className="space-y-4 min-w-0">
+            <Link
+              to="/community"
+              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back to feed
+            </Link>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_280px]">
-          <TagFeed tag={tag} viewerId={me} />
+            <h1 className="flex items-center gap-2 font-display text-2xl font-bold text-foreground">
+              <Hash className="h-6 w-6 text-primary" />
+              {tag}
+            </h1>
+
+            <TagFeed tag={tag} viewerId={me} />
+          </div>
+
           <aside className="hidden lg:block">
             <TrendingSidebar />
           </aside>
@@ -99,11 +105,18 @@ function TagFeed({ tag, viewerId }: { tag: string; viewerId: string | null }) {
             ...p,
             posts: p.posts.map((post) => {
               if (post.id !== postId) return post;
-              const mine = on
-                ? Array.from(new Set([...post.reactions_by_me, kind]))
-                : post.reactions_by_me.filter((k: string) => k !== kind);
+              let mine = post.reactions_by_me;
               const counts = { ...post.reaction_count };
-              counts[kind] = on ? (counts[kind] ?? 0) + 1 : Math.max((counts[kind] ?? 0) - 1, 0);
+              if (on) {
+                for (const prev of mine) {
+                  counts[prev] = Math.max((counts[prev] ?? 0) - 1, 0);
+                }
+                mine = [kind];
+                counts[kind] = (counts[kind] ?? 0) + 1;
+              } else {
+                mine = mine.filter((k: string) => k !== kind);
+                counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
+              }
               return { ...post, reactions_by_me: mine, reaction_count: counts };
             }),
           })),

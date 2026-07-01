@@ -5,6 +5,8 @@ import { Markdown } from "@/components/markdown";
 import { listServices } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
 import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ShareBar } from "@/components/share-bar";
 
 const serviceBySlugQO = (slug: string) =>
   queryOptions({
@@ -78,13 +80,14 @@ function ServiceDetailPage() {
 
           <div className="mt-8 flex flex-wrap gap-3">
             <Button asChild>
-              <Link to={`/contact?service=${encodeURIComponent(service.name)}`}>
+              <Link to="/contact" search={{ topic: `Service: ${service.name}` }}>
                 <Mail className="mr-2 h-4 w-4" /> Start the conversation
               </Link>
             </Button>
             <Button variant="outline" asChild>
               <Link to="/services">View all services</Link>
             </Button>
+            <ShareBar title={service.name} text={service.tagline} />
           </div>
         </div>
       </div>

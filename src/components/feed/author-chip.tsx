@@ -20,16 +20,25 @@ export function AuthorChip({
   userId,
   className,
   size = "sm",
+  avatarOnly = false,
 }: {
   author: Author | null;
   userId: string;
   className?: string;
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "lg";
+  avatarOnly?: boolean;
 }) {
   const avatarUrl = useAvatarUrl(author?.avatar_url ?? null);
-  const dim = size === "md" ? "h-9 w-9" : "h-7 w-7";
+  const dim = size === "lg" ? "h-12 w-12" : size === "md" ? "h-9 w-9" : "h-7 w-7";
 
-  const chip = (
+  const chip = avatarOnly ? (
+    <Avatar className={cn(dim, "ring-2 ring-primary/20")}>
+      {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+      <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
+        {initials(author?.display_name ?? null)}
+      </AvatarFallback>
+    </Avatar>
+  ) : (
     <Link
       to="/u/$userId"
       params={{ userId }}

@@ -9,11 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PathsRouteImport } from './routes/paths'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as FitFinderRouteImport } from './routes/fit-finder'
@@ -25,6 +27,7 @@ import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as PathsIndexRouteImport } from './routes/paths.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
@@ -32,6 +35,9 @@ import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
+import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
+import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
 import { Route as TTagRouteImport } from './routes/t.$tag'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
@@ -59,6 +65,11 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -82,6 +93,11 @@ const ProofRoute = ProofRouteImport.update({
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PathsRoute = PathsRouteImport.update({
@@ -138,6 +154,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsIndexRoute = ToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -171,6 +192,21 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
 const UUserIdRoute = UUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
+  id: '/tools/prompt-pilot',
+  path: '/tools/prompt-pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
+  id: '/tools/model-playground',
+  path: '/tools/model-playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
+  id: '/tools/gpt-trainer',
+  path: '/tools/gpt-trainer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TTagRoute = TTagRouteImport.update({
@@ -323,11 +359,13 @@ export interface FileRoutesByFullPath {
   '/fit-finder': typeof FitFinderRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/paths': typeof PathsRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
   '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/interests': typeof AuthenticatedInterestsRoute
@@ -346,6 +384,9 @@ export interface FileRoutesByFullPath {
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -353,6 +394,7 @@ export interface FileRoutesByFullPath {
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -368,10 +410,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fit-finder': typeof FitFinderRoute
+  '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
   '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/interests': typeof AuthenticatedInterestsRoute
   '/mcp': typeof AuthenticatedMcpRoute
@@ -388,6 +432,9 @@ export interface FileRoutesByTo {
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
@@ -395,6 +442,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof KnowledgeIndexRoute
   '/paths': typeof PathsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/tools': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -417,11 +465,13 @@ export interface FileRoutesById {
   '/fit-finder': typeof FitFinderRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/paths': typeof PathsRouteWithChildren
+  '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
   '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/interests': typeof AuthenticatedInterestsRoute
@@ -440,6 +490,9 @@ export interface FileRoutesById {
   '/products/$slug': typeof ProductsSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -447,6 +500,7 @@ export interface FileRoutesById {
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/tools/': typeof ToolsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
@@ -469,11 +523,13 @@ export interface FileRouteTypes {
     | '/fit-finder'
     | '/knowledge'
     | '/paths'
+    | '/privacy'
     | '/products'
     | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
+    | '/terms'
     | '/account'
     | '/admin'
     | '/interests'
@@ -492,6 +548,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/gpt-trainer'
+    | '/tools/model-playground'
+    | '/tools/prompt-pilot'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -499,6 +558,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/paths/'
     | '/products/'
+    | '/tools/'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
@@ -514,10 +574,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fit-finder'
+    | '/privacy'
     | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
+    | '/terms'
     | '/account'
     | '/interests'
     | '/mcp'
@@ -534,6 +596,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/gpt-trainer'
+    | '/tools/model-playground'
+    | '/tools/prompt-pilot'
     | '/u/$userId'
     | '/agents'
     | '/challenges'
@@ -541,6 +606,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/paths'
     | '/products'
+    | '/tools'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/submissions/$id'
@@ -562,11 +628,13 @@ export interface FileRouteTypes {
     | '/fit-finder'
     | '/knowledge'
     | '/paths'
+    | '/privacy'
     | '/products'
     | '/proof'
     | '/search'
     | '/services'
     | '/sitemap.xml'
+    | '/terms'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/interests'
@@ -585,6 +653,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/gpt-trainer'
+    | '/tools/model-playground'
+    | '/tools/prompt-pilot'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -592,6 +663,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/paths/'
     | '/products/'
+    | '/tools/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/submissions/$id'
@@ -614,15 +686,21 @@ export interface RootRouteChildren {
   FitFinderRoute: typeof FitFinderRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
   PathsRoute: typeof PathsRouteWithChildren
+  PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
   SearchRoute: typeof SearchRoute
   ServicesRoute: typeof ServicesRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   TTagRoute: typeof TTagRoute
+  ToolsGptTrainerRoute: typeof ToolsGptTrainerRoute
+  ToolsModelPlaygroundRoute: typeof ToolsModelPlaygroundRoute
+  ToolsPromptPilotRoute: typeof ToolsPromptPilotRoute
   UUserIdRoute: typeof UUserIdRoute
+  ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -630,6 +708,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -663,6 +748,13 @@ declare module '@tanstack/react-router' {
       path: '/products'
       fullPath: '/products'
       preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/paths': {
@@ -742,6 +834,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/': {
+      id: '/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products/': {
       id: '/products/'
       path: '/'
@@ -789,6 +888,27 @@ declare module '@tanstack/react-router' {
       path: '/u/$userId'
       fullPath: '/u/$userId'
       preLoaderRoute: typeof UUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/prompt-pilot': {
+      id: '/tools/prompt-pilot'
+      path: '/tools/prompt-pilot'
+      fullPath: '/tools/prompt-pilot'
+      preLoaderRoute: typeof ToolsPromptPilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/model-playground': {
+      id: '/tools/model-playground'
+      path: '/tools/model-playground'
+      fullPath: '/tools/model-playground'
+      preLoaderRoute: typeof ToolsModelPlaygroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/gpt-trainer': {
+      id: '/tools/gpt-trainer'
+      path: '/tools/gpt-trainer'
+      fullPath: '/tools/gpt-trainer'
+      preLoaderRoute: typeof ToolsGptTrainerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/t/$tag': {
@@ -1137,15 +1257,21 @@ const rootRouteChildren: RootRouteChildren = {
   FitFinderRoute: FitFinderRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
   PathsRoute: PathsRouteWithChildren,
+  PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
   SearchRoute: SearchRoute,
   ServicesRoute: ServicesRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   TTagRoute: TTagRoute,
+  ToolsGptTrainerRoute: ToolsGptTrainerRoute,
+  ToolsModelPlaygroundRoute: ToolsModelPlaygroundRoute,
+  ToolsPromptPilotRoute: ToolsPromptPilotRoute,
   UUserIdRoute: UUserIdRoute,
+  ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

@@ -6,6 +6,7 @@ import { AgentCard, ArticleCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { SaveAgentButton } from "@/components/save-agent-button";
 import { UnlockButton } from "@/components/unlock-button";
+import { Button } from "@/components/ui/button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
@@ -104,6 +105,7 @@ function AgentDetail() {
   const { interests, recordVisit } = useInterests("agent");
   const { interests: readingInterests } = useInterests("article");
   const owned = useHasEntitlement("agent", slug);
+  const canChat = owned || agent?.tier === "free";
 
   useEffect(() => {
     if (agent) recordVisit(agent.slug, agent.category);
@@ -247,7 +249,7 @@ function AgentDetail() {
 
             {owned && <AgentDelivery slug={agent.slug} />}
 
-            {owned && (
+            {canChat && (
               <div className="mt-8">
                 <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
                   <Bot className="h-5 w-5" /> Chat with {agent.name}
@@ -256,7 +258,7 @@ function AgentDetail() {
                   agentId={agent.id}
                   agentSlug={agent.slug}
                   agentName={agent.name}
-                  defaultModel={agent.model ?? "gpt-4o-mini"}
+                  defaultModel={agent.model ?? "openrouter/openrouter/free"}
                 />
               </div>
             )}
@@ -264,6 +266,35 @@ function AgentDetail() {
 
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
+              {agent.tier === "free" && (
+                <div className="rounded-2xl border border-border bg-card p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Free AI Agent
+                  </div>
+                  <p className="mt-2 text-sm font-semibold">Instantly Available</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    This agent is unlocked and ready to help. Scroll down to start chatting!
+                  </p>
+                </div>
+              )}
+
+              {agent.tier === "custom" && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <p className="text-sm font-medium">Custom Solution</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tailored AI agent designed to integrate with your custom workflows.
+                  </p>
+                  <div className="mt-4">
+                    <Button asChild className="w-full">
+                      <Link to="/contact" search={{ topic: `Custom Agent: ${agent.name}` }}>
+                        Contact for Custom Build
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {agent.tier === "premium" &&
                 (getPremiumEntry("agent", agent.slug) && !agent.has_fulfillment && !owned ? (
                   <div className="rounded-2xl border border-border bg-card p-6">
@@ -290,7 +321,8 @@ function AgentDetail() {
                     </div>
                   </div>
                 ))}
-              {!owned && (
+
+              {!canChat && (
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <p className="text-sm font-medium">Get early access</p>
                   <p className="mt-1 text-xs text-muted-foreground">

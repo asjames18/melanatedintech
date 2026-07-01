@@ -20,7 +20,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link to="/" className="flex min-w-0 items-center" aria-label="Melanated In Tech home">
           <img
-            src="/brand/mit-monogram.svg"
+            src="/brand/mit-logo.png"
             alt=""
             className="h-9 w-9 rounded-lg"
             aria-hidden="true"

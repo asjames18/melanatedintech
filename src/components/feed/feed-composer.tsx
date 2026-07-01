@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ImagePlus, Loader2, X } from "lucide-react";
+import { ImagePlus, Loader2, X, Type, HelpCircle, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
@@ -13,40 +15,123 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { createPost } from "@/lib/community.functions";
+import { getPublicProfile } from "@/lib/community.functions";
+import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import {
   COMMUNITY_CATEGORIES,
   COMMUNITY_CATEGORY_LABELS,
   POST_BODY_MAX,
+  POST_TITLE_MAX,
   POST_MEDIA_MAX,
   POST_MEDIA_MAX_BYTES,
   type CommunityCategory,
 } from "@/lib/community";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 type PendingMedia = { path: string; preview: string; status: "uploading" | "done" | "error" };
 
-/** Compact composer for creating a short-form post. Auth gate handled by parent:
- *  pass `viewerId` (null = signed out). */
-export function FeedComposer({ viewerId }: { viewerId: string | null }) {
+type PostType = "post" | "question" | "resource";
+
+const POST_TYPE_CONFIG: Record<PostType, { label: string; icon: React.ReactNode; placeholder: string; category: CommunityCategory }> = {
+  post: {
+    label: "Post",
+    icon: <Type className="h-4 w-4" />,
+    placeholder: "What's on your mind? Share what you're building, learning, or shipping…",
+    category: "general",
+  },
+  question: {
+    label: "Question",
+    icon: <HelpCircle className="h-4 w-4" />,
+    placeholder: "Ask the community anything about AI agents, prompts, or workflows…",
+    category: "questions",
+  },
+  resource: {
+    label: "Resource",
+    icon: <BookOpen className="h-4 w-4" />,
+    placeholder: "Share a helpful link, template, tool, or resource…",
+    category: "resources",
+  },
+};
+
+// Circular progress ring for character count
+function CharRing({ value, max }: { value: number; max: number }) {
+  const pct = Math.min(value / max, 1);
+  const r = 10;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * (1 - pct);
+  const danger = pct > 0.9;
+  const warn = pct > 0.75;
+  return (
+    <svg width="28" height="28" viewBox="0 0 28 28" className="rotate-[-90deg]">
+      <circle cx="14" cy="14" r={r} fill="none" strokeWidth="3" className="stroke-muted" />
+      <circle
+        cx="14" cy="14" r={r}
+        fill="none" strokeWidth="3"
+        strokeDasharray={circ}
+        strokeDashoffset={dash}
+        strokeLinecap="round"
+        className={cn(
+          "transition-all",
+          danger ? "stroke-destructive" : warn ? "stroke-amber-500" : "stroke-primary"
+        )}
+      />
+    </svg>
+  );
+}
+
+export function FeedComposer({
+  viewerId,
+  initialTag,
+}: {
+  viewerId: string | null;
+  initialTag?: string;
+}) {
   const qc = useQueryClient();
   const create = useServerFn(createPost);
+  const getProfileFn = useServerFn(getPublicProfile);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const [body, setBody] = useState("");
+  const [postType, setPostType] = useState<PostType>("post");
+  const [body, setBody] = useState(initialTag ? `Result for #${initialTag}:\n\n` : "");
+  const [title, setTitle] = useState("");
   const [category, setCategory] = useState<CommunityCategory>("general");
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [focused, setFocused] = useState(false);
 
+  const myProfile = useQuery({
+    queryKey: ["my-profile", viewerId],
+    queryFn: () => getProfileFn({ data: { user_id: viewerId! } }),
+    enabled: !!viewerId,
+  });
+
+  const avatarUrl = useAvatarUrl(myProfile.data?.avatar_url ?? null);
+  const initials = (myProfile.data?.display_name ?? "U").slice(0, 2).toUpperCase();
+
+  // Sync category when post type changes
+  function switchPostType(pt: PostType) {
+    setPostType(pt);
+    setCategory(POST_TYPE_CONFIG[pt].category);
+  }
+
   const createMut = useMutation({
     mutationFn: async () => {
       const okMedia = media.filter((m) => m.status === "done").map((m) => m.path);
-      return create({ data: { body, category, media_urls: okMedia, title: undefined } });
+      return create({
+        data: {
+          body,
+          category,
+          media_urls: okMedia,
+          title: title.trim() || undefined,
+        },
+      });
     },
     onSuccess: () => {
-      toast.success("Posted.");
+      toast.success("Posted!");
       setBody("");
+      setTitle("");
       setMedia([]);
       setFocused(false);
       qc.invalidateQueries({ queryKey: ["feed"] });
@@ -58,14 +143,8 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
     const slotsLeft = POST_MEDIA_MAX - media.length;
     const picked = Array.from(files).slice(0, slotsLeft);
     for (const file of picked) {
-      if (!ACCEPTED.includes(file.type)) {
-        toast.error("Use PNG, JPG, WebP, or GIF.");
-        continue;
-      }
-      if (file.size > POST_MEDIA_MAX_BYTES) {
-        toast.error("Each image must be under 4 MB.");
-        continue;
-      }
+      if (!ACCEPTED.includes(file.type)) { toast.error("Use PNG, JPG, WebP, or GIF."); continue; }
+      if (file.size > POST_MEDIA_MAX_BYTES) { toast.error("Each image must be under 4 MB."); continue; }
       const preview = URL.createObjectURL(file);
       const id = crypto.randomUUID();
       setMedia((m) => [...m, { path: id, preview, status: "uploading" }]);
@@ -74,9 +153,7 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
         if (!u.user) throw new Error("Not signed in.");
         const ext = file.name.split(".").pop()?.toLowerCase() || "png";
         const path = `${u.user.id}/post-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-        const { error } = await supabase.storage
-          .from("post-media")
-          .upload(path, file, { upsert: false, contentType: file.type });
+        const { error } = await supabase.storage.from("post-media").upload(path, file, { upsert: false, contentType: file.type });
         if (error) throw error;
         setMedia((m) => m.map((it) => (it.path === id ? { ...it, path, status: "done" } : it)));
       } catch (err) {
@@ -89,24 +166,17 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
   function removeMedia(idx: number) {
     setMedia((m) => {
       const item = m[idx];
-      if (item?.status === "done") {
-        supabase.storage
-          .from("post-media")
-          .remove([item.path])
-          .catch(() => {});
-      }
+      if (item?.status === "done") supabase.storage.from("post-media").remove([item.path]).catch(() => {});
       return m.filter((_, i) => i !== idx);
     });
   }
 
   if (viewerId === null) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center">
-        <p className="text-sm text-muted-foreground">
-          <a href="/auth" className="font-medium text-primary hover:underline">
-            Sign in
-          </a>{" "}
-          to post to the community.
+      <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+        <p className="text-sm font-medium text-muted-foreground">
+          <a href="/auth" className="text-primary hover:underline font-semibold">Sign in</a>{" "}
+          to post to the community
         </p>
       </div>
     );
@@ -114,22 +184,77 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
 
   const remaining = POST_BODY_MAX - body.length;
   const canPost = body.trim().length > 0 && media.every((m) => m.status !== "uploading");
+  const cfg = POST_TYPE_CONFIG[postType];
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4" onFocus={() => setFocused(true)}>
-      <Textarea
-        rows={focused ? 4 : 2}
-        maxLength={POST_BODY_MAX}
-        value={body}
-        onChange={(e) => setBody(e.target.value)}
-        placeholder="What's on your mind?"
-        className="resize-none border-0 bg-transparent p-0 focus-visible:ring-0"
-      />
+    <div
+      className={cn(
+        "rounded-2xl border bg-card transition-all duration-200",
+        focused ? "border-primary/30 shadow-md shadow-primary/5" : "border-border",
+      )}
+      onFocus={() => setFocused(true)}
+    >
+      {/* ── Post type tabs ── */}
+      <div className="flex items-center gap-1 border-b border-border px-4 py-2">
+        {(Object.entries(POST_TYPE_CONFIG) as [PostType, typeof cfg][]).map(([pt, c]) => (
+          <button
+            key={pt}
+            type="button"
+            onClick={() => switchPostType(pt)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+              postType === pt
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted"
+            )}
+          >
+            {c.icon}
+            {c.label}
+          </button>
+        ))}
+      </div>
 
+      {/* ── Main compose area ── */}
+      <div className="flex gap-3 px-4 pt-4">
+        {/* User avatar */}
+        <div className="shrink-0">
+          <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+            {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+            <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        <div className="min-w-0 flex-1 space-y-2">
+          {/* Optional title */}
+          {focused && (
+            <Input
+              maxLength={POST_TITLE_MAX}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Add a title (optional)"
+              className="border-0 bg-transparent p-0 text-base font-semibold placeholder:text-muted-foreground/50 focus-visible:ring-0"
+            />
+          )}
+
+          {/* Body */}
+          <Textarea
+            rows={focused ? 4 : 2}
+            maxLength={POST_BODY_MAX}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder={cfg.placeholder}
+            className="resize-none border-0 bg-transparent p-0 text-sm focus-visible:ring-0 placeholder:text-muted-foreground/60"
+          />
+        </div>
+      </div>
+
+      {/* ── Media previews ── */}
       {media.length > 0 && (
-        <div className="mt-3 grid grid-cols-4 gap-2">
+        <div className="mx-4 mt-3 grid grid-cols-4 gap-2">
           {media.map((m, i) => (
-            <div key={i} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+            <div key={i} className="relative aspect-square overflow-hidden rounded-xl bg-muted">
               <img src={m.preview} alt="" className="h-full w-full object-cover" />
               <button
                 type="button"
@@ -149,23 +274,19 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
         </div>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+      {/* ── Action toolbar ── */}
+      <div className="flex flex-wrap items-center gap-2 px-4 pb-4 pt-3 border-t border-border mt-3">
         <input
           ref={fileInput}
           type="file"
           accept={ACCEPTED.join(",")}
           multiple
           className="hidden"
-          onChange={(e) => {
-            if (e.target.files) onPickFiles(e.target.files);
-            e.target.value = "";
-          }}
+          onChange={(e) => { if (e.target.files) onPickFiles(e.target.files); e.target.value = ""; }}
         />
         <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground"
+          type="button" variant="ghost" size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-primary"
           title="Add images"
           disabled={media.length >= POST_MEDIA_MAX}
           onClick={() => fileInput.current?.click()}
@@ -174,30 +295,23 @@ export function FeedComposer({ viewerId }: { viewerId: string | null }) {
         </Button>
 
         <Select value={category} onValueChange={(v) => setCategory(v as CommunityCategory)}>
-          <SelectTrigger className="h-8 w-auto min-w-[120px] border-0 bg-muted text-xs">
+          <SelectTrigger className="h-8 w-auto min-w-[120px] border-0 bg-muted text-xs rounded-lg">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {COMMUNITY_CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {COMMUNITY_CATEGORY_LABELS[c]}
-              </SelectItem>
+              <SelectItem key={c} value={c}>{COMMUNITY_CATEGORY_LABELS[c]}</SelectItem>
             ))}
           </SelectContent>
         </Select>
 
         <div className="ml-auto flex items-center gap-3">
-          <span
-            className={
-              remaining < 40
-                ? "text-xs font-medium text-amber-500"
-                : "text-xs text-muted-foreground"
-            }
-          >
-            {remaining}
-          </span>
+          {body.length > 0 && (
+            <CharRing value={body.length} max={POST_BODY_MAX} />
+          )}
           <Button
             size="sm"
+            className="rounded-xl px-5 font-semibold"
             disabled={!canPost || createMut.isPending}
             onClick={() => createMut.mutate()}
           >

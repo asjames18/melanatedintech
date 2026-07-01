@@ -17,7 +17,8 @@ import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Package, Sparkles, Tag, Wallet } from "lucide-react";
+import { ArrowLeft, Package, Sparkles, Tag, Wallet, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const productQO = (slug: string) =>
   queryOptions({ queryKey: ["product", slug], queryFn: () => getProduct({ data: { slug } }) });
@@ -221,6 +222,40 @@ function ProductDetail() {
           </div>
           <aside className="md:col-span-1">
             <div className="sticky top-24 space-y-4">
+              {product.tier === "free" && (
+                <div className="rounded-2xl border border-border bg-card p-6 bg-gradient-to-br from-emerald-500/5 to-transparent">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Free Resource
+                  </div>
+                  <p className="mt-2 text-sm font-semibold">Instant Access Unlocked</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    This developer resource is free. Scroll down to read, download, or copy the
+                    content below!
+                  </p>
+                </div>
+              )}
+
+              {product.tier === "custom" && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <p className="text-sm font-medium">Enterprise Bundle</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Tailored collection of SOPs, prompt packs, and custom agent integrations built
+                    for your business.
+                  </p>
+                  <div className="mt-4">
+                    <Button asChild className="w-full">
+                      <Link
+                        to="/contact"
+                        search={{ topic: `Custom Product Bundle: ${product.name}` }}
+                      >
+                        Contact for Details
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {product.tier === "premium" &&
                 (getPremiumEntry("product", product.slug) && !product.has_fulfillment && !owned ? (
                   <div className="rounded-2xl border border-border bg-card p-6">
@@ -247,7 +282,7 @@ function ProductDetail() {
                     </div>
                   </div>
                 ))}
-              <ProductWaitlist productSlug={product.slug} />
+              {product.tier !== "free" && <ProductWaitlist productSlug={product.slug} />}
             </div>
           </aside>
         </div>

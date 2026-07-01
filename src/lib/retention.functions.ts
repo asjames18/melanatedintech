@@ -58,21 +58,28 @@ async function resolvePath(
   const agentSlugs = safeItems.filter((i) => i.item_type === "agent").map((i) => i.item_slug);
   const productSlugs = safeItems.filter((i) => i.item_type === "product").map((i) => i.item_slug);
 
+  const now = new Date().toISOString();
   const [articles, agents, products] = await Promise.all([
     articleSlugs.length
       ? sb
           .from("articles")
           .select("id,slug,title,excerpt,category,read_minutes")
           .in("slug", articleSlugs)
+          .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       : Promise.resolve({ data: [], error: null }),
     agentSlugs.length
       ? sb
           .from("agents")
           .select("id,slug,name,tagline,category,tier,capabilities,featured")
           .in("slug", agentSlugs)
+          .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       : Promise.resolve({ data: [], error: null }),
     productSlugs.length
-      ? sb.from("products").select("id,slug,name,tagline,category,tier").in("slug", productSlugs)
+      ? sb
+          .from("products")
+          .select("id,slug,name,tagline,category,tier")
+          .in("slug", productSlugs)
+          .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       : Promise.resolve({ data: [], error: null }),
   ]);
 

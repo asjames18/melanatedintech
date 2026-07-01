@@ -131,7 +131,11 @@ function ReplyNode({
               <ReactionBar
                 counts={node.reaction_count}
                 mine={node.reactions_by_me}
-                onToggle={(k) => canReact && onToggleReplyReaction?.(node.id, k)}
+                onToggle={(k) => {
+                  if (canReact) {
+                    onToggleReplyReaction?.(node.id, k);
+                  }
+                }}
                 disabled={!canReact}
               />
               {viewerId && !locked && onReply && (

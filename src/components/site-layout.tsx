@@ -18,10 +18,12 @@ export function PageHeader({
   eyebrow,
   title,
   description,
+  actions,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
+  actions?: ReactNode;
 }) {
   return (
     <section className="border-b border-border bg-muted/30">
@@ -35,6 +37,7 @@ export function PageHeader({
         {description && (
           <p className="mt-4 max-w-3xl text-lg text-muted-foreground">{description}</p>
         )}
+        {actions && <div className="mt-6">{actions}</div>}
       </div>
     </section>
   );

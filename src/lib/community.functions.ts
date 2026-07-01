@@ -54,33 +54,81 @@ const POST_COLS =
 const REPLY_COLS =
   "id, post_id, user_id, parent_reply_id, body, path, depth, reaction_count, created_at, updated_at";
 
-async function resolveReactionsByMe(
+async function resolvePostMetrics(
   userId: string | undefined,
   postIds: string[],
-  replyIds: string[],
-): Promise<{ posts: Map<string, string[]>; replies: Map<string, string[]> }> {
-  const posts = new Map<string, string[]>();
-  const replies = new Map<string, string[]>();
-  if (!userId) return { posts, replies };
+): Promise<{
+  reactionsByMe: Map<string, string[]>;
+  reactionCounts: Map<string, Record<string, number>>;
+  replyCounts: Map<string, number>;
+}> {
+  const reactionsByMe = new Map<string, string[]>();
+  const reactionCounts = new Map<string, Record<string, number>>();
+  const replyCounts = new Map<string, number>();
+
+  if (postIds.length === 0) return { reactionsByMe, reactionCounts, replyCounts };
+
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  if (postIds.length) {
-    const { data } = await supabaseAdmin
-      .from("post_reactions")
-      .select("post_id, kind")
-      .eq("user_id", userId)
-      .in("post_id", postIds);
-    for (const r of data ?? []) posts.set(r.post_id, [...(posts.get(r.post_id) ?? []), r.kind]);
+
+  // 1. Fetch all reactions for these posts
+  const { data: allReactions } = await supabaseAdmin
+    .from("post_reactions")
+    .select("post_id, user_id, kind")
+    .in("post_id", postIds);
+
+  for (const r of allReactions ?? []) {
+    const currentCounts = reactionCounts.get(r.post_id) ?? {};
+    currentCounts[r.kind] = (currentCounts[r.kind] ?? 0) + 1;
+    reactionCounts.set(r.post_id, currentCounts);
+
+    if (userId && r.user_id === userId) {
+      reactionsByMe.set(r.post_id, [...(reactionsByMe.get(r.post_id) ?? []), r.kind]);
+    }
   }
-  if (replyIds.length) {
-    const { data } = await supabaseAdmin
-      .from("reply_reactions")
-      .select("reply_id, kind")
-      .eq("user_id", userId)
-      .in("reply_id", replyIds);
-    for (const r of data ?? [])
-      replies.set(r.reply_id, [...(replies.get(r.reply_id) ?? []), r.kind]);
+
+  // 2. Fetch all comments for these posts
+  const { data: allComments } = await supabaseAdmin
+    .from("discussion_comments")
+    .select("post_id")
+    .in("post_id", postIds);
+
+  for (const c of allComments ?? []) {
+    replyCounts.set(c.post_id, (replyCounts.get(c.post_id) ?? 0) + 1);
   }
-  return { posts, replies };
+
+  return { reactionsByMe, reactionCounts, replyCounts };
+}
+
+async function resolveReplyMetrics(
+  userId: string | undefined,
+  replyIds: string[],
+): Promise<{
+  reactionsByMe: Map<string, string[]>;
+  reactionCounts: Map<string, Record<string, number>>;
+}> {
+  const reactionsByMe = new Map<string, string[]>();
+  const reactionCounts = new Map<string, Record<string, number>>();
+
+  if (replyIds.length === 0) return { reactionsByMe, reactionCounts };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const { data: allReactions } = await supabaseAdmin
+    .from("reply_reactions")
+    .select("reply_id, user_id, kind")
+    .in("reply_id", replyIds);
+
+  for (const r of allReactions ?? []) {
+    const currentCounts = reactionCounts.get(r.reply_id) ?? {};
+    currentCounts[r.kind] = (currentCounts[r.kind] ?? 0) + 1;
+    reactionCounts.set(r.reply_id, currentCounts);
+
+    if (userId && r.user_id === userId) {
+      reactionsByMe.set(r.reply_id, [...(reactionsByMe.get(r.reply_id) ?? []), r.kind]);
+    }
+  }
+
+  return { reactionsByMe, reactionCounts };
 }
 
 function normalizeReactionCount(c: unknown): Record<string, number> {
@@ -101,8 +149,9 @@ const listFeedSchema = z.object({
 export const listFeed = createServerFn({ method: "GET" })
   .validator((d: unknown) => listFeedSchema.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { supabase } = await import("@/integrations/supabase/client");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
+    const supabase = (await import("@/integrations/supabase/client")).supabase as any;
 
     // Best-effort viewer id (optional — drives reactions_by_me).
     let viewerId: string | undefined;
@@ -112,7 +161,7 @@ export const listFeed = createServerFn({ method: "GET" })
       if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.replace("Bearer ", "");
         if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { supabase: authed } = await import("@/integrations/supabase/client");
           const { data: claims } = await authed.auth.getClaims(token);
           viewerId = claims?.claims?.sub;
         }
@@ -157,14 +206,14 @@ export const listFeed = createServerFn({ method: "GET" })
     const slice = (rows ?? []).slice(0, data.limit);
     const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
 
-    const authors = await getAuthorMap(slice.map((r) => r.user_id));
-    const { posts: myReactions } = await resolveReactionsByMe(
+    const authors = await getAuthorMap(slice.map((r: any) => r.user_id));
+    const postIds = slice.map((r: any) => r.id);
+    const { reactionsByMe, reactionCounts, replyCounts } = await resolvePostMetrics(
       viewerId,
-      slice.map((r) => r.id),
-      [],
+      postIds,
     );
 
-    const posts: FeedPost[] = slice.map((r) => {
+    const posts: FeedPost[] = slice.map((r: any) => {
       const row = asRow(r);
       return {
         id: row.id,
@@ -173,9 +222,9 @@ export const listFeed = createServerFn({ method: "GET" })
         body: row.body,
         category: row.category,
         media_urls: (row.media_urls ?? []) as string[],
-        reply_count: row.reply_count ?? 0,
-        reaction_count: normalizeReactionCount(row.reaction_count),
-        reactions_by_me: myReactions.get(row.id) ?? [],
+        reply_count: replyCounts.get(row.id) ?? 0,
+        reaction_count: reactionCounts.get(row.id) ?? {},
+        reactions_by_me: reactionsByMe.get(row.id) ?? [],
         locked: !!row.locked,
         last_activity_at: row.last_activity_at,
         created_at: row.created_at,
@@ -197,7 +246,8 @@ const listUserPostsSchema = z.object({
 export const listUserPosts = createServerFn({ method: "GET" })
   .validator((d: unknown) => listUserPostsSchema.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
 
     let viewerId: string | undefined;
     try {
@@ -206,7 +256,7 @@ export const listUserPosts = createServerFn({ method: "GET" })
       if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.replace("Bearer ", "");
         if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { supabase: authed } = await import("@/integrations/supabase/client");
           const { data: claims } = await authed.auth.getClaims(token);
           viewerId = claims?.claims?.sub;
         }
@@ -231,14 +281,14 @@ export const listUserPosts = createServerFn({ method: "GET" })
     const slice = (rows ?? []).slice(0, data.limit);
     const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
 
-    const authors = await getAuthorMap(slice.map((r) => r.user_id));
-    const { posts: myReactions } = await resolveReactionsByMe(
+    const authors = await getAuthorMap(slice.map((r: any) => r.user_id));
+    const postIds = slice.map((r: any) => r.id);
+    const { reactionsByMe, reactionCounts, replyCounts } = await resolvePostMetrics(
       viewerId,
-      slice.map((r) => r.id),
-      [],
+      postIds,
     );
 
-    const posts: FeedPost[] = slice.map((r) => {
+    const posts: FeedPost[] = slice.map((r: any) => {
       const row = asRow(r);
       return {
         id: row.id,
@@ -247,9 +297,9 @@ export const listUserPosts = createServerFn({ method: "GET" })
         body: row.body,
         category: row.category,
         media_urls: (row.media_urls ?? []) as string[],
-        reply_count: row.reply_count ?? 0,
-        reaction_count: normalizeReactionCount(row.reaction_count),
-        reactions_by_me: myReactions.get(row.id) ?? [],
+        reply_count: replyCounts.get(row.id) ?? 0,
+        reaction_count: reactionCounts.get(row.id) ?? {},
+        reactions_by_me: reactionsByMe.get(row.id) ?? [],
         locked: !!row.locked,
         last_activity_at: row.last_activity_at,
         created_at: row.created_at,
@@ -267,7 +317,8 @@ const getThreadSchema = z.object({ id: z.string().uuid() });
 export const getThread = createServerFn({ method: "GET" })
   .validator((d: unknown) => getThreadSchema.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
 
     let viewerId: string | undefined;
     try {
@@ -276,7 +327,7 @@ export const getThread = createServerFn({ method: "GET" })
       if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.replace("Bearer ", "");
         if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { supabase: authed } = await import("@/integrations/supabase/client");
           const { data: claims } = await authed.auth.getClaims(token);
           viewerId = claims?.claims?.sub;
         }
@@ -299,13 +350,15 @@ export const getThread = createServerFn({ method: "GET" })
 
     const authors = await getAuthorMap([
       postRes.data.user_id,
-      ...(repliesRes.data ?? []).map((c) => c.user_id),
+      ...(repliesRes.data ?? []).map((c: any) => c.user_id),
     ]);
-    const { posts: myPostR, replies: myReplyR } = await resolveReactionsByMe(
-      viewerId,
-      [postRes.data.id],
-      (repliesRes.data ?? []).map((c) => c.id),
-    );
+    const postIds = [postRes.data.id];
+    const replyIds = (repliesRes.data ?? []).map((c: any) => c.id);
+
+    const [postMetrics, replyMetrics] = await Promise.all([
+      resolvePostMetrics(viewerId, postIds),
+      resolveReplyMetrics(viewerId, replyIds),
+    ]);
 
     const prow = asRow(postRes.data);
     const post: FeedPost = {
@@ -315,9 +368,9 @@ export const getThread = createServerFn({ method: "GET" })
       body: prow.body,
       category: prow.category,
       media_urls: (prow.media_urls ?? []) as string[],
-      reply_count: prow.reply_count ?? 0,
-      reaction_count: normalizeReactionCount(prow.reaction_count),
-      reactions_by_me: myPostR.get(prow.id) ?? [],
+      reply_count: postMetrics.replyCounts.get(prow.id) ?? 0,
+      reaction_count: postMetrics.reactionCounts.get(prow.id) ?? {},
+      reactions_by_me: postMetrics.reactionsByMe.get(prow.id) ?? [],
       locked: !!prow.locked,
       last_activity_at: prow.last_activity_at,
       created_at: prow.created_at,
@@ -325,7 +378,7 @@ export const getThread = createServerFn({ method: "GET" })
       author: authors.get(prow.user_id) ?? null,
     };
 
-    const replies: FeedReply[] = (repliesRes.data ?? []).map((c) => {
+    const replies: FeedReply[] = (repliesRes.data ?? []).map((c: any) => {
       const row = asRow(c);
       return {
         id: row.id,
@@ -335,8 +388,8 @@ export const getThread = createServerFn({ method: "GET" })
         body: row.body,
         path: row.path ?? row.id,
         depth: row.depth ?? 0,
-        reaction_count: normalizeReactionCount(row.reaction_count),
-        reactions_by_me: myReplyR.get(row.id) ?? [],
+        reaction_count: replyMetrics.reactionCounts.get(row.id) ?? {},
+        reactions_by_me: replyMetrics.reactionsByMe.get(row.id) ?? [],
         created_at: row.created_at,
         updated_at: row.updated_at,
         author: authors.get(row.user_id) ?? null,
@@ -362,7 +415,7 @@ export const createPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => createPostSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("discussion_posts")
       .insert({
         user_id: context.userId,
@@ -387,14 +440,14 @@ export const replyToPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => replySchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: post } = await context.supabase
+    const { data: post } = await (context.supabase as any)
       .from("discussion_posts")
       .select("locked")
       .eq("id", data.post_id)
       .maybeSingle();
     if (post?.locked) throw new Error("This thread is locked.");
 
-    const { data: row, error } = await context.supabase
+    const { data: row, error } = await (context.supabase as any)
       .from("discussion_comments")
       .insert({
         post_id: data.post_id,
@@ -426,15 +479,20 @@ export const reactPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => reactSchema.parse(d))
   .handler(async ({ data, context }) => {
-    // Insert idempotently — re-reacting the same kind is a no-op (UNIQUE constraint).
-    const { error } = await context.supabase.from("post_reactions").upsert(
-      {
-        user_id: context.userId,
-        post_id: data.post_id,
-        kind: data.kind,
-      },
-      { onConflict: "user_id,post_id,kind" },
-    );
+    const supabase = context.supabase as any;
+    // 1. Delete any existing reactions by this user on this post first
+    await supabase
+      .from("post_reactions")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("post_id", data.post_id);
+
+    // 2. Insert the new reaction kind
+    const { error } = await supabase.from("post_reactions").insert({
+      user_id: context.userId,
+      post_id: data.post_id,
+      kind: data.kind,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -443,7 +501,7 @@ export const unreactPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => reactSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("post_reactions")
       .delete()
       .eq("user_id", context.userId)
@@ -462,14 +520,20 @@ export const reactReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => replyReactSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("reply_reactions").upsert(
-      {
-        user_id: context.userId,
-        reply_id: data.reply_id,
-        kind: data.kind,
-      },
-      { onConflict: "user_id,reply_id,kind" },
-    );
+    const supabase = context.supabase as any;
+    // 1. Delete any existing reactions by this user on this reply first
+    await supabase
+      .from("reply_reactions")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("reply_id", data.reply_id);
+
+    // 2. Insert the new reaction kind
+    const { error } = await supabase.from("reply_reactions").insert({
+      user_id: context.userId,
+      reply_id: data.reply_id,
+      kind: data.kind,
+    });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
@@ -478,7 +542,7 @@ export const unreactReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => replyReactSchema.parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
+    const { error } = await (context.supabase as any)
       .from("reply_reactions")
       .delete()
       .eq("user_id", context.userId)
@@ -500,13 +564,13 @@ export const toggleFollow = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.followee_id === context.userId) throw new Error("You can't follow yourself.");
     // Try delete first (toggle off); if no row matched, insert (toggle on).
-    const { count: deleted } = await context.supabase
+    const { count: deleted } = await (context.supabase as any)
       .from("user_follows")
       .delete({ count: "exact" })
       .eq("follower_id", context.userId)
       .eq("followee_id", data.followee_id);
     if ((deleted ?? 0) > 0) return { ok: true, following: false };
-    const { error } = await context.supabase.from("user_follows").insert({
+    const { error } = await (context.supabase as any).from("user_follows").insert({
       follower_id: context.userId,
       followee_id: data.followee_id,
     });
@@ -523,7 +587,8 @@ const publicProfileSchema = z.object({ user_id: z.string().uuid() });
 export const getPublicProfile = createServerFn({ method: "GET" })
   .validator((d: unknown) => publicProfileSchema.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
 
     let viewerId: string | undefined;
     try {
@@ -532,7 +597,7 @@ export const getPublicProfile = createServerFn({ method: "GET" })
       if (authHeader?.startsWith("Bearer ")) {
         const token = authHeader.replace("Bearer ", "");
         if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client.server");
+          const { supabase: authed } = await import("@/integrations/supabase/client");
           const { data: claims } = await authed.auth.getClaims(token);
           viewerId = claims?.claims?.sub;
         }
@@ -552,7 +617,7 @@ export const getPublicProfile = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .eq("user_id", data.user_id),
       viewerId
-        ? supabaseAdmin
+        ? (supabaseAdmin as any)
             .from("user_follows")
             .select("id", { count: "exact", head: true })
             .eq("follower_id", viewerId)
@@ -585,8 +650,9 @@ const trendingSchema = z.object({ limit: z.number().int().min(1).max(20).default
 export const listTrending = createServerFn({ method: "GET" })
   .validator((d: unknown) => trendingSchema.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
+    const { data: rows, error } = await (supabaseAdmin as any)
       .from("hashtags")
       .select("tag, usage_count")
       .order("usage_count", { ascending: false })
@@ -671,9 +737,10 @@ export const adminListPosts = createServerFn({ method: "GET" })
   .validator((d: unknown) => adminListPostsSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
 
-    let q = supabaseAdmin
+    let q = (supabaseAdmin as any)
       .from("discussion_posts")
       .select(POST_COLS)
       .order("created_at", { ascending: false })
@@ -689,9 +756,9 @@ export const adminListPosts = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const slice = (rows ?? []).slice(0, data.limit);
-    const authors = await getAuthorMap(slice.map((r) => r.user_id));
+    const authors = await getAuthorMap(slice.map((r: any) => r.user_id));
 
-    const posts: AdminPostRow[] = slice.map((r) => {
+    const posts: AdminPostRow[] = slice.map((r: any) => {
       const row = asRow(r);
       return {
         id: row.id,
@@ -734,9 +801,10 @@ export const adminListReplies = createServerFn({ method: "GET" })
   .validator((d: unknown) => adminListRepliesSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
 
-    let q = supabaseAdmin
+    let q = (supabaseAdmin as any)
       .from("discussion_comments")
       .select(REPLY_COLS)
       .order("created_at", { ascending: false })
@@ -747,13 +815,13 @@ export const adminListReplies = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
 
     const slice = rows ?? [];
-    const authorIds = slice.map((r) => r.user_id);
-    const postIds = Array.from(new Set(slice.map((r) => r.post_id)));
+    const authorIds = slice.map((r: any) => r.user_id);
+    const postIds = Array.from(new Set(slice.map((r: any) => r.post_id)));
     const [authors, posts] = await Promise.all([
       getAuthorMap(authorIds),
       (async () => {
         if (postIds.length === 0) return new Map<string, string | null>();
-        const { data: p } = await supabaseAdmin
+        const { data: p } = await (supabaseAdmin as any)
           .from("discussion_posts")
           .select("id, title")
           .in("id", postIds);
@@ -763,7 +831,7 @@ export const adminListReplies = createServerFn({ method: "GET" })
       })(),
     ]);
 
-    const replies: AdminReplyRow[] = slice.map((r) => {
+    const replies: AdminReplyRow[] = slice.map((r: any) => {
       const row = asRow(r);
       return {
         id: row.id,
@@ -799,7 +867,7 @@ export const adminListHashtags = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: rows, error } = await supabaseAdmin
+    const { data: rows, error } = await (supabaseAdmin as any)
       .from("hashtags")
       .select("id, tag, usage_count, suppressed, created_at")
       .order("usage_count", { ascending: false })
@@ -815,8 +883,9 @@ export const adminSuppressHashtag = createServerFn({ method: "POST" })
   .validator((d: unknown) => suppressSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
+      .supabaseAdmin as any;
+    const { error } = await (supabaseAdmin as any)
       .from("hashtags")
       .update({ suppressed: data.suppressed } as never)
       .eq("id", data.id);
@@ -860,15 +929,15 @@ export const adminCommunityStats = createServerFn({ method: "GET" })
         .select("id", { count: "exact", head: true })
         .gte("created_at", since),
       supabaseAdmin
-        .from("post_reactions")
+        .from("post_reactions" as any)
         .select("id", { count: "exact", head: true })
         .gte("created_at", since),
       supabaseAdmin
-        .from("reply_reactions")
+        .from("reply_reactions" as any)
         .select("id", { count: "exact", head: true })
         .gte("created_at", since),
       supabaseAdmin
-        .from("user_follows")
+        .from("user_follows" as any)
         .select("id", { count: "exact", head: true })
         .gte("created_at", since),
       supabaseAdmin.from("discussion_posts").select("id", { count: "exact", head: true }),

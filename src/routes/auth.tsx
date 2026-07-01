@@ -51,6 +51,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [signedUp, setSignedUp] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -69,7 +70,8 @@ function AuthPage() {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Account created. Check your inbox to confirm.");
+        setSignedUp(true);
+        toast.success("Account created — welcome to Melanated In Tech.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -103,6 +105,27 @@ function AuthPage() {
   return (
     <SiteLayout>
       <section className="mx-auto flex max-w-md flex-col items-stretch px-4 py-20 sm:px-6">
+        {signedUp ? (
+          <div className="text-center">
+            <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-foreground text-background">
+              <Sparkles className="h-5 w-5" />
+            </span>
+            <h1 className="mt-4 font-display text-3xl font-semibold">Check your email</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account and sign in.
+            </p>
+            <p className="mt-6 text-sm text-muted-foreground">
+              Already confirmed?{" "}
+              <button
+                type="button"
+                onClick={() => { setSignedUp(false); setMode("signin"); }}
+                className="font-medium text-primary hover:underline"
+              >
+                Sign in
+              </button>
+            </p>
+          </div>
+        ) : (
         <div className="text-center">
           <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-foreground text-background">
             <Sparkles className="h-5 w-5" />
@@ -167,6 +190,7 @@ function AuthPage() {
             Back home
           </Link>
         </p>
+        )}
       </section>
     </SiteLayout>
   );

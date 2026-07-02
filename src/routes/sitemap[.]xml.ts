@@ -13,6 +13,10 @@ const STATIC_PATHS = [
   { path: "/paths", changefreq: "weekly" as const, priority: "0.9" },
   { path: "/knowledge", changefreq: "daily" as const, priority: "0.9" },
   { path: "/fit-finder", changefreq: "monthly" as const, priority: "0.8" },
+  { path: "/tools", changefreq: "monthly" as const, priority: "0.8" },
+  { path: "/tools/prompt-pilot", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/gpt-trainer", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/model-playground", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/challenges", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/products", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/services", changefreq: "monthly" as const, priority: "0.7" },
@@ -21,6 +25,8 @@ const STATIC_PATHS = [
   { path: "/search", changefreq: "weekly" as const, priority: "0.4" },
   { path: "/about", changefreq: "monthly" as const, priority: "0.5" },
   { path: "/contact", changefreq: "yearly" as const, priority: "0.4" },
+  { path: "/privacy", changefreq: "yearly" as const, priority: "0.2" },
+  { path: "/terms", changefreq: "yearly" as const, priority: "0.2" },
 ];
 
 type Entry = {
@@ -38,15 +44,20 @@ export const Route = createFileRoute("/sitemap.xml")({
           auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
         });
 
-        const [agents, articles, products, paths, challenges, posts, authors] = await Promise.all([
-          supabase.from("agents").select("slug, updated_at").eq("active", true),
-          supabase.from("articles").select("slug, updated_at, published_at").eq("published", true),
-          supabase.from("products").select("slug, updated_at").eq("active", true),
-          supabase.from("learning_paths").select("slug, updated_at").eq("published", true),
-          supabase.from("builder_challenges").select("slug, updated_at").eq("published", true),
-          supabase.from("discussion_posts").select("id, updated_at").eq("locked", false),
-          supabase.from("authors").select("slug, updated_at"),
-        ]);
+        const now = new Date().toISOString();
+        const publicStatus = `status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`;
+
+        const [agents, articles, products, services, paths, challenges, posts, authors] =
+          await Promise.all([
+            supabase.from("agents").select("slug, updated_at").or(publicStatus),
+            supabase.from("articles").select("slug, updated_at, published_at").or(publicStatus),
+            supabase.from("products").select("slug, updated_at").or(publicStatus),
+            supabase.from("services").select("slug, updated_at").or(publicStatus),
+            supabase.from("learning_paths").select("slug, updated_at").eq("published", true),
+            supabase.from("builder_challenges").select("slug, updated_at").eq("published", true),
+            supabase.from("discussion_posts").select("id, updated_at").eq("locked", false),
+            supabase.from("authors").select("slug, updated_at"),
+          ]);
 
         const entries: Entry[] = [...STATIC_PATHS];
 
@@ -71,6 +82,14 @@ export const Route = createFileRoute("/sitemap.xml")({
             path: `/products/${p.slug}`,
             lastmod: p.updated_at ?? undefined,
             changefreq: "weekly",
+            priority: "0.6",
+          });
+        }
+        for (const service of services.data ?? []) {
+          entries.push({
+            path: `/services/${service.slug}`,
+            lastmod: service.updated_at ?? undefined,
+            changefreq: "monthly",
             priority: "0.6",
           });
         }

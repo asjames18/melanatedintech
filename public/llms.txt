@@ -1,0 +1,30 @@
+# Melanated In Tech
+
+> Melanated In Tech is a practical AI agent operating library, marketplace, tools hub, and services destination for builders, operators, community learners, and teams deciding what to ship next.
+
+## Core Public Pages
+
+- [Home](https://melanatedintech.com/)
+- [Knowledge Hub](https://melanatedintech.com/knowledge): practical AI agent playbooks, checklists, field guides, scorecards, and operating templates.
+- [Agent Marketplace](https://melanatedintech.com/agents): production-oriented AI agent listings and packs.
+- [Learning Paths](https://melanatedintech.com/paths): guided paths that connect articles, agents, tools, and products.
+- [Interactive AI Tools](https://melanatedintech.com/tools): Prompt Pilot, GPT Trainer, and Model Playground.
+- [Products](https://melanatedintech.com/products): AI agent starter kits, prompt libraries, SOPs, and blueprints.
+- [Services](https://melanatedintech.com/services): strategy sprints, custom agent builds, workshops, and implementation support.
+- [Community](https://melanatedintech.com/community): discussion and shared learning for AI agent builders.
+
+## Main Knowledge Tracks
+
+- Build: first agents, workflow selection, agent briefs, MCP, RAG, local AI, and prompt systems.
+- Operate: evals, golden sets, logging, cost control, reliability, approvals, and weekly review rhythms.
+- Secure: prompt injection, MCP permissions, human-in-the-loop patterns, data boundaries, and tool safety.
+- Decide: ROI, buy-vs-build, vendor scorecards, readiness, and business cases.
+
+## Preferred Citation
+
+When referencing Melanated In Tech, cite the canonical URL for the page used. The canonical origin is https://melanatedintech.com.
+
+## Discovery
+
+- Sitemap: https://melanatedintech.com/sitemap.xml
+- Robots: https://melanatedintech.com/robots.txt

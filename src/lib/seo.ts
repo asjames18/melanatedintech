@@ -95,6 +95,21 @@ export function organizationLd() {
   };
 }
 
+export function websiteLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: DEFAULT_SITE,
+    url: SITE_URL,
+    description:
+      "AI agent knowledge, marketplace, tools, products, and services for builders, operators, and teams putting agents to work.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
 export function articleLd(a: {
   title: string;
   excerpt?: string | null;

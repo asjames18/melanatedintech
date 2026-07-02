@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createStripeClient, type StripeEnv } from "@/lib/stripe.server";
-import { getPremiumEntry } from "@/lib/premium-catalog";
+import type { StripeEnv } from "@/lib/stripe.server";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -13,6 +12,7 @@ type ChatRequest = {
   messages: ChatMessage[];
   model?: string;
   override_system_prompt?: string;
+  temperature?: number;
 };
 
 export const Route = createFileRoute("/api/public/agents/chat")({
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/agents/chat")({
           return Response.json({ error: "Invalid JSON body" }, { status: 400 });
         }
 
-        const { agent_id, agent_slug, messages, model, override_system_prompt } = body;
+        const { agent_id, agent_slug, messages, model, override_system_prompt, temperature } = body;
         if (!Array.isArray(messages) || messages.length === 0) {
           return Response.json({ error: "messages[] is required" }, { status: 400 });
         }
@@ -95,10 +95,11 @@ export const Route = createFileRoute("/api/public/agents/chat")({
           }
         }
 
-        let selectedModel = model ?? fallbackModel;
-        if (!selectedModel.startsWith("openrouter/")) {
-          selectedModel = "openrouter/openrouter/free";
-        }
+        const selectedModel = model ?? fallbackModel;
+        const selectedTemperature =
+          typeof temperature === "number" && Number.isFinite(temperature)
+            ? Math.min(1, Math.max(0, temperature))
+            : 0.7;
 
         // Build final messages array with system prompt prepended.
         const fullMessages: ChatMessage[] = [
@@ -112,17 +113,19 @@ export const Route = createFileRoute("/api/public/agents/chat")({
           selectedModel.startsWith("o1") ||
           selectedModel.startsWith("o3");
         const isAnthropic = selectedModel.startsWith("claude");
-        const isOpenRouter = selectedModel.startsWith("openrouter/");
+        const isOpenRouter = selectedModel.startsWith("openrouter/") || (!isOpenAI && !isAnthropic);
 
         if (isOpenAI) {
-          return await handleOpenAIChat(selectedModel, fullMessages, env);
+          return await handleOpenAIChat(selectedModel, fullMessages, env, selectedTemperature);
         }
         if (isAnthropic) {
-          return await handleAnthropicChat(selectedModel, fullMessages, env);
+          return await handleAnthropicChat(selectedModel, fullMessages, env, selectedTemperature);
         }
         if (isOpenRouter) {
-          const actualModel = selectedModel.substring("openrouter/".length);
-          return await handleOpenRouterChat(actualModel, fullMessages, env);
+          const actualModel = selectedModel.startsWith("openrouter/")
+            ? selectedModel.substring("openrouter/".length)
+            : selectedModel;
+          return await handleOpenRouterChat(actualModel, fullMessages, env, selectedTemperature);
         }
 
         return Response.json({ error: `Unsupported model: ${selectedModel}` }, { status: 400 });
@@ -134,7 +137,9 @@ export const Route = createFileRoute("/api/public/agents/chat")({
 function getEnvKey(key: string): string | undefined {
   const sources = [
     typeof process !== "undefined" ? process.env : {},
-    typeof import.meta !== "undefined" ? (import.meta.env as Record<string, any>) : {},
+    typeof import.meta !== "undefined"
+      ? (import.meta.env as Record<string, string | undefined>)
+      : {},
   ];
 
   for (const source of sources) {
@@ -149,14 +154,19 @@ function getEnvKey(key: string): string | undefined {
   return undefined;
 }
 
-async function handleOpenRouterChat(model: string, messages: ChatMessage[], env: StripeEnv) {
+async function handleOpenRouterChat(
+  model: string,
+  messages: ChatMessage[],
+  env: StripeEnv,
+  temperature: number,
+) {
   const apiKey =
     env === "live"
       ? (getEnvKey("OPENROUTER_LIVE_API_KEY") ?? getEnvKey("OPENROUTER_API_KEY"))
       : (getEnvKey("OPENROUTER_SANDBOX_API_KEY") ?? getEnvKey("OPENROUTER_API_KEY"));
 
   if (!apiKey) {
-    return Response.json({ error: "OpenRouter API key not configured" }, { status: 500 });
+    return Response.json({ error: "OpenRouter API key not configured" }, { status: 503 });
   }
 
   const callOpenRouter = async (modelName: string) => {
@@ -172,7 +182,7 @@ async function handleOpenRouterChat(model: string, messages: ChatMessage[], env:
         model: modelName,
         messages,
         max_tokens: 1000,
-        temperature: 0.7,
+        temperature,
       }),
     });
   };
@@ -202,7 +212,9 @@ async function handleOpenRouterChat(model: string, messages: ChatMessage[], env:
     return Response.json({
       role: "assistant",
       content,
+      message: { role: "assistant", content },
       model: activeModel,
+      activeModel,
       usage: data.usage ?? null,
     });
   } catch (e) {
@@ -220,7 +232,9 @@ async function handleOpenRouterChat(model: string, messages: ChatMessage[], env:
           return Response.json({
             role: "assistant",
             content,
+            message: { role: "assistant", content },
             model: "openrouter/free",
+            activeModel: "openrouter/free",
             usage: data.usage ?? null,
           });
         }
@@ -233,14 +247,19 @@ async function handleOpenRouterChat(model: string, messages: ChatMessage[], env:
   }
 }
 
-async function handleOpenAIChat(model: string, messages: ChatMessage[], env: StripeEnv) {
+async function handleOpenAIChat(
+  model: string,
+  messages: ChatMessage[],
+  env: StripeEnv,
+  temperature: number,
+) {
   const apiKey =
     env === "live"
       ? (getEnvKey("OPENAI_LIVE_API_KEY") ?? getEnvKey("OPENAI_API_KEY"))
       : (getEnvKey("OPENAI_SANDBOX_API_KEY") ?? getEnvKey("OPENAI_API_KEY"));
 
   if (!apiKey) {
-    return Response.json({ error: "OpenAI API key not configured" }, { status: 500 });
+    return Response.json({ error: "OpenAI API key not configured" }, { status: 503 });
   }
 
   try {
@@ -254,7 +273,7 @@ async function handleOpenAIChat(model: string, messages: ChatMessage[], env: Str
         model,
         messages,
         max_tokens: 1000,
-        temperature: 0.7,
+        temperature,
       }),
     });
 
@@ -270,7 +289,9 @@ async function handleOpenAIChat(model: string, messages: ChatMessage[], env: Str
     return Response.json({
       role: "assistant",
       content,
+      message: { role: "assistant", content },
       model,
+      activeModel: model,
       usage: data.usage ?? null,
     });
   } catch (e) {
@@ -279,14 +300,19 @@ async function handleOpenAIChat(model: string, messages: ChatMessage[], env: Str
   }
 }
 
-async function handleAnthropicChat(model: string, messages: ChatMessage[], env: StripeEnv) {
+async function handleAnthropicChat(
+  model: string,
+  messages: ChatMessage[],
+  env: StripeEnv,
+  temperature: number,
+) {
   const apiKey =
     env === "live"
       ? (getEnvKey("ANTHROPIC_LIVE_API_KEY") ?? getEnvKey("ANTHROPIC_API_KEY"))
       : (getEnvKey("ANTHROPIC_SANDBOX_API_KEY") ?? getEnvKey("ANTHROPIC_API_KEY"));
 
   if (!apiKey) {
-    return Response.json({ error: "Anthropic API key not configured" }, { status: 500 });
+    return Response.json({ error: "Anthropic API key not configured" }, { status: 503 });
   }
 
   // Anthropic expects system as a top-level field, not in messages.
@@ -304,6 +330,7 @@ async function handleAnthropicChat(model: string, messages: ChatMessage[], env: 
       body: JSON.stringify({
         model,
         max_tokens: 1000,
+        temperature,
         system: systemMsg?.content,
         messages: userMessages,
       }),
@@ -321,7 +348,9 @@ async function handleAnthropicChat(model: string, messages: ChatMessage[], env: 
     return Response.json({
       role: "assistant",
       content,
+      message: { role: "assistant", content },
       model,
+      activeModel: model,
       usage: data.usage ?? null,
     });
   } catch (e) {

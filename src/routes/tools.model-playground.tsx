@@ -146,17 +146,18 @@ function ModelPlaygroundPage() {
           messages: [{ role: "user", content: userMessage }],
           model: col.model,
           override_system_prompt: systemPrompt,
+          temperature: Number(temperature),
         }),
       });
 
       const endTime = performance.now();
       const durationMs = Math.round(endTime - startTime);
 
-      if (!response.ok) {
-        throw new Error(`HTTP Error ${response.status}`);
-      }
+      const data = await response.json().catch(() => null);
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error ?? `HTTP Error ${response.status}`);
+      }
 
       setColumns((prev) =>
         prev.map((c, idx) =>
@@ -164,7 +165,7 @@ function ModelPlaygroundPage() {
             ? {
                 ...c,
                 loading: false,
-                output: data.message?.content ?? "No output text received.",
+                output: data?.content ?? data?.message?.content ?? "No output text received.",
                 duration: durationMs,
                 resolvedModel: data.activeModel ?? col.model,
                 tokens: data.usage?.total_tokens ?? null,
@@ -172,7 +173,7 @@ function ModelPlaygroundPage() {
             : c,
         ),
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
       const endTime = performance.now();
       const durationMs = Math.round(endTime - startTime);
 
@@ -182,7 +183,7 @@ function ModelPlaygroundPage() {
             ? {
                 ...c,
                 loading: false,
-                error: err.message || "Failed to generate.",
+                error: err instanceof Error ? err.message : "Failed to generate.",
                 duration: durationMs,
               }
             : c,

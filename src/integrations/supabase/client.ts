@@ -3,8 +3,46 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { getSupabasePublishableKey, getSupabaseUrl, missingSupabaseMessage } from "./env";
 
+type SupabaseStorage = {
+  getItem: (key: string) => string | null | Promise<string | null>;
+  setItem: (key: string, value: string) => void | Promise<void>;
+  removeItem: (key: string) => void | Promise<void>;
+};
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
+}
+
+function createSafeBrowserStorage(): SupabaseStorage | undefined {
+  if (typeof window === "undefined") return undefined;
+
+  const memory = new Map<string, string>();
+
+  return {
+    getItem(key) {
+      try {
+        return window.localStorage.getItem(key);
+      } catch {
+        return memory.get(key) ?? null;
+      }
+    },
+    setItem(key, value) {
+      memory.set(key, value);
+      try {
+        window.localStorage.setItem(key, value);
+      } catch {
+        // Some embedded/private contexts deny storage access. Keep auth usable in memory.
+      }
+    },
+    removeItem(key) {
+      memory.delete(key);
+      try {
+        window.localStorage.removeItem(key);
+      } catch {
+        // Storage is best-effort in restricted browser contexts.
+      }
+    },
+  };
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
@@ -49,7 +87,7 @@ function createSupabaseClient() {
       fetch: createSupabaseFetch(SUPABASE_PUBLISHABLE_KEY),
     },
     auth: {
-      storage: typeof window !== "undefined" ? localStorage : undefined,
+      storage: createSafeBrowserStorage(),
       persistSession: true,
       autoRefreshToken: true,
     },

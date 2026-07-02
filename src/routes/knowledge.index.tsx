@@ -2,7 +2,19 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BookMarked, PlayCircle, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  ArrowRight,
+  BookMarked,
+  BriefcaseBusiness,
+  ClipboardCheck,
+  Hammer,
+  PlayCircle,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -30,31 +42,44 @@ const lengthOf = (m: number): Exclude<Length, "All"> =>
   m <= 5 ? "Quick" : m <= 9 ? "Medium" : "Deep";
 
 const FEATURED_SLUGS = [
-  "agent-operating-system-for-small-teams",
+  "choose-your-first-agent-workflow",
   "agent-evaluation-golden-set",
   "mcp-security-checklist-non-security-teams",
+  "ai-agent-roi-calculator-small-teams",
 ];
 
-const LEARNING_PATHS = [
+const START_HERE_SLUGS = [
+  "choose-your-first-agent-workflow",
+  "write-agent-brief-that-works",
+  "prompt-injection-in-everyday-language",
+];
+
+const FIELD_GUIDE_SLUG = "weekly-agent-review-meeting";
+
+const TRACKS = [
   {
-    title: "Start building",
+    title: "Build",
     category: "Getting Started",
-    body: "Pick a first workflow, write a stronger agent brief, and avoid early overreach.",
+    body: "Select a workflow, write the agent brief, connect tools, and ship a useful first loop.",
+    Icon: Hammer,
   },
   {
-    title: "Operate safely",
-    category: "Agent Security",
-    body: "Scope tools, design approval gates, and test the ways agents can be misled.",
-  },
-  {
-    title: "Prove it works",
+    title: "Operate",
     category: "Evaluation",
-    body: "Create golden sets, inspect tool use, and measure improvement before scaling.",
+    body: "Measure quality, review logs, control cost, and improve live agent behavior week by week.",
+    Icon: ClipboardCheck,
   },
   {
-    title: "Keep people coming back",
-    category: "Community",
-    body: "Turn repeated questions and real experiments into useful guides and discussions.",
+    title: "Secure",
+    category: "Agent Security",
+    body: "Set permissions, approval gates, prompt-injection drills, and human review boundaries.",
+    Icon: ShieldCheck,
+  },
+  {
+    title: "Decide",
+    category: "Business Strategy",
+    body: "Make the business case, compare vendors, choose build paths, and avoid overbuying.",
+    Icon: BriefcaseBusiness,
   },
 ];
 
@@ -62,9 +87,9 @@ export const Route = createFileRoute("/knowledge/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Agent Knowledge Hub — Melanated In Tech",
+      title: "Agent Knowledge Hub - Melanated In Tech",
       description:
-        "Guides, frameworks, and field notes on AI agents — memory, MCP, multi-agent systems, local AI, and more.",
+        "Practical AI agent playbooks for builders, operators, community learners, and teams deciding what to ship next.",
       url: "/knowledge",
     }),
   }),
@@ -139,32 +164,107 @@ function KnowledgeIndex() {
     if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const setCategory = (category: string) => {
+    setCat(category);
+    setLen("All");
+    setQ("");
+  };
+
   const hasFilters = cat !== "All" || len !== "All" || q.length > 0;
   const featured = FEATURED_SLUGS.map((slug) => articles.find((a) => a.slug === slug)).filter(
     Boolean,
   ) as typeof articles;
+  const startHere = START_HERE_SLUGS.map((slug) => articles.find((a) => a.slug === slug)).filter(
+    Boolean,
+  ) as typeof articles;
+  const fieldGuide = articles.find((a) => a.slug === FIELD_GUIDE_SLUG);
 
   return (
     <SiteLayout>
       <PageHeader
         eyebrow="Knowledge hub"
-        title="Practical knowledge for AI agent builders."
-        description="No hype. No 101 fluff. Just the frameworks, patterns, and field notes that hold up in production."
+        title="The operating library for practical AI agents."
+        description="Build useful agents, operate them with evidence, secure the risky edges, and decide what deserves investment."
       />
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-10 border-b border-border pb-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-primary">
+                <Sparkles className="h-3.5 w-3.5" /> Start here
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">
+                New to the Hub? Begin with the operating basics.
+              </h2>
+            </div>
+            {fieldGuide ? (
+              <Link
+                to="/knowledge/$slug"
+                params={{ slug: fieldGuide.slug }}
+                className="group rounded-lg border border-border bg-card px-4 py-3 transition hover:border-foreground/20"
+              >
+                <p className="text-xs font-medium uppercase tracking-wider text-accent2">
+                  This week's field guide
+                </p>
+                <p className="mt-1 max-w-md text-sm font-medium group-hover:text-primary">
+                  {fieldGuide.title}
+                </p>
+              </Link>
+            ) : (
+              <div className="rounded-lg border border-border bg-card px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-accent2">
+                  This week's field guide
+                </p>
+                <p className="mt-1 max-w-md text-sm font-medium">
+                  Run a 30-minute review: sample good runs, inspect misses, pick one fix.
+                </p>
+              </div>
+            )}
+          </div>
+          <div className="mt-5 grid gap-5 md:grid-cols-3">
+            {startHere.length > 0
+              ? startHere.map((a) => <ArticleCard key={a.id} {...a} />)
+              : [
+                  [
+                    "Playbook",
+                    "Choose a first workflow",
+                    "Rank agent ideas by risk, repeatability, review effort, and business value.",
+                  ],
+                  [
+                    "Template",
+                    "Write the agent brief",
+                    "Define the job, tools, constraints, examples, and escalation rules before building.",
+                  ],
+                  [
+                    "Field Guide",
+                    "Spot prompt injection",
+                    "Teach the team how untrusted content tries to act like instructions.",
+                  ],
+                ].map(([label, title, body]) => (
+                  <div key={title} className="rounded-lg border border-border bg-card p-6">
+                    <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                      {label}
+                    </p>
+                    <h3 className="mt-3 font-display text-lg font-semibold">{title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+                  </div>
+                ))}
+          </div>
+        </div>
+
         {featured.length > 0 && (
           <div className="mb-10">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-2xl font-semibold">Start with these playbooks</h2>
+                <h2 className="font-display text-2xl font-semibold">Cornerstone playbooks</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Practical guides built for repeat visits: launch, evaluate, secure, improve.
+                  Four durable entry points: build, operate, secure, and decide.
                 </p>
               </div>
               <BookMarked className="hidden h-6 w-6 text-primary sm:block" aria-hidden />
             </div>
-            <div className="mt-5 grid gap-5 md:grid-cols-3">
+            <div className="mt-5 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
               {featured.map((a) => (
                 <ArticleCard key={a.id} {...a} />
               ))}
@@ -173,33 +273,36 @@ function KnowledgeIndex() {
         )}
 
         <div className="mb-10 grid gap-3 md:grid-cols-4">
-          {LEARNING_PATHS.map((path) => (
+          {TRACKS.map(({ Icon, ...track }) => (
             <button
-              key={path.title}
-              onClick={() => setCat(path.category)}
-              className="group rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+              key={track.title}
+              onClick={() => setCategory(track.category)}
+              className="group rounded-lg border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
             >
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                {path.category}
-              </p>
-              <h3 className="mt-2 font-display text-lg font-semibold">{path.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{path.body}</p>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-primary">
+                  {track.title}
+                </p>
+                <Icon className="h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary" />
+              </div>
+              <h3 className="mt-2 font-display text-lg font-semibold">{track.category}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{track.body}</p>
               <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                Explore path{" "}
+                Explore track{" "}
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </span>
             </button>
           ))}
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search articles, topics, frameworks..."
+                placeholder="Search playbooks, checklists, scorecards..."
                 className="w-full rounded-lg border border-border bg-background py-2.5 pl-9 pr-9 text-sm outline-none transition focus:border-foreground/30 focus:ring-2 focus:ring-primary/20"
                 aria-label="Search articles"
               />
@@ -280,7 +383,7 @@ function KnowledgeIndex() {
           ))}
         </div>
         {filtered.length === 0 && (
-          <div className="mt-12 rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
+          <div className="mt-12 rounded-lg border border-dashed border-border bg-card/50 p-12 text-center">
             <p className="text-sm font-medium">No articles match this filter.</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Try clearing filters or searching a different keyword.
@@ -342,7 +445,7 @@ function ContinueLearningPaths() {
       </div>
       <ul className="mt-5 grid gap-4 md:grid-cols-3">
         {rows.map(({ row, path }) => (
-          <li key={row.id} className="rounded-2xl border bg-card p-4">
+          <li key={row.id} className="rounded-lg border bg-card p-4">
             <div className="flex items-start gap-3">
               <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                 <PlayCircle className="h-4 w-4" />
@@ -391,7 +494,7 @@ function ContinueReading({
       <p className="mt-1 text-sm text-muted-foreground">Pick up where you left off.</p>
       <ul className="mt-5 grid gap-4 md:grid-cols-3">
         {inProgress.map(({ row, article }) => (
-          <li key={row.slug} className="rounded-2xl border bg-card p-4">
+          <li key={row.slug} className="rounded-lg border bg-card p-4">
             <Link
               to="/knowledge/$slug"
               params={{ slug: article!.slug }}
@@ -400,7 +503,7 @@ function ContinueReading({
               {article!.title}
             </Link>
             <p className="mt-1 text-xs text-muted-foreground">
-              {article!.category} · {article!.read_minutes} min
+              {article!.category} - {article!.read_minutes} min
             </p>
             <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
               <div className="h-full bg-primary" style={{ width: `${row.percent}%` }} />

@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
-import { organizationLd, ldScript } from "@/lib/seo";
+import { organizationLd, websiteLd, ldScript } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -80,14 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#3a2f24" },
-      { title: "Melanated In Tech — The home for AI agents" },
+      { title: "Melanated In Tech - The home for AI agents" },
       {
         name: "description",
         content:
           "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
       },
       { name: "author", content: "Melanated In Tech" },
-      { property: "og:title", content: "Melanated In Tech — The home for AI agents" },
+      { property: "og:title", content: "Melanated In Tech - The home for AI agents" },
       {
         property: "og:description",
         content:
@@ -95,7 +95,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Melanated In Tech — The home for AI agents" },
+      { name: "twitter:title", content: "Melanated In Tech - The home for AI agents" },
       {
         name: "twitter:description",
         content:
@@ -119,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
     ],
-    scripts: [ldScript(organizationLd())],
+    scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
   }),
 
   shellComponent: RootShell,

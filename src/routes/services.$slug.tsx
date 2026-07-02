@@ -26,13 +26,13 @@ export const Route = createFileRoute("/services/$slug")({
   head: ({ params, loaderData }) => {
     const s = loaderData?.service;
     const path = `/services/${params.slug}`;
-    if (!s) return { meta: [{ title: "Service — Melanated In Tech" }] };
+    if (!s) return { meta: [{ title: "Service - Melanated In Tech" }] };
     const seo = buildSeoMeta({
-      title: `${s.name} — Service | Melanated In Tech`,
+      title: `${s.name} - Service | Melanated In Tech`,
       description: s.tagline,
       url: path,
     });
-    return { meta: seo.meta };
+    return { meta: seo.meta, links: seo.links };
   },
   component: ServiceDetailPage,
 });

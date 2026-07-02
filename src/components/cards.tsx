@@ -4,6 +4,8 @@ import { categoryVisual } from "@/lib/category-style";
 
 export type Tier = "free" | "premium" | "custom";
 
+type ArticleLabel = "Checklist" | "Playbook" | "Field Guide" | "Scorecard";
+
 export function TierBadge({ tier }: { tier: Tier }) {
   const styles = {
     free: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
@@ -16,6 +18,20 @@ export function TierBadge({ tier }: { tier: Tier }) {
       {label}
     </span>
   );
+}
+
+function articleLabel(title: string, excerpt: string): ArticleLabel {
+  const text = `${title} ${excerpt}`.toLowerCase();
+  if (text.includes("scorecard") || text.includes("calculator") || text.includes("roi")) {
+    return "Scorecard";
+  }
+  if (text.includes("checklist") || text.includes("what to capture") || text.includes("never")) {
+    return "Checklist";
+  }
+  if (text.includes("field guide") || text.includes("weekly") || text.includes("teardown")) {
+    return "Field Guide";
+  }
+  return "Playbook";
 }
 
 export function AgentCard({
@@ -40,10 +56,10 @@ export function AgentCard({
     <Link
       to="/agents/$slug"
       params={{ slug }}
-      className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      className="group relative flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className={`grid h-10 w-10 place-items-center rounded-xl ${className}`}>
+        <div className={`grid h-10 w-10 place-items-center rounded-lg ${className}`}>
           <Icon className="h-5 w-5" />
         </div>
         <div className="flex items-center gap-2">
@@ -88,19 +104,25 @@ export function ArticleCard({
   category: string;
   read_minutes: number;
 }) {
+  const label = articleLabel(title, excerpt);
   return (
     <Link
       to="/knowledge/$slug"
       params={{ slug }}
-      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
-      <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
         <BookOpen className="h-3.5 w-3.5" />
         <span>{category}</span>
-        <span>·</span>
+        <span>-</span>
         <span>{read_minutes} min read</span>
       </div>
-      <h3 className="mt-3 font-display text-lg font-semibold leading-snug">{title}</h3>
+      <div className="mt-3 flex items-start justify-between gap-3">
+        <h3 className="font-display text-lg font-semibold leading-snug">{title}</h3>
+        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+          {label}
+        </span>
+      </div>
       <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{excerpt}</p>
       <div className="mt-6 flex items-center gap-1 text-sm font-medium text-primary">
         Read article{" "}
@@ -128,10 +150,10 @@ export function ProductCard({
     <Link
       to="/products/$slug"
       params={{ slug }}
-      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
       <div className="flex items-start justify-between">
-        <div className={`grid h-10 w-10 place-items-center rounded-xl ${className}`}>
+        <div className={`grid h-10 w-10 place-items-center rounded-lg ${className}`}>
           <Icon className="h-5 w-5" />
         </div>
         <TierBadge tier={tier} />
@@ -157,8 +179,8 @@ export function ServiceCard({
   outcomes: string[];
 }) {
   return (
-    <div className="flex flex-col rounded-2xl border border-border bg-card p-6">
-      <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+    <div className="flex flex-col rounded-lg border border-border bg-card p-6">
+      <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
         <Wrench className="h-5 w-5" />
       </div>
       <h3 className="mt-4 font-display text-lg font-semibold">{name}</h3>

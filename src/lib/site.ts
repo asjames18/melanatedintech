@@ -7,7 +7,7 @@ export const SITE = {
   short: "MIT",
   tagline: "The home for AI agents.",
   description:
-    "Melanated In Tech is the destination for AI agent knowledge, marketplace, products, and services — built for the people putting agents to work.",
+    "Melanated In Tech is the destination for AI agent knowledge, marketplace, products, and services - built for the people putting agents to work.",
 };
 
 export const NAV = [
@@ -59,7 +59,7 @@ export const PILLARS = [
   {
     title: "Agent Services",
     href: "/services" as const,
-    blurb: "Strategy sprints, custom agent builds, and ministry implementations — done with you.",
+    blurb: "Strategy sprints, custom agent builds, and ministry implementations - done with you.",
     tag: "Pillar 06",
   },
   {

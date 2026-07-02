@@ -14,7 +14,15 @@ import { useInterests } from "@/hooks/use-interests";
 import { useTrackReadingProgress } from "@/hooks/use-reading-progress";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, articleLd, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Sparkles, Link as LinkIcon, Timer, Wand2, ArrowRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Sparkles,
+  Link as LinkIcon,
+  Timer,
+  Wand2,
+  ArrowRight,
+  Compass,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const qo = (slug: string) =>
@@ -181,7 +189,7 @@ function ArticleView() {
         title: "Model Playground",
         callout:
           "Compare prompt outputs, generation latency, and token efficiency side-by-side across Llama, Gemini, and Qwen in our parallel comparison sandbox.",
-        href: "/tools/model-playground",
+        href: "/tools/model-playground" as const,
         Icon: Timer,
       };
     }
@@ -195,7 +203,7 @@ function ArticleView() {
         title: "GPT Trainer",
         callout:
           "Design strict custom agent parameters, tone rules, and safety guardrails, then compile them into custom system instructions.",
-        href: "/tools/gpt-trainer",
+        href: "/tools/gpt-trainer" as const,
         Icon: Sparkles,
       };
     }
@@ -209,8 +217,22 @@ function ArticleView() {
         title: "Prompt Pilot",
         callout:
           "Seed, build, and save your agent instructions using our visual template catalog and drag-and-drop prompt workspace.",
-        href: "/tools/prompt-pilot",
+        href: "/tools/prompt-pilot" as const,
         Icon: Wand2,
+      };
+    }
+    if (
+      article.category === "Business Strategy" ||
+      article.slug.includes("roi") ||
+      article.slug.includes("vendor") ||
+      article.slug.includes("business-case")
+    ) {
+      return {
+        title: "Fit Finder",
+        callout:
+          "Translate the business case into a practical recommendation for which agent, service, or tool path fits your team right now.",
+        href: "/fit-finder" as const,
+        Icon: Compass,
       };
     }
 
@@ -306,7 +328,7 @@ function ArticleView() {
                 <p className="text-sm text-muted-foreground max-w-2xl">{recommendedTool.callout}</p>
               </div>
               <Button asChild size="lg" className="shrink-0">
-                <Link to={recommendedTool.href as any}>
+                <Link to={recommendedTool.href}>
                   Launch Sandbox <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>

@@ -9,19 +9,10 @@ export function SiteFooter() {
         <div className="lg:col-span-1">
           <Link to="/" aria-label={`${SITE.name} home`} className="inline-flex">
             <img
-              src="/brand/mit-logo.png"
-              alt=""
-              className="h-10 w-10 rounded-lg"
-              aria-hidden="true"
+              src="/brand/mit-logo-horizontal.png"
+              alt="Melanated In Tech"
+              className="h-9 w-auto"
             />
-            <span className="ml-2 leading-tight">
-              <span className="block font-display text-sm font-semibold text-foreground">
-                Melanated
-              </span>
-              <span className="block font-display text-xs font-medium text-muted-foreground">
-                In Tech
-              </span>
-            </span>
           </Link>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
             The home for AI agents — knowledge, marketplace, products, and services for the people

@@ -18,24 +18,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <Link to="/" className="flex min-w-0 items-center" aria-label="Melanated In Tech home">
+        <Link to="/" className="flex shrink-0 items-center" aria-label="Melanated In Tech home">
           <img
-            src="/brand/mit-logo.png"
-            alt=""
-            className="h-9 w-9 rounded-lg"
-            aria-hidden="true"
+            src="/brand/mit-logo-horizontal.png"
+            alt="Melanated In Tech"
+            className="h-8 w-auto lg:h-9"
           />
-          <span className="ml-2 hidden leading-tight sm:block">
-            <span className="block font-display text-sm font-semibold text-foreground">
-              Melanated
-            </span>
-            <span className="block font-display text-xs font-medium text-muted-foreground">
-              In Tech
-            </span>
-          </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {NAV.map((n) => (
             <Link
               key={n.to}
@@ -48,7 +39,7 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           <Link
             to="/search"
             className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -74,7 +65,7 @@ export function SiteHeader() {
         </div>
 
         <button
-          className="rounded-md p-2 md:hidden"
+          className="rounded-md p-2 lg:hidden"
           aria-expanded={open}
           aria-label="Toggle menu"
           onClick={() => setOpen((o) => !o)}
@@ -84,7 +75,7 @@ export function SiteHeader() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-background shadow-lg md:hidden">
+        <div className="border-t border-border bg-background shadow-lg lg:hidden">
           <div className="space-y-1 px-4 py-4">
             {NAV.map((n) => (
               <Link

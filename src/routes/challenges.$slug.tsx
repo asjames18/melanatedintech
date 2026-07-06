@@ -4,7 +4,7 @@ import { CalendarDays, Copy, MessageSquare } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { getBuilderChallenge } from "@/lib/retention.functions";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { toast } from "sonner";
 import { ShareBar } from "@/components/share-bar";
 
@@ -15,13 +15,31 @@ const qo = (slug: string) =>
   });
 
 export const Route = createFileRoute("/challenges/$slug")({
-  head: ({ params }) => ({
-    ...buildSeoMeta({
-      title: "Builder Challenge - Melanated In Tech",
-      description: "A weekly prompt for trying and sharing AI agent workflows.",
+  head: ({ params, loaderData }) => {
+    const c = loaderData;
+    if (!c) {
+      return {
+        meta: [{ title: "Builder Challenge — Melanated In Tech" }],
+      };
+    }
+    const seo = buildSeoMeta({
+      title: `${c.title} — Builder Challenge | Melanated In Tech`,
+      description: c.excerpt ?? "A weekly prompt for trying and sharing AI agent workflows.",
       url: `/challenges/${params.slug}`,
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "Challenges", path: "/challenges" },
+            { name: c.title, path: `/challenges/${params.slug}` },
+          ]),
+        ),
+      ],
+    };
+  },
   loader: ({ context, params }) => context.queryClient.ensureQueryData(qo(params.slug)),
   component: ChallengeDetail,
 });

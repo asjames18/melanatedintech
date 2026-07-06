@@ -30,18 +30,23 @@ function friendlyAuthError(raw: string, mode: "signin" | "signup"): string {
   return raw || (mode === "signup" ? "Could not create your account." : "Authentication failed.");
 }
 
+import { buildSeoMeta } from "@/lib/seo";
+
 export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in — Melanated In Tech" },
-      {
-        name: "description",
-        content:
-          "Sign in or create your Melanated In Tech account to save agents and access the builder community.",
-      },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
-  }),
+  head: () => {
+    const seo = buildSeoMeta({
+      title: "Sign in — Melanated In Tech",
+      description: "Sign in or create your Melanated In Tech account to save agents and access the builder community.",
+      url: "/auth",
+    });
+    return {
+      meta: [
+        ...seo.meta,
+        { name: "robots", content: "noindex, nofollow" },
+      ],
+      links: seo.links,
+    };
+  },
   component: AuthPage,
 });
 

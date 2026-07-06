@@ -22,6 +22,8 @@ export function SiteHeader() {
           <img
             src="/brand/mit-logo-horizontal.png"
             alt="Melanated In Tech"
+            width={176}
+            height={36}
             className="h-8 w-auto lg:h-9"
           />
         </Link>

@@ -11,6 +11,8 @@ export function SiteFooter() {
             <img
               src="/brand/mit-logo-horizontal.png"
               alt="Melanated In Tech"
+              width={176}
+              height={36}
               className="h-9 w-auto"
             />
           </Link>

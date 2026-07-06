@@ -20,7 +20,7 @@ import {
   updateLearningPathProgress,
   type ResolvedLearningPathItem,
 } from "@/lib/retention.functions";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 
 const qo = (slug: string) =>
   queryOptions({
@@ -29,13 +29,31 @@ const qo = (slug: string) =>
   });
 
 export const Route = createFileRoute("/paths/$slug")({
-  head: ({ params }) => ({
-    ...buildSeoMeta({
-      title: "Learning Path - Melanated In Tech",
-      description: "A guided AI agent builder learning path.",
+  head: ({ params, loaderData }) => {
+    const p = loaderData;
+    if (!p) {
+      return {
+        meta: [{ title: "Learning Path — Melanated In Tech" }],
+      };
+    }
+    const seo = buildSeoMeta({
+      title: `${p.title} — Learning Path | Melanated In Tech`,
+      description: p.excerpt ?? "A guided AI agent builder learning path.",
       url: `/paths/${params.slug}`,
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "Learning Paths", path: "/paths" },
+            { name: p.title, path: `/paths/${params.slug}` },
+          ]),
+        ),
+      ],
+    };
+  },
   loader: ({ context, params }) => context.queryClient.ensureQueryData(qo(params.slug)),
   component: PathDetail,
 });

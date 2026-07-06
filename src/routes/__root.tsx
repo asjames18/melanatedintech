@@ -119,7 +119,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
     ],
-    scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
+    scripts: [
+      {
+        src: "https://www.googletagmanager.com/gtag/js?id=G-5YKK7V75YL",
+        async: true,
+      },
+      {
+        children: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-5YKK7V75YL');
+        `,
+      },
+      ldScript(organizationLd()),
+      ldScript(websiteLd()),
+    ],
   }),
 
   shellComponent: RootShell,

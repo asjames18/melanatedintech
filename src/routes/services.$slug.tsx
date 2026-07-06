@@ -3,7 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site-layout";
 import { Markdown } from "@/components/markdown";
 import { listServices } from "@/lib/public.functions";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShareBar } from "@/components/share-bar";
@@ -26,13 +26,24 @@ export const Route = createFileRoute("/services/$slug")({
   head: ({ params, loaderData }) => {
     const s = loaderData?.service;
     const path = `/services/${params.slug}`;
-    if (!s) return { meta: [{ title: "Service - Melanated In Tech" }] };
+    if (!s) return { meta: [{ title: "Service — Melanated In Tech" }] };
     const seo = buildSeoMeta({
-      title: `${s.name} - Service | Melanated In Tech`,
+      title: `${s.name} — Service | Melanated In Tech`,
       description: s.tagline,
       url: path,
     });
-    return { meta: seo.meta, links: seo.links };
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "Services", path: "/services" },
+            { name: s.name, path },
+          ]),
+        ),
+      ],
+    };
   },
   component: ServiceDetailPage,
 });

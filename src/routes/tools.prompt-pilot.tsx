@@ -46,16 +46,28 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Chat } from "@/components/agents/Chat";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/tools/prompt-pilot")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Prompt Pilot — Melanated In Tech",
       description: "Interactive drag-and-drop prompt builder and template catalog.",
       url: "/tools/prompt-pilot",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Prompt Pilot", path: "/tools/prompt-pilot" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: PromptPilotPage,
 });
 

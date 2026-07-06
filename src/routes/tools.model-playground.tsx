@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Play, RotateCcw, Sparkles, Timer, Hash, AlertTriangle, ArrowLeft } from "lucide-react";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
 
@@ -26,14 +26,26 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/tools/model-playground")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Model Playground — Melanated In Tech",
       description:
         "Compare prompt outputs, generation speed, and token counts side-by-side across free AI models.",
       url: "/tools/model-playground",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Model Playground", path: "/tools/model-playground" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: ModelPlaygroundPage,
 });
 

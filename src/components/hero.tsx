@@ -140,9 +140,9 @@ export function Hero() {
                     <Bot className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-display text-xs font-semibold text-foreground">
+                    <h2 className="font-display text-xs font-semibold text-foreground">
                       MIT Assistant
-                    </h3>
+                    </h2>
                     <p className="text-[9px] text-muted-foreground">Platform Guide Agent</p>
                   </div>
                 </div>
@@ -243,6 +243,7 @@ export function Hero() {
                   size="icon"
                   disabled={loading || !input.trim()}
                   className="h-9 w-9 shrink-0"
+                  aria-label="Send message"
                 >
                   <Send className="h-3.5 w-3.5" />
                 </Button>

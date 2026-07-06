@@ -15,7 +15,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Plus, Trash2, Copy, Download, Sparkles, Upload, RotateCcw } from "lucide-react";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { Chat } from "@/components/agents/Chat";
 
 import { z } from "zod";
@@ -27,14 +27,26 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/tools/gpt-trainer")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "GPT Trainer — Melanated In Tech",
       description:
         "Build custom GPT system instructions using role, tone, knowledge, and style examples.",
       url: "/tools/gpt-trainer",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "GPT Trainer", path: "/tools/gpt-trainer" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: GptTrainerPage,
 });
 

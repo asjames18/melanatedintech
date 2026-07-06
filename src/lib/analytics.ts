@@ -111,6 +111,17 @@ export function trackEvent(name: string, props: Record<string, unknown> = {}) {
   if (!isBrowser()) return;
   const event: AnalyticsEvent = { name, ts: Date.now(), props };
 
+  // Forward to Google Analytics (gtag.js) stream
+  try {
+    if (typeof (window as any).gtag === "function") {
+      (window as any).gtag("event", name, props);
+    }
+  } catch (e) {
+    if (import.meta.env.DEV) {
+      console.warn("[analytics] Failed to forward event to Google Analytics", e);
+    }
+  }
+
   // Historical local buffer (kept for any existing consumers).
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);

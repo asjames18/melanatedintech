@@ -17,7 +17,16 @@ import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Package, Sparkles, Tag, Wallet, CheckCircle2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Package,
+  Sparkles,
+  Tag,
+  Wallet,
+  CheckCircle2,
+  ArrowRight,
+  Plug,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const productQO = (slug: string) =>
@@ -188,7 +197,22 @@ function ProductDetail() {
               <CatIcon className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <p className="text-xs uppercase tracking-wider text-primary">{product.category}</p>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-xs uppercase tracking-wider text-primary">{product.category}</p>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(product as any).seller_profiles && (
+                  <Link
+                    to="/sellers/$slug"
+                    params={{ slug: (product as any).seller_profiles.slug }}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <span>By</span>
+                    <span className="font-semibold text-foreground hover:text-primary">
+                      {(product as any).seller_profiles.display_name}
+                    </span>
+                  </Link>
+                )}
+              </div>
               <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">
                 {product.name}
               </h1>
@@ -215,6 +239,26 @@ function ProductDetail() {
             <div className="mt-3">
               <Markdown md={product.description} />
             </div>
+            {product.slug === "mcp-collection" && (
+              <div className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 p-6 shadow-sm">
+                <h3 className="font-display text-base font-bold flex items-center gap-2">
+                  <Plug className="h-5 w-5 text-primary animate-pulse" />
+                  Interactive MCP Server Registry Console
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  This product is a curated reference catalog. If you want to register, manage, and
+                  connect active Model Context Protocol (MCP) server endpoints on the platform,
+                  access the registry dashboard.
+                </p>
+                <div className="mt-4">
+                  <Button asChild size="sm" className="gap-1.5 shadow-sm">
+                    <Link to="/mcp">
+                      Open MCP Console <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
             {product.tier === "free" && product.unlock_content && (
               <ProductFreePack slug={product.slug} content={product.unlock_content} />
             )}
@@ -230,8 +274,9 @@ function ProductDetail() {
                   </div>
                   <p className="mt-2 text-sm font-semibold">Instant Access Unlocked</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    This developer resource is free. Scroll down to read, download, or copy the
-                    content below!
+                    {product.unlock_content
+                      ? "This developer resource is free. Scroll down to read, download, or copy the content below!"
+                      : "This developer resource is free. Access the tools and registry directly using the console links on this page!"}
                   </p>
                 </div>
               )}
@@ -278,11 +323,41 @@ function ProductDetail() {
                           : "Available through a quick conversation — tell us what you need and we'll get you set up."}
                     </p>
                     <div className="mt-4">
-                      <UnlockButton kind="product" slug={product.slug} itemName={product.name} />
+                      <UnlockButton
+                        kind="product"
+                        slug={product.slug}
+                        itemName={product.name}
+                        priceCents={product.price_cents}
+                        tier={product.tier}
+                      />
                     </div>
                   </div>
                 ))}
               {product.tier !== "free" && <ProductWaitlist productSlug={product.slug} />}
+
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(product as any).seller_profiles && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Creator
+                  </h3>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 font-display font-bold text-primary">
+                      {(product as any).seller_profiles.display_name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <Link
+                        to="/sellers/$slug"
+                        params={{ slug: (product as any).seller_profiles.slug }}
+                        className="font-display font-semibold text-foreground hover:text-primary transition-colors hover:underline"
+                      >
+                        {(product as any).seller_profiles.display_name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">Marketplace Seller</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </aside>
         </div>

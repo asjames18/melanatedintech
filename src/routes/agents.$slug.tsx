@@ -190,7 +190,22 @@ function AgentDetail() {
               <CatIcon className="h-7 w-7" />
             </div>
             <div className="flex-1">
-              <p className="text-xs uppercase tracking-wider text-primary">{agent.category}</p>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <p className="text-xs uppercase tracking-wider text-primary">{agent.category}</p>
+                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                {(agent as any).seller_profiles && (
+                  <Link
+                    to="/sellers/$slug"
+                    params={{ slug: (agent as any).seller_profiles.slug }}
+                    className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    <span>By</span>
+                    <span className="font-semibold text-foreground hover:text-primary">
+                      {(agent as any).seller_profiles.display_name}
+                    </span>
+                  </Link>
+                )}
+              </div>
               <h1 className="mt-1 font-display text-3xl font-semibold sm:text-4xl">{agent.name}</h1>
               <p className="mt-2 text-lg text-muted-foreground">{agent.tagline}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -317,7 +332,13 @@ function AgentDetail() {
                           : "Available through a quick conversation — tell us your use case and we'll get you set up."}
                     </p>
                     <div className="mt-4">
-                      <UnlockButton kind="agent" slug={agent.slug} itemName={agent.name} />
+                      <UnlockButton
+                        kind="agent"
+                        slug={agent.slug}
+                        itemName={agent.name}
+                        priceCents={agent.price_cents}
+                        tier={agent.tier}
+                      />
                     </div>
                   </div>
                 ))}
@@ -331,6 +352,30 @@ function AgentDetail() {
                   </p>
                   <div className="mt-4">
                     <WaitlistForm source={`agent:${agent.slug}`} interest={agent.name} />
+                  </div>
+                </div>
+              )}
+
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(agent as any).seller_profiles && (
+                <div className="rounded-2xl border border-border bg-card p-6">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Creator
+                  </h3>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 font-display font-bold text-primary">
+                      {(agent as any).seller_profiles.display_name.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <Link
+                        to="/sellers/$slug"
+                        params={{ slug: (agent as any).seller_profiles.slug }}
+                        className="font-display font-semibold text-foreground hover:text-primary transition-colors hover:underline"
+                      >
+                        {(agent as any).seller_profiles.display_name}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">Marketplace Seller</p>
+                    </div>
                   </div>
                 </div>
               )}

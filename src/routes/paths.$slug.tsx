@@ -173,8 +173,11 @@ function PathDetail() {
                       <p className="text-xs uppercase tracking-wider text-muted-foreground">
                         Step {index + 1} / {labelFor(item.item_type)}
                       </p>
-                      {item.item_type === "community_prompt" && (
-                        <h2 className="mt-1 font-display text-xl font-semibold">{item.title}</h2>
+                      {(item.title || item.item_type === "community_prompt") && (
+                        <h2 className="mt-1 font-display text-xl font-semibold">
+                          {item.title ||
+                            (item.item_type === "community_prompt" ? "Community Mission" : "")}
+                        </h2>
                       )}
                     </div>
                     {signedIn && (
@@ -208,60 +211,78 @@ function labelFor(type: ResolvedLearningPathItem["item_type"]) {
 }
 
 function PathItem({ item, pathSlug }: { item: ResolvedLearningPathItem; pathSlug: string }) {
-  if (item.item_type === "article" && item.resource && "title" in item.resource) {
-    return <ArticleCard {...item.resource} />;
-  }
-  if (item.item_type === "agent" && item.resource && "name" in item.resource) {
-    return <AgentCard {...item.resource} />;
-  }
-  if (item.item_type === "product" && item.resource && "name" in item.resource) {
-    return <ProductCard {...item.resource} />;
-  }
-  if (item.item_type === "community_prompt") {
-    const isEvalPath = pathSlug === "evaluate-your-agent";
-    const isLaunchPath = pathSlug === "launch-a-paid-agent-product";
+  const isCommunity = item.item_type === "community_prompt";
+  const isEvalPath = pathSlug === "evaluate-your-agent";
+  const isLaunchPath = pathSlug === "launch-a-paid-agent-product";
+  const isSecurePath = pathSlug === "secure-your-agent";
 
-    const toolLink = isEvalPath
-      ? "/tools/model-playground"
-      : isLaunchPath
-        ? "/tools/gpt-trainer"
+  const toolLink = isEvalPath
+    ? "/tools/model-playground"
+    : isLaunchPath
+      ? "/tools/gpt-trainer"
+      : isSecurePath
+        ? "/tools/agent-architect"
         : "/tools/prompt-pilot";
 
-    const toolLabel = isEvalPath
-      ? "Compare in Playground"
-      : isLaunchPath
-        ? "Compile in GPT Trainer"
+  const toolLabel = isEvalPath
+    ? "Compare in Playground"
+    : isLaunchPath
+      ? "Compile in GPT Trainer"
+      : isSecurePath
+        ? "Design in Agent Architect"
         : "Build in Prompt Pilot";
 
-    return (
-      <div className="rounded-xl bg-muted/50 p-5">
-        <p className="text-sm text-muted-foreground">{item.excerpt}</p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Button asChild>
-            <Link to={toolLink as any}>
-              <PlayCircle className="mr-1.5 h-4 w-4" />
-              {toolLabel}
-            </Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link to="/community" search={{ tag: pathSlug }}>
-              <MessageSquare className="mr-1.5 h-4 w-4" />
-              Post your result
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
   return (
-    <div className="flex items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5">
-      <p className="text-sm text-muted-foreground">This resource is being prepared.</p>
-      <Link
-        to="/knowledge"
-        className="inline-flex items-center gap-1 text-sm font-medium text-primary"
-      >
-        Browse Knowledge Hub <ArrowRight className="h-4 w-4" />
-      </Link>
+    <div className="space-y-4">
+      {/* Show training objective/assignment for non-community items if present */}
+      {!isCommunity && item.excerpt && (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-relaxed text-muted-foreground whitespace-pre-line shadow-inner">
+          {item.excerpt}
+        </div>
+      )}
+
+      {/* Resource representation */}
+      <div>
+        {item.item_type === "article" && item.resource && "title" in item.resource && (
+          <ArticleCard {...item.resource} />
+        )}
+        {item.item_type === "agent" && item.resource && "name" in item.resource && (
+          <AgentCard {...item.resource} />
+        )}
+        {item.item_type === "product" && item.resource && "name" in item.resource && (
+          <ProductCard {...item.resource} />
+        )}
+        {isCommunity && (
+          <div className="rounded-xl bg-muted/50 p-5">
+            <p className="text-sm text-muted-foreground">{item.excerpt}</p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button asChild>
+                <Link to={toolLink as any}>
+                  <PlayCircle className="mr-1.5 h-4 w-4" />
+                  {toolLabel}
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/community" search={{ tag: pathSlug }}>
+                  <MessageSquare className="mr-1.5 h-4 w-4" />
+                  Post your result
+                </Link>
+              </Button>
+            </div>
+          </div>
+        )}
+        {!item.resource && !isCommunity && (
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-dashed border-border p-5">
+            <p className="text-sm text-muted-foreground">This resource is being prepared.</p>
+            <Link
+              to="/knowledge"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary"
+            >
+              Browse Knowledge Hub <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

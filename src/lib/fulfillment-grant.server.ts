@@ -55,7 +55,8 @@ export async function grantFromSession(
   // Never trust metadata for what was purchased: resolve (kind, slug) against the
   // catalog, and confirm the amount actually paid matches the catalog price before
   // granting. This defeats a forged/mismatched checkout.
-  const entry = getPremiumEntry(kind, slug);
+  const { resolvePremiumEntry } = await import("@/lib/premium-catalog");
+  const entry = await resolvePremiumEntry(kind, slug);
   if (!entry) {
     console.warn("[fulfillment-grant] skipping: unknown catalog item", { sessionId, kind, slug });
     return { granted: false, reason: "unknown-item" };
@@ -69,7 +70,7 @@ export async function grantFromSession(
     });
     return { granted: false, reason: "amount-mismatch" };
   }
-  const priceId = entry.priceId;
+  const priceId = entry.priceId || `dynamic_${kind}_${slug}`;
 
   const admin = await getAdmin();
 

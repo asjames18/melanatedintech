@@ -39,3 +39,6 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Temporary workspace scratch scripts
+scratch/

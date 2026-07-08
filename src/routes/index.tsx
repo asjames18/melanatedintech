@@ -3,7 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Hero } from "@/components/hero";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
-import { WaitlistForm } from "@/components/waitlist-form";
+import { LazyWaitlistForm } from "@/components/lazy-waitlist-form";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { PILLARS } from "@/lib/site";
 import { buildSeoMeta } from "@/lib/seo";
@@ -238,7 +238,7 @@ function Home() {
                 </p>
               </div>
               <div className="lg:justify-self-end lg:w-full lg:max-w-md">
-                <WaitlistForm source="home" />
+                <LazyWaitlistForm source="home" />
               </div>
             </div>
           </div>

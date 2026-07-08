@@ -50,6 +50,7 @@ import {
   getSellerPayoutInfo,
 } from "@/lib/seller.functions";
 import { createConnectOnboardingLink, checkConnectAccountStatus } from "@/lib/payouts.functions";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/seller")({
   head: () => ({ meta: [{ title: "Seller Dashboard — Melanated In Tech" }] }),
@@ -758,7 +759,11 @@ type PayoutInfo = Awaited<ReturnType<typeof getSellerPayoutInfo>>;
 function SellerPayoutsPanel() {
   const qc = useQueryClient();
   const payoutFn = useServerFn(getSellerPayoutInfo);
-  const q = useQuery({ queryKey: ["seller-payouts"], queryFn: () => payoutFn() });
+  const stripeEnv = getStripeEnvironment();
+  const q = useQuery({
+    queryKey: ["seller-payouts", stripeEnv],
+    queryFn: () => payoutFn({ data: { environment: stripeEnv } }),
+  });
 
   const onboardFn = useServerFn(createConnectOnboardingLink);
   const checkStatusFn = useServerFn(checkConnectAccountStatus);
@@ -766,7 +771,7 @@ function SellerPayoutsPanel() {
   const onboardMut = useMutation({
     mutationFn: () =>
       onboardFn({
-        data: { baseUrl: window.location.origin },
+        data: { baseUrl: window.location.origin, environment: stripeEnv },
       }),
     onSuccess: (result) => {
       window.location.href = result.url;
@@ -775,10 +780,10 @@ function SellerPayoutsPanel() {
   });
 
   const checkStatusMut = useMutation({
-    mutationFn: () => checkStatusFn(),
+    mutationFn: () => checkStatusFn({ data: { environment: stripeEnv } }),
     onSuccess: () => {
       toast.success("Account status updated.");
-      qc.invalidateQueries({ queryKey: ["seller-payouts"] });
+      qc.invalidateQueries({ queryKey: ["seller-payouts", stripeEnv] });
       qc.invalidateQueries({ queryKey: ["seller-profile"] });
     },
     onError: (e: Error) => toast.error(e.message),

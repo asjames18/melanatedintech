@@ -65,7 +65,7 @@ export function Markdown({ md }: { md: string }) {
   const lines = md.split("\n");
   const out: ReactNode[] = [];
   let ul: string[] | null = null;
-  let ol: string[] | null = null;
+  let ol: { value: number; text: string }[] | null = null;
 
   const flushUl = () => {
     if (ul) {
@@ -86,7 +86,7 @@ export function Markdown({ md }: { md: string }) {
       out.push(
         <ol key={key} className="my-4 list-decimal space-y-1.5 pl-5 text-muted-foreground">
           {ol.map((it, i) => (
-            <li key={i}>{renderInline(it, `${key}-${i}`)}</li>
+            <li key={i} value={it.value}>{renderInline(it.text, `${key}-${i}`)}</li>
           ))}
         </ol>,
       );
@@ -209,7 +209,7 @@ export function Markdown({ md }: { md: string }) {
     const olMatch = line.match(/^(\d+)\.\s+(.*)$/);
     if (olMatch) {
       flushUl();
-      (ol ??= []).push(olMatch[2]);
+      (ol ??= []).push({ value: parseInt(olMatch[1], 10), text: olMatch[2] });
       continue;
     }
     if (line.startsWith("- ")) {

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { buildSeoMeta } from "@/lib/seo";
-import { ArrowRight, Sparkles, Wand2, Timer } from "lucide-react";
+import { ArrowRight, Sparkles, Wand2, Timer, GitBranch } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -44,6 +44,15 @@ function ToolsIndex() {
       badge: "Side-by-Side Sandbox",
       colorClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
     },
+    {
+      title: "Agent Architect",
+      description:
+        "Design multi-agent architectures and workflows. Select patterns like router, orchestrator, or evaluator, configure custom instructions and tools for each node, and generate boilerplate code in Python or TypeScript.",
+      href: "/tools/agent-architect" as const,
+      Icon: GitBranch,
+      badge: "Workflow Designer",
+      colorClass: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50",
+    },
   ];
 
   return (
@@ -55,7 +64,7 @@ function ToolsIndex() {
       />
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {tools.map(({ title, description, href, Icon, badge, colorClass }) => (
             <Link
               key={title}

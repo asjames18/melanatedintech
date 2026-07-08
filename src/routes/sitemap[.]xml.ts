@@ -17,6 +17,7 @@ const STATIC_PATHS = [
   { path: "/tools/prompt-pilot", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/gpt-trainer", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/model-playground", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/agent-architect", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/challenges", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/products", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/services", changefreq: "monthly" as const, priority: "0.7" },

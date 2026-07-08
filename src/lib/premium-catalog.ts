@@ -24,6 +24,14 @@ export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> 
       priceId: "agent_marketing_seo_researcher_onetime",
       amountCents: 5900,
     },
+    "personal-chief-of-staff": {
+      priceId: "agent_personal_chief_of_staff_onetime",
+      amountCents: 4900,
+    },
+    "customer-support-agent": {
+      priceId: "agent_customer_support_agent_onetime",
+      amountCents: 4900,
+    },
   },
   product: {
     "agent-skill-pack-core": {
@@ -32,6 +40,10 @@ export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> 
     },
     "workflow-templates-ops": {
       priceId: "product_workflow_templates_ops_onetime",
+      amountCents: 3900,
+    },
+    "prompt-library-pro": {
+      priceId: "product_prompt_library_pro_onetime",
       amountCents: 3900,
     },
   },

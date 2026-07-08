@@ -10,6 +10,9 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import interLatin400Woff2 from "@fontsource/inter/files/inter-latin-400-normal.woff2?url";
+import interLatin500Woff2 from "@fontsource/inter/files/inter-latin-500-normal.woff2?url";
+import spaceGroteskLatin600Woff2 from "@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { organizationLd, websiteLd, ldScript } from "@/lib/seo";
@@ -115,26 +118,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       {
+        rel: "preload",
+        as: "font",
+        href: interLatin400Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "font",
+        href: interLatin500Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "font",
+        href: spaceGroteskLatin600Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "image",
+        href: "/brand/mit-logo-horizontal-276.webp",
+        type: "image/webp",
+        fetchPriority: "high",
+      },
+      {
         rel: "stylesheet",
         href: appCss,
       },
     ],
-    scripts: [
-      {
-        src: "https://www.googletagmanager.com/gtag/js?id=G-5YKK7V75YL",
-        async: true,
-      },
-      {
-        children: `
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-5YKK7V75YL');
-        `,
-      },
-      ldScript(organizationLd()),
-      ldScript(websiteLd()),
-    ],
+    scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
   }),
 
   shellComponent: RootShell,
@@ -164,6 +180,55 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
       <Toaster richColors closeButton position="top-right" />
+      <GoogleAnalytics />
     </QueryClientProvider>
   );
+}
+
+function GoogleAnalytics() {
+  useEffect(() => {
+    const loadAnalytics = () => {
+      const win = window as typeof window & {
+        dataLayer?: unknown[];
+        gtag?: (...args: unknown[]) => void;
+      };
+      win.dataLayer = win.dataLayer || [];
+      win.gtag = win.gtag || ((...args: unknown[]) => win.dataLayer?.push(args));
+      win.gtag("js", new Date());
+      win.gtag("config", "G-5YKK7V75YL");
+
+      const script = document.createElement("script");
+      script.src = "https://www.googletagmanager.com/gtag/js?id=G-5YKK7V75YL";
+      script.async = true;
+      document.head.appendChild(script);
+    };
+
+    let idleHandle: number | null = null;
+    let timeoutHandle: number | null = null;
+    const schedule = () => {
+      timeoutHandle = window.setTimeout(() => {
+        if ("requestIdleCallback" in window) {
+          idleHandle = window.requestIdleCallback(loadAnalytics, { timeout: 3000 });
+        } else {
+          loadAnalytics();
+        }
+      }, 5000);
+    };
+
+    if (document.readyState === "complete") {
+      schedule();
+    } else {
+      window.addEventListener("load", schedule, { once: true });
+    }
+
+    return () => {
+      window.removeEventListener("load", schedule);
+      if (timeoutHandle !== null) window.clearTimeout(timeoutHandle);
+      if (idleHandle !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleHandle);
+      }
+    };
+  }, []);
+
+  return null;
 }

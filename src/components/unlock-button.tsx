@@ -22,10 +22,13 @@ interface Props {
   kind: PremiumKind;
   slug: string;
   itemName: string;
+  priceCents?: number | null;
+  tier?: string;
 }
 
-export function UnlockButton({ kind, slug, itemName }: Props) {
-  const entry = getPremiumEntry(kind, slug);
+export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) {
+  const staticEntry = getPremiumEntry(kind, slug);
+  const entry = staticEntry || (priceCents && tier === "premium" ? { priceId: "", amountCents: priceCents } : null);
   const router = useRouter();
   const navigate = useNavigate();
   const owned = useHasEntitlement(kind, slug);

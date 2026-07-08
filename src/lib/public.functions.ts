@@ -36,14 +36,14 @@ export const getAgent = createServerFn({ method: "GET" })
     // yet (code deployed ahead of the migration). Mirrors getProduct below.
     let { data: row, error } = await sb
       .from("agents")
-      .select(`${baseCols},unlock_content,asset_path`)
+      .select(`${baseCols},unlock_content,asset_path,seller_profiles(id, display_name, slug)`)
       .eq("slug", data.slug)
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
     if (error && /unlock_content|asset_path|column/i.test(error.message)) {
       ({ data: row, error } = await sb
         .from("agents")
-        .select(baseCols)
+        .select(`${baseCols},seller_profiles(id, display_name, slug)`)
         .eq("slug", data.slug)
         .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
         .maybeSingle());
@@ -108,14 +108,14 @@ export const getProduct = createServerFn({ method: "GET" })
     // yet (code deployed ahead of the migration).
     let { data: row, error } = await sb
       .from("products")
-      .select(`${baseCols},unlock_content,asset_path`)
+      .select(`${baseCols},unlock_content,asset_path,seller_profiles(id, display_name, slug)`)
       .eq("slug", data.slug)
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
     if (error && /unlock_content|asset_path|column/i.test(error.message)) {
       ({ data: row, error } = await sb
         .from("products")
-        .select(baseCols)
+        .select(`${baseCols},seller_profiles(id, display_name, slug)`)
         .eq("slug", data.slug)
         .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
         .maybeSingle());
@@ -222,4 +222,54 @@ export const submitContact = createServerFn({ method: "POST" })
     }
     if (error) throw new Error("Could not send message. Please try again.");
     return { ok: true };
+  });
+
+export const getPublicSeller = createServerFn({ method: "GET" })
+  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .handler(async ({ data }) => {
+    const sb = publicClient();
+    const now = new Date().toISOString();
+
+    const { data: seller, error: sellerError } = await sb
+      .from("seller_profiles")
+      .select("id, display_name, slug, bio, avatar_url, website_url")
+      .eq("slug", data.slug)
+      .maybeSingle();
+
+    if (sellerError) throw new Error(sellerError.message);
+    if (!seller) return null;
+
+    const { data: agents, error: agentsError } = await sb
+      .from("agents")
+      .select("id, slug, name, tagline, category, capabilities, tier, price_cents, image_url, featured")
+      .eq("seller_id", seller.id)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+      .order("name");
+
+    if (agentsError) throw new Error(agentsError.message);
+
+    const { data: products, error: productsError } = await sb
+      .from("products")
+      .select("id, slug, name, tagline, category, tier, price_cents, image_url")
+      .eq("seller_id", seller.id)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+      .order("name");
+
+    if (productsError) throw new Error(productsError.message);
+
+    const { data: services, error: servicesError } = await sb
+      .from("services")
+      .select("id, slug, name, tagline, description, outcomes, starting_price_cents")
+      .eq("seller_id", seller.id)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+      .order("name");
+
+    if (servicesError) throw new Error(servicesError.message);
+
+    return {
+      seller,
+      agents: agents ?? [],
+      products: products ?? [],
+      services: services ?? [],
+    };
   });

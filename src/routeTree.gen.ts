@@ -38,8 +38,10 @@ import { Route as UUserIdRouteImport } from './routes/u.$userId'
 import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
 import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
 import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
+import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
 import { Route as TTagRouteImport } from './routes/t.$tag'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
@@ -209,6 +211,11 @@ const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
   path: '/tools/gpt-trainer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsAgentArchitectRoute = ToolsAgentArchitectRouteImport.update({
+  id: '/tools/agent-architect',
+  path: '/tools/agent-architect',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TTagRoute = TTagRouteImport.update({
   id: '/t/$tag',
   path: '/t/$tag',
@@ -218,6 +225,11 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => ServicesRoute,
+} as any)
+const SellersSlugRoute = SellersSlugRouteImport.update({
+  id: '/sellers/$slug',
+  path: '/sellers/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
   id: '/$slug',
@@ -382,8 +394,10 @@ export interface FileRoutesByFullPath {
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
@@ -430,8 +444,10 @@ export interface FileRoutesByTo {
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
@@ -488,8 +504,10 @@ export interface FileRoutesById {
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/paths/$slug': typeof PathsSlugRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
@@ -546,8 +564,10 @@ export interface FileRouteTypes {
     | '/knowledge/$slug'
     | '/paths/$slug'
     | '/products/$slug'
+    | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/agent-architect'
     | '/tools/gpt-trainer'
     | '/tools/model-playground'
     | '/tools/prompt-pilot'
@@ -594,8 +614,10 @@ export interface FileRouteTypes {
     | '/knowledge/$slug'
     | '/paths/$slug'
     | '/products/$slug'
+    | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/agent-architect'
     | '/tools/gpt-trainer'
     | '/tools/model-playground'
     | '/tools/prompt-pilot'
@@ -651,8 +673,10 @@ export interface FileRouteTypes {
     | '/knowledge/$slug'
     | '/paths/$slug'
     | '/products/$slug'
+    | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/agent-architect'
     | '/tools/gpt-trainer'
     | '/tools/model-playground'
     | '/tools/prompt-pilot'
@@ -695,7 +719,9 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  SellersSlugRoute: typeof SellersSlugRoute
   TTagRoute: typeof TTagRoute
+  ToolsAgentArchitectRoute: typeof ToolsAgentArchitectRoute
   ToolsGptTrainerRoute: typeof ToolsGptTrainerRoute
   ToolsModelPlaygroundRoute: typeof ToolsModelPlaygroundRoute
   ToolsPromptPilotRoute: typeof ToolsPromptPilotRoute
@@ -911,6 +937,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsGptTrainerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/agent-architect': {
+      id: '/tools/agent-architect'
+      path: '/tools/agent-architect'
+      fullPath: '/tools/agent-architect'
+      preLoaderRoute: typeof ToolsAgentArchitectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/t/$tag': {
       id: '/t/$tag'
       path: '/t/$tag'
@@ -924,6 +957,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/services/$slug'
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof ServicesRoute
+    }
+    '/sellers/$slug': {
+      id: '/sellers/$slug'
+      path: '/sellers/$slug'
+      fullPath: '/sellers/$slug'
+      preLoaderRoute: typeof SellersSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/products/$slug': {
       id: '/products/$slug'
@@ -1266,7 +1306,9 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  SellersSlugRoute: SellersSlugRoute,
   TTagRoute: TTagRoute,
+  ToolsAgentArchitectRoute: ToolsAgentArchitectRoute,
   ToolsGptTrainerRoute: ToolsGptTrainerRoute,
   ToolsModelPlaygroundRoute: ToolsModelPlaygroundRoute,
   ToolsPromptPilotRoute: ToolsPromptPilotRoute,

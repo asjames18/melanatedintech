@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { createStripeClient } from "@/lib/stripe.server";
+import { createStripeClient, type StripeEnv } from "@/lib/stripe.server";
 
 // ---------- Stripe Connect account management ----------
 
@@ -25,10 +25,17 @@ async function getSellerProfileForPayout(userId: string) {
  */
 export const createConnectOnboardingLink = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ baseUrl: z.string().url() }).parse(d))
+  .validator((d: unknown) =>
+    z
+      .object({
+        baseUrl: z.string().url(),
+        environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const stripe = createStripeClient("sandbox");
+    const stripe = createStripeClient(data.environment);
 
     const profile = await getSellerProfileForPayout(context.userId);
 
@@ -75,9 +82,16 @@ export const createConnectOnboardingLink = createServerFn({ method: "POST" })
  */
 export const checkConnectAccountStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .validator((d: unknown) =>
+    z
+      .object({
+        environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const stripe = createStripeClient("sandbox");
+    const stripe = createStripeClient(data.environment);
 
     const profile = await getSellerProfileForPayout(context.userId);
 
@@ -99,6 +113,43 @@ export const checkConnectAccountStatus = createServerFn({ method: "POST" })
       .eq("id", profile.id);
 
     return { status, payout_enabled: payoutEnabled };
+  });
+
+export const getSellerPayoutInfo = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) =>
+    z
+      .object({
+        environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const profile = await getSellerProfileForPayout(context.userId);
+
+    const { data: entitlements, error } = await supabaseAdmin
+      .from("user_entitlements")
+      .select("commission_cents, seller_paid")
+      .eq("seller_id", profile.id)
+      .eq("environment", data.environment);
+
+    if (error) throw new Error(error.message);
+
+    const totalCents = (entitlements ?? []).reduce((sum, e) => sum + (e.commission_cents ?? 0), 0);
+    const unpaidCents = (entitlements ?? [])
+      .filter((e) => !e.seller_paid)
+      .reduce((sum, e) => sum + (e.commission_cents ?? 0), 0);
+
+    return {
+      stripe_account_id: profile.stripe_account_id,
+      stripe_account_status: profile.stripe_account_status,
+      payout_enabled: profile.payout_enabled,
+      commission_rate: profile.commission_rate,
+      total_earnings_cents: totalCents,
+      unpaid_earnings_cents: unpaidCents,
+      entitlements_count: entitlements?.length ?? 0,
+    };
   });
 
 /**

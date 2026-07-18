@@ -50,6 +50,9 @@ import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
 import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
 import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
 import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
+import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
+import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
@@ -288,6 +291,23 @@ const TTagRoute = TTagRouteImport.update({
   path: '/t/$tag',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesMinistryAiImplementationRoute =
+  ServicesMinistryAiImplementationRouteImport.update({
+    id: '/ministry-ai-implementation',
+    path: '/ministry-ai-implementation',
+    getParentRoute: () => ServicesRoute,
+  } as any)
+const ServicesCustomAgentBuildRoute =
+  ServicesCustomAgentBuildRouteImport.update({
+    id: '/custom-agent-build',
+    path: '/custom-agent-build',
+    getParentRoute: () => ServicesRoute,
+  } as any)
+const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
+  id: '/ai-workshop',
+  path: '/ai-workshop',
+  getParentRoute: () => ServicesRoute,
+} as any)
 const ServicesSlugRoute = ServicesSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -512,6 +532,9 @@ export interface FileRoutesByFullPath {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -579,6 +602,9 @@ export interface FileRoutesByTo {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -656,6 +682,9 @@ export interface FileRoutesById {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -733,6 +762,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -800,6 +832,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -876,6 +911,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -1241,6 +1279,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/t/$tag'
       preLoaderRoute: typeof TTagRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/services/ministry-ai-implementation': {
+      id: '/services/ministry-ai-implementation'
+      path: '/ministry-ai-implementation'
+      fullPath: '/services/ministry-ai-implementation'
+      preLoaderRoute: typeof ServicesMinistryAiImplementationRouteImport
+      parentRoute: typeof ServicesRoute
+    }
+    '/services/custom-agent-build': {
+      id: '/services/custom-agent-build'
+      path: '/custom-agent-build'
+      fullPath: '/services/custom-agent-build'
+      preLoaderRoute: typeof ServicesCustomAgentBuildRouteImport
+      parentRoute: typeof ServicesRoute
+    }
+    '/services/ai-workshop': {
+      id: '/services/ai-workshop'
+      path: '/ai-workshop'
+      fullPath: '/services/ai-workshop'
+      preLoaderRoute: typeof ServicesAiWorkshopRouteImport
+      parentRoute: typeof ServicesRoute
     }
     '/services/$slug': {
       id: '/services/$slug'
@@ -1629,10 +1688,16 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
 
 interface ServicesRouteChildren {
   ServicesSlugRoute: typeof ServicesSlugRoute
+  ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
+  ServicesCustomAgentBuildRoute: typeof ServicesCustomAgentBuildRoute
+  ServicesMinistryAiImplementationRoute: typeof ServicesMinistryAiImplementationRoute
 }
 
 const ServicesRouteChildren: ServicesRouteChildren = {
   ServicesSlugRoute: ServicesSlugRoute,
+  ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
+  ServicesCustomAgentBuildRoute: ServicesCustomAgentBuildRoute,
+  ServicesMinistryAiImplementationRoute: ServicesMinistryAiImplementationRoute,
 }
 
 const ServicesRouteWithChildren = ServicesRoute._addFileChildren(

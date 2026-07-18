@@ -10,10 +10,11 @@ export interface ServiceItem {
   tagline: string;
   description: string;
   outcomes: string[];
-  starting_price_cents: number | null;
+  starting_price_cents: number | null; // null triggers "Custom Pricing based on service scope"
   features: string[];
   process: ServiceProcessStep[];
   category: string;
+  faqs?: { q: string; a: string }[];
 }
 
 export const FALLBACK_SERVICES: ServiceItem[] = [
@@ -22,7 +23,7 @@ export const FALLBACK_SERVICES: ServiceItem[] = [
     slug: "custom-agent-build",
     name: "Custom Autonomous Agent Build",
     tagline: "End-to-end custom AI agent design, tool integration, guardrails, and production deployment.",
-    starting_price_cents: 499900,
+    starting_price_cents: null,
     category: "Full Engineering",
     description: `We partner with your leadership and engineering teams to design, build, test, and deploy a bespoke AI agent system tailored to your exact business requirements.
 
@@ -65,13 +66,123 @@ Whether you need an automated customer support agent with database write access,
         desc: "We ship your agent to production, hand over full code ownership, and conduct live team training.",
       },
     ],
+    faqs: [
+      {
+        q: "How is pricing structured?",
+        a: "Pricing is completely custom based on workflow complexity, number of tool integrations (MCP servers), and custom security requirements. We provide a fixed scope quote upfront with zero surprise fees.",
+      },
+      {
+        q: "Who owns the code and IP?",
+        a: "Your organization receives 100% ownership of all source code, prompt templates, vector indexes, and custom MCP server scripts.",
+      },
+      {
+        q: "How long does a custom build take?",
+        a: "Typical custom agent builds take 3 to 6 weeks from kick-off to production deployment depending on tool integration complexity.",
+      },
+    ],
+  },
+  {
+    id: "ministry-nonprofit-ai",
+    slug: "ministry-nonprofit-ai",
+    name: "Ministry & Non-Profit AI Implementation",
+    tagline: "Welcoming, high-trust AI agent workflows designed for volunteer intake, donor care, and community outreach.",
+    starting_price_cents: null,
+    category: "Community & Faith",
+    description: `Tailored AI solutions built specifically for faith communities, non-profits, ministries, and educational institutions. We design agents that maintain warmth, ethical standards, and community trust while streamlining operations.
+
+### What We Build:
+- **Volunteer Pathway Coordinator**: Automated intake, interest categorization, and human-in-the-loop placement routing.
+- **Donor Care & Follow-Up Automation**: Warm, personal follow-up drafts and event reminder management.
+- **Ethical AI Governance Policy**: Custom acceptable use framework aligning AI boundaries with ministry values.
+- **Leadership & Staff Training**: Hands-on onboarding for staff to comfortably manage and audit agent outputs.`,
+    outcomes: [
+      "Volunteer Pathway Coordinator Agent with automated intake summaries.",
+      "Donor Communication & Appreciation Workflow.",
+      "Ethical AI Governance Policy tailored for ministry standards.",
+      "Staff & Leadership onboarding workshop and operational playbook.",
+    ],
+    features: [
+      "Ethical & Compassionate Tone Guardrails",
+      "Privacy-First Data Protection & Safeguarding Rules",
+      "Non-Technical Staff Friendly Interfaces",
+      "Human-in-the-Loop Approval Safeguards",
+    ],
+    process: [
+      {
+        title: "1. Community Mapping",
+        desc: "Understand your mission, communication standards, and volunteer pathways.",
+      },
+      {
+        title: "2. Ethical Agent Build",
+        desc: "Construct agents with strict warmth, tone, and privacy boundaries.",
+      },
+      {
+        title: "3. Staff Onboarding & Launch",
+        desc: "Train leaders and staff on managing human-in-the-loop approvals.",
+      },
+    ],
+    faqs: [
+      {
+        q: "How is sensitive community data protected?",
+        a: "We implement strict data boundary policies. Sensitive pastoral care, safeguarding, and financial records bypass agent processing completely.",
+      },
+      {
+        q: "Does the agent replace human pastoral care?",
+        a: "No. The agent handles routine administrative intake and drafting so staff and ministry leaders can dedicate more time to direct personal relationship building.",
+      },
+    ],
+  },
+  {
+    id: "team-ai-workshop",
+    slug: "team-ai-workshop",
+    name: "Hands-On Team AI & Agent Workshop",
+    tagline: "Interactive live training workshop equipping your leadership, developers, or staff to build and operate AI agents.",
+    starting_price_cents: null,
+    category: "Training & Education",
+    description: `Equip your entire organization with practical, real-world AI agent skills. In this hands-on workshop, your team learns how to craft system prompts, build custom GPTs, connect tools using MCP, and establish internal AI governance.
+
+### Workshop Tracks:
+- **Executive Leadership & Strategy**: AI agent feasibility, ROI calculation, risk management, and governance.
+- **Operations & Business Teams**: Prompt Pilot masterclass, AI Playbook customization, and workflow automation.
+- **Engineering & IT Departments**: MCP server development, RAG vector indexing, and agent stress testing in Eval Studio.`,
+    outcomes: [
+      "Customized workshop curriculum tailored to your company's exact industry and tech stack.",
+      "Hands-on exercises building real agents during the session.",
+      "Complete Prompt Library & Operational SOP template pack.",
+      "Recording, slide deck, and 30 days of follow-up Q&A access.",
+    ],
+    features: [
+      "Virtual or In-Person Live Instruction",
+      "Hands-On Building Drills & Live Demos",
+      "Customized Industry Exercises",
+    ],
+    process: [
+      {
+        title: "1. Curriculum Customization",
+        desc: "We survey your team's current skill level and tailor exercises to your active projects.",
+      },
+      {
+        title: "2. Interactive Workshop Session",
+        desc: "Live hands-on instruction, agent building drills, and real-time prompt engineering coaching.",
+      },
+      {
+        title: "3. Resource Handoff",
+        desc: "Deliver custom prompt libraries, recordings, and SOP document templates.",
+      },
+    ],
+    faqs: [
+      {
+        q: "Can the workshop be delivered remotely?",
+        a: "Yes. Workshops are available via Zoom / Teams with interactive breakout rooms or in-person at your team's office location.",
+      },
+    ],
   },
   {
     id: "agent-strategy-sprint",
     slug: "agent-strategy-sprint",
     name: "2-Week Agent Strategy Sprint",
     tagline: "Intensive 2-week sprint to evaluate, scope, architect, and prototype your team's first AI agent.",
-    starting_price_cents: 249900,
+    starting_price_cents: null,
     category: "Strategy & Advisory",
     description: `Turn AI hype into a clear, actionable implementation blueprint. Over 14 days, we work directly with your leadership and engineering teams to identify high-ROI workflows, design the system architecture, and deliver a working MVP prototype.`,
     outcomes: [
@@ -97,45 +208,11 @@ Whether you need an automated customer support agent with database write access,
     ],
   },
   {
-    id: "ministry-nonprofit-ai",
-    slug: "ministry-nonprofit-ai",
-    name: "Ministry & Non-Profit AI Implementation",
-    tagline: "Welcoming, high-trust AI agent workflows designed for volunteer intake, donor care, and community outreach.",
-    starting_price_cents: 199900,
-    category: "Community & Faith",
-    description: `Tailored AI solutions built specifically for faith communities, non-profits, and educational institutions. We design agents that maintain warmth, ethical standards, and community trust while streamlining operations.`,
-    outcomes: [
-      "Volunteer Pathway Coordinator Agent with automated intake summaries.",
-      "Donor Communication & Appreciation Workflow.",
-      "Ethical AI Governance Policy tailored for ministry standards.",
-      "Staff & Leadership onboarding workshop.",
-    ],
-    features: [
-      "Ethical & Compassionate Tone Guardrails",
-      "Privacy-First Data Protection",
-      "Non-Technical Staff Friendly Interfaces",
-    ],
-    process: [
-      {
-        title: "1. Community Mapping",
-        desc: "Understand your mission, communication standards, and volunteer pathways.",
-      },
-      {
-        title: "2. Ethical Agent Build",
-        desc: "Construct agents with strict warmth, tone, and privacy boundaries.",
-      },
-      {
-        title: "3. Staff Onboarding",
-        desc: "Train leaders and staff on managing human-in-the-loop approvals.",
-      },
-    ],
-  },
-  {
     id: "ai-governance-audit",
     slug: "ai-governance-audit",
     name: "AI Security & Governance Audit",
     tagline: "Comprehensive evaluation of your organization's AI tool usage, data privacy compliance, and agent security.",
-    starting_price_cents: 149900,
+    starting_price_cents: null,
     category: "Security & Compliance",
     description: `Protect your organization from data leaks, compliance violations, and prompt injection vulnerabilities. We conduct a thorough audit of your team's AI tool stack and generate formal governance policies.`,
     outcomes: [

@@ -5,10 +5,24 @@ import { Markdown } from "@/components/markdown";
 import { listServices } from "@/lib/public.functions";
 import { FALLBACK_SERVICES, getServiceBySlug, ServiceItem } from "@/lib/services-data";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Mail, CheckCircle2, ShieldCheck, Sparkles, Clock, Layers, ArrowRight, Cpu, Check } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  CheckCircle2,
+  ShieldCheck,
+  Sparkles,
+  Clock,
+  Layers,
+  ArrowRight,
+  Cpu,
+  Check,
+  HelpCircle,
+  Send,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShareBar } from "@/components/share-bar";
+import { ContactForm } from "@/components/contact-form";
 import { trackEvent } from "@/lib/analytics";
 
 const serviceBySlugQO = (slug: string) =>
@@ -27,10 +41,11 @@ const serviceBySlugQO = (slug: string) =>
             tagline: found.tagline,
             description: found.description,
             outcomes: found.outcomes ?? fallback?.outcomes ?? [],
-            starting_price_cents: found.starting_price_cents ?? fallback?.starting_price_cents ?? null,
+            starting_price_cents: null, // Custom pricing across all services
             features: fallback?.features ?? [],
             process: fallback?.process ?? [],
             category: fallback?.category ?? "AI Service",
+            faqs: fallback?.faqs ?? [],
           };
         }
       } catch (err) {
@@ -74,9 +89,10 @@ export const Route = createFileRoute("/services/$slug")({
 function ServiceDetailPage() {
   const { service } = Route.useLoaderData();
 
-  const priceText = service.starting_price_cents
-    ? `From $${(service.starting_price_cents / 100).toLocaleString()}`
-    : "Custom Pricing";
+  function scrollToInquiry() {
+    trackEvent("service_inquiry_scroll", { service: service.slug });
+    document.getElementById("inquiry-form")?.scrollIntoView({ behavior: "smooth" });
+  }
 
   return (
     <SiteLayout>
@@ -166,6 +182,42 @@ function ServiceDetailPage() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Service FAQs */}
+            {service.faqs && service.faqs.length > 0 && (
+              <Card className="border border-border bg-card shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    Frequently Asked Questions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {service.faqs.map((faq, idx) => (
+                    <div key={idx} className="rounded-xl border border-border/80 bg-muted/10 p-4 space-y-1.5">
+                      <h4 className="text-sm font-bold text-foreground">{faq.q}</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{faq.a}</p>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Embedded Application / Inquiry Form */}
+            <Card id="inquiry-form" className="border border-indigo-300 bg-card shadow-md scroll-mt-24">
+              <CardHeader className="border-b border-border/60 pb-4">
+                <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+                  <Send className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  Request a Scope Quote for {service.name}
+                </CardTitle>
+                <CardDescription>
+                  Tell us about your organization and workflow requirements. We reply within two business days.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ContactForm defaultTopic={`Service Inquiry: ${service.name}`} />
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sticky Sidebar (Col-span 4) */}
@@ -174,25 +226,22 @@ function ServiceDetailPage() {
             <Card className="border border-indigo-200 bg-gradient-to-b from-indigo-50/50 to-card dark:border-indigo-900/50 dark:from-indigo-950/20 shadow-md sticky top-20">
               <CardHeader className="pb-3">
                 <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">
-                  Engagement Investment
+                  Custom Engagement Pricing
                 </span>
-                <CardTitle className="font-display text-3xl font-bold text-foreground">
-                  {priceText}
+                <CardTitle className="font-display text-2xl font-bold text-foreground">
+                  Custom Quote
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  Tailored scope based on team size, system complexity, and tool integrations.
+                <CardDescription className="text-xs leading-relaxed">
+                  Pricing depends on workflow complexity, tool integrations, and organizational scope.
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-5">
                 <Button
-                  asChild
+                  onClick={scrollToInquiry}
                   className="w-full gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm"
-                  onClick={() => trackEvent("service_cta_clicked", { service: service.slug })}
                 >
-                  <Link to="/contact" search={{ topic: `Service Inquiry: ${service.name}` }}>
-                    <Mail className="h-4 w-4" /> Start the Conversation
-                  </Link>
+                  <Mail className="h-4 w-4" /> Request Custom Quote
                 </Button>
 
                 {/* Service Features Checklist */}

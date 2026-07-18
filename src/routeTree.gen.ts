@@ -37,9 +37,13 @@ import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
 import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
+import { Route as ToolsPolicyGeneratorRouteImport } from './routes/tools.policy-generator'
 import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
+import { Route as ToolsMcpBuilderRouteImport } from './routes/tools.mcp-builder'
 import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
+import { Route as ToolsEvalStudioRouteImport } from './routes/tools.eval-studio'
 import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
 import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
 import { Route as TTagRouteImport } from './routes/t.$tag'
@@ -216,9 +220,19 @@ const UUserIdRoute = UUserIdRouteImport.update({
   path: '/u/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
+  id: '/tools/roi-calculator',
+  path: '/tools/roi-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
   id: '/tools/prompt-pilot',
   path: '/tools/prompt-pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPolicyGeneratorRoute = ToolsPolicyGeneratorRouteImport.update({
+  id: '/tools/policy-generator',
+  path: '/tools/policy-generator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
@@ -226,9 +240,19 @@ const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
   path: '/tools/model-playground',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsMcpBuilderRoute = ToolsMcpBuilderRouteImport.update({
+  id: '/tools/mcp-builder',
+  path: '/tools/mcp-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
   id: '/tools/gpt-trainer',
   path: '/tools/gpt-trainer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsEvalStudioRoute = ToolsEvalStudioRouteImport.update({
+  id: '/tools/eval-studio',
+  path: '/tools/eval-studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsAiPlaybookRoute = ToolsAiPlaybookRouteImport.update({
@@ -473,9 +497,13 @@ export interface FileRoutesByFullPath {
   '/t/$tag': typeof TTagRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
+  '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -533,9 +561,13 @@ export interface FileRoutesByTo {
   '/t/$tag': typeof TTagRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
+  '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
@@ -603,9 +635,13 @@ export interface FileRoutesById {
   '/t/$tag': typeof TTagRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
+  '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
+  '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -673,9 +709,13 @@ export interface FileRouteTypes {
     | '/t/$tag'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
+    | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/mcp-builder'
     | '/tools/model-playground'
+    | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/roi-calculator'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -733,9 +773,13 @@ export interface FileRouteTypes {
     | '/t/$tag'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
+    | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/mcp-builder'
     | '/tools/model-playground'
+    | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/roi-calculator'
     | '/u/$userId'
     | '/agents'
     | '/challenges'
@@ -802,9 +846,13 @@ export interface FileRouteTypes {
     | '/t/$tag'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
+    | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/mcp-builder'
     | '/tools/model-playground'
+    | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/roi-calculator'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -852,9 +900,13 @@ export interface RootRouteChildren {
   TTagRoute: typeof TTagRoute
   ToolsAgentArchitectRoute: typeof ToolsAgentArchitectRoute
   ToolsAiPlaybookRoute: typeof ToolsAiPlaybookRoute
+  ToolsEvalStudioRoute: typeof ToolsEvalStudioRoute
   ToolsGptTrainerRoute: typeof ToolsGptTrainerRoute
+  ToolsMcpBuilderRoute: typeof ToolsMcpBuilderRoute
   ToolsModelPlaygroundRoute: typeof ToolsModelPlaygroundRoute
+  ToolsPolicyGeneratorRoute: typeof ToolsPolicyGeneratorRoute
   ToolsPromptPilotRoute: typeof ToolsPromptPilotRoute
+  ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   UUserIdRoute: typeof UUserIdRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
@@ -1060,11 +1112,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/roi-calculator': {
+      id: '/tools/roi-calculator'
+      path: '/tools/roi-calculator'
+      fullPath: '/tools/roi-calculator'
+      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/prompt-pilot': {
       id: '/tools/prompt-pilot'
       path: '/tools/prompt-pilot'
       fullPath: '/tools/prompt-pilot'
       preLoaderRoute: typeof ToolsPromptPilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/policy-generator': {
+      id: '/tools/policy-generator'
+      path: '/tools/policy-generator'
+      fullPath: '/tools/policy-generator'
+      preLoaderRoute: typeof ToolsPolicyGeneratorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/model-playground': {
@@ -1074,11 +1140,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsModelPlaygroundRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/mcp-builder': {
+      id: '/tools/mcp-builder'
+      path: '/tools/mcp-builder'
+      fullPath: '/tools/mcp-builder'
+      preLoaderRoute: typeof ToolsMcpBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/gpt-trainer': {
       id: '/tools/gpt-trainer'
       path: '/tools/gpt-trainer'
       fullPath: '/tools/gpt-trainer'
       preLoaderRoute: typeof ToolsGptTrainerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/eval-studio': {
+      id: '/tools/eval-studio'
+      path: '/tools/eval-studio'
+      fullPath: '/tools/eval-studio'
+      preLoaderRoute: typeof ToolsEvalStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/ai-playbook': {
@@ -1527,9 +1607,13 @@ const rootRouteChildren: RootRouteChildren = {
   TTagRoute: TTagRoute,
   ToolsAgentArchitectRoute: ToolsAgentArchitectRoute,
   ToolsAiPlaybookRoute: ToolsAiPlaybookRoute,
+  ToolsEvalStudioRoute: ToolsEvalStudioRoute,
   ToolsGptTrainerRoute: ToolsGptTrainerRoute,
+  ToolsMcpBuilderRoute: ToolsMcpBuilderRoute,
   ToolsModelPlaygroundRoute: ToolsModelPlaygroundRoute,
+  ToolsPolicyGeneratorRoute: ToolsPolicyGeneratorRoute,
   ToolsPromptPilotRoute: ToolsPromptPilotRoute,
+  ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   UUserIdRoute: UUserIdRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,

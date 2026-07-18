@@ -3,7 +3,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
-import { ArrowRight, Sparkles, Wand2, Timer, GitBranch, BookOpenCheck } from "lucide-react";
+import { ArrowRight, Sparkles, Wand2, Timer, GitBranch, BookOpenCheck, ShieldCheck, Cpu, Calculator, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -63,6 +63,42 @@ function ToolsIndex() {
       Icon: GitBranch,
       badge: "Workflow Designer",
       colorClass: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50",
+    },
+    {
+      title: "Eval Studio",
+      description:
+        "Automated stress testing studio for AI agents. Run prompt injection, hallucination traps, domain boundary checks, and PII protection drills to generate a visual safety scorecard.",
+      href: "/tools/eval-studio" as const,
+      Icon: ShieldCheck,
+      badge: "Agent Stress Tester",
+      colorClass: "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50",
+    },
+    {
+      title: "MCP Builder",
+      description:
+        "Visual Model Context Protocol (MCP) server builder. Connect AI agents to databases, GitHub, Stripe, and file systems with 1-click config exports for Claude, Cursor, Python & TypeScript.",
+      href: "/tools/mcp-builder" as const,
+      Icon: Cpu,
+      badge: "MCP Config Generator",
+      colorClass: "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50",
+    },
+    {
+      title: "ROI Calculator",
+      description:
+        "Quantify your financial return on investment when implementing AI agents. Calculate monthly LLM API costs vs. labor hours saved for your team or organization.",
+      href: "/tools/roi-calculator" as const,
+      Icon: Calculator,
+      badge: "Token & Business ROI",
+      colorClass: "text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/50",
+    },
+    {
+      title: "Policy Generator",
+      description:
+        "Generate formal Acceptable AI Use Policy documents for small businesses, non-profits, ministries, and technology teams to establish clear organizational AI governance.",
+      href: "/tools/policy-generator" as const,
+      Icon: FileText,
+      badge: "AI Governance",
+      colorClass: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50",
     },
   ];
 

@@ -60,6 +60,29 @@ const FREE_MODELS = [
   { id: "qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B" },
 ];
 
+const PRESET_BENCHMARKS = [
+  {
+    name: "Logical Reasoning",
+    system: "You are an expert analytical reasoner. Think step-by-step.",
+    user: "A farmer has 17 sheep and all but 9 die. How many sheep does the farmer have left?",
+  },
+  {
+    name: "Code Generation",
+    system: "You are a senior TypeScript engineer. Output concise, production-ready code with types.",
+    user: "Write a TypeScript function to safely parse a JSON string into a strongly-typed object with error handling.",
+  },
+  {
+    name: "JSON Extraction",
+    system: "You are a structured data extractor. Return strictly valid JSON with no markdown backticks.",
+    user: "Extract name, company, and email from: 'Hi I'm Sarah Jenkins, CTO at NovaTech Labs. Reach out to sjenkins@novatech.io for inquiries.'",
+  },
+  {
+    name: "Marketing Copy",
+    system: "You are a creative copywriter for tech startups. Keep it engaging, punchy, and modern.",
+    user: "Write 3 tagline variations for a zero-code AI agent builder for small business owners.",
+  },
+];
+
 interface ColumnState {
   model: string;
   output: string;
@@ -256,6 +279,27 @@ function ModelPlaygroundPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                    Benchmark Presets (Click to Load)
+                  </Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PRESET_BENCHMARKS.map((bm) => (
+                      <button
+                        key={bm.name}
+                        onClick={() => {
+                          setSystemPrompt(bm.system);
+                          setUserMessage(bm.user);
+                          toast.info(`Loaded benchmark: ${bm.name}`);
+                        }}
+                        className="rounded-full border border-border bg-secondary/60 px-2.5 py-1 text-[11px] font-medium text-secondary-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                      >
+                        {bm.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
                   <Label
                     htmlFor="system-prompt"
                     className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
@@ -450,6 +494,45 @@ function ModelPlaygroundPage() {
             </div>
 
             <ToolCrossSell tool="model-playground" />
+
+            {/* Token Economics & Monthly Cost Estimator */}
+            <section className="mt-12 rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
+                  <Hash className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-display text-lg font-bold text-foreground">Token Economics & Production Cost Estimator</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Understand real-world production costs when scaling AI workflows from prototype to production.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {[
+                  { provider: "Gemini 2.5 Flash", inputCost: "$0.15 / 1M", outputCost: "$0.60 / 1M", est10k: "$0.75 / mo", est50k: "$3.75 / mo", badge: "Best Value" },
+                  { provider: "DeepSeek V3", inputCost: "$0.27 / 1M", outputCost: "$1.10 / 1M", est10k: "$1.37 / mo", est50k: "$6.85 / mo", badge: "Open Weights" },
+                  { provider: "GPT-4o mini", inputCost: "$0.15 / 1M", outputCost: "$0.60 / 1M", est10k: "$0.75 / mo", est50k: "$3.75 / mo", badge: "Lightweight" },
+                  { provider: "Claude 3.7 Sonnet", inputCost: "$3.00 / 1M", outputCost: "$15.00 / 1M", est10k: "$18.00 / mo", est50k: "$90.00 / mo", badge: "Premium Reasoning" },
+                ].map((tier) => (
+                  <div key={tier.provider} className="rounded-xl border border-border bg-muted/20 p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-sm text-foreground">{tier.provider}</span>
+                      <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {tier.badge}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground space-y-1 pt-1 border-t border-border/50">
+                      <div className="flex justify-between"><span>Input Token Rate:</span> <span className="font-mono text-foreground">{tier.inputCost}</span></div>
+                      <div className="flex justify-between"><span>Output Token Rate:</span> <span className="font-mono text-foreground">{tier.outputCost}</span></div>
+                      <div className="flex justify-between font-medium text-foreground pt-1 border-t border-border/40"><span>Est. 10k queries/mo:</span> <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{tier.est10k}</span></div>
+                      <div className="flex justify-between font-medium text-foreground"><span>Est. 50k queries/mo:</span> <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">{tier.est50k}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
         </div>
       </main>

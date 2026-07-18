@@ -17,7 +17,10 @@ import { ProductWaitlist } from "@/components/product-waitlist";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
-import { Copy, Sparkles, Lock } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Chat } from "@/components/agents/Chat";
+import { Copy, Sparkles, Lock, Play, Wand2 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/ai-playbook")({
   validateSearch: (search: Record<string, unknown>): { niche?: string } => ({
@@ -47,9 +50,11 @@ export const Route = createFileRoute("/tools/ai-playbook")({
 });
 
 function AiPlaybookPage() {
+  const navigate = useNavigate();
   const { niche: nicheParam } = Route.useSearch();
   const [nicheInput, setNicheInput] = useState(nicheParam ?? "");
   const [niche, setNiche] = useState<string | null>(null);
+  const [activeTestDrive, setActiveTestDrive] = useState<{ title: string; prompt: string } | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   // Arriving with ?niche= (e.g. from the homepage hero or a niche landing page)
@@ -79,6 +84,14 @@ function AiPlaybookPage() {
       },
       () => toast.error("Failed to copy prompt."),
     );
+  };
+
+  const handleSendToPilot = (prompt: string, title: string) => {
+    trackEvent("ai_playbook_send_to_pilot", { niche, prompt: title });
+    navigate({
+      to: "/tools/prompt-pilot",
+    });
+    toast.success(`Opening Prompt Pilot...`);
   };
 
   return (
@@ -156,25 +169,48 @@ function AiPlaybookPage() {
                       return (
                         <Card
                           key={title}
-                          className="border border-border bg-card shadow-sm transition-all hover:border-foreground/15"
+                          className="border border-border bg-card shadow-sm transition-all hover:border-foreground/15 flex flex-col justify-between"
                         >
-                          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+                          <div>
+                            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                              <CardTitle className="text-base font-semibold">{title}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                                {personalized}
+                              </p>
+                            </CardContent>
+                          </div>
+                          <div className="p-4 border-t border-border/50 mt-4 flex flex-wrap items-center justify-between gap-2 pt-3">
                             <Button
-                              variant="outline"
                               size="sm"
-                              className="gap-1.5 shrink-0"
-                              onClick={() => handleCopy(personalized, title)}
+                              className="gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm text-xs"
+                              onClick={() => setActiveTestDrive({ title, prompt: personalized })}
                             >
-                              <Copy className="h-3.5 w-3.5" />
-                              Copy
+                              <Play className="h-3.5 w-3.5 fill-current" />
+                              Test Drive Live
                             </Button>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                              {personalized}
-                            </p>
-                          </CardContent>
+                            <div className="flex items-center gap-1.5">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 text-xs"
+                                onClick={() => handleSendToPilot(personalized, title)}
+                              >
+                                <Wand2 className="h-3.5 w-3.5" />
+                                Edit in Pilot
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1.5 text-xs"
+                                onClick={() => handleCopy(personalized, title)}
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                                Copy
+                              </Button>
+                            </div>
+                          </div>
                         </Card>
                       );
                     })}
@@ -236,6 +272,36 @@ function AiPlaybookPage() {
           </div>
         </div>
       </section>
+
+      {/* Test Drive Live Modal */}
+      <Dialog open={!!activeTestDrive} onOpenChange={(open) => !open && setActiveTestDrive(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              Test Drive: {activeTestDrive?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Test this prompt in real time using free open-source AI models right in your browser.
+            </DialogDescription>
+          </DialogHeader>
+
+          {activeTestDrive && (
+            <div className="space-y-4 pt-2">
+              <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed font-mono whitespace-pre-wrap max-h-40 overflow-y-auto">
+                <span className="font-semibold text-muted-foreground uppercase text-[10px] block mb-1">Preloaded System Instructions:</span>
+                {activeTestDrive.prompt}
+              </div>
+
+              <Chat
+                agentName={activeTestDrive.title}
+                defaultModel="openrouter/openrouter/free"
+                overrideSystemPrompt={activeTestDrive.prompt}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </SiteLayout>
   );
 }

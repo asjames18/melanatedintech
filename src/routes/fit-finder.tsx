@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowRight, Check, RotateCcw, Save } from "lucide-react";
+import { ArrowRight, Check, RotateCcw, Save, Wand2 } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
@@ -297,11 +297,18 @@ function FitFinder() {
                           {result.promptTitle}
                         </h3>
                         <p className="mt-2 text-sm text-muted-foreground">{result.prompt}</p>
-                        <Button asChild className="mt-6">
-                          <Link to="/community">
-                            Post your result <ArrowRight className="h-4 w-4" />
-                          </Link>
-                        </Button>
+                        <div className="mt-6 flex flex-wrap items-center gap-2">
+                          <Button asChild>
+                            <Link to="/tools/prompt-pilot">
+                              <Wand2 className="h-4 w-4" /> Open in Prompt Pilot
+                            </Link>
+                          </Button>
+                          <Button asChild variant="outline">
+                            <Link to="/community">
+                              Post your result <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </ResultBlock>

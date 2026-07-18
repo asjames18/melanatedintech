@@ -66,7 +66,7 @@ const DELIVERABLES = [
 const FAQS = [
   [
     "How much does it cost?",
-    "Pricing is custom based on organizational scope, team size, and workflow complexity. We provide a transparent scope quote upfront with zero hourly billing surprises.",
+    "$1,500, fixed. No hourly billing, no surprise scope. If we discover the sprint isn't a fit in the first stakeholder session, you pay nothing.",
   ],
   [
     "Do we need a technical team?",
@@ -126,7 +126,7 @@ function StrategySprint() {
             </div>
             <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2 font-semibold text-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary" /> Custom scope pricing
+                <CheckCircle2 className="h-4 w-4 text-primary" /> $1,500 fixed price
               </span>
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" /> Two weeks

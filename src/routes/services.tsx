@@ -3,16 +3,45 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ServiceCard } from "@/components/cards";
 import { listServices } from "@/lib/public.functions";
+import { FALLBACK_SERVICES, ServiceItem } from "@/lib/services-data";
 import { buildSeoMeta } from "@/lib/seo";
 
-const qo = queryOptions({ queryKey: ["services"], queryFn: () => listServices() });
+const qo = queryOptions({
+  queryKey: ["services"],
+  queryFn: async (): Promise<ServiceItem[]> => {
+    try {
+      const data = await listServices();
+      if (data && data.length > 0) {
+        // Merge Supabase services with fallback data metadata if missing
+        return data.map((s) => {
+          const fb = FALLBACK_SERVICES.find((f) => f.slug === s.slug);
+          return {
+            id: s.id,
+            slug: s.slug,
+            name: s.name,
+            tagline: s.tagline,
+            description: s.description,
+            outcomes: s.outcomes ?? fb?.outcomes ?? [],
+            starting_price_cents: s.starting_price_cents ?? fb?.starting_price_cents ?? null,
+            features: fb?.features ?? [],
+            process: fb?.process ?? [],
+            category: fb?.category ?? "AI Service",
+          };
+        });
+      }
+    } catch (err) {
+      console.warn("Failed to fetch services from Supabase, returning fallbacks...", err);
+    }
+    return FALLBACK_SERVICES;
+  },
+});
 
 export const Route = createFileRoute("/services")({
   head: () => ({
     ...buildSeoMeta({
       title: "AI Agent Services — Melanated In Tech",
       description:
-        "Strategy sprints, custom agent builds, ministry implementations, and workshops — done with you.",
+        "Strategy sprints, custom agent builds, ministry implementations, and governance audits — done with you.",
       url: "/services",
     }),
   }),
@@ -64,7 +93,7 @@ function ServicesIndex() {
           </p>
           <Link
             to="/contact"
-            className="mt-4 inline-flex rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90"
+            className="mt-4 inline-flex rounded-lg bg-foreground px-4 py-2 text-sm font-medium text-background hover:opacity-90 transition-opacity"
           >
             Start the conversation
           </Link>

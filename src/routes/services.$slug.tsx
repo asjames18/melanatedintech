@@ -1,19 +1,42 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { SiteLayout } from "@/components/site-layout";
+import { queryOptions } from "@tanstack/react-query";
+import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Markdown } from "@/components/markdown";
 import { listServices } from "@/lib/public.functions";
+import { FALLBACK_SERVICES, getServiceBySlug, ServiceItem } from "@/lib/services-data";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
-import { ArrowLeft, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle2, ShieldCheck, Sparkles, Clock, Layers, ArrowRight, Cpu, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShareBar } from "@/components/share-bar";
+import { trackEvent } from "@/lib/analytics";
 
 const serviceBySlugQO = (slug: string) =>
   queryOptions({
     queryKey: ["service", slug],
-    queryFn: async () => {
-      const all = await listServices();
-      return all.find((s) => s.slug === slug) ?? null;
+    queryFn: async (): Promise<ServiceItem | null> => {
+      try {
+        const all = await listServices();
+        const found = all.find((s) => s.slug === slug);
+        if (found) {
+          const fallback = getServiceBySlug(slug);
+          return {
+            id: found.id,
+            slug: found.slug,
+            name: found.name,
+            tagline: found.tagline,
+            description: found.description,
+            outcomes: found.outcomes ?? fallback?.outcomes ?? [],
+            starting_price_cents: found.starting_price_cents ?? fallback?.starting_price_cents ?? null,
+            features: fallback?.features ?? [],
+            process: fallback?.process ?? [],
+            category: fallback?.category ?? "AI Service",
+          };
+        }
+      } catch (err) {
+        console.warn("Failed to fetch service from Supabase, checking fallback data...", err);
+      }
+      return getServiceBySlug(slug) ?? null;
     },
   });
 
@@ -28,7 +51,7 @@ export const Route = createFileRoute("/services/$slug")({
     const path = `/services/${params.slug}`;
     if (!s) return { meta: [{ title: "Service — Melanated In Tech" }] };
     const seo = buildSeoMeta({
-      title: `${s.name} — Service | Melanated In Tech`,
+      title: `${s.name} — AI Services | Melanated In Tech`,
       description: s.tagline,
       url: path,
     });
@@ -51,57 +74,168 @@ export const Route = createFileRoute("/services/$slug")({
 function ServiceDetailPage() {
   const { service } = Route.useLoaderData();
 
+  const priceText = service.starting_price_cents
+    ? `From $${(service.starting_price_cents / 100).toLocaleString()}`
+    : "Custom Pricing";
+
   return (
     <SiteLayout>
-      <div className="mx-auto max-w-3xl px-4 py-12">
-        <Link
-          to="/services"
-          className="mb-6 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" /> All services
-        </Link>
-
-        <div className="rounded-2xl border bg-card p-8">
-          <h1 className="text-3xl font-bold">{service.name}</h1>
-          <p className="mt-2 text-lg text-muted-foreground">{service.tagline}</p>
-
-          {service.starting_price_cents && (
-            <p className="mt-4 text-sm font-medium text-primary">
-              Starting at ${(service.starting_price_cents / 100).toFixed(2)}
-            </p>
-          )}
-
-          <div className="mt-6 prose prose-sm dark:prose-invert max-w-none">
-            <Markdown md={service.description} />
-          </div>
-
-          {service.outcomes.length > 0 && (
-            <div className="mt-8">
-              <h2 className="text-lg font-semibold">What you get</h2>
-              <ul className="mt-3 space-y-2">
-                {service.outcomes.map((outcome, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                    <span className="text-sm">{outcome}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild>
-              <Link to="/contact" search={{ topic: `Service: ${service.name}` }}>
-                <Mail className="mr-2 h-4 w-4" /> Start the conversation
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/services">View all services</Link>
-            </Button>
-            <ShareBar title={service.name} text={service.tagline} />
-          </div>
+      <div className="border-b border-border bg-muted/20">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <Link
+            to="/services"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" /> All Services
+          </Link>
         </div>
       </div>
+
+      <PageHeader
+        eyebrow={service.category || "Done-With-You Engagement"}
+        title={service.name}
+        description={service.tagline}
+      />
+
+      <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-12">
+          {/* Main Content (Col-span 8) */}
+          <div className="lg:col-span-8 space-y-10">
+            {/* Overview Card */}
+            <Card className="border border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border/60 pb-4">
+                <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                  Service Overview & Scope
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="prose prose-sm dark:prose-invert max-w-none leading-relaxed">
+                  <Markdown md={service.description} />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Implementation Process Timeline */}
+            {service.process && service.process.length > 0 && (
+              <Card className="border border-border bg-card shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                    Implementation Roadmap & Process
+                  </CardTitle>
+                  <CardDescription>How we work with your team from kick-off to deployment</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {service.process.map((step, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-xl border border-border bg-muted/20 p-4 space-y-1.5"
+                      >
+                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">
+                          {step.title}
+                        </span>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{step.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Tangible Deliverables & Outcomes */}
+            {service.outcomes && service.outcomes.length > 0 && (
+              <Card className="border border-border bg-card shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="font-display text-xl font-bold flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                    Key Deliverables & Guaranteed Outcomes
+                  </CardTitle>
+                  <CardDescription>What your organization receives at project completion</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {service.outcomes.map((outcome, idx) => (
+                      <li key={idx} className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/10 p-3">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-medium text-foreground leading-snug">{outcome}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Sticky Sidebar (Col-span 4) */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Pricing & CTA Card */}
+            <Card className="border border-indigo-200 bg-gradient-to-b from-indigo-50/50 to-card dark:border-indigo-900/50 dark:from-indigo-950/20 shadow-md sticky top-20">
+              <CardHeader className="pb-3">
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">
+                  Engagement Investment
+                </span>
+                <CardTitle className="font-display text-3xl font-bold text-foreground">
+                  {priceText}
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Tailored scope based on team size, system complexity, and tool integrations.
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-5">
+                <Button
+                  asChild
+                  className="w-full gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm"
+                  onClick={() => trackEvent("service_cta_clicked", { service: service.slug })}
+                >
+                  <Link to="/contact" search={{ topic: `Service Inquiry: ${service.name}` }}>
+                    <Mail className="h-4 w-4" /> Start the Conversation
+                  </Link>
+                </Button>
+
+                {/* Service Features Checklist */}
+                {service.features && service.features.length > 0 && (
+                  <div className="space-y-2 pt-3 border-t border-border">
+                    <span className="text-xs font-semibold text-foreground uppercase tracking-wider block">
+                      Included Safeguards:
+                    </span>
+                    <ul className="space-y-2 text-xs text-muted-foreground">
+                      {service.features.map((feat, idx) => (
+                        <li key={idx} className="flex items-center gap-2">
+                          <Check className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Secondary Actions */}
+                <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                  <Button variant="outline" size="sm" asChild className="w-full justify-between text-xs">
+                    <Link to="/fit-finder">
+                      <span>Take AI Fit Finder</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" size="sm" asChild className="w-full justify-between text-xs">
+                    <Link to="/proof">
+                      <span>View Implementation Proof</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </div>
+
+                <div className="pt-2 flex justify-center">
+                  <ShareBar title={service.name} text={service.tagline} />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
     </SiteLayout>
   );
 }

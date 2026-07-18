@@ -21,6 +21,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Chat } from "@/components/agents/Chat";
 import { ToolGuide } from "@/components/tool-guide";
+import { Copy, Sparkles, Lock, Play, Wand2 } from "lucide-react";
 
 const GUIDE_DATA = {
   whatItIs: "A niche-tailored prompt generator that instantly creates industry-specific AI prompts for marketing, sales, operations, and customer support.",

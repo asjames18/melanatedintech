@@ -89,21 +89,53 @@ function AdminAnalytics() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <Stat label="Impressions" value={data?.totals.impressions ?? 0} />
           <Stat label="Clicks" value={data?.totals.clicks ?? 0} />
           <Stat label="CTR" value={pct(data?.totals.ctr ?? 0)} />
-          <Stat label="Events" value={data?.totals.events ?? 0} />
+          <Stat label="Interactive Tool Runs" value={data?.totals.toolRuns ?? 0} />
+          <Stat label="Telemetry Events" value={data?.totals.events ?? 0} />
         </div>
+
+        {data?.topTools && data.topTools.length > 0 && (
+          <Panel title="Interactive Tools Usage">
+            <div className="p-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {data.topTools.map((t) => (
+                <div key={t.tool} className="rounded-xl border border-border bg-muted/20 p-3">
+                  <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className="capitalize">{t.tool}</span>
+                    <span className="text-primary font-bold">{t.count} runs</span>
+                  </div>
+                  <div className="mt-2 h-2 w-full rounded-full bg-muted overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{
+                        width: `${Math.min(100, Math.max(10, (t.count / (data.totals.toolRuns || 1)) * 100))}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        )}
 
         <Panel title="By surface">
           <Table
-            headers={["Surface", "Impressions", "Clicks", "CTR"]}
+            headers={["Surface", "Impressions", "Clicks", "CTR Performance"]}
             rows={(data?.bySurface ?? []).map((r) => [
               r.surface,
               r.impressions,
               r.clicks,
-              pct(r.ctr),
+              <div key={r.surface} className="flex items-center gap-2">
+                <span className="w-12 text-xs font-medium">{pct(r.ctr)}</span>
+                <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${Math.min(100, r.ctr * 100 * 2)}%` }}
+                  />
+                </div>
+              </div>,
             ])}
           />
         </Panel>

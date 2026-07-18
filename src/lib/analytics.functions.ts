@@ -97,7 +97,23 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
     let totalImpressions = 0;
     let totalClicks = 0;
 
+    const toolUsage = new Map<string, number>();
+    let totalToolRuns = 0;
+
     for (const e of events) {
+      if (
+        e.name === "tool_used" ||
+        e.name === "fit_finder_completed" ||
+        e.name === "sop_generated" ||
+        e.name === "eval_studio_run" ||
+        e.name === "agent_architect_run" ||
+        e.name === "prompt_pilot_run"
+      ) {
+        totalToolRuns++;
+        const toolName = String(e.props?.tool ?? e.name).replace(/_/g, " ");
+        toolUsage.set(toolName, (toolUsage.get(toolName) ?? 0) + 1);
+      }
+
       const isImp = e.name === "recommendation_impression";
       const isClk = e.name === "recommendation_click";
       if (!isImp && !isClk) continue;
@@ -150,6 +166,10 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 10);
 
+    const topTools = [...toolUsage.entries()]
+      .map(([tool, count]) => ({ tool, count }))
+      .sort((a, b) => b.count - a.count);
+
     return {
       days: data.days,
       totals: {
@@ -157,9 +177,11 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         impressions: totalImpressions,
         clicks: totalClicks,
         ctr: totalImpressions ? totalClicks / totalImpressions : 0,
+        toolRuns: totalToolRuns,
       },
       bySurface,
       topItems,
       topReasons,
+      topTools,
     };
   });

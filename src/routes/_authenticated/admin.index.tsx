@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import React, { useState, useMemo, forwardRef } from "react";
@@ -256,7 +256,7 @@ function AdminPage() {
             <p className="text-[10px] text-muted-foreground mt-1">Total agents & products</p>
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:border-indigo-500/30 transition-all">
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-[10px] font-bold uppercase tracking-wider">
                 Recommendation CTR
@@ -268,6 +268,21 @@ function AdminPage() {
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
               {totalImpressions} impressions (30d)
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:border-purple-500/30 transition-all">
+            <div className="flex items-center justify-between text-muted-foreground">
+              <span className="text-[10px] font-bold uppercase tracking-wider">
+                Gross Sales
+              </span>
+              <CreditCard className="h-4 w-4 text-purple-500" />
+            </div>
+            <div className="mt-2 font-display text-2xl font-bold text-foreground">
+              {purchasesQuery.isLoading ? "..." : `$${(grossSalesCents / 100).toFixed(2)}`}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {purchases.length} total orders ({sellerSalesCount} seller sales)
             </p>
           </div>
         </div>

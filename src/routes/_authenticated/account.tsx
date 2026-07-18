@@ -463,6 +463,41 @@ function Account() {
 
           {/* RIGHT CONTENT COLUMN: Tabs & Displays */}
           <div className="lg:col-span-2 space-y-6">
+            {/* QUICK TOOLS & ACTION LAUNCHER BAR */}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Quick Action Launcher
+                </p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl border-border bg-muted/20 hover:bg-muted/60" asChild>
+                  <Link to="/fit-finder">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-semibold">Fit Finder</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl border-border bg-muted/20 hover:bg-muted/60" asChild>
+                  <Link to="/agents">
+                    <Store className="h-4 w-4 text-emerald-500" />
+                    <span className="text-xs font-semibold">Marketplace</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl border-border bg-muted/20 hover:bg-muted/60" asChild>
+                  <Link to="/tools">
+                    <Server className="h-4 w-4 text-indigo-500" />
+                    <span className="text-xs font-semibold">AI Tools</span>
+                  </Link>
+                </Button>
+                <Button variant="outline" className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl border-border bg-muted/20 hover:bg-muted/60" asChild>
+                  <Link to="/prompts">
+                    <BookOpen className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-semibold">Prompts</span>
+                  </Link>
+                </Button>
+              </div>
+            </div>
+
             <Tabs defaultValue="agents" className="w-full">
               <TabsList className="flex flex-wrap w-full border-b border-border bg-transparent p-0 rounded-none h-auto gap-4 md:gap-6 justify-start mb-6">
                 <TabsTrigger

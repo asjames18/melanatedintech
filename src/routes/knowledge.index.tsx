@@ -132,7 +132,7 @@ function KnowledgeIndex() {
   }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = articles.filter((a) => {
-    const matchCat = cat === "All" || a.category === cat;
+    const matchCat = cat === "All" || a.category?.toLowerCase() === cat.toLowerCase();
     const matchLen = len === "All" || lengthOf(a.read_minutes ?? 0) === len;
     const needle = q.trim().toLowerCase();
     const matchQ =
@@ -168,6 +168,11 @@ function KnowledgeIndex() {
     setCat(category);
     setLen("All");
     setQ("");
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        document.getElementById("articles-grid")?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
   };
 
   const hasFilters = cat !== "All" || len !== "All" || q.length > 0;
@@ -295,7 +300,7 @@ function KnowledgeIndex() {
           ))}
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <div id="articles-grid" className="scroll-mt-20 rounded-2xl border border-border bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

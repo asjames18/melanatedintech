@@ -3,7 +3,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
-import { ArrowRight, Sparkles, Wand2, Timer, GitBranch, BookOpenCheck, ShieldCheck, Cpu, Calculator, FileText } from "lucide-react";
+import { ArrowRight, Sparkles, Wand2, Timer, GitBranch, BookOpenCheck, ShieldCheck, Cpu, Calculator, FileText, Layers, Trophy, Workflow } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -63,6 +63,33 @@ function ToolsIndex() {
       Icon: GitBranch,
       badge: "Workflow Designer",
       colorClass: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50",
+    },
+    {
+      title: "RAG Chunker",
+      description:
+        "Prepare knowledge documents for AI Vector Search & RAG. Split text into optimized chunks, inspect token metrics, and export formatted JSON data.",
+      href: "/tools/rag-chunker" as const,
+      Icon: Layers,
+      badge: "Vector DB Chunker",
+      colorClass: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50",
+    },
+    {
+      title: "Prompt A/B Tester",
+      description:
+        "Side-by-side system prompt A/B testing studio. Compare responses, latency, and instruction following with automated AI rubric scoring.",
+      href: "/tools/ab-tester" as const,
+      Icon: Trophy,
+      badge: "A/B Split Tester",
+      colorClass: "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/50",
+    },
+    {
+      title: "AI SOP Generator",
+      description:
+        "Build formal Standard Operating Procedure (SOP) documents for human teams collaborating with autonomous AI agents.",
+      href: "/tools/sop-generator" as const,
+      Icon: Workflow,
+      badge: "Team SOP Generator",
+      colorClass: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50",
     },
     {
       title: "Eval Studio",

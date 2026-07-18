@@ -37,7 +37,9 @@ import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsSopGeneratorRouteImport } from './routes/tools.sop-generator'
 import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
+import { Route as ToolsRagChunkerRouteImport } from './routes/tools.rag-chunker'
 import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
 import { Route as ToolsPolicyGeneratorRouteImport } from './routes/tools.policy-generator'
 import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
@@ -46,6 +48,7 @@ import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
 import { Route as ToolsEvalStudioRouteImport } from './routes/tools.eval-studio'
 import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
 import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
+import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
 import { Route as TTagRouteImport } from './routes/t.$tag'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
@@ -220,9 +223,19 @@ const UUserIdRoute = UUserIdRouteImport.update({
   path: '/u/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsSopGeneratorRoute = ToolsSopGeneratorRouteImport.update({
+  id: '/tools/sop-generator',
+  path: '/tools/sop-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
   id: '/tools/roi-calculator',
   path: '/tools/roi-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRagChunkerRoute = ToolsRagChunkerRouteImport.update({
+  id: '/tools/rag-chunker',
+  path: '/tools/rag-chunker',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
@@ -263,6 +276,11 @@ const ToolsAiPlaybookRoute = ToolsAiPlaybookRouteImport.update({
 const ToolsAgentArchitectRoute = ToolsAgentArchitectRouteImport.update({
   id: '/tools/agent-architect',
   path: '/tools/agent-architect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAbTesterRoute = ToolsAbTesterRouteImport.update({
+  id: '/tools/ab-tester',
+  path: '/tools/ab-tester',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TTagRoute = TTagRouteImport.update({
@@ -495,6 +513,7 @@ export interface FileRoutesByFullPath {
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
@@ -503,7 +522,9 @@ export interface FileRoutesByFullPath {
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools/sop-generator': typeof ToolsSopGeneratorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -559,6 +580,7 @@ export interface FileRoutesByTo {
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
@@ -567,7 +589,9 @@ export interface FileRoutesByTo {
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools/sop-generator': typeof ToolsSopGeneratorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
@@ -633,6 +657,7 @@ export interface FileRoutesById {
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/t/$tag': typeof TTagRoute
+  '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
@@ -641,7 +666,9 @@ export interface FileRoutesById {
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
+  '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
+  '/tools/sop-generator': typeof ToolsSopGeneratorRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -707,6 +734,7 @@ export interface FileRouteTypes {
     | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/ab-tester'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
@@ -715,7 +743,9 @@ export interface FileRouteTypes {
     | '/tools/model-playground'
     | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/rag-chunker'
     | '/tools/roi-calculator'
+    | '/tools/sop-generator'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -771,6 +801,7 @@ export interface FileRouteTypes {
     | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/ab-tester'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
@@ -779,7 +810,9 @@ export interface FileRouteTypes {
     | '/tools/model-playground'
     | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/rag-chunker'
     | '/tools/roi-calculator'
+    | '/tools/sop-generator'
     | '/u/$userId'
     | '/agents'
     | '/challenges'
@@ -844,6 +877,7 @@ export interface FileRouteTypes {
     | '/sellers/$slug'
     | '/services/$slug'
     | '/t/$tag'
+    | '/tools/ab-tester'
     | '/tools/agent-architect'
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
@@ -852,7 +886,9 @@ export interface FileRouteTypes {
     | '/tools/model-playground'
     | '/tools/policy-generator'
     | '/tools/prompt-pilot'
+    | '/tools/rag-chunker'
     | '/tools/roi-calculator'
+    | '/tools/sop-generator'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -898,6 +934,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   SellersSlugRoute: typeof SellersSlugRoute
   TTagRoute: typeof TTagRoute
+  ToolsAbTesterRoute: typeof ToolsAbTesterRoute
   ToolsAgentArchitectRoute: typeof ToolsAgentArchitectRoute
   ToolsAiPlaybookRoute: typeof ToolsAiPlaybookRoute
   ToolsEvalStudioRoute: typeof ToolsEvalStudioRoute
@@ -906,7 +943,9 @@ export interface RootRouteChildren {
   ToolsModelPlaygroundRoute: typeof ToolsModelPlaygroundRoute
   ToolsPolicyGeneratorRoute: typeof ToolsPolicyGeneratorRoute
   ToolsPromptPilotRoute: typeof ToolsPromptPilotRoute
+  ToolsRagChunkerRoute: typeof ToolsRagChunkerRoute
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
+  ToolsSopGeneratorRoute: typeof ToolsSopGeneratorRoute
   UUserIdRoute: typeof UUserIdRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
@@ -1112,11 +1151,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/sop-generator': {
+      id: '/tools/sop-generator'
+      path: '/tools/sop-generator'
+      fullPath: '/tools/sop-generator'
+      preLoaderRoute: typeof ToolsSopGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/roi-calculator': {
       id: '/tools/roi-calculator'
       path: '/tools/roi-calculator'
       fullPath: '/tools/roi-calculator'
       preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/rag-chunker': {
+      id: '/tools/rag-chunker'
+      path: '/tools/rag-chunker'
+      fullPath: '/tools/rag-chunker'
+      preLoaderRoute: typeof ToolsRagChunkerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/prompt-pilot': {
@@ -1173,6 +1226,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/agent-architect'
       fullPath: '/tools/agent-architect'
       preLoaderRoute: typeof ToolsAgentArchitectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ab-tester': {
+      id: '/tools/ab-tester'
+      path: '/tools/ab-tester'
+      fullPath: '/tools/ab-tester'
+      preLoaderRoute: typeof ToolsAbTesterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/t/$tag': {
@@ -1605,6 +1665,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   SellersSlugRoute: SellersSlugRoute,
   TTagRoute: TTagRoute,
+  ToolsAbTesterRoute: ToolsAbTesterRoute,
   ToolsAgentArchitectRoute: ToolsAgentArchitectRoute,
   ToolsAiPlaybookRoute: ToolsAiPlaybookRoute,
   ToolsEvalStudioRoute: ToolsEvalStudioRoute,
@@ -1613,7 +1674,9 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsModelPlaygroundRoute: ToolsModelPlaygroundRoute,
   ToolsPolicyGeneratorRoute: ToolsPolicyGeneratorRoute,
   ToolsPromptPilotRoute: ToolsPromptPilotRoute,
+  ToolsRagChunkerRoute: ToolsRagChunkerRoute,
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
+  ToolsSopGeneratorRoute: ToolsSopGeneratorRoute,
   UUserIdRoute: UUserIdRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,

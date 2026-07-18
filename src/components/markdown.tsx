@@ -28,12 +28,14 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
         </code>,
       );
     } else if (m[4] !== undefined) {
+      // Internal links (site paths) navigate in the same tab; external links
+      // open a new tab so the visitor never loses the site.
+      const isInternal = m[5].startsWith("/");
       nodes.push(
         <a
           key={`${keyPrefix}-a${i}`}
           href={m[5]}
-          target="_blank"
-          rel="noopener noreferrer"
+          {...(isInternal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
           className="font-medium text-primary underline underline-offset-2 hover:opacity-80"
         >
           {m[4]}

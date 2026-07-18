@@ -22,13 +22,18 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/search")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Search — Melanated In Tech",
       description: "Search agents, knowledge, and digital products across Melanated In Tech.",
       url: "/search",
-    }),
-  }),
+      canonical: false,
+    });
+    return {
+      meta: [...seo.meta, { name: "robots", content: "noindex, follow" }],
+      links: seo.links,
+    };
+  },
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(articlesQO),

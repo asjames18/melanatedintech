@@ -11,7 +11,5 @@ Looking to register, test, or connect to actual live MCP servers? Use our intera
 - **Slack Integration:** Send and read channel alerts.
 - **Memory Server:** Read and write persistent facts.
 - Setup instructions and docker configurations for each server are included.',
-    unlock_content = NULL,
-    tier = 'premium',
-    price_cents = 2900
+    unlock_content = NULL
 WHERE slug = 'mcp-collection';

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { z } from "zod";
+import { trackEvent } from "@/lib/analytics";
 
 export function WaitlistForm({
   source = "site",
@@ -33,6 +34,7 @@ export function WaitlistForm({
       await join({ data: { email, source, interest, hp: hp || undefined } });
       setDone(true);
       setEmail("");
+      trackEvent("waitlist_joined", { source, interest: interest ?? "general" });
       toast.success("You're on the list.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -43,9 +45,10 @@ export function WaitlistForm({
 
   if (done) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Thanks — we'll be in touch with what's coming next.
-      </p>
+      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">You&apos;re on the list.</p>
+        <p className="mt-1">Check your inbox for the next update from Melanated In Tech.</p>
+      </div>
     );
   }
 

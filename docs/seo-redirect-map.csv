@@ -1,0 +1,9 @@
+source_path,target_path,status,redirect_type,reason,content_action
+/knowledge/choosing-your-first-agent-workflow,/knowledge/choose-your-first-agent-workflow,pending,301,Duplicate workflow-selection intent,Merge unique examples and redirect source
+/knowledge/how-to-write-an-agent-brief,/knowledge/write-agent-brief-that-works,pending,301,Duplicate agent-brief intent,Merge strongest examples and redirect source
+/knowledge/human-approval-patterns-for-agents,/knowledge/human-in-the-loop-patterns-for-agents,pending,301,Overlapping approval-pattern intent,Merge patterns and redirect source
+/knowledge/mcp-servers-primer,/knowledge/mcp-servers-without-the-hype,pending,301,Duplicate MCP explainer intent,Merge definitions and redirect source
+/knowledge/controlling-agent-costs,/knowledge/ai-agent-cost-control-playbook,pending,301,Overlapping cost-control intent,Rewrite primary then redirect source
+/knowledge/what-is-an-ai-agent,/knowledge/ai-agents-in-plain-english,pending,301,Duplicate beginner definition intent,Merge useful passages and redirect source
+/knowledge/ai-agents-for-ministry,/knowledge/ai-in-ministry-a-gentle-start,pending,301,Overlapping ministry introduction intent,Merge practical examples and redirect source
+/knowledge/measuring-if-your-agent-actually-works,/knowledge/evaluating-agents-evals,pending,301,Overlapping evaluation overview intent,Preserve unique metrics in primary and redirect source

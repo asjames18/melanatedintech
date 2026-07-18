@@ -242,7 +242,7 @@ function KnowledgeIndex() {
                     "Teach the team how untrusted content tries to act like instructions.",
                   ],
                 ].map(([label, title, body]) => (
-                  <div key={title} className="rounded-lg border border-border bg-card p-6">
+                  <div key={title} className="rounded-2xl border border-border bg-card p-6">
                     <p className="text-xs font-medium uppercase tracking-wider text-primary">
                       {label}
                     </p>
@@ -277,7 +277,7 @@ function KnowledgeIndex() {
             <button
               key={track.title}
               onClick={() => setCategory(track.category)}
-              className="group rounded-lg border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+              className="group rounded-2xl border border-border bg-card p-5 text-left transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-medium uppercase tracking-wider text-primary">
@@ -295,7 +295,7 @@ function KnowledgeIndex() {
           ))}
         </div>
 
-        <div className="rounded-lg border border-border bg-card p-4 sm:p-5">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

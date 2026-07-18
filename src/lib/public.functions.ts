@@ -181,6 +181,10 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     if (error && !error.message.toLowerCase().includes("duplicate")) {
       throw new Error("Could not join waitlist. Please try again.");
     }
+
+    const { enqueueWelcomeEmail } = await import("@/lib/welcome-email.server");
+    await enqueueWelcomeEmail(data.email);
+
     return { ok: true };
   });
 

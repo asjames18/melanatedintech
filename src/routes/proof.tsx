@@ -3,6 +3,7 @@ import { CheckCircle2, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
+import { ReferenceWorkflows } from "@/components/reference-workflows";
 
 export const Route = createFileRoute("/proof")({
   head: () => ({
@@ -100,6 +101,8 @@ function Proof() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <ReferenceWorkflows />
+
           <div>
             <h2 className="font-display text-xl font-semibold">
               Need help applying this to your team?
@@ -113,7 +116,7 @@ function Proof() {
               <Link to="/paths">View paths</Link>
             </Button>
             <Button asChild>
-              <Link to="/services">View services</Link>
+              <Link to="/strategy-sprint">Explore Strategy Sprint</Link>
             </Button>
           </div>
         </div>

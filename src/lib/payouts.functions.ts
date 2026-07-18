@@ -122,7 +122,7 @@ export const getSellerPayoutInfo = createServerFn({ method: "GET" })
       .object({
         environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
       })
-      .parse(d),
+      .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

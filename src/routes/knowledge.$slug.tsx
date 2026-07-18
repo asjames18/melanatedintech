@@ -5,6 +5,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site-layout";
 import { ArticleCard, AgentCard } from "@/components/cards";
 import { ShareBar } from "@/components/share-bar";
+import { trackEvent } from "@/lib/analytics";
+import { ogImage } from "@/lib/og";
 import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { Markdown } from "@/components/markdown";
@@ -49,6 +51,7 @@ export const Route = createFileRoute("/knowledge/$slug")({
       description: a.excerpt,
       url: path,
       type: "article",
+      image: ogImage("knowledge", params.slug),
     });
     return {
       meta: [
@@ -59,6 +62,14 @@ export const Route = createFileRoute("/knowledge/$slug")({
               {
                 property: "article:published_time",
                 content: new Date(a.published_at).toISOString(),
+              },
+            ]
+          : []),
+        ...(a.updated_at
+          ? [
+              {
+                property: "article:modified_time",
+                content: new Date(a.updated_at).toISOString(),
               },
             ]
           : []),
@@ -75,8 +86,9 @@ export const Route = createFileRoute("/knowledge/$slug")({
             excerpt: a.excerpt,
             category: a.category,
             published_at: a.published_at,
+            updated_at: a.updated_at,
             url: path,
-            image: null,
+            image: ogImage("knowledge", params.slug),
           }),
         ),
         ldScript(
@@ -288,7 +300,11 @@ function ArticleView() {
         )}
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <ShareBar title={article.title} text={article.excerpt} />
+          <ShareBar
+            title={article.title}
+            text={article.excerpt}
+            onShare={() => trackEvent("content_shared", { itemSlug: slug, surface: "article" })}
+          />
           <SaveArticleButton articleId={article.id} />
         </div>
         <div className="mt-10">
@@ -309,7 +325,12 @@ function ArticleView() {
               Discuss it
             </Link>
           </div>
-          <ShareBar title={article.title} text={article.excerpt} className="mt-4" />
+          <ShareBar
+            title={article.title}
+            text={article.excerpt}
+            className="mt-4"
+            onShare={() => trackEvent("content_shared", { itemSlug: slug, surface: "article" })}
+          />
         </div>
       </article>
 

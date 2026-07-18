@@ -6,6 +6,7 @@ import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { confirmCheckoutSession } from "@/lib/payments.functions";
 import { getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -53,6 +54,7 @@ function CheckoutReturn() {
           if (result.owned) {
             setUnlocked({ kind: result.kind, slug: result.slug });
             setStatus("unlocked");
+            trackEvent("purchase_completed", { itemType: result.kind, itemSlug: result.slug });
             // Refresh entitlement cache so the rest of the app sees the unlock.
             router.invalidate();
             return;

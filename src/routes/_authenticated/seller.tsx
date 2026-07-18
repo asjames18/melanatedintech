@@ -47,9 +47,12 @@ import {
   sellerUpsertProduct,
   sellerUpsertService,
   sellerDeleteListing,
-  getSellerPayoutInfo,
 } from "@/lib/seller.functions";
-import { createConnectOnboardingLink, checkConnectAccountStatus } from "@/lib/payouts.functions";
+import {
+  createConnectOnboardingLink,
+  checkConnectAccountStatus,
+  getSellerPayoutInfo,
+} from "@/lib/payouts.functions";
 import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/seller")({

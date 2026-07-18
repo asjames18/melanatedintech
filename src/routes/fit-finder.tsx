@@ -11,6 +11,9 @@ import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { saveMyFitFinderResult } from "@/lib/retention.functions";
 import { buildSeoMeta } from "@/lib/seo";
 import { toast } from "sonner";
+import { FitFinderStarterKit } from "@/components/fit-finder-starter-kit";
+import { trackEvent } from "@/lib/analytics";
+import { funnelAttribution } from "@/components/funnel-attribution";
 
 type Answers = {
   role: string;
@@ -33,6 +36,7 @@ const OPTIONS: Record<keyof Answers, { label: string; options: string[] }> = {
     label: "What best describes you?",
     options: [
       "Founder/operator",
+      "Higher education/education leader",
       "Ministry/nonprofit leader",
       "Creator/consultant",
       "Technical builder",
@@ -115,6 +119,7 @@ function FitFinder() {
       }
     }
     supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    trackEvent("fit_finder_viewed", { ...funnelAttribution() });
   }, []);
 
   const result = useMemo(() => {
@@ -140,12 +145,22 @@ function FitFinder() {
   });
 
   function setAnswer(key: keyof Answers, value: string) {
+    if (Object.values(answers).every((answer) => !answer)) {
+      trackEvent("fit_finder_started", { surface: "first_answer", ...funnelAttribution() });
+    }
     setAnswers((prev) => ({ ...prev, [key]: value }));
   }
 
   function submit() {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, submitted: true }));
     setSubmitted(true);
+    trackEvent("fit_finder_completed", {
+      answeredCount: Object.values(answers).filter(Boolean).length,
+      role: answers.role || "not_answered",
+      risk: answers.risk || "not_answered",
+      timeline: answers.timeline || "not_answered",
+      ...funnelAttribution(),
+    });
   }
 
   function reset() {
@@ -156,6 +171,11 @@ function FitFinder() {
   }
 
   const answeredCount = Object.values(answers).filter(Boolean).length;
+  const highIntent =
+    answers.risk.startsWith("High") ||
+    ["Today", "This week"].includes(answers.timeline) ||
+    answers.role === "Higher education/education leader" ||
+    answers.role === "Ministry/nonprofit leader";
 
   return (
     <SiteLayout>
@@ -219,7 +239,18 @@ function FitFinder() {
                   <ResultBlock title="Recommended agents">
                     <div className="grid gap-4 md:grid-cols-3">
                       {result.agents.map((agent) => (
-                        <AgentCard key={agent.id} {...agent} />
+                        <div
+                          key={agent.id}
+                          onClickCapture={() =>
+                            trackEvent("fit_finder_recommendation_clicked", {
+                              itemType: "agent",
+                              itemSlug: agent.slug,
+                              ...funnelAttribution(),
+                            })
+                          }
+                        >
+                          <AgentCard {...agent} />
+                        </div>
                       ))}
                     </div>
                   </ResultBlock>
@@ -227,14 +258,37 @@ function FitFinder() {
                   <ResultBlock title="Recommended articles">
                     <div className="grid gap-4 md:grid-cols-3">
                       {result.articles.map((article) => (
-                        <ArticleCard key={article.id} {...article} />
+                        <div
+                          key={article.id}
+                          onClickCapture={() =>
+                            trackEvent("fit_finder_recommendation_clicked", {
+                              itemType: "article",
+                              itemSlug: article.slug,
+                              ...funnelAttribution(),
+                            })
+                          }
+                        >
+                          <ArticleCard {...article} />
+                        </div>
                       ))}
                     </div>
                   </ResultBlock>
 
                   <ResultBlock title="Product + community next step">
                     <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
-                      {result.product ? <ProductCard {...result.product} /> : null}
+                      {result.product ? (
+                        <div
+                          onClickCapture={() =>
+                            trackEvent("fit_finder_recommendation_clicked", {
+                              itemType: "product",
+                              itemSlug: result.product!.slug,
+                              ...funnelAttribution(),
+                            })
+                          }
+                        >
+                          <ProductCard {...result.product} />
+                        </div>
+                      ) : null}
                       <div className="rounded-2xl border border-border bg-card p-6">
                         <p className="text-xs uppercase tracking-wider text-muted-foreground">
                           Community prompt
@@ -251,6 +305,13 @@ function FitFinder() {
                       </div>
                     </div>
                   </ResultBlock>
+
+                  <FitFinderStarterKit
+                    answers={answers}
+                    agentNames={result.agents.map((agent) => agent.name)}
+                    productName={result.product?.name}
+                    highIntent={highIntent}
+                  />
 
                   <div className="flex flex-wrap gap-3">
                     {signedIn ? (

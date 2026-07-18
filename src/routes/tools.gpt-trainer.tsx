@@ -17,6 +17,8 @@ import { toast } from "sonner";
 import { Plus, Trash2, Copy, Download, Sparkles, Upload, RotateCcw } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { Chat } from "@/components/agents/Chat";
+import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { trackEvent } from "@/lib/analytics";
 
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
@@ -159,7 +161,10 @@ function GptTrainerPage() {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(compiledPrompt).then(
-      () => toast.success("Instructions copied to clipboard!"),
+      () => {
+        trackEvent("gpt_trainer_action", { action: "copy" });
+        toast.success("Instructions copied to clipboard!");
+      },
       () => toast.error("Failed to copy instructions."),
     );
   };
@@ -175,6 +180,7 @@ function GptTrainerPage() {
     link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
+    trackEvent("gpt_trainer_action", { action: "download" });
     toast.success("Download started!");
   };
 
@@ -465,7 +471,10 @@ function GptTrainerPage() {
                 </div>
 
                 <Button
-                  onClick={() => setTesting(!testing)}
+                  onClick={() => {
+                    if (!testing) trackEvent("gpt_trainer_action", { action: "test_agent" });
+                    setTesting(!testing);
+                  }}
                   variant={testing ? "destructive" : "secondary"}
                   size="sm"
                   className="w-full gap-1.5 border border-border"
@@ -487,6 +496,8 @@ function GptTrainerPage() {
             </Card>
           </div>
         </div>
+
+        <ToolCrossSell tool="gpt-trainer" />
       </section>
     </SiteLayout>
   );

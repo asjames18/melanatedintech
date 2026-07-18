@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ImagePlus, Loader2, X, Type, HelpCircle, BookOpen } from "lucide-react";
+import { ImagePlus, Loader2, X, Wrench, HelpCircle, BookOpen, Bot, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -33,26 +33,38 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 type PendingMedia = { path: string; preview: string; status: "uploading" | "done" | "error" };
 
-type PostType = "post" | "question" | "resource";
+type PostType = "build" | "question" | "agent" | "resource" | "collab";
 
 const POST_TYPE_CONFIG: Record<PostType, { label: string; icon: React.ReactNode; placeholder: string; category: CommunityCategory }> = {
-  post: {
-    label: "Post",
-    icon: <Type className="h-4 w-4" />,
-    placeholder: "What's on your mind? Share what you're building, learning, or shipping…",
-    category: "general",
+  build: {
+    label: "Build Update",
+    icon: <Wrench className="h-4 w-4" />,
+    placeholder: "Share what you are building, testing, or shipping with AI today...",
+    category: "show-and-tell",
   },
   question: {
     label: "Question",
     icon: <HelpCircle className="h-4 w-4" />,
-    placeholder: "Ask the community anything about AI agents, prompts, or workflows…",
+    placeholder: "Ask the community anything about AI agents, prompts, automations, or workflows...",
     category: "questions",
+  },
+  agent: {
+    label: "Agent Showcase",
+    icon: <Bot className="h-4 w-4" />,
+    placeholder: "Show an AI agent: what it does, who it helps, and what stack powers it...",
+    category: "agent-showcase",
   },
   resource: {
     label: "Resource",
     icon: <BookOpen className="h-4 w-4" />,
-    placeholder: "Share a helpful link, template, tool, or resource…",
+    placeholder: "Share a helpful link, template, tool, prompt, or resource...",
     category: "resources",
+  },
+  collab: {
+    label: "Hiring/Collab",
+    icon: <Users className="h-4 w-4" />,
+    placeholder: "Find collaborators, beta testers, talent, or project partners...",
+    category: "hiring",
   },
 };
 
@@ -94,10 +106,10 @@ export function FeedComposer({
   const getProfileFn = useServerFn(getPublicProfile);
   const fileInput = useRef<HTMLInputElement>(null);
 
-  const [postType, setPostType] = useState<PostType>("post");
+  const [postType, setPostType] = useState<PostType>("build");
   const [body, setBody] = useState(initialTag ? `Result for #${initialTag}:\n\n` : "");
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<CommunityCategory>("general");
+  const [category, setCategory] = useState<CommunityCategory>("show-and-tell");
   const [media, setMedia] = useState<PendingMedia[]>([]);
   const [focused, setFocused] = useState(false);
 
@@ -315,10 +327,11 @@ export function FeedComposer({
             disabled={!canPost || createMut.isPending}
             onClick={() => createMut.mutate()}
           >
-            {createMut.isPending ? "Posting…" : "Post"}
+            {createMut.isPending ? "Posting..." : "Post"}
           </Button>
         </div>
       </div>
     </div>
   );
 }
+

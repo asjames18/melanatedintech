@@ -12,18 +12,20 @@ const STATIC_PATHS = [
   { path: "/agents", changefreq: "daily" as const, priority: "0.9" },
   { path: "/paths", changefreq: "weekly" as const, priority: "0.9" },
   { path: "/knowledge", changefreq: "daily" as const, priority: "0.9" },
+  { path: "/start-small", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/strategy-sprint", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/fit-finder", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/tools", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/tools/prompt-pilot", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/gpt-trainer", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/model-playground", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/agent-architect", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/ai-playbook", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/challenges", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/products", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/services", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/proof", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/community", changefreq: "monthly" as const, priority: "0.6" },
-  { path: "/search", changefreq: "weekly" as const, priority: "0.4" },
   { path: "/about", changefreq: "monthly" as const, priority: "0.5" },
   { path: "/contact", changefreq: "yearly" as const, priority: "0.4" },
   { path: "/privacy", changefreq: "yearly" as const, priority: "0.2" },
@@ -48,7 +50,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const now = new Date().toISOString();
         const publicStatus = `status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`;
 
-        const [agents, articles, products, services, paths, challenges, posts, authors] =
+        const [agents, articles, products, services, paths, challenges, authors] =
           await Promise.all([
             supabase.from("agents").select("slug, updated_at").or(publicStatus),
             supabase.from("articles").select("slug, updated_at, published_at").or(publicStatus),
@@ -56,7 +58,6 @@ export const Route = createFileRoute("/sitemap.xml")({
             supabase.from("services").select("slug, updated_at").or(publicStatus),
             supabase.from("learning_paths").select("slug, updated_at").eq("published", true),
             supabase.from("builder_challenges").select("slug, updated_at").eq("published", true),
-            supabase.from("discussion_posts").select("id, updated_at").eq("locked", false),
             supabase.from("authors").select("slug, updated_at"),
           ]);
 
@@ -108,14 +109,6 @@ export const Route = createFileRoute("/sitemap.xml")({
             lastmod: challenge.updated_at ?? undefined,
             changefreq: "weekly",
             priority: "0.6",
-          });
-        }
-        for (const post of posts.data ?? []) {
-          entries.push({
-            path: `/community/${post.id}`,
-            lastmod: post.updated_at ?? undefined,
-            changefreq: "weekly",
-            priority: "0.5",
           });
         }
         for (const author of authors.data ?? []) {

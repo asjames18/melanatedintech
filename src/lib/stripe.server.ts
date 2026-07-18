@@ -127,7 +127,17 @@ export async function verifyWebhook(req: Request, env: StripeEnv): Promise<Strip
   );
   const expected = Buffer.from(new Uint8Array(signed)).toString("hex");
 
-  if (!v1Signatures.includes(expected)) throw new Error("Invalid webhook signature");
+  if (!v1Signatures.some((sig) => timingSafeEqualStr(sig, expected))) {
+    throw new Error("Invalid webhook signature");
+  }
 
   return JSON.parse(body);
+}
+
+// Constant-time string comparison so signature checks don't leak match length.
+function timingSafeEqualStr(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }

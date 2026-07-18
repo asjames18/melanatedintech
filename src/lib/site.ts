@@ -10,6 +10,8 @@ export const SITE = {
     "Melanated In Tech is the destination for AI agent knowledge, marketplace, products, and services - built for the people putting agents to work.",
 };
 
+// Community is intentionally out of NAV until the feed has real activity —
+// an empty feed hurts trust more than a missing link. Route stays live.
 export const NAV = [
   { to: "/agents", label: "Marketplace" },
   { to: "/paths", label: "Paths" },
@@ -17,7 +19,6 @@ export const NAV = [
   { to: "/products", label: "Products" },
   { to: "/tools", label: "AI Tools" },
   { to: "/services", label: "Services" },
-  { to: "/community", label: "Community" },
 ] as const;
 
 export const PILLARS = [
@@ -61,12 +62,6 @@ export const PILLARS = [
     href: "/services" as const,
     blurb: "Strategy sprints, custom agent builds, and ministry implementations - done with you.",
     tag: "Pillar 06",
-  },
-  {
-    title: "Agent Builder Community",
-    href: "/community" as const,
-    blurb: "A community for people building, deploying, and benefiting from AI agents.",
-    tag: "Pillar 07",
   },
 ];
 

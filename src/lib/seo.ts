@@ -38,12 +38,14 @@ export function buildSeoMeta(input: SeoInput): { meta: MetaTag[]; links: LinkTag
     canonical = true,
   } = input;
   const absUrl = absoluteUrl(url);
+  const img = absoluteUrl(image ?? "/og-default.png")!;
+  const isDefaultImage = !image;
   const meta: MetaTag[] = [
     { title },
     { property: "og:title", content: title },
     { property: "og:type", content: type },
     { property: "og:site_name", content: siteName },
-    { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
   ];
   if (description) {
@@ -52,10 +54,12 @@ export function buildSeoMeta(input: SeoInput): { meta: MetaTag[]; links: LinkTag
     meta.push({ name: "twitter:description", content: description });
   }
   if (absUrl) meta.push({ property: "og:url", content: absUrl });
-  if (image) {
-    meta.push({ property: "og:image", content: image });
-    meta.push({ name: "twitter:image", content: image });
+  meta.push({ property: "og:image", content: img });
+  if (isDefaultImage) {
+    meta.push({ property: "og:image:width", content: "1200" });
+    meta.push({ property: "og:image:height", content: "630" });
   }
+  meta.push({ name: "twitter:image", content: img });
   const links: LinkTag[] = [];
   if (canonical && absUrl) links.push({ rel: "canonical", href: absUrl });
   return { meta, links };
@@ -115,6 +119,7 @@ export function articleLd(a: {
   excerpt?: string | null;
   category?: string | null;
   published_at?: string | null;
+  updated_at?: string | null;
   url?: string | null;
   image?: string | null;
 }) {
@@ -125,7 +130,8 @@ export function articleLd(a: {
     description: a.excerpt ?? undefined,
     articleSection: a.category ?? undefined,
     datePublished: a.published_at ?? undefined,
-    image: a.image ?? undefined,
+    dateModified: a.updated_at ?? undefined,
+    image: absoluteUrl(a.image ?? "/og-default.png"),
     mainEntityOfPage: a.url ? { "@type": "WebPage", "@id": absoluteUrl(a.url) } : undefined,
     author: { "@type": "Organization", name: DEFAULT_SITE },
     publisher: {

@@ -31,6 +31,10 @@ export const joinProductWaitlist = createServerFn({ method: "POST" })
       if (error.code === "23505") return { ok: true, alreadyOn: true as const };
       throw new Error(error.message);
     }
+
+    const { enqueueWelcomeEmail } = await import("@/lib/welcome-email.server");
+    await enqueueWelcomeEmail(data.email);
+
     return { ok: true };
   });
 

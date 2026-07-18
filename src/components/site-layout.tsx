@@ -2,13 +2,15 @@ import type { ReactNode } from "react";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { PaymentTestModeBanner } from "./payment-test-mode-banner";
+import { FunnelAttribution } from "./funnel-attribution";
 
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col">
+      <FunnelAttribution />
       <PaymentTestModeBanner />
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
       <SiteFooter />
     </div>
   );
@@ -42,3 +44,6 @@ export function PageHeader({
     </section>
   );
 }
+
+
+

@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Bot, BookOpen, Package, Wrench } from "lucide-react";
 import { categoryVisual } from "@/lib/category-style";
+import { trackEvent } from "@/lib/analytics";
 
 export type Tier = "free" | "premium" | "custom";
 
@@ -56,7 +57,8 @@ export function AgentCard({
     <Link
       to="/agents/$slug"
       params={{ slug }}
-      className="group relative flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      onClick={() => trackEvent("agent_clicked", { itemSlug: slug, surface: "card" })}
+      className="group relative flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
       <div className="flex items-start justify-between gap-3">
         <div className={`grid h-10 w-10 place-items-center rounded-lg ${className}`}>
@@ -109,7 +111,7 @@ export function ArticleCard({
     <Link
       to="/knowledge/$slug"
       params={{ slug }}
-      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
       <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
         <BookOpen className="h-3.5 w-3.5" />
@@ -150,7 +152,8 @@ export function ProductCard({
     <Link
       to="/products/$slug"
       params={{ slug }}
-      className="group flex flex-col rounded-lg border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
+      onClick={() => trackEvent("product_clicked", { itemSlug: slug, surface: "card" })}
+      className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
     >
       <div className="flex items-start justify-between">
         <div className={`grid h-10 w-10 place-items-center rounded-lg ${className}`}>
@@ -173,15 +176,24 @@ export function ServiceCard({
   name,
   tagline,
   outcomes,
+  price,
 }: {
   name: string;
   tagline: string;
   outcomes: string[];
+  price?: string;
 }) {
   return (
-    <div className="flex flex-col rounded-lg border border-border bg-card p-6">
-      <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
-        <Wrench className="h-5 w-5" />
+    <div className="group flex h-full flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg">
+      <div className="flex items-start justify-between">
+        <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary/10 text-primary">
+          <Wrench className="h-5 w-5" />
+        </div>
+        {price && (
+          <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+            {price}
+          </span>
+        )}
       </div>
       <h3 className="mt-4 font-display text-lg font-semibold">{name}</h3>
       <p className="mt-1 text-sm text-muted-foreground">{tagline}</p>
@@ -193,6 +205,10 @@ export function ServiceCard({
           </li>
         ))}
       </ul>
+      <div className="mt-6 flex items-center gap-1 text-sm font-medium text-primary">
+        View service{" "}
+        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+      </div>
     </div>
   );
 }

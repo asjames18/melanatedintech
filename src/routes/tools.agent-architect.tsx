@@ -36,6 +36,8 @@ import {
   FileCode,
 } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { trackEvent } from "@/lib/analytics";
 
 // Define TypeScript structures for our agent blueprint
 interface AgentNode {
@@ -365,7 +367,7 @@ const PRESETS: Record<
         nodeId: "optimizer",
         title: "Draft 2 Refined",
         description: "Optimizer applies the edits to draft the second version.",
-        log: "Applying feedback. Rewriting v2:\n'FOR IMMEDIATE RELEASE: Melanated In Tech proudly launches the new AI Agent Marketplace, an educational repository of custom agents. Discover and configure starter templates to automate operations. Visit melanatedintech.com/marketplace to launch today.'",
+        log: "Applying feedback. Rewriting v2:\n'FOR IMMEDIATE RELEASE: Melanated In Tech proudly launches the new AI Agent Marketplace, an educational repository of custom agents. Discover and configure starter templates to automate operations. Visit melanatedintech.com/agents to launch today.'",
         dataPassed: "Press Release v2 (Formal tone, CTA included, 44 words)",
       },
       {
@@ -441,6 +443,7 @@ function AgentArchitectPage() {
       setSimActive(false);
       setSimStep(0);
       setSimLog([]);
+      trackEvent("agent_architect_action", { action: "load_preset", preset: key });
       toast.success(`Loaded ${PRESETS[key].name} template`);
     }
   };
@@ -994,7 +997,10 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
   // Copy helpers
   const handleCopyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(`${label} copied to clipboard!`),
+      () => {
+        trackEvent("agent_architect_action", { action: "copy", label, preset: presetKey });
+        toast.success(`${label} copied to clipboard!`);
+      },
       () => toast.error("Failed to copy."),
     );
   };
@@ -1016,6 +1022,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
     link.download = `mit-agent-blueprint-${presetKey}.json`;
     link.click();
     URL.revokeObjectURL(url);
+    trackEvent("agent_architect_action", { action: "download_blueprint", preset: presetKey });
     toast.success("Blueprint JSON downloaded successfully.");
   };
 
@@ -1533,8 +1540,8 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                     </div>
                   )}
 
-                  {/* Fallback layout for Custom Nodes */}
-                  {presetKey === "custom" && (
+                  {/* Fallback layout for single-agent and custom node sets */}
+                  {(presetKey === "custom" || presetKey === "single-agent") && (
                     <div className="flex flex-wrap justify-center gap-4 w-full">
                       {nodes.map((node, index) => (
                         <div
@@ -1780,6 +1787,10 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        <div className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <ToolCrossSell tool="agent-architect" />
         </div>
       </main>
     </SiteLayout>

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import React, { useState, useMemo, forwardRef } from "react";
@@ -54,6 +54,7 @@ import {
   Users,
   BookOpen,
   BarChart3,
+  CreditCard,
   ChevronRight,
   MessageSquare,
   Sparkles,
@@ -71,6 +72,7 @@ import {
   adminListServices,
   adminListWaitlist,
   adminListMessages,
+  adminListPurchases,
   adminUpdateMessage,
   adminDeleteMessage,
   adminUpsertAgent,
@@ -97,7 +99,7 @@ import {
 import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Admin — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Admin â€” Melanated In Tech" }] }),
   component: AdminPage,
 });
 
@@ -110,6 +112,7 @@ function AdminPage() {
   const listSubmissionsFn = useServerFn(adminListSubmissions);
   const listWaitlistFn = useServerFn(adminListWaitlist);
   const listMessagesFn = useServerFn(adminListMessages);
+  const listPurchasesFn = useServerFn(adminListPurchases);
   const getAnalyticsFn = useServerFn(adminAnalyticsSummary);
 
   const isAdmin = status.data?.isAdmin ?? false;
@@ -139,6 +142,11 @@ function AdminPage() {
     queryFn: () => listMessagesFn(),
     enabled: isAdmin,
   });
+  const purchasesQuery = useQuery({
+    queryKey: ["admin-purchases"],
+    queryFn: () => listPurchasesFn(),
+    enabled: isAdmin,
+  });
   const analyticsQuery = useQuery({
     queryKey: ["admin-analytics", 30],
     queryFn: () => getAnalyticsFn({ data: { days: 30 } }),
@@ -148,7 +156,7 @@ function AdminPage() {
   if (status.isLoading) {
     return (
       <SiteLayout>
-        <div className="p-12 text-sm text-muted-foreground">Loading…</div>
+        <div className="p-12 text-sm text-muted-foreground">Loadingâ€¦</div>
       </SiteLayout>
     );
   }
@@ -176,6 +184,7 @@ function AdminPage() {
     submissions: "Submissions",
     waitlist: "Waitlist",
     messages: "Messages",
+    purchases: "Purchases & Sales",
     community: "Community Moderation",
     analytics: "Recommendations",
   };
@@ -192,6 +201,9 @@ function AdminPage() {
     : "0.0%";
   const totalImpressions = analyticsQuery.data?.totals.impressions ?? 0;
   const unreadMessages = (messagesQuery.data ?? []).length;
+  const purchases = purchasesQuery.data ?? [];
+  const grossSalesCents = purchases.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
+  const sellerSalesCount = purchases.filter((row) => row.seller_id).length;
 
   return (
     <SiteLayout>
@@ -202,7 +214,7 @@ function AdminPage() {
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         {/* SUMMARY METRICS CARDS */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-8">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-[10px] font-bold uppercase tracking-wider">
@@ -363,6 +375,18 @@ function AdminPage() {
                         )}
                       </TabsTrigger>
                       <TabsTrigger
+                        value="purchases"
+                        className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
+                      >
+                        <span className="flex items-center">
+                          <CreditCard className="h-4 w-4 mr-3" /> Purchases & Sales
+                        </span>
+                        {purchases.length > 0 && (
+                          <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            {purchases.length}
+                          </span>
+                        )}
+                      </TabsTrigger>                      <TabsTrigger
                         value="community"
                         className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                       >
@@ -393,7 +417,17 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl animate-none"
                     >
-                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)}>Catalog verification →</Link>
+                      <Link to="/admin/content-agent" onClick={() => setSheetOpen(false)}>
+                        Content review queue
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start rounded-xl animate-none"
+                    >
+                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)}>Catalog verification â†’</Link>
                     </Button>
                     <Button
                       asChild
@@ -401,7 +435,7 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl mt-1.5 animate-none"
                     >
-                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)}>View full analytics →</Link>
+                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)}>View full analytics â†’</Link>
                     </Button>
                   </div>
                 </div>
@@ -487,6 +521,18 @@ function AdminPage() {
                     )}
                   </TabsTrigger>
                   <TabsTrigger
+                    value="purchases"
+                    className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
+                  >
+                    <span className="flex items-center">
+                      <CreditCard className="h-4 w-4 mr-3" /> Purchases & Sales
+                    </span>
+                    {purchases.length > 0 && (
+                      <span className="bg-sky-500/10 border border-sky-500/20 text-sky-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        {purchases.length}
+                      </span>
+                    )}
+                  </TabsTrigger>                  <TabsTrigger
                     value="community"
                     className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                   >
@@ -517,7 +563,7 @@ function AdminPage() {
                   size="sm"
                   className="w-full justify-start rounded-xl"
                 >
-                  <Link to="/admin/catalog">Catalog verification →</Link>
+                  <Link to="/admin/content-agent">Content review queue</Link>
                 </Button>
                 <Button
                   asChild
@@ -525,7 +571,15 @@ function AdminPage() {
                   size="sm"
                   className="w-full justify-start rounded-xl"
                 >
-                  <Link to="/admin/analytics">View full analytics →</Link>
+                  <Link to="/admin/catalog">Catalog verification â†’</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start rounded-xl"
+                >
+                  <Link to="/admin/analytics">View full analytics â†’</Link>
                 </Button>
               </div>
             </div>
@@ -552,6 +606,9 @@ function AdminPage() {
               </TabsContent>
               <TabsContent value="messages" className="m-0 outline-none">
                 <MessagesPanel />
+              </TabsContent>
+              <TabsContent value="purchases" className="m-0 outline-none">
+                <PurchasesPanel />
               </TabsContent>
               <TabsContent value="community" className="m-0 outline-none">
                 <CommunityPanel />
@@ -590,7 +647,7 @@ function NoAccess({ adminCount, onClaimed }: { adminCount: number; onClaimed: ()
               No admins exist yet. Claim the first admin seat for this workspace.
             </p>
             <Button className="mt-6" onClick={() => mut.mutate()} disabled={mut.isPending}>
-              {mut.isPending ? "Claiming…" : "Claim admin access"}
+              {mut.isPending ? "Claimingâ€¦" : "Claim admin access"}
             </Button>
           </>
         ) : (
@@ -813,7 +870,7 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
               />
             </Field>
           </div>
-          <Field label="System prompt (optional — used as the agent's instructions when buyers chat)">
+          <Field label="System prompt (optional â€” used as the agent's instructions when buyers chat)">
             <Textarea
               rows={4}
               value={form.system_prompt}
@@ -822,10 +879,10 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             />
           </Field>
           <FulfillmentField
-            label="Unlock pack (markdown) — delivered to buyers only"
+            label="Unlock pack (markdown) â€” delivered to buyers only"
             value={form.unlock_content}
             onChange={(v) => setForm({ ...form, unlock_content: v })}
-            hint="Premium agents need a pack here or they show “Coming soon” instead of a buy button."
+            hint="Premium agents need a pack here or they show â€œComing soonâ€ instead of a buy button."
           />
           <PublishControls
             status={form.status}
@@ -838,7 +895,7 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -999,7 +1056,7 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1052,7 +1109,7 @@ function ProductsPanel() {
           },
           {
             header: "Price",
-            cell: (r) => (r.price_cents ? `$${(r.price_cents / 100).toFixed(2)}` : "—"),
+            cell: (r) => (r.price_cents ? `$${(r.price_cents / 100).toFixed(2)}` : "â€”"),
           },
           {
             header: "Tier",
@@ -1192,7 +1249,7 @@ function ProductEditor({ existing, trigger }: { existing?: ProductRow; trigger: 
               <Input
                 value={form.image_url ?? ""}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="https://…"
+                placeholder="https://â€¦"
               />
             </Field>
           </div>
@@ -1244,7 +1301,7 @@ function ProductEditor({ existing, trigger }: { existing?: ProductRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1400,11 +1457,172 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Saving…" : saveLabel(form.status)}
+            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+
+type PurchaseRow = Awaited<ReturnType<typeof adminListPurchases>>[number];
+
+function PurchasesPanel() {
+  const list = useServerFn(adminListPurchases);
+  const q = useQuery({ queryKey: ["admin-purchases"], queryFn: () => list() });
+  const rows = q.data ?? [];
+  const grossCents = rows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
+  const sellerGrossCents = rows
+    .filter((r) => r.seller_id)
+    .reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
+  const sellerEarningsCents = rows.reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
+  const unpaidSellerCents = rows
+    .filter((r) => r.seller_id && !r.seller_paid)
+    .reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
+
+  return (
+    <div className="space-y-5">
+      <Toolbar
+        title="Purchases & sales"
+        count={rows.length}
+        icon={<CreditCard className="h-4 w-4" />}
+        action={
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={rows.length === 0}
+            onClick={() =>
+              downloadCsv(
+                "admin-purchases-sales",
+                [
+                  "Granted At",
+                  "Environment",
+                  "Kind",
+                  "Slug",
+                  "Item",
+                  "Buyer",
+                  "Gross",
+                  "Seller",
+                  "Seller Earnings",
+                  "Platform Fee",
+                  "Seller Paid",
+                  "Stripe Session",
+                ],
+                rows.map((r) => [
+                  new Date(r.granted_at).toISOString(),
+                  r.environment,
+                  r.kind,
+                  r.slug,
+                  r.item_name,
+                  r.buyer_name ?? r.user_id,
+                  formatCents(r.amount_cents),
+                  r.seller_name ?? "",
+                  formatCents(r.seller_earnings_cents),
+                  formatCents(r.platform_fee_cents),
+                  r.seller_paid ? "yes" : "no",
+                  r.stripe_session_id ?? "",
+                ]),
+              )
+            }
+          >
+            Export CSV
+          </Button>
+        }
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <SalesStat label="Gross sales" value={formatCents(grossCents)} />
+        <SalesStat label="Seller sales" value={formatCents(sellerGrossCents)} />
+        <SalesStat label="Seller earnings" value={formatCents(sellerEarningsCents)} />
+        <SalesStat label="Unpaid seller earnings" value={formatCents(unpaidSellerCents)} />
+      </div>
+
+      <SearchableDataTable
+        loading={q.isLoading}
+        rows={rows}
+        searchPlaceholder="Search buyer, seller, item, slug, Stripe session..."
+        searchFields={["buyer_name", "user_id", "seller_name", "item_name", "slug", "stripe_session_id", "environment"]}
+        columns={[
+          {
+            header: "When",
+            cell: (r) => (
+              <span className="text-muted-foreground">
+                {new Date(r.granted_at).toLocaleDateString()}
+              </span>
+            ),
+          },
+          {
+            header: "Item",
+            cell: (r) => (
+              <div>
+                <div className="font-medium">{r.item_name}</div>
+                <div className="text-xs text-muted-foreground">
+                  {r.kind} · {r.slug}
+                </div>
+              </div>
+            ),
+          },
+          {
+            header: "Buyer",
+            cell: (r) => (
+              <div>
+                <div className="font-medium">{r.buyer_name ?? "Unknown buyer"}</div>
+                <div className="font-mono text-[11px] text-muted-foreground">{r.user_id.slice(0, 8)}…</div>
+              </div>
+            ),
+          },
+          {
+            header: "Gross",
+            cell: (r) => <span className="font-medium">{formatCents(r.amount_cents)}</span>,
+          },
+          {
+            header: "Seller",
+            cell: (r) =>
+              r.seller_id ? (
+                <div>
+                  <div className="font-medium">{r.seller_name ?? "Unknown seller"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    earns {formatCents(r.seller_earnings_cents)}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-muted-foreground">Platform</span>
+              ),
+          },
+          {
+            header: "Payout",
+            cell: (r) =>
+              r.seller_id ? (
+                <Badge variant={r.seller_paid ? "secondary" : "outline"}>
+                  {r.seller_paid ? "Paid" : "Unpaid"}
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              ),
+          },
+          {
+            header: "Stripe",
+            cell: (r) => (
+              <div className="max-w-[180px] truncate font-mono text-[11px] text-muted-foreground">
+                {r.stripe_session_id ?? r.price_id ?? "—"}
+              </div>
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
+}
+
+function SalesStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-1 font-display text-xl font-bold text-foreground">{value}</div>
+    </div>
   );
 }
 
@@ -1451,11 +1669,11 @@ function WaitlistPanel() {
           { header: "Email", cell: (r) => <span className="font-medium">{r.email}</span> },
           {
             header: "Source",
-            cell: (r) => <span className="text-muted-foreground">{r.source ?? "—"}</span>,
+            cell: (r) => <span className="text-muted-foreground">{r.source ?? "â€”"}</span>,
           },
           {
             header: "Interest",
-            cell: (r) => <span className="text-muted-foreground">{r.interest ?? "—"}</span>,
+            cell: (r) => <span className="text-muted-foreground">{r.interest ?? "â€”"}</span>,
           },
           {
             header: "When",
@@ -1541,7 +1759,7 @@ function MessagesPanel() {
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <div>
                   <p className="font-medium">
-                    {m.name} <span className="text-muted-foreground">· {m.email}</span>
+                    {m.name} <span className="text-muted-foreground">Â· {m.email}</span>
                     {handled && (
                       <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">
                         Handled
@@ -1551,7 +1769,7 @@ function MessagesPanel() {
                   {m.organization && (
                     <p className="text-xs text-muted-foreground">
                       {m.organization}
-                      {m.topic ? ` · ${m.topic}` : ""}
+                      {m.topic ? ` Â· ${m.topic}` : ""}
                     </p>
                   )}
                 </div>
@@ -1619,7 +1837,7 @@ function SubmissionsPanel() {
     }) => review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
     onSuccess: (res) => {
       if (res?.publishedSlug) {
-        toast.success(`Approved — published as /agents/${res.publishedSlug}`);
+        toast.success(`Approved â€” published as /agents/${res.publishedSlug}`);
       } else {
         toast.success("Submission updated.");
       }
@@ -1711,7 +1929,7 @@ function SubmissionCard({
         <div>
           <p className="font-display text-base font-semibold">{submission.name}</p>
           <p className="text-xs text-muted-foreground">
-            {submission.category} · {submission.contact_email} ·{" "}
+            {submission.category} Â· {submission.contact_email} Â·{" "}
             {new Date(submission.created_at).toLocaleDateString()}
           </p>
         </div>
@@ -1742,7 +1960,7 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Website ↗
+              Website â†—
             </a>
           )}
           {submission.demo_url && (
@@ -1752,7 +1970,7 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Demo ↗
+              Demo â†—
             </a>
           )}
           {submission.repo_url && (
@@ -1762,12 +1980,12 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Repo ↗
+              Repo â†—
             </a>
           )}
           {submission.published_agent_id && (
             <Link to="/agents" className="text-emerald-700 hover:underline">
-              Live agent ↗
+              Live agent â†—
             </Link>
           )}
         </div>
@@ -1806,6 +2024,9 @@ function SubmissionCard({
 
 // ---------- Shared bits ----------
 
+function formatCents(cents: number | null | undefined) {
+  return cents == null ? "-" : `$${(cents / 100).toFixed(2)}`;
+}
 function downloadCsv(name: string, headers: string[], rows: (string | number)[][]) {
   const esc = (v: string | number) => {
     const s = String(v ?? "");
@@ -1813,7 +2034,7 @@ function downloadCsv(name: string, headers: string[], rows: (string | number)[][
   };
   const csv = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
   // eslint-disable-next-line no-irregular-whitespace
-  const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([`ï»¿${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -1861,7 +2082,7 @@ function DataTable<T extends { id: string }>({
   actions?: (r: T) => React.ReactNode;
   loading?: boolean;
 }) {
-  if (loading) return <p className="mt-6 text-sm text-muted-foreground">Loading…</p>;
+  if (loading) return <p className="mt-6 text-sm text-muted-foreground">Loadingâ€¦</p>;
   if (rows.length === 0) {
     return (
       <div className="mt-4 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
@@ -2014,7 +2235,7 @@ function downloadAnalyticsCsv(data: SummaryData, days: number) {
       .map((c) => "," + esc(c))
       .join("");
 
-  lines.push(`# Recommendation analytics — last ${days} days`);
+  lines.push(`# Recommendation analytics â€” last ${days} days`);
   lines.push("");
   lines.push("Metric,Value");
   lines.push(row(["Impressions", data.totals.impressions]));
@@ -2109,7 +2330,7 @@ function FulfillmentField({
           rows={8}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="# Pack title&#10;&#10;Markdown the buyer sees after purchase…"
+          placeholder="# Pack title&#10;&#10;Markdown the buyer sees after purchaseâ€¦"
           className="font-mono text-xs"
         />
       )}
@@ -2233,9 +2454,9 @@ function PublishControls({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Draft — hidden</SelectItem>
+              <SelectItem value="draft">Draft â€” hidden</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="published">Published — live</SelectItem>
+              <SelectItem value="published">Published â€” live</SelectItem>
             </SelectContent>
           </Select>
         </Field>
@@ -2284,7 +2505,7 @@ function PublishBadge({
         ? scheduledAt
           ? live
             ? "Live (scheduled)"
-            : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`
+            : `Scheduled Â· ${new Date(scheduledAt).toLocaleDateString()}`
           : "Scheduled"
         : "Draft";
   return (
@@ -2392,7 +2613,7 @@ function AdminPostsPanel() {
         columns={[
           {
             header: "Author",
-            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "â€”"}</span>,
           },
           {
             header: "Post",
@@ -2481,7 +2702,7 @@ function AdminRepliesPanel() {
         columns={[
           {
             header: "Author",
-            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "â€”"}</span>,
           },
           {
             header: "Reply",
@@ -2635,7 +2856,7 @@ function AnalyticsPanel() {
             <BarChart3 className="h-5 w-5 text-primary" /> Recommendation Analytics
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {`Last ${data?.days} days · ${data?.totals.events ?? 0} recommendation events recorded`}
+            {`Last ${data?.days} days Â· ${data?.totals.events ?? 0} recommendation events recorded`}
           </p>
         </div>
         <div className="flex items-center gap-2">

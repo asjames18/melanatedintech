@@ -30,7 +30,9 @@ const qo = (slug: string) =>
 
 export const Route = createFileRoute("/paths/$slug")({
   head: ({ params, loaderData }) => {
-    const p = loaderData;
+    // TanStack Start doesn't infer loaderData from an ensureQueryData loader into
+    // head(); narrow to the fields SEO needs.
+    const p = loaderData as { title: string; excerpt: string | null } | undefined;
     if (!p) {
       return {
         meta: [{ title: "Learning Path — Melanated In Tech" }],

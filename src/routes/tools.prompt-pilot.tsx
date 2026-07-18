@@ -46,6 +46,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Chat } from "@/components/agents/Chat";
+import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { trackEvent } from "@/lib/analytics";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/tools/prompt-pilot")({
@@ -369,7 +371,10 @@ function PromptPilotPage() {
       return;
     }
     navigator.clipboard.writeText(promptContent).then(
-      () => toast.success("Prompt copied to clipboard!"),
+      () => {
+        trackEvent("prompt_pilot_action", { action: "copy" });
+        toast.success("Prompt copied to clipboard!");
+      },
       () => toast.error("Failed to copy prompt."),
     );
   };
@@ -386,6 +391,7 @@ function PromptPilotPage() {
     link.download = `${promptName.trim() || "prompt-pilot-compiled"}.txt`;
     link.click();
     URL.revokeObjectURL(url);
+    trackEvent("prompt_pilot_action", { action: "download" });
     toast.success("Download started!");
   };
 
@@ -400,6 +406,7 @@ function PromptPilotPage() {
       return;
     }
     navigator.clipboard.writeText(promptContent).then(() => {
+      trackEvent("prompt_pilot_action", { action: "send_to_gpt" });
       window.open(
         "https://chatgpt.com/g/g-6838be4cf9748191a4decfdd6a97c5c8-prompt-pilot-gpt",
         "_blank",
@@ -413,6 +420,7 @@ function PromptPilotPage() {
       toast.warning("Please write or build a prompt first.");
       return;
     }
+    trackEvent("prompt_pilot_action", { action: "send_to_gpt_trainer" });
     navigate({
       to: "/tools/gpt-trainer",
       search: {
@@ -427,6 +435,7 @@ function PromptPilotPage() {
       toast.warning("Please write or build a prompt first.");
       return;
     }
+    trackEvent("prompt_pilot_action", { action: "send_to_playground" });
     navigate({
       to: "/tools/model-playground",
       search: {
@@ -458,6 +467,7 @@ function PromptPilotPage() {
       const updated = [newItem, ...localPrompts];
       setLocalPrompts(updated);
       localStorage.setItem("mit_prompt_pilot_personal", JSON.stringify(updated));
+      trackEvent("prompt_pilot_action", { action: "save_local" });
       toast.success("Prompt saved locally. Sign in to sync to cloud.");
       handleClear();
     }
@@ -649,7 +659,10 @@ function PromptPilotPage() {
                     Test in Playground
                   </Button>
                   <Button
-                    onClick={() => setTesting(!testing)}
+                    onClick={() => {
+                      if (!testing) trackEvent("prompt_pilot_action", { action: "chat_test" });
+                      setTesting(!testing);
+                    }}
                     variant={testing ? "destructive" : "secondary"}
                     size="sm"
                     className="gap-1.5 border border-border"
@@ -874,6 +887,8 @@ function PromptPilotPage() {
             </Card>
           </div>
         </div>
+
+        <ToolCrossSell tool="prompt-pilot" />
       </section>
 
       {/* Save to DB Dialog */}

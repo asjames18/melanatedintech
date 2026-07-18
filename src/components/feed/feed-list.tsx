@@ -14,6 +14,9 @@ type Props = {
   tag?: string;
   onToggleReaction?: (postId: string, kind: ReactionKind) => void | Promise<void>;
   onDelete?: (postId: string, asAdmin: boolean) => void;
+  onToggleSave?: (postId: string, currentlySaved: boolean) => void;
+  onReport?: (postId: string) => void;
+  onShare?: (postId: string, channel?: string) => void;
   newPostsBanner?: number;
   onClearBanner?: () => void;
 };
@@ -27,6 +30,9 @@ export function FeedList({
   tag,
   onToggleReaction,
   onDelete,
+  onToggleSave,
+  onReport,
+  onShare,
   newPostsBanner = 0,
   onClearBanner,
 }: Props) {
@@ -41,32 +47,23 @@ export function FeedList({
     getNextPageParam: (last) => last.next_cursor ?? undefined,
   });
 
-  // Realtime: subscribe to new posts and surface a "N new posts" banner
-  // (Twitter-style) instead of auto-prepending (which would shift the viewport).
   useEffect(() => {
-    if (tab !== "for-you") return; // only the global feed gets live updates
+    if (tab !== "for-you") return;
     const channel = supabase
       .channel("feed-realtime")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "discussion_posts" },
-        () => setBanner((n) => n + 1),
-      )
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "discussion_posts" }, () => setBanner((n) => n + 1))
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [tab]);
 
-  // Infinite scroll via IntersectionObserver.
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const obs = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting && q.hasNextPage && !q.isFetchingNextPage) {
-          q.fetchNextPage();
-        }
+        if (entries[0]?.isIntersecting && q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage();
       },
       { rootMargin: "600px" },
     );
@@ -90,7 +87,7 @@ export function FeedList({
           }}
           className="sticky top-2 z-10 mb-3 w-full rounded-full bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground shadow-lg hover:bg-primary/90"
         >
-          {bannerCount} new {bannerCount === 1 ? "post" : "posts"} · View
+          {bannerCount} new {bannerCount === 1 ? "post" : "posts"} - View
         </button>
       )}
 
@@ -100,9 +97,7 @@ export function FeedList({
         <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
           <p className="font-display text-lg font-semibold">No posts yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {tab === "following"
-              ? "Follow people to see their posts here."
-              : "Be the first to share something."}
+            {tab === "following" ? "Follow builders to see their posts here." : "Be the first to share an AI build, question, or resource."}
           </p>
         </div>
       ) : (
@@ -115,6 +110,9 @@ export function FeedList({
                 isAdmin={isAdmin}
                 onToggleReaction={onToggleReaction}
                 onDelete={onDelete}
+                onToggleSave={onToggleSave}
+                onReport={onReport}
+                onShare={onShare}
               />
             </li>
           ))}

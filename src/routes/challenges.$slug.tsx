@@ -16,7 +16,9 @@ const qo = (slug: string) =>
 
 export const Route = createFileRoute("/challenges/$slug")({
   head: ({ params, loaderData }) => {
-    const c = loaderData;
+    // TanStack Start doesn't infer loaderData from an ensureQueryData loader into
+    // head(); narrow to the fields SEO needs.
+    const c = loaderData as { title: string; excerpt: string | null } | undefined;
     if (!c) {
       return {
         meta: [{ title: "Builder Challenge — Melanated In Tech" }],

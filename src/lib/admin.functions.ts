@@ -1,6 +1,7 @@
-import { createServerFn } from "@tanstack/react-start";
+﻿import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
 
 async function assertAdmin(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -38,6 +39,14 @@ export const checkAdminStatus = createServerFn({ method: "GET" })
 export const claimFirstAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    // Defense-in-depth: even with zero admins (e.g. after a bad migration or
+    // table wipe), bootstrap only works when explicitly re-enabled via env —
+    // otherwise the first stranger to sign in could claim the whole site.
+    if (process.env.ALLOW_ADMIN_BOOTSTRAP !== "true") {
+      throw new Error(
+        "Admin bootstrap is disabled. Set ALLOW_ADMIN_BOOTSTRAP=true in the server environment to claim the first admin.",
+      );
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { count } = await supabaseAdmin
       .from("user_roles")
@@ -118,6 +127,115 @@ export const adminListMessages = createServerFn({ method: "GET" })
     return data ?? [];
   });
 
+
+type AdminPurchaseItem = {
+  id: string;
+  user_id: string;
+  buyer_name: string | null;
+  kind: string;
+  slug: string;
+  item_name: string;
+  amount_cents: number | null;
+  seller_id: string | null;
+  seller_name: string | null;
+  seller_slug: string | null;
+  seller_earnings_cents: number | null;
+  platform_fee_cents: number | null;
+  seller_paid: boolean;
+  price_id: string | null;
+  stripe_session_id: string | null;
+  environment: string;
+  granted_at: string;
+  created_at: string;
+};
+
+export const adminListPurchases = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<AdminPurchaseItem[]> => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data, error } = await supabaseAdmin
+      .from("user_entitlements")
+      .select(
+        "id,user_id,kind,slug,price_id,stripe_session_id,environment,granted_at,created_at,seller_id,commission_cents,seller_paid",
+      )
+      .order("granted_at", { ascending: false })
+      .limit(250);
+    if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    const uniq = <T>(items: (T | null | undefined)[]): T[] =>
+      Array.from(new Set(items.filter((x): x is T => x != null)));
+    const buyerIds = uniq(rows.map((r) => r.user_id));
+    const sellerIds = uniq(rows.map((r) => r.seller_id));
+    const agentSlugs = uniq(rows.filter((r) => r.kind === "agent").map((r) => r.slug));
+    const productSlugs = uniq(rows.filter((r) => r.kind === "product").map((r) => r.slug));
+
+    const [profilesRes, sellersRes, agentsRes, productsRes] = await Promise.all([
+      buyerIds.length
+        ? supabaseAdmin.from("profiles").select("id,display_name").in("id", buyerIds)
+        : Promise.resolve({ data: [], error: null }),
+      sellerIds.length
+        ? supabaseAdmin
+            .from("seller_profiles")
+            .select("id,display_name,slug,commission_rate,payout_enabled")
+            .in("id", sellerIds)
+        : Promise.resolve({ data: [], error: null }),
+      agentSlugs.length
+        ? supabaseAdmin.from("agents").select("slug,name,price_cents").in("slug", agentSlugs)
+        : Promise.resolve({ data: [], error: null }),
+      productSlugs.length
+        ? supabaseAdmin.from("products").select("slug,name,price_cents").in("slug", productSlugs)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    for (const res of [profilesRes, sellersRes, agentsRes, productsRes]) {
+      if (res.error) throw new Error(res.error.message);
+    }
+
+    const buyerById = new Map((profilesRes.data ?? []).map((p) => [p.id, p.display_name ?? null]));
+    const sellerById = new Map((sellersRes.data ?? []).map((s) => [s.id, s]));
+    const agentBySlug = new Map((agentsRes.data ?? []).map((a) => [a.slug, a]));
+    const productBySlug = new Map((productsRes.data ?? []).map((p) => [p.slug, p]));
+
+    return rows.map((row) => {
+      const kind = row.kind as PremiumKind;
+      const item = row.kind === "agent" ? agentBySlug.get(row.slug) : productBySlug.get(row.slug);
+      const staticEntry = kind === "agent" || kind === "product" ? getPremiumEntry(kind, row.slug) : null;
+      const seller = row.seller_id ? sellerById.get(row.seller_id) : null;
+      const amountCents = staticEntry?.amountCents ?? item?.price_cents ?? null;
+      const inferredSellerEarnings =
+        row.seller_id && amountCents != null
+          ? Math.round(amountCents * (1 - Number(seller?.commission_rate ?? 10) / 100))
+          : null;
+      const sellerEarningsCents = row.commission_cents ?? inferredSellerEarnings;
+      const platformFeeCents =
+        amountCents != null && sellerEarningsCents != null ? amountCents - sellerEarningsCents : null;
+
+      return {
+        id: row.id,
+        user_id: row.user_id,
+        buyer_name: buyerById.get(row.user_id) ?? null,
+        kind: row.kind,
+        slug: row.slug,
+        item_name: item?.name ?? row.slug,
+        amount_cents: amountCents,
+        seller_id: row.seller_id,
+        seller_name: seller?.display_name ?? null,
+        seller_slug: seller?.slug ?? null,
+        seller_earnings_cents: sellerEarningsCents,
+        platform_fee_cents: platformFeeCents,
+        seller_paid: row.seller_paid,
+        price_id: row.price_id,
+        stripe_session_id: row.stripe_session_id,
+        environment: row.environment,
+        granted_at: row.granted_at,
+        created_at: row.created_at,
+      };
+    });
+  });
+
 // ---------- Contact message triage ----------
 
 export const adminUpdateMessage = createServerFn({ method: "POST" })
@@ -126,7 +244,7 @@ export const adminUpdateMessage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // handled isn't in the generated Database types yet — cast past the typed Update.
+    // handled isn't in the generated Database types yet â€” cast past the typed Update.
     const { error } = await supabaseAdmin
       .from("contact_messages")
       .update({ handled: data.handled } as never)

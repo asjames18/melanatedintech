@@ -32,12 +32,14 @@ export function AuthorChip({
   const dim = size === "lg" ? "h-12 w-12" : size === "md" ? "h-9 w-9" : "h-7 w-7";
 
   const chip = avatarOnly ? (
-    <Avatar className={cn(dim, "ring-2 ring-primary/20")}>
-      {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
-      <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
-        {initials(author?.display_name ?? null)}
-      </AvatarFallback>
-    </Avatar>
+    <Link to="/u/$userId" params={{ userId }} className={cn("inline-flex shrink-0", className)}>
+      <Avatar className={cn(dim, "ring-2 ring-primary/20")}>
+        {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+        <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
+          {initials(author?.display_name ?? null)}
+        </AvatarFallback>
+      </Avatar>
+    </Link>
   ) : (
     <Link
       to="/u/$userId"
@@ -58,3 +60,4 @@ export function AuthorChip({
 
   return <AuthorCard userId={userId}>{chip}</AuthorCard>;
 }
+

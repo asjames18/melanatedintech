@@ -41,16 +41,21 @@ function ServicesIndex() {
       />
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-5 sm:grid-cols-2">
-          {services.map((s) => (
-            <Link
-              key={s.id}
-              to="/services/$slug"
-              params={{ slug: s.slug }}
-              className="block transition-opacity hover:opacity-90"
-            >
-              <ServiceCard {...s} />
-            </Link>
-          ))}
+          {services.map((s) => {
+            const price =
+              s.starting_price_cents != null
+                ? `From $${(s.starting_price_cents / 100).toLocaleString()}`
+                : undefined;
+            return s.slug === "agent-strategy-sprint" ? (
+              <Link key={s.id} to="/strategy-sprint" className="block">
+                <ServiceCard {...s} price={price} />
+              </Link>
+            ) : (
+              <Link key={s.id} to="/services/$slug" params={{ slug: s.slug }} className="block">
+                <ServiceCard {...s} price={price} />
+              </Link>
+            );
+          })}
         </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-6 text-center">
           <p className="font-display text-lg font-semibold">Have an agent idea in mind?</p>

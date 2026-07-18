@@ -326,33 +326,6 @@ export const sellerUpsertProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// ---------- Seller payout info ----------
-
-export const getSellerPayoutInfo = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const profile = await getOrCreateSellerProfile(context.userId);
-
-    const { data: entitlements, error } = await supabaseAdmin
-      .from("user_entitlements")
-      .select("commission_cents, seller_paid")
-      .eq("seller_id", profile.id);
-
-    if (error) throw new Error(error.message);
-
-    const totalCents = (entitlements ?? []).reduce((sum, e) => sum + (e.commission_cents ?? 0), 0);
-    const unpaidCents = (entitlements ?? [])
-      .filter((e) => !e.seller_paid)
-      .reduce((sum, e) => sum + (e.commission_cents ?? 0), 0);
-
-    return {
-      stripe_account_id: profile.stripe_account_id,
-      stripe_account_status: profile.stripe_account_status,
-      payout_enabled: profile.payout_enabled,
-      commission_rate: profile.commission_rate,
-      total_earnings_cents: totalCents,
-      unpaid_earnings_cents: unpaidCents,
-      entitlements_count: entitlements?.length ?? 0,
-    };
-  });
+// Seller payout info lives in payouts.functions.ts (getSellerPayoutInfo) —
+// that version is environment-aware. A duplicate previously lived here and
+// caused seller.tsx to report sandbox + live earnings mixed together.

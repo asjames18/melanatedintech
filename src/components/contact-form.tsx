@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
   const [form, setForm] = useState({
@@ -39,6 +40,12 @@ export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
         },
       });
       setDone(true);
+      trackEvent(
+        form.topic === "Strategy Sprint application"
+          ? "strategy_sprint_application_submitted"
+          : "contact_submission_completed",
+        { surface: form.topic === "Strategy Sprint application" ? "strategy_sprint" : "contact" },
+      );
       toast.success("Message sent — we'll be in touch.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -49,8 +56,13 @@ export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
 
   if (done) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
-        Thanks for reaching out — we read every message and will reply soon.
+      <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-sm text-muted-foreground">
+        <p className="font-display text-lg font-semibold text-foreground">Message received.</p>
+        <p className="mt-1">
+          {form.topic === "Strategy Sprint application"
+            ? "We read every application and will reply within two business days."
+            : "We read every message and will reply within two business days."}
+        </p>
       </div>
     );
   }

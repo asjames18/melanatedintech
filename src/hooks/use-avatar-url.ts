@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -15,6 +15,12 @@ export function useAvatarUrl(path: string | null | undefined): string | null {
       return;
     }
     async function load() {
+      if (!path) return; // re-narrow inside the async closure
+      if (/^(https?:|data:|blob:)/i.test(path)) {
+        setUrl(path);
+        return;
+      }
+
       const { data, error } = await supabase.storage
         .from("avatars")
         .createSignedUrl(path!, 60 * 60);
@@ -30,3 +36,5 @@ export function useAvatarUrl(path: string | null | undefined): string | null {
 
   return url;
 }
+
+

@@ -252,6 +252,54 @@ export type Database = {
         };
         Relationships: [];
       };
+      post_reactions: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          post_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          post_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          post_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      reply_reactions: {
+        Row: {
+          created_at: string;
+          id: string;
+          kind: string;
+          reply_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          kind: string;
+          reply_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          reply_id?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       articles: {
         Row: {
           author_id: string | null;

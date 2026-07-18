@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { SITE, NAV } from "@/lib/site";
-import { LazyWaitlistForm } from "./lazy-waitlist-form";
+import { WaitlistForm } from "./waitlist-form";
 
 export function SiteFooter() {
   return (
@@ -78,7 +78,7 @@ export function SiteFooter() {
             New agents, blueprints, and field notes - straight to your inbox.
           </p>
           <div className="mt-3">
-            <LazyWaitlistForm source="footer" compact />
+            <WaitlistForm source="footer" compact />
           </div>
         </div>
       </div>

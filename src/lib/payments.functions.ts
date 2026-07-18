@@ -58,6 +58,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
           priceId: z
             .string()
             .regex(/^[a-zA-Z0-9_-]+$/)
+            .or(z.literal(""))
             .optional(),
           kind: z.enum(["agent", "product"]),
           slug: z.string().min(1).max(120),

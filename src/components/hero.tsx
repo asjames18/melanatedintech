@@ -1,11 +1,23 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { ArrowRight, Bot, Sparkles, Workflow, Zap } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const HeroGuide = lazy(() => import("./hero-guide").then((mod) => ({ default: mod.HeroGuide })));
 
 export function Hero() {
   const [loadGuide, setLoadGuide] = useState(false);
+  const [heroNiche, setHeroNiche] = useState("");
+  const navigate = useNavigate();
+
+  const goToPlaybook = () => {
+    const niche = heroNiche.trim();
+    trackEvent("hero_playbook_submitted", { hasNiche: niche.length > 0 });
+    navigate({
+      to: "/tools/ai-playbook",
+      search: niche ? { niche } : {},
+    });
+  };
 
   useEffect(() => {
     let idleHandle: number | null = null;
@@ -52,19 +64,34 @@ export function Hero() {
               putting AI agents to work - in businesses, ministries, creator studios, and beyond.
             </p>
 
-            <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-              <Link
-                to="/agents"
-                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-              >
-                Browse the agent marketplace <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                to="/knowledge"
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-card px-5 py-3 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
-              >
-                Explore the knowledge hub
-              </Link>
+            <div className="max-w-xl pt-2">
+              <p className="text-sm font-semibold text-foreground">
+                Start free: type what you do, get your personalized AI playbook.
+              </p>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={heroNiche}
+                  onChange={(e) => setHeroNiche(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && goToPlaybook()}
+                  maxLength={80}
+                  placeholder="e.g. hair salon, realtor, youth pastor, personal trainer…"
+                  className="h-12 flex-1 rounded-md border border-border bg-card px-4 text-sm shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
+                />
+                <button
+                  onClick={goToPlaybook}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                >
+                  Get my free playbook <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                <Link to="/start-small" className="hover:text-foreground hover:underline">
+                  Or find your first useful agent →
+                </Link>
+                <Link to="/knowledge" className="hover:text-foreground hover:underline">
+                  Explore the knowledge hub →
+                </Link>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-3 pt-4 text-xs text-muted-foreground">
@@ -122,8 +149,8 @@ function HeroGuidePreview() {
             <Bot className="h-3 w-3" />
           </div>
           <div className="rounded-2xl rounded-tl-none border border-border/50 bg-muted/80 px-3 py-2 text-foreground">
-            Hi! I'm the Melanated In Tech AI Guide. Ask me anything about our marketplace, learning
-            paths, or digital products!
+            Hi! I'm MIT Assistant. Tell me what you do — I'll point you to the right agent, guide,
+            or free tool to start with.
           </div>
         </div>
       </div>
@@ -134,9 +161,9 @@ function HeroGuidePreview() {
         </p>
         <div className="flex flex-wrap gap-1.5">
           {[
-            "What is Melanated in Tech?",
-            "Find agents for creators",
-            "What are digital products?",
+            "What can AI agents do for my business?",
+            "Help me find my first agent",
+            "What's free to try?",
           ].map((q) => (
             <span
               key={q}

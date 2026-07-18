@@ -13,11 +13,13 @@ import { Markdown } from "@/components/markdown";
 import { AgentDelivery } from "@/components/product-delivery";
 import { useHasEntitlement } from "@/hooks/use-entitlement";
 import { ShareBar } from "@/components/share-bar";
+import { trackEvent } from "@/lib/analytics";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getAgent, listAgents, listArticles } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
+import { ogImage } from "@/lib/og";
 import { ArrowLeft, Bot, CheckCircle2, Layers, Sparkles, Tag } from "lucide-react";
 import { Chat } from "@/components/agents/Chat";
 
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/agents/$slug")({
       description: a.tagline,
       url: path,
       type: "product",
-      image: a.image_url ?? null,
+      image: a.image_url ?? ogImage("agents", params.slug),
     });
     return {
       meta: [
@@ -62,7 +64,7 @@ export const Route = createFileRoute("/agents/$slug")({
             name: a.name,
             tagline: a.tagline,
             category: a.category,
-            image: a.image_url,
+            image: a.image_url ?? ogImage("agents", params.slug),
             url: path,
           }),
         ),
@@ -106,6 +108,21 @@ function AgentDetail() {
   const { interests: readingInterests } = useInterests("article");
   const owned = useHasEntitlement("agent", slug);
   const canChat = owned || agent?.tier === "free";
+  const comingSoon =
+    !!agent &&
+    agent.tier === "premium" &&
+    !!getPremiumEntry("agent", agent.slug) &&
+    !agent.has_fulfillment &&
+    !owned;
+  const statusLabel = !agent
+    ? ""
+    : owned
+      ? "Unlocked"
+      : agent.tier === "custom"
+        ? "Built to order"
+        : comingSoon
+          ? "Coming soon"
+          : "Available now";
 
   useEffect(() => {
     if (agent) recordVisit(agent.slug, agent.category);
@@ -230,10 +247,15 @@ function AgentDetail() {
               value={String((agent.capabilities ?? []).length)}
             />
             <Stat icon={Sparkles} label="Tier" value={agent.tier} capitalize />
-            <Stat icon={CheckCircle2} label="Status" value="Onboarding" />
+            <Stat icon={CheckCircle2} label="Status" value={statusLabel} />
           </div>
 
-          <ShareBar title={agent.name} text={agent.tagline} className="mt-6" />
+          <ShareBar
+            title={agent.name}
+            text={agent.tagline}
+            className="mt-6"
+            onShare={() => trackEvent("content_shared", { itemSlug: agent.slug, surface: "agent" })}
+          />
         </div>
       </section>
 
@@ -311,7 +333,7 @@ function AgentDetail() {
               )}
 
               {agent.tier === "premium" &&
-                (getPremiumEntry("agent", agent.slug) && !agent.has_fulfillment && !owned ? (
+                (comingSoon ? (
                   <div className="rounded-2xl border border-border bg-card p-6">
                     <p className="text-sm font-medium">Coming soon</p>
                     <p className="mt-1 text-xs text-muted-foreground">
@@ -328,9 +350,26 @@ function AgentDetail() {
                       {owned
                         ? "Your pack is unlocked below — read it here or download it any time."
                         : getPremiumEntry("agent", agent.slug)
-                          ? `One-time unlock. Lifetime access to ${agent.name} on your account.`
+                          ? "One-time payment. Yours forever on your account."
                           : "Available through a quick conversation — tell us your use case and we'll get you set up."}
                     </p>
+                    {!owned && getPremiumEntry("agent", agent.slug) && (
+                      <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+                        <li className="flex gap-1.5">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent2" />
+                          The complete agent pack — instructions, workflows, and setup guide, ready
+                          to read online or download
+                        </li>
+                        <li className="flex gap-1.5">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent2" />
+                          Chat with {agent.name} right here on the site
+                        </li>
+                        <li className="flex gap-1.5">
+                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent2" />
+                          Instant access after checkout — no waiting, no calls
+                        </li>
+                      </ul>
+                    )}
                     <div className="mt-4">
                       <UnlockButton
                         kind="agent"
@@ -343,7 +382,7 @@ function AgentDetail() {
                   </div>
                 ))}
 
-              {!canChat && (
+              {comingSoon && (
                 <div className="rounded-2xl border border-border bg-card p-6">
                   <p className="text-sm font-medium">Get early access</p>
                   <p className="mt-1 text-xs text-muted-foreground">

@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Bot, Loader2, Send, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Markdown } from "@/components/markdown";
+import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 
 type ChatMessage = {
@@ -10,30 +12,17 @@ type ChatMessage = {
 };
 
 const QUICK_QUESTIONS = [
-  "What is Melanated in Tech?",
-  "Find agents for creators",
-  "What are digital products?",
+  "What can AI agents do for my business?",
+  "Help me find my first agent",
+  "What's free to try?",
 ];
-
-const PLATFORM_GUIDE_SYSTEM_PROMPT = `You are the Melanated In Tech platform guide. You help users navigate the site's pillars, agents, products, and articles. Keep your answers warm, professional, concise, and helpful. Suggest specific pages or agents when relevant.
-
-Melanated In Tech has 7 pillars:
-1. Agent Marketplace (/agents) - Discover production-grade AI agents for ministries, businesses, sales, support, research, and creators.
-2. Knowledge Hub (/knowledge) - Guides, frameworks, and field notes on memory, skills, MCP, multi-agent systems, local AI, and more.
-3. Learning Paths (/paths) - Guided paths that connect articles, agents, products, and community prompts into a weekly builder loop.
-4. AI Tools (/tools) - Build system prompts with Prompt Pilot and compile custom agent instructions with GPT Trainer instantly.
-5. Digital Products (/products) - Starter kits, blueprints, prompt libraries, SOPs, and memory systems to ship agents faster.
-6. Services (/services) - Strategy sprints, custom agent builds, and ministry implementations — done with you.
-7. Builder Community (/community) - A community for people building, deploying, and benefiting from AI agents.
-
-Be friendly, direct, and focus on practical AI deployment. Keep replies short (under 3 sentences) since you are rendered inside a landing page hero widget.`;
 
 export function HeroGuide() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       content:
-        "Hi! I'm the Melanated In Tech AI Guide. Ask me anything about our marketplace, learning paths, or digital products!",
+        "Hi! I'm MIT Assistant. Tell me what you do — I'll point you to the right agent, guide, or free tool to start with.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -54,15 +43,19 @@ export function HeroGuide() {
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setLoading(true);
+    trackEvent("guide_message_sent", {
+      isQuickQuestion: QUICK_QUESTIONS.includes(trimmed),
+      question: trimmed.slice(0, 120),
+    });
 
     try {
       const res = await fetch("/api/public/agents/chat?env=sandbox", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          agent_slug: "platform-guide",
           messages: [...messages, userMsg],
           model: "openrouter/openrouter/free",
-          override_system_prompt: PLATFORM_GUIDE_SYSTEM_PROMPT,
         }),
       });
 
@@ -115,7 +108,7 @@ export function HeroGuide() {
                   : "bg-muted/80 text-foreground border border-border/50 rounded-tl-none"
               }`}
             >
-              {m.content}
+              {m.role === "assistant" ? <Markdown md={m.content} /> : m.content}
             </div>
           </div>
         ))}

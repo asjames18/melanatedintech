@@ -11,7 +11,9 @@ import {
   type FeedThread,
   type PublicProfile,
   type ReactionKind,
+  type SuggestedBuilder,
   type TrendingTag,
+  type CommunityNotification,
 } from "@/lib/community";
 
 async function assertAdmin(userId: string) {
@@ -135,6 +137,175 @@ function normalizeReactionCount(c: unknown): Record<string, number> {
   return c && typeof c === "object" ? (c as Record<string, number>) : {};
 }
 
+async function getViewerIdFromRequest(): Promise<string | undefined> {
+  try {
+    const req = (await import("@tanstack/react-start/server")).getRequest();
+    const authHeader = req?.headers?.get?.("authorization") ?? null;
+    if (!authHeader?.startsWith("Bearer ")) return undefined;
+    const token = authHeader.replace("Bearer ", "");
+    if (token.split(".").length !== 3) return undefined;
+    const { supabase: authed } = await import("@/integrations/supabase/client");
+    const { data: claims } = await authed.auth.getClaims(token);
+    return claims?.claims?.sub;
+  } catch {
+    return undefined;
+  }
+}
+
+async function createNotification(args: {
+  userId: string | null | undefined;
+  actorUserId: string | null | undefined;
+  type: "reply" | "reaction" | "follow" | "mention" | "moderation";
+  postId?: string | null;
+  replyId?: string | null;
+}) {
+  if (!args.userId || args.userId === args.actorUserId) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await (supabaseAdmin as any).from("notifications").insert({
+    user_id: args.userId,
+    actor_user_id: args.actorUserId ?? null,
+    type: args.type,
+    post_id: args.postId ?? null,
+    reply_id: args.replyId ?? null,
+  });
+}
+
+async function getFollowCounts(userId: string): Promise<{ followers_count: number; following_count: number }> {
+  const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+  const [followersRes, followingRes] = await Promise.all([
+    (supabaseAdmin as any)
+      .from('user_follows')
+      .select('id', { count: 'exact', head: true })
+      .eq('followee_id', userId),
+    (supabaseAdmin as any)
+      .from('user_follows')
+      .select('id', { count: 'exact', head: true })
+      .eq('follower_id', userId),
+  ]);
+  if (followersRes.error) throw new Error(followersRes.error.message);
+  if (followingRes.error) throw new Error(followingRes.error.message);
+  return {
+    followers_count: followersRes.count ?? 0,
+    following_count: followingRes.count ?? 0,
+  };
+}
+
+async function notifyMentionedProfiles(body: string, actorUserId: string, postId?: string, replyId?: string) {
+  if (!body.includes("@")) return;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await (supabaseAdmin as any)
+    .from("profiles")
+    .select("id, display_name")
+    .not("display_name", "is", null)
+    .limit(200);
+  const lower = body.toLowerCase();
+  for (const profile of data ?? []) {
+    const name = String(profile.display_name ?? "").trim().toLowerCase();
+    if (name && lower.includes(`@${name}`)) {
+      await createNotification({ userId: profile.id, actorUserId, type: "mention", postId: postId ?? null, replyId: replyId ?? null });
+    }
+  }
+}
+
+type SocialMetrics = {
+  savedPostIds: Set<string>;
+  shareCounts: Map<string, number>;
+  followsAuthorIds: Set<string>;
+  commentPreview: Map<string, FeedPost["comment_preview"]>;
+};
+
+async function resolveSocialMetrics(viewerId: string | undefined, postIds: string[], authorIds: string[]): Promise<SocialMetrics> {
+  const savedPostIds = new Set<string>();
+  const shareCounts = new Map<string, number>();
+  const followsAuthorIds = new Set<string>();
+  const commentPreview = new Map<string, FeedPost["comment_preview"]>();
+  if (postIds.length === 0) return { savedPostIds, shareCounts, followsAuthorIds, commentPreview };
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const jobs: Promise<any>[] = [
+    (supabaseAdmin as any).from("post_shares").select("post_id").in("post_id", postIds),
+    (supabaseAdmin as any).from("discussion_comments").select("id, post_id, user_id, body, created_at").in("post_id", postIds).order("created_at", { ascending: false }).limit(postIds.length * 2),
+  ];
+
+  if (viewerId) {
+    jobs.push((supabaseAdmin as any).from("post_bookmarks").select("post_id").eq("user_id", viewerId).in("post_id", postIds));
+    jobs.push((supabaseAdmin as any).from("user_follows").select("followee_id").eq("follower_id", viewerId).in("followee_id", Array.from(new Set(authorIds))));
+  }
+
+  const [sharesRes, commentsRes, bookmarksRes, followsRes] = await Promise.all(jobs);
+  for (const row of sharesRes.data ?? []) shareCounts.set(row.post_id, (shareCounts.get(row.post_id) ?? 0) + 1);
+  for (const row of bookmarksRes?.data ?? []) savedPostIds.add(row.post_id);
+  for (const row of followsRes?.data ?? []) followsAuthorIds.add(row.followee_id);
+
+  const comments = commentsRes.data ?? [];
+  const commentAuthors = await getAuthorMap(comments.map((c: any) => c.user_id));
+  for (const c of comments) {
+    const list = commentPreview.get(c.post_id) ?? [];
+    if (list.length >= 2) continue;
+    list.push({ id: c.id, body: c.body, created_at: c.created_at, author: commentAuthors.get(c.user_id) ?? null });
+    commentPreview.set(c.post_id, list);
+  }
+
+  return { savedPostIds, shareCounts, followsAuthorIds, commentPreview };
+}
+
+function getRankReason(post: FeedPost): string | null {
+  if (post.viewer_follows_author) return "From someone you follow";
+  if (post.category === "agent-showcase") return "AI agent showcase";
+  if (post.category === "questions") return "Question builders can answer";
+  const totalReactions = Object.values(post.reaction_count).reduce((a, b) => a + b, 0);
+  if (totalReactions + post.reply_count >= 3) return "Active discussion";
+  return null;
+}
+
+function rankForYou(posts: FeedPost[]): FeedPost[] {
+  const now = Date.now();
+  return [...posts].sort((a, b) => {
+    const score = (post: FeedPost) => {
+      const ageHours = Math.max((now - new Date(post.created_at).getTime()) / 36e5, 0);
+      const totalReactions = Object.values(post.reaction_count).reduce((x, y) => x + y, 0);
+      const categoryBoost = post.category === "agent-showcase" ? 7 : post.category === "questions" ? 4 : post.category === "show-and-tell" ? 3 : 0;
+      return 30 / (ageHours + 2) + totalReactions * 2 + post.reply_count * 3 + post.share_count * 2 + (post.viewer_follows_author ? 8 : 0) + categoryBoost;
+    };
+    return score(b) - score(a);
+  });
+}
+
+async function hydratePosts(rows: any[], viewerId: string | undefined): Promise<FeedPost[]> {
+  const authors = await getAuthorMap(rows.map((r: any) => r.user_id));
+  const postIds = rows.map((r: any) => r.id);
+  const [postMetrics, socialMetrics] = await Promise.all([
+    resolvePostMetrics(viewerId, postIds),
+    resolveSocialMetrics(viewerId, postIds, rows.map((r: any) => r.user_id)),
+  ]);
+
+  return rows.map((r: any) => {
+    const row = asRow(r);
+    const post: FeedPost = {
+      id: row.id,
+      user_id: row.user_id,
+      title: row.title ?? null,
+      body: row.body,
+      category: row.category,
+      media_urls: (row.media_urls ?? []) as string[],
+      reply_count: postMetrics.replyCounts.get(row.id) ?? 0,
+      reaction_count: postMetrics.reactionCounts.get(row.id) ?? normalizeReactionCount(row.reaction_count),
+      reactions_by_me: postMetrics.reactionsByMe.get(row.id) ?? [],
+      is_saved: socialMetrics.savedPostIds.has(row.id),
+      share_count: socialMetrics.shareCounts.get(row.id) ?? 0,
+      viewer_follows_author: socialMetrics.followsAuthorIds.has(row.user_id),
+      comment_preview: socialMetrics.commentPreview.get(row.id) ?? [],
+      rank_reason: null,
+      locked: !!row.locked,
+      last_activity_at: row.last_activity_at,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      author: authors.get(row.user_id) ?? null,
+    };
+    return { ...post, rank_reason: getRankReason(post) };
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Feed reads (anyone — viewer's reactions require auth, resolved server-side)
 // ---------------------------------------------------------------------------
@@ -142,7 +313,7 @@ function normalizeReactionCount(c: unknown): Record<string, number> {
 const listFeedSchema = z.object({
   cursor: z.string().datetime().optional(),
   limit: z.number().int().min(1).max(50).default(20),
-  tab: z.enum(["for-you", "following"]).default("for-you"),
+  tab: z.enum(["for-you", "following", "latest", "ai-agents", "questions", "showcase"]).default("for-you"),
   tag: z.string().optional(),
 });
 
@@ -151,40 +322,30 @@ export const listFeed = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
-    const supabase = (await import("@/integrations/supabase/client")).supabase as any;
+    const viewerId = await getViewerIdFromRequest();
 
-    // Best-effort viewer id (optional — drives reactions_by_me).
-    let viewerId: string | undefined;
-    try {
-      const req = (await import("@tanstack/react-start/server")).getRequest();
-      const authHeader = req?.headers?.get?.("authorization") ?? null;
-      if (authHeader?.startsWith("Bearer ")) {
-        const token = authHeader.replace("Bearer ", "");
-        if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client");
-          const { data: claims } = await authed.auth.getClaims(token);
-          viewerId = claims?.claims?.sub;
-        }
-      }
-    } catch {
-      // not authenticated — fine for a public read
+    if (data.tab === "following" && !viewerId) {
+      const result: FeedPage = { posts: [], next_cursor: null };
+      return result;
     }
-    void supabase;
 
+    const fetchLimit = data.tab === "for-you" ? Math.min(data.limit * 3, 75) : data.limit + 1;
     let q = supabaseAdmin
       .from("discussion_posts")
       .select(POST_COLS)
       .order("created_at", { ascending: false })
-      .limit(data.limit + 1);
+      .limit(fetchLimit);
 
     if (data.cursor) q = q.lt("created_at", data.cursor);
     if (data.tab === "following" && viewerId) {
-      // Posts from users this viewer follows.
       q = q.in(
         "user_id",
         supabaseAdmin.from("user_follows").select("followee_id").eq("follower_id", viewerId),
       );
     }
+    if (data.tab === "ai-agents") q = q.eq("category", "agent-showcase");
+    if (data.tab === "questions") q = q.eq("category", "questions");
+    if (data.tab === "showcase") q = q.in("category", ["show-and-tell", "agent-showcase"]);
 
     if (data.tag) {
       q = q.in(
@@ -202,41 +363,15 @@ export const listFeed = createServerFn({ method: "GET" })
     const { data: rows, error } = await q;
     if (error) throw new Error(error.message);
 
-    const hasMore = (rows?.length ?? 0) > data.limit;
-    const slice = (rows ?? []).slice(0, data.limit);
-    const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
-
-    const authors = await getAuthorMap(slice.map((r: any) => r.user_id));
-    const postIds = slice.map((r: any) => r.id);
-    const { reactionsByMe, reactionCounts, replyCounts } = await resolvePostMetrics(
-      viewerId,
-      postIds,
-    );
-
-    const posts: FeedPost[] = slice.map((r: any) => {
-      const row = asRow(r);
-      return {
-        id: row.id,
-        user_id: row.user_id,
-        title: row.title ?? null,
-        body: row.body,
-        category: row.category,
-        media_urls: (row.media_urls ?? []) as string[],
-        reply_count: replyCounts.get(row.id) ?? 0,
-        reaction_count: reactionCounts.get(row.id) ?? {},
-        reactions_by_me: reactionsByMe.get(row.id) ?? [],
-        locked: !!row.locked,
-        last_activity_at: row.last_activity_at,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        author: authors.get(row.user_id) ?? null,
-      };
-    });
-
+    const rawRows = rows ?? [];
+    const hasMore = rawRows.length > data.limit;
+    const hydrated = await hydratePosts(rawRows, viewerId);
+    const ordered = data.tab === "for-you" ? rankForYou(hydrated) : hydrated;
+    const posts = ordered.slice(0, data.limit);
+    const next_cursor = hasMore && posts.length > 0 ? posts[posts.length - 1].created_at : null;
     const result: FeedPage = { posts, next_cursor };
     return result;
   });
-
 const listUserPostsSchema = z.object({
   user_id: z.string().uuid(),
   cursor: z.string().datetime().optional(),
@@ -280,34 +415,7 @@ export const listUserPosts = createServerFn({ method: "GET" })
     const hasMore = (rows?.length ?? 0) > data.limit;
     const slice = (rows ?? []).slice(0, data.limit);
     const next_cursor = hasMore && slice.length > 0 ? slice[slice.length - 1].created_at : null;
-
-    const authors = await getAuthorMap(slice.map((r: any) => r.user_id));
-    const postIds = slice.map((r: any) => r.id);
-    const { reactionsByMe, reactionCounts, replyCounts } = await resolvePostMetrics(
-      viewerId,
-      postIds,
-    );
-
-    const posts: FeedPost[] = slice.map((r: any) => {
-      const row = asRow(r);
-      return {
-        id: row.id,
-        user_id: row.user_id,
-        title: row.title ?? null,
-        body: row.body,
-        category: row.category,
-        media_urls: (row.media_urls ?? []) as string[],
-        reply_count: replyCounts.get(row.id) ?? 0,
-        reaction_count: reactionCounts.get(row.id) ?? {},
-        reactions_by_me: reactionsByMe.get(row.id) ?? [],
-        locked: !!row.locked,
-        last_activity_at: row.last_activity_at,
-        created_at: row.created_at,
-        updated_at: row.updated_at,
-        author: authors.get(row.user_id) ?? null,
-      };
-    });
-
+    const posts = await hydratePosts(slice, viewerId);
     const result: FeedPage = { posts, next_cursor };
     return result;
   });
@@ -347,36 +455,14 @@ export const getThread = createServerFn({ method: "GET" })
     if (postRes.error) throw new Error(postRes.error.message);
     if (repliesRes.error) throw new Error(repliesRes.error.message);
     if (!postRes.data) return null;
-
+    const hydratedPosts = await hydratePosts([postRes.data], viewerId);
+    const post = hydratedPosts[0];
     const authors = await getAuthorMap([
       postRes.data.user_id,
       ...(repliesRes.data ?? []).map((c: any) => c.user_id),
     ]);
-    const postIds = [postRes.data.id];
     const replyIds = (repliesRes.data ?? []).map((c: any) => c.id);
-
-    const [postMetrics, replyMetrics] = await Promise.all([
-      resolvePostMetrics(viewerId, postIds),
-      resolveReplyMetrics(viewerId, replyIds),
-    ]);
-
-    const prow = asRow(postRes.data);
-    const post: FeedPost = {
-      id: prow.id,
-      user_id: prow.user_id,
-      title: prow.title ?? null,
-      body: prow.body,
-      category: prow.category,
-      media_urls: (prow.media_urls ?? []) as string[],
-      reply_count: postMetrics.replyCounts.get(prow.id) ?? 0,
-      reaction_count: postMetrics.reactionCounts.get(prow.id) ?? {},
-      reactions_by_me: postMetrics.reactionsByMe.get(prow.id) ?? [],
-      locked: !!prow.locked,
-      last_activity_at: prow.last_activity_at,
-      created_at: prow.created_at,
-      updated_at: prow.updated_at,
-      author: authors.get(prow.user_id) ?? null,
-    };
+    const replyMetrics = await resolveReplyMetrics(viewerId, replyIds);
 
     const replies: FeedReply[] = (repliesRes.data ?? []).map((c: any) => {
       const row = asRow(c);
@@ -427,6 +513,7 @@ export const createPost = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    await notifyMentionedProfiles(data.body, context.userId, row.id);
     return { ok: true, id: row.id };
   });
 
@@ -442,7 +529,7 @@ export const replyToPost = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: post } = await (context.supabase as any)
       .from("discussion_posts")
-      .select("locked")
+      .select("locked, user_id")
       .eq("id", data.post_id)
       .maybeSingle();
     if (post?.locked) throw new Error("This thread is locked.");
@@ -458,6 +545,8 @@ export const replyToPost = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    await createNotification({ userId: post?.user_id, actorUserId: context.userId, type: "reply", postId: data.post_id, replyId: row.id });
+    await notifyMentionedProfiles(data.body, context.userId, data.post_id, row.id);
     return { ok: true, id: row.id };
   });
 
@@ -494,6 +583,12 @@ export const reactPost = createServerFn({ method: "POST" })
       kind: data.kind,
     });
     if (error) throw new Error(error.message);
+    const { data: post } = await (context.supabase as any)
+      .from("discussion_posts")
+      .select("user_id")
+      .eq("id", data.post_id)
+      .maybeSingle();
+    await createNotification({ userId: post?.user_id, actorUserId: context.userId, type: "reaction", postId: data.post_id });
     return { ok: true };
   });
 
@@ -564,18 +659,30 @@ export const toggleFollow = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.followee_id === context.userId) throw new Error("You can't follow yourself.");
     // Try delete first (toggle off); if no row matched, insert (toggle on).
-    const { count: deleted } = await (context.supabase as any)
+    const { count: deleted, error: deleteError } = await (context.supabase as any)
       .from("user_follows")
       .delete({ count: "exact" })
       .eq("follower_id", context.userId)
       .eq("followee_id", data.followee_id);
-    if ((deleted ?? 0) > 0) return { ok: true, following: false };
+    if (deleteError) throw new Error(deleteError.message);
+    if ((deleted ?? 0) > 0) {
+      const [followeeCounts, followerCounts] = await Promise.all([
+        getFollowCounts(data.followee_id),
+        getFollowCounts(context.userId),
+      ]);
+      return { ok: true, following: false, ...followeeCounts, viewer_following_count: followerCounts.following_count };
+    }
     const { error } = await (context.supabase as any).from("user_follows").insert({
       follower_id: context.userId,
       followee_id: data.followee_id,
     });
     if (error) throw new Error(error.message);
-    return { ok: true, following: true };
+    await createNotification({ userId: data.followee_id, actorUserId: context.userId, type: "follow" });
+    const [followeeCounts, followerCounts] = await Promise.all([
+      getFollowCounts(data.followee_id),
+      getFollowCounts(context.userId),
+    ]);
+    return { ok: true, following: true, ...followeeCounts, viewer_following_count: followerCounts.following_count };
   });
 
 // ---------------------------------------------------------------------------
@@ -589,27 +696,12 @@ export const getPublicProfile = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
+    const viewerId = await getViewerIdFromRequest();
 
-    let viewerId: string | undefined;
-    try {
-      const req = (await import("@tanstack/react-start/server")).getRequest();
-      const authHeader = req?.headers?.get?.("authorization") ?? null;
-      if (authHeader?.startsWith("Bearer ")) {
-        const token = authHeader.replace("Bearer ", "");
-        if (token.split(".").length === 3) {
-          const { supabase: authed } = await import("@/integrations/supabase/client");
-          const { data: claims } = await authed.auth.getClaims(token);
-          viewerId = claims?.claims?.sub;
-        }
-      }
-    } catch {
-      // public read
-    }
-
-    const [profRes, countRes, followRes] = await Promise.all([
+    const [profRes, countRes, followRes, followerCountRes, followingCountRes, badgesRes, linksRes] = await Promise.all([
       supabaseAdmin
         .from("profiles")
-        .select("id, display_name, avatar_url, bio, followers_count, following_count")
+        .select("id, display_name, avatar_url, bio, cover_url, pinned_post_id, builder_focus_tags")
         .eq("id", data.user_id)
         .maybeSingle(),
       supabaseAdmin
@@ -623,6 +715,24 @@ export const getPublicProfile = createServerFn({ method: "GET" })
             .eq("follower_id", viewerId)
             .eq("followee_id", data.user_id)
         : Promise.resolve({ count: 0 }),
+      (supabaseAdmin as any)
+        .from("user_follows")
+        .select("id", { count: "exact", head: true })
+        .eq("followee_id", data.user_id),
+      (supabaseAdmin as any)
+        .from("user_follows")
+        .select("id", { count: "exact", head: true })
+        .eq("follower_id", data.user_id),
+      (supabaseAdmin as any)
+        .from("profile_badges")
+        .select("label")
+        .eq("user_id", data.user_id)
+        .order("created_at", { ascending: true }),
+      (supabaseAdmin as any)
+        .from("profile_links")
+        .select("label, url")
+        .eq("user_id", data.user_id)
+        .order("sort_order", { ascending: true }),
     ]);
     if (profRes.error) throw new Error(profRes.error.message);
     if (!profRes.data) return null;
@@ -633,8 +743,13 @@ export const getPublicProfile = createServerFn({ method: "GET" })
       display_name: p.display_name ?? null,
       avatar_url: p.avatar_url ?? null,
       bio: p.bio ?? null,
-      followers_count: p.followers_count ?? 0,
-      following_count: p.following_count ?? 0,
+      cover_url: p.cover_url ?? null,
+      pinned_post_id: p.pinned_post_id ?? null,
+      builder_focus_tags: (p.builder_focus_tags ?? []) as string[],
+      badges: (badgesRes.data ?? []).map((b: any) => b.label),
+      links: (linksRes.data ?? []).map((l: any) => ({ label: l.label, url: l.url })),
+      followers_count: followerCountRes.count ?? 0,
+      following_count: followingCountRes.count ?? 0,
       post_count: countRes.count ?? 0,
       is_following: (followRes.count ?? 0) > 0,
     };
@@ -661,6 +776,163 @@ export const listTrending = createServerFn({ method: "GET" })
     return (rows ?? []) as TrendingTag[];
   });
 
+// ---------------------------------------------------------------------------
+// Social actions, notifications, and discovery
+// ---------------------------------------------------------------------------
+
+const postIdSchema = z.object({ post_id: z.string().uuid() });
+
+export const savePost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => postIdSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase as any).from("post_bookmarks").upsert({
+      user_id: context.userId,
+      post_id: data.post_id,
+    }, { onConflict: "user_id,post_id" });
+    if (error) throw new Error(error.message);
+    return { ok: true, saved: true };
+  });
+
+export const unsavePost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => postIdSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase as any)
+      .from("post_bookmarks")
+      .delete()
+      .eq("user_id", context.userId)
+      .eq("post_id", data.post_id);
+    if (error) throw new Error(error.message);
+    return { ok: true, saved: false };
+  });
+
+export const sharePost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => postIdSchema.extend({ channel: z.string().max(40).default("copy") }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase as any).from("post_shares").insert({
+      user_id: context.userId,
+      post_id: data.post_id,
+      channel: data.channel,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const reportPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => postIdSchema.extend({ reason: z.string().max(80).default("other"), note: z.string().max(500).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await (context.supabase as any).from("post_reports").upsert({
+      user_id: context.userId,
+      post_id: data.post_id,
+      reason: data.reason,
+      note: data.note ?? null,
+      status: "open",
+    }, { onConflict: "user_id,post_id" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listNotifications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
+    const { data: rows, error } = await supabaseAdmin
+      .from("notifications")
+      .select("id, type, post_id, reply_id, actor_user_id, read_at, created_at")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    const authors = await getAuthorMap((rows ?? []).map((n: any) => n.actor_user_id).filter(Boolean));
+    const notifications: CommunityNotification[] = (rows ?? []).map((n: any) => ({
+      id: n.id,
+      type: n.type,
+      post_id: n.post_id ?? null,
+      reply_id: n.reply_id ?? null,
+      actor_user_id: n.actor_user_id ?? null,
+      actor: n.actor_user_id ? authors.get(n.actor_user_id) ?? null : null,
+      read_at: n.read_at ?? null,
+      created_at: n.created_at,
+    }));
+    return notifications;
+  });
+
+export const markNotificationsRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ ids: z.array(z.string().uuid()).optional() }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    let q = (context.supabase as any).from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", context.userId).is("read_at", null);
+    if (data.ids?.length) q = q.in("id", data.ids);
+    const { error } = await q;
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const listSuggestedBuilders = createServerFn({ method: "GET" })
+  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(12).default(5) }).parse(d ?? {}))
+  .handler(async ({ data }) => {
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
+    const viewerId = await getViewerIdFromRequest();
+    const { data: profiles, error } = await supabaseAdmin
+      .from("profiles")
+      .select("id, display_name, avatar_url, bio")
+      .order("display_name", { ascending: true })
+      .limit(data.limit + 10);
+    if (error) throw new Error(error.message);
+    const ids = (profiles ?? []).map((p: any) => p.id);
+    const [postCounts, following, followerRows] = await Promise.all([
+      ids.length ? supabaseAdmin.from("discussion_posts").select("user_id").in("user_id", ids) : Promise.resolve({ data: [] }),
+      viewerId && ids.length ? supabaseAdmin.from("user_follows").select("followee_id").eq("follower_id", viewerId).in("followee_id", ids) : Promise.resolve({ data: [] }),
+      ids.length ? supabaseAdmin.from("user_follows").select("followee_id").in("followee_id", ids) : Promise.resolve({ data: [] }),
+    ]);
+    const countMap = new Map<string, number>();
+    for (const row of postCounts.data ?? []) countMap.set(row.user_id, (countMap.get(row.user_id) ?? 0) + 1);
+    const followingSet = new Set((following.data ?? []).map((f: any) => f.followee_id));
+    const followerCountMap = new Map<string, number>();
+    for (const row of followerRows.data ?? []) followerCountMap.set(row.followee_id, (followerCountMap.get(row.followee_id) ?? 0) + 1);
+    return (profiles ?? [])
+      .filter((p: any) => p.id !== viewerId)
+      .slice(0, data.limit)
+      .map((p: any): SuggestedBuilder => ({
+        id: p.id,
+        display_name: p.display_name ?? null,
+        avatar_url: p.avatar_url ?? null,
+        bio: p.bio ?? null,
+        followers_count: followerCountMap.get(p.id) ?? 0,
+        post_count: countMap.get(p.id) ?? 0,
+        is_following: followingSet.has(p.id),
+      }));
+  });
+
+export const listSavedPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
+    const { data: saved, error } = await supabaseAdmin
+      .from("post_bookmarks")
+      .select("post_id")
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false })
+      .limit(data.limit);
+    if (error) throw new Error(error.message);
+    const ids = (saved ?? []).map((s: any) => s.post_id);
+    if (!ids.length) return { posts: [], next_cursor: null } satisfies FeedPage;
+    const { data: rows, error: postsError } = await supabaseAdmin.from("discussion_posts").select(POST_COLS).in("id", ids);
+    if (postsError) throw new Error(postsError.message);
+    const order = new Map<string, number>(
+      ids.map((id: string, index: number) => [id, index] as [string, number]),
+    );
+    const ordered = (rows ?? []).sort(
+      (a: any, b: any) => (Number(order.get(a.id)) || 0) - (Number(order.get(b.id)) || 0),
+    );
+    const posts = await hydratePosts(ordered, context.userId);
+    return { posts, next_cursor: null } satisfies FeedPage;
+  });
 // ---------------------------------------------------------------------------
 // Deletes + moderation (owner-scoped via RLS, admin via service role)
 // ---------------------------------------------------------------------------
@@ -1036,3 +1308,20 @@ export const createDiscussionComment = createServerFn({ method: "POST" })
 export const deleteDiscussionItem = deleteItem;
 export const adminDeleteDiscussionItem = adminDeleteItem;
 export const moderateDiscussionThread = moderateThread;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

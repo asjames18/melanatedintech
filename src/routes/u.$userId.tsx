@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site-layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
 import { PostCard } from "@/components/feed/post-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
@@ -103,10 +104,13 @@ function ProfilePage() {
           ? {
               ...p,
               is_following: r.following,
-              followers_count: p.followers_count + (r.following ? 1 : -1),
+              followers_count: r.followers_count ?? Math.max(0, p.followers_count + (r.following ? 1 : -1)),
             }
           : p,
       );
+      qc.invalidateQueries({ queryKey: ["public-profile", userId] });
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.invalidateQueries({ queryKey: ["suggested-builders"] });
       qc.invalidateQueries({ queryKey: ["feed"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -126,34 +130,51 @@ function ProfilePage() {
               ← Back to feed
             </Link>
 
-            <header className="flex flex-col items-start gap-5 sm:flex-row sm:items-center bg-card border border-border rounded-2xl p-5 shadow-sm">
-              <Avatar className="h-20 w-20 ring-2 ring-primary/20">
-                {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
-                <AvatarFallback className="text-xl font-bold bg-primary/10 text-primary">
-                  {(profile.display_name ?? "?").slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <h1 className="font-display text-2xl font-bold text-foreground">
-                  {profile.display_name ?? "Someone"}
-                </h1>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">{profile.post_count}</span> {profile.post_count === 1 ? "post" : "posts"} ·{" "}
-                  <span className="font-semibold text-foreground">{profile.followers_count}</span> followers ·{" "}
-                  <span className="font-semibold text-foreground">{profile.following_count}</span> following
-                </p>
-                {profile.bio && <p className="mt-3 text-sm text-foreground/90 leading-relaxed">{profile.bio}</p>}
+                        <header className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="h-28 bg-gradient-to-r from-primary/15 via-cyan-500/10 to-emerald-500/10">
+                {profile.cover_url && <img src={profile.cover_url} alt="" className="h-full w-full object-cover" />}
               </div>
-              {!isSelf && me && (
-                <Button
-                  variant={profile.is_following ? "outline" : "default"}
-                  disabled={followMut.isPending}
-                  className="rounded-xl px-5"
-                  onClick={() => followMut.mutate()}
-                >
-                  {followMut.isPending ? "…" : profile.is_following ? "Following" : "Follow"}
-                </Button>
-              )}
+              <div className="flex flex-col items-start gap-5 p-5 pt-0 sm:flex-row sm:items-end">
+                <Avatar className="-mt-10 h-24 w-24 border-4 border-card ring-2 ring-primary/20">
+                  {avatarUrl ? <AvatarImage src={avatarUrl} alt="" /> : null}
+                  <AvatarFallback className="bg-primary/10 text-2xl font-bold text-primary">
+                    {(profile.display_name ?? "?").slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1 pt-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="font-display text-2xl font-bold text-foreground">{profile.display_name ?? "Someone"}</h1>
+                    {profile.badges.map((badge) => (
+                      <span key={badge} className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">{badge}</span>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">{profile.post_count}</span> {profile.post_count === 1 ? "post" : "posts"} - {" "}
+                    <span className="font-semibold text-foreground">{profile.followers_count}</span> followers - {" "}
+                    <span className="font-semibold text-foreground">{profile.following_count}</span> following
+                  </p>
+                  {profile.bio && <p className="mt-3 text-sm leading-relaxed text-foreground/90">{profile.bio}</p>}
+                  {profile.builder_focus_tags.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {profile.builder_focus_tags.map((tag) => <span key={tag} className="rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-muted-foreground">{tag}</span>)}
+                    </div>
+                  )}
+                  {profile.links.length > 0 && (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {profile.links.map((link) => (
+                        <a key={`${link.label}-${link.url}`} href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-foreground hover:bg-muted/80">
+                          {link.label}<ExternalLink className="h-3 w-3" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {!isSelf && me && (
+                  <Button variant={profile.is_following ? "outline" : "default"} disabled={followMut.isPending} className="rounded-xl px-5" onClick={() => followMut.mutate()}>
+                    {followMut.isPending ? "..." : profile.is_following ? "Following" : "Follow"}
+                  </Button>
+                )}
+              </div>
             </header>
 
             <div className="border-t border-border/60 pt-4">
@@ -278,6 +299,9 @@ function UserPosts({ userId, viewerId }: { userId: string; viewerId: string | nu
     onSuccess: () => {
       toast.success("Post deleted.");
       qc.invalidateQueries({ queryKey: ["user-posts", userId] });
+      qc.invalidateQueries({ queryKey: ["public-profile", userId] });
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.invalidateQueries({ queryKey: ["suggested-builders"] });
       qc.invalidateQueries({ queryKey: ["feed"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -321,3 +345,7 @@ function UserPosts({ userId, viewerId }: { userId: string; viewerId: string | nu
     </div>
   );
 }
+
+
+
+

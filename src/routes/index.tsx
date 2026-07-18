@@ -3,7 +3,8 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { Hero } from "@/components/hero";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
-import { LazyWaitlistForm } from "@/components/lazy-waitlist-form";
+import { WaitlistForm } from "@/components/waitlist-form";
+import { CommunityStrip } from "@/components/community-strip";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { PILLARS } from "@/lib/site";
 import { buildSeoMeta } from "@/lib/seo";
@@ -139,7 +140,7 @@ function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <p className="text-xs font-medium uppercase tracking-wider text-primary">The platform</p>
           <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
-            Seven pillars. One focus: AI agents.
+            One focus: AI agents.
           </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {PILLARS.map((p) => (
@@ -222,10 +223,13 @@ function Home() {
         </div>
       </section>
 
+      {/* Community */}
+      <CommunityStrip />
+
       {/* Waitlist */}
       <section>
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-foreground p-6 text-background sm:p-10 sm:p-14">
+          <div className="relative overflow-hidden rounded-3xl border border-border bg-foreground p-6 text-background sm:p-14">
             <div className="bg-grid absolute inset-0 opacity-[0.08]" />
             <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
               <div>
@@ -238,7 +242,7 @@ function Home() {
                 </p>
               </div>
               <div className="lg:justify-self-end lg:w-full lg:max-w-md">
-                <LazyWaitlistForm source="home" />
+                <WaitlistForm source="home" />
               </div>
             </div>
           </div>

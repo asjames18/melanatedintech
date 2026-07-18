@@ -31,7 +31,7 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm", com
           type="button"
           disabled={disabled}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-xl text-xs font-semibold transition-all duration-200 hover:scale-[1.02] border",
+            "inline-flex shrink-0 items-center gap-1.5 rounded-xl text-xs font-semibold transition-all duration-200 hover:scale-[1.02] border",
             pad,
             reacted
               ? "bg-primary/5 text-primary border-primary/20 hover:bg-primary/10"
@@ -96,3 +96,4 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm", com
     </Popover>
   );
 }
+

@@ -17,6 +17,7 @@ import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
+import { ogImage } from "@/lib/og";
 import {
   ArrowLeft,
   Package,
@@ -60,7 +61,7 @@ export const Route = createFileRoute("/products/$slug")({
       description: p.tagline,
       url: path,
       type: "product",
-      image: p.image_url ?? null,
+      image: p.image_url ?? ogImage("products", params.slug),
     });
     return {
       meta: [
@@ -77,7 +78,7 @@ export const Route = createFileRoute("/products/$slug")({
             name: p.name,
             tagline: p.tagline,
             category: p.category,
-            image: p.image_url,
+            image: p.image_url ?? ogImage("products", params.slug),
             price_cents: p.price_cents,
             url: path,
           }),

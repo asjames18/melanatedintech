@@ -21,6 +21,14 @@ const recordEventsSchema = z.object({
 export const recordEvents = createServerFn({ method: "POST" })
   .validator((d: unknown) => recordEventsSchema.parse(d))
   .handler(async ({ data }) => {
+    // Dampen metric pollution: cap how fast one IP can pump events in.
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { allowRequest, getClientIp } = await import("@/lib/request-guard.server");
+    const headers = getRequest()?.headers;
+    if (headers && !allowRequest(`analytics:${getClientIp(headers)}`, 20, 60_000)) {
+      return { ok: true, count: 0 }; // silently drop — never break the page over analytics
+    }
+
     const { createClient } = await import("@supabase/supabase-js");
     const url = getSupabaseUrl()!;
     const key = getSupabasePublishableKey()!;

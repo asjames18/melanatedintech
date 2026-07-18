@@ -122,7 +122,13 @@ export function ShareBar({ title, text, url: urlProp, compact = false, className
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!urlProp) setUrl(window.location.href);
+    if (!urlProp) {
+      setUrl(window.location.href);
+      return;
+    }
+    if (urlProp.startsWith("/")) {
+      setUrl(`${window.location.origin}${urlProp}`);
+    }
   }, [urlProp]);
 
   async function copy() {
@@ -233,3 +239,4 @@ export function ShareBar({ title, text, url: urlProp, compact = false, className
     </div>
   );
 }
+

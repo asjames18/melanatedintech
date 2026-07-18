@@ -11,6 +11,7 @@ import {
 import { Markdown } from "@/components/markdown";
 import { Send, Loader2, Bot, User } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
@@ -72,9 +73,16 @@ export function Chat({
     setError(null);
 
     try {
+      // Send the caller's token when signed in — the server needs it to verify
+      // entitlement for premium agents and to apply the higher rate limit.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
       const res = await fetch(`/api/public/agents/chat?env=${env}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
         body: JSON.stringify({
           agent_id: agentId,
           agent_slug: agentSlug,

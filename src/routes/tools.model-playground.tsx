@@ -16,6 +16,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Play, RotateCcw, Sparkles, Timer, Hash, AlertTriangle, ArrowLeft } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
 
@@ -210,6 +212,7 @@ function ModelPlaygroundPage() {
       return;
     }
 
+    trackEvent("model_playground_run", { models: columns.map((c) => c.model) });
     toast.info("Running side-by-side comparison...");
     columns.forEach((col, index) => {
       runSingleColumn(index, col);
@@ -445,6 +448,8 @@ function ModelPlaygroundPage() {
                 </div>
               ))}
             </div>
+
+            <ToolCrossSell tool="model-playground" />
           </div>
         </div>
       </main>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -56,7 +57,7 @@ export function ReplyThread({
   const tree = buildTree(replies);
 
   return (
-    <ul className="space-y-3">
+    <ul className="min-w-0 space-y-4">
       {tree.map((node) => (
         <ReplyNode
           key={node.id}
@@ -107,78 +108,76 @@ function ReplyNode({
   const owns = viewerId === node.user_id;
   const canDelete = owns || isAdmin;
   const canReact = !!viewerId;
-
-  // Collapse deeply nested threads past 4 levels to avoid horizontal scroll.
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <li>
-      <div
-        className={cn("rounded-xl border border-border bg-card p-3 sm:p-4", depth > 0 && "ml-0")}
-      >
-        <div className="flex items-start gap-2">
-          <AuthorChip author={node.author} userId={node.user_id} className="shrink-0" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">
-                {node.author?.display_name ?? "Someone"}
-              </span>
-              <span>· {timeAgo(node.created_at)}</span>
-            </div>
-            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed">{node.body}</p>
+    <li className="min-w-0">
+      <div className="group/comment flex min-w-0 items-start gap-2.5">
+        <AuthorChip author={node.author} userId={node.user_id} className="mt-1" avatarOnly />
 
-            <div className="mt-2 flex items-center gap-1">
-              <ReactionBar
-                counts={node.reaction_count}
-                mine={node.reactions_by_me}
-                onToggle={(k) => {
-                  if (canReact) {
-                    onToggleReplyReaction?.(node.id, k);
-                  }
-                }}
-                disabled={!canReact}
-              />
-              {viewerId && !locked && onReply && (
-                <button
-                  type="button"
-                  onClick={() => setShowReplyBox((s) => !s)}
-                  className="rounded-full px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  Reply
-                </button>
-              )}
-              {canDelete && onDeleteReply && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="ml-auto h-6 w-6 text-muted-foreground hover:text-destructive"
-                  title="Delete reply"
-                  onClick={() => onDeleteReply(node.id, !owns)}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              )}
+        <div className="min-w-0 flex-1">
+          <div className="relative max-w-2xl rounded-2xl bg-muted/55 px-3.5 py-3 text-sm ring-1 ring-border/40 sm:px-4">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 pr-7 text-xs text-muted-foreground">
+              <Link to="/u/$userId" params={{ userId: node.user_id }} className="font-semibold text-foreground hover:underline">
+                {node.author?.display_name ?? "Someone"}
+              </Link>
+              <span suppressHydrationWarning>{timeAgo(node.created_at)}</span>
             </div>
+            <p className="mt-1 whitespace-pre-wrap break-words leading-relaxed text-foreground/90">{node.body}</p>
+
+            {canDelete && onDeleteReply && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-2 top-2 h-7 w-7 rounded-full text-muted-foreground opacity-100 hover:bg-background hover:text-destructive sm:opacity-0 sm:group-hover/comment:opacity-100"
+                title="Delete reply"
+                onClick={() => onDeleteReply(node.id, !owns)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </div>
+
+          <div className="mt-1.5 flex min-w-0 flex-wrap items-center gap-1 pl-1">
+            <ReactionBar
+              counts={node.reaction_count}
+              mine={node.reactions_by_me}
+              onToggle={(k) => {
+                if (canReact) onToggleReplyReaction?.(node.id, k);
+              }}
+              disabled={!canReact}
+              compact
+            />
+            {viewerId && !locked && onReply && (
+              <button
+                type="button"
+                onClick={() => setShowReplyBox((s) => !s)}
+                className="rounded-full px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                Reply
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {showReplyBox && viewerId && !locked && onReply && (
-        <div className="mt-2 ml-2 rounded-xl border border-border bg-muted/30 p-3 sm:ml-4">
+        <div className="ml-10 mt-2 min-w-0 max-w-2xl rounded-2xl border border-border bg-background p-3 shadow-sm sm:ml-12">
           <Textarea
             rows={2}
             maxLength={REPLY_BODY_MAX}
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder={`Reply to ${node.author?.display_name ?? "this thread"}…`}
-            className="resize-none"
+            placeholder={`Reply to ${node.author?.display_name ?? "this thread"}...`}
+            className="resize-none rounded-xl"
           />
           <div className="mt-2 flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowReplyBox(false)}>
+            <Button variant="ghost" size="sm" className="rounded-xl" onClick={() => setShowReplyBox(false)}>
               Cancel
             </Button>
             <Button
               size="sm"
+              className="rounded-xl"
               disabled={pendingReply || body.trim().length === 0}
               onClick={async () => {
                 await onReply({ post_id: postId, body, parent_reply_id: node.id });
@@ -186,19 +185,19 @@ function ReplyNode({
                 setShowReplyBox(false);
               }}
             >
-              {pendingReply ? "Posting…" : "Reply"}
+              {pendingReply ? "Posting..." : "Reply"}
             </Button>
           </div>
         </div>
       )}
 
       {node.children.length > 0 && (
-        <div className={cn("mt-2 space-y-3 border-l border-border pl-2 sm:pl-4")}>
+        <div className={cn("ml-5 mt-3 min-w-0 space-y-3 border-l border-border/70 pl-4 sm:ml-6", depth > 2 && "ml-3 pl-3")}>
           {depth >= 3 && !collapsed ? (
             <button
               type="button"
               onClick={() => setCollapsed(true)}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               Hide {node.children.length} {node.children.length === 1 ? "reply" : "replies"}
             </button>
@@ -223,7 +222,7 @@ function ReplyNode({
             <button
               type="button"
               onClick={() => setCollapsed(false)}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               Show {node.children.length} {node.children.length === 1 ? "reply" : "replies"}
             </button>
@@ -233,3 +232,4 @@ function ReplyNode({
     </li>
   );
 }
+

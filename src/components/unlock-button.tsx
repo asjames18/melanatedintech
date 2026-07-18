@@ -17,6 +17,7 @@ import { createUnlockCheckout } from "@/lib/payments.functions";
 import { getStripe, getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
 import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
 import { useHasEntitlement } from "@/hooks/use-entitlement";
+import { trackEvent } from "@/lib/analytics";
 
 interface Props {
   kind: PremiumKind;
@@ -69,6 +70,7 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
   const price = `$${(entry.amountCents / 100).toFixed(0)}`;
 
   async function start() {
+    trackEvent("unlock_clicked", { itemType: kind, itemSlug: slug, surface: "detail" });
     if (!hasPaymentsClientToken()) {
       toast.error("Payments aren't configured for this build yet.");
       return;
@@ -82,7 +84,6 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
       const returnUrl = `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`;
       const result = await checkoutFn({
         data: {
-          priceId: entry!.priceId,
           kind,
           slug,
           returnUrl,
@@ -93,6 +94,7 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
       if (!result.clientSecret) throw new Error("No client secret returned");
       setClientSecret(result.clientSecret);
       setOpen(true);
+      trackEvent("checkout_started", { itemType: kind, itemSlug: slug });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start checkout");
     } finally {

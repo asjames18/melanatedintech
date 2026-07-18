@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, CheckCircle2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 export function ProductWaitlist({ productSlug }: { productSlug: string }) {
   const qc = useQueryClient();
@@ -24,6 +25,7 @@ export function ProductWaitlist({ productSlug }: { productSlug: string }) {
       join({ data: { email: input.email, product_slug: productSlug } }),
     onSuccess: () => {
       setDone(true);
+      trackEvent("waitlist_joined", { source: "product_detail", interest: productSlug });
       qc.invalidateQueries({ queryKey: ["product-waitlist-count", productSlug] });
       toast.success("You're on the list — we'll be in touch.");
     },

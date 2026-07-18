@@ -8,10 +8,9 @@ import {
   queryOptions,
 } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Lock, Unlock } from "lucide-react";
+import { ArrowLeft, Lock, MessageSquare, Unlock } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
-import { ShareBar } from "@/components/share-bar";
 import { Textarea } from "@/components/ui/textarea";
 import { PostCard } from "@/components/feed/post-card";
 import { ReplyThread } from "@/components/feed/reply-thread";
@@ -28,6 +27,10 @@ import {
   deleteItem,
   adminDeleteItem,
   moderateThread,
+  savePost,
+  unsavePost,
+  sharePost,
+  reportPost,
 } from "@/lib/community.functions";
 import { checkAdminStatus } from "@/lib/admin.functions";
 import { REPLY_BODY_MAX, type FeedThread, type ReactionKind } from "@/lib/community";
@@ -48,9 +51,9 @@ export const Route = createFileRoute("/community/$id")({
   },
   head: ({ loaderData }) => {
     const t = loaderData?.thread;
-    if (!t) return { meta: [{ title: "Thread — Melanated In Tech" }] };
+    if (!t) return { meta: [{ title: "Thread - Melanated In Tech" }] };
     const seo = buildSeoMeta({
-      title: t.post.title ? `${t.post.title} — Community` : "Community thread",
+      title: t.post.title ? `${t.post.title} - Community` : "Community thread",
       description: t.post.body.slice(0, 160),
       url: `/community/${t.post.id}`,
       type: "article",
@@ -87,10 +90,7 @@ export const Route = createFileRoute("/community/$id")({
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
         <h1 className="font-display text-3xl font-semibold">Thread not found</h1>
-        <Link
-          to="/community"
-          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary"
-        >
+        <Link to="/community" className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
           <ArrowLeft className="h-4 w-4" /> Back to community
         </Link>
       </div>
@@ -111,18 +111,12 @@ function ThreadView() {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
 
-  // Realtime: live-merge new replies (and detect new reactions on the post).
   useEffect(() => {
     const channel = supabase
       .channel(`thread-${id}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "discussion_comments",
-          filter: `post_id=eq.${id}`,
-        },
+        { event: "INSERT", schema: "public", table: "discussion_comments", filter: `post_id=eq.${id}` },
         () => qc.invalidateQueries({ queryKey: ["thread", id] }),
       )
       .on(
@@ -134,7 +128,7 @@ function ThreadView() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, qc]);
 
   const replyFn = useServerFn(replyToPost);
   const reactPostFn = useServerFn(reactPost);
@@ -144,6 +138,10 @@ function ThreadView() {
   const del = useServerFn(deleteItem);
   const adminDel = useServerFn(adminDeleteItem);
   const moderate = useServerFn(moderateThread);
+  const save = useServerFn(savePost);
+  const unsave = useServerFn(unsavePost);
+  const share = useServerFn(sharePost);
+  const report = useServerFn(reportPost);
   const checkAdmin = useServerFn(checkAdminStatus);
 
   const adminQ = useQuery({
@@ -161,9 +159,7 @@ function ThreadView() {
 
   const replyMut = useMutation({
     mutationFn: (args: { body: string; parent_reply_id?: string | null }) =>
-      replyFn({
-        data: { post_id: id, body: args.body, parent_reply_id: args.parent_reply_id ?? null },
-      }),
+      replyFn({ data: { post_id: id, body: args.body, parent_reply_id: args.parent_reply_id ?? null } }),
     onSuccess: () => {
       setReply("");
       invalidateThread();
@@ -171,7 +167,6 @@ function ThreadView() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // --- Post reactions (optimistic on the thread cache) ---
   const postReactMut = useMutation({
     mutationFn: (args: { kind: ReactionKind; on: boolean }) =>
       (args.on ? reactPostFn : unreactPostFn)({ data: { post_id: id, kind: args.kind } }),
@@ -182,19 +177,14 @@ function ThreadView() {
       let mine = prev.post.reactions_by_me;
       const counts = { ...prev.post.reaction_count };
       if (on) {
-        for (const prevKind of mine) {
-          counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
-        }
+        for (const prevKind of mine) counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
         mine = [kind];
         counts[kind] = (counts[kind] ?? 0) + 1;
       } else {
         mine = mine.filter((k: string) => k !== kind);
         counts[kind] = Math.max((counts[kind] ?? 0) - 1, 0);
       }
-      qc.setQueryData(["thread", id], {
-        ...prev,
-        post: { ...prev.post, reactions_by_me: mine, reaction_count: counts },
-      });
+      qc.setQueryData(["thread", id], { ...prev, post: { ...prev.post, reactions_by_me: mine, reaction_count: counts } });
     },
     onError: () => invalidateThread(),
   });
@@ -202,15 +192,12 @@ function ThreadView() {
   function togglePostReaction(kind: ReactionKind) {
     const prev = qc.getQueryData<FeedThread>(["thread", id]);
     const on = !prev?.post.reactions_by_me.includes(kind);
-    return postReactMut.mutate({ kind, on });
+    postReactMut.mutate({ kind, on });
   }
 
-  // --- Reply reactions (optimistic on the thread cache) ---
   const replyReactMut = useMutation({
     mutationFn: (args: { replyId: string; kind: ReactionKind; on: boolean }) =>
-      (args.on ? reactReplyFn : unreactReplyFn)({
-        data: { reply_id: args.replyId, kind: args.kind },
-      }),
+      (args.on ? reactReplyFn : unreactReplyFn)({ data: { reply_id: args.replyId, kind: args.kind } }),
     onMutate: async ({ replyId, kind, on }) => {
       await qc.cancelQueries({ queryKey: ["thread", id] });
       const prev = qc.getQueryData<FeedThread>(["thread", id]);
@@ -220,9 +207,7 @@ function ThreadView() {
         let mine = r.reactions_by_me;
         const counts = { ...r.reaction_count };
         if (on) {
-          for (const prevKind of mine) {
-            counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
-          }
+          for (const prevKind of mine) counts[prevKind] = Math.max((counts[prevKind] ?? 0) - 1, 0);
           mine = [kind];
           counts[kind] = (counts[kind] ?? 0) + 1;
         } else {
@@ -238,9 +223,9 @@ function ThreadView() {
 
   function toggleReplyReaction(replyId: string, kind: ReactionKind) {
     const prev = qc.getQueryData<FeedThread>(["thread", id]);
-    const reply = prev?.replies.find((r) => r.id === replyId);
-    const on = !reply?.reactions_by_me.includes(kind);
-    return replyReactMut.mutate({ replyId, kind, on });
+    const selectedReply = prev?.replies.find((r) => r.id === replyId);
+    const on = !selectedReply?.reactions_by_me.includes(kind);
+    replyReactMut.mutate({ replyId, kind, on });
   }
 
   const delMut = useMutation({
@@ -264,6 +249,35 @@ function ThreadView() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const saveMut = useMutation({
+    mutationFn: (args: { currentlySaved: boolean }): Promise<{ ok: true; saved: boolean }> =>
+      (args.currentlySaved ? unsave : save)({ data: { post_id: id } }),
+    onMutate: ({ currentlySaved }) => {
+      const prev = qc.getQueryData<FeedThread>(["thread", id]);
+      if (prev) qc.setQueryData(["thread", id], { ...prev, post: { ...prev.post, is_saved: !currentlySaved } });
+    },
+    onSuccess: (r) => toast.success(r.saved ? "Saved post." : "Removed from saved."),
+    onError: (e: Error) => {
+      toast.error(e.message);
+      invalidateThread();
+    },
+  });
+
+  const shareMut = useMutation({
+    mutationFn: () => share({ data: { post_id: id, channel: "share" } }),
+    onMutate: () => {
+      const prev = qc.getQueryData<FeedThread>(["thread", id]);
+      if (prev) qc.setQueryData(["thread", id], { ...prev, post: { ...prev.post, share_count: prev.post.share_count + 1 } });
+    },
+    onError: () => invalidateThread(),
+  });
+
+  const reportMut = useMutation({
+    mutationFn: () => report({ data: { post_id: id, reason: "community_report" } }),
+    onSuccess: () => toast.success("Report submitted for review."),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const lockMut = useMutation({
     mutationFn: (locked: boolean) => moderate({ data: { id, locked } }),
     onSuccess: (_r, locked) => {
@@ -278,46 +292,41 @@ function ThreadView() {
 
   return (
     <SiteLayout>
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
-          <LeftSidebar />
+      <section className="mx-auto w-full max-w-7xl overflow-hidden px-3 py-4 sm:px-6 sm:py-6 lg:px-8">
+        <div className="grid min-w-0 grid-cols-1 gap-6 md:grid-cols-[200px_minmax(0,1fr)] lg:grid-cols-[240px_minmax(0,1fr)_280px]">
+          <div className="hidden md:block">
+            <LeftSidebar />
+          </div>
 
-          <div className="space-y-4 min-w-0">
-            <Link
-              to="/community"
-              className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to feed
-            </Link>
-
-            <div>
+          <div className="w-full min-w-0 space-y-4">
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/30 px-3 py-3 sm:px-4">
+                <Link to="/community" className="inline-flex items-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="h-4 w-4" /> Back to feed
+                </Link>
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-background px-3 py-1 text-xs font-semibold text-muted-foreground ring-1 ring-border">
+                  <MessageSquare className="h-3.5 w-3.5" /> Thread
+                </div>
+              </div>
               <PostCard
                 post={post}
                 viewerId={me}
                 isAdmin={isAdmin}
                 onToggleReaction={(_, kind) => togglePostReaction(kind)}
-                onDelete={(postId, asAdmin) => deletePostMut.mutate({ asAdmin })}
+                onDelete={(_postId, asAdmin) => deletePostMut.mutate({ asAdmin })}
+                onToggleSave={(_postId, currentlySaved) => saveMut.mutate({ currentlySaved })}
+                onReport={() => reportMut.mutate()}
+                onShare={() => shareMut.mutate()}
                 canReact={!!me}
                 hideReplyLink
+                className="rounded-none border-0 shadow-none hover:border-transparent hover:shadow-none"
               />
-              <div className="mt-3">
-                <ShareBar
-                  title={post.title ?? "Community discussion"}
-                  text={post.body?.slice(0, 120)}
-                />
-              </div>
             </div>
 
             {(isAdmin || ownsPost) && (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {isAdmin && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground"
-                    disabled={lockMut.isPending}
-                    onClick={() => lockMut.mutate(!post.locked)}
-                  >
+                  <Button variant="outline" size="sm" className="rounded-xl text-muted-foreground" disabled={lockMut.isPending} onClick={() => lockMut.mutate(!post.locked)}>
                     {post.locked ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                     {post.locked ? "Unlock thread" : "Lock thread"}
                   </Button>
@@ -325,8 +334,8 @@ function ThreadView() {
               </div>
             )}
 
-            <section className="mt-6">
-              <h2 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
+            <section className="overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-5">
+              <h2 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">
                 {replies.length} {replies.length === 1 ? "reply" : "replies"}
               </h2>
 
@@ -347,26 +356,19 @@ function ThreadView() {
                   />
                 </div>
               ) : (
-                <p className="mt-4 text-sm text-muted-foreground">
-                  No replies yet — start the conversation.
-                </p>
+                <p className="mt-4 text-sm text-muted-foreground">No replies yet - start the conversation.</p>
               )}
             </section>
 
-            <section className="mt-6 rounded-2xl border border-border bg-card p-5">
-              <h3 className="font-display text-sm uppercase tracking-wider text-muted-foreground">
-                Reply
-              </h3>
+            <section className="overflow-hidden rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-5">
+              <h3 className="font-display text-sm font-bold uppercase tracking-wider text-muted-foreground">Reply</h3>
               {post.locked ? (
                 <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Lock className="h-3.5 w-3.5" /> This thread is locked. New replies are turned off.
                 </p>
               ) : me === null ? (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  <Link to="/auth" className="text-primary">
-                    Sign in
-                  </Link>{" "}
-                  to join the conversation.
+                  <Link to="/auth" className="text-primary">Sign in</Link> to join the conversation.
                 </p>
               ) : (
                 <>
@@ -375,15 +377,12 @@ function ThreadView() {
                     maxLength={REPLY_BODY_MAX}
                     value={reply}
                     onChange={(e) => setReply(e.target.value)}
-                    placeholder="Add to the discussion…"
-                    className="mt-3"
+                    placeholder="Add to the discussion..."
+                    className="mt-3 resize-none rounded-xl"
                   />
                   <div className="mt-3 flex justify-end">
-                    <Button
-                      onClick={() => replyMut.mutate({ body: reply })}
-                      disabled={replyMut.isPending || reply.trim().length === 0}
-                    >
-                      {replyMut.isPending ? "Posting…" : "Post reply"}
+                    <Button className="rounded-xl" onClick={() => replyMut.mutate({ body: reply })} disabled={replyMut.isPending || reply.trim().length === 0}>
+                      {replyMut.isPending ? "Posting..." : "Post reply"}
                     </Button>
                   </div>
                 </>
@@ -399,3 +398,7 @@ function ThreadView() {
     </SiteLayout>
   );
 }
+
+
+
+

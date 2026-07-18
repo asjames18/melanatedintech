@@ -32,10 +32,14 @@ export function AuthorCard({ userId, children }: { userId: string; children: Rea
           ? {
               ...p,
               is_following: r.following,
-              followers_count: p.followers_count + (r.following ? 1 : -1),
+              followers_count: r.followers_count ?? Math.max(0, p.followers_count + (r.following ? 1 : -1)),
             }
           : p,
       );
+      qc.invalidateQueries({ queryKey: ["public-profile", userId] });
+      qc.invalidateQueries({ queryKey: ["my-profile"] });
+      qc.invalidateQueries({ queryKey: ["suggested-builders"] });
+      qc.invalidateQueries({ queryKey: ["feed"] });
     },
   });
 
@@ -104,3 +108,8 @@ export function AuthorCard({ userId, children }: { userId: string; children: Rea
     </HoverCard>
   );
 }
+
+
+
+
+

@@ -8,10 +8,34 @@
 - [Knowledge Hub](https://melanatedintech.com/knowledge): practical AI agent playbooks, checklists, field guides, scorecards, and operating templates.
 - [Agent Marketplace](https://melanatedintech.com/agents): production-oriented AI agent listings and packs.
 - [Learning Paths](https://melanatedintech.com/paths): guided paths that connect articles, agents, tools, and products.
-- [Interactive AI Tools](https://melanatedintech.com/tools): Prompt Pilot, GPT Trainer, and Model Playground.
+- [Interactive AI Tools](https://melanatedintech.com/tools): 12 free interactive AI tools (see below).
 - [Products](https://melanatedintech.com/products): AI agent starter kits, prompt libraries, SOPs, and blueprints.
 - [Services](https://melanatedintech.com/services): strategy sprints, custom agent builds, workshops, and implementation support.
 - [Community](https://melanatedintech.com/community): discussion and shared learning for AI agent builders.
+- [Proof](https://melanatedintech.com/proof): case studies and results.
+- [AI Fit Finder](https://melanatedintech.com/fit-finder): guided quiz recommending the right agent or product for your use case.
+
+## Interactive AI Tools
+
+- [Prompt Pilot](https://melanatedintech.com/tools/prompt-pilot): system prompt composer for AI agents.
+- [GPT Trainer](https://melanatedintech.com/tools/gpt-trainer): custom GPT instruction builder.
+- [Model Playground](https://melanatedintech.com/tools/model-playground): compare model capabilities side-by-side.
+- [Agent Architect](https://melanatedintech.com/tools/agent-architect): multi-agent workflow designer.
+- [AI Playbook Generator](https://melanatedintech.com/tools/ai-playbook): niche-specific AI implementation playbooks.
+- [MCP Builder](https://melanatedintech.com/tools/mcp-builder): Model Context Protocol server generator.
+- [Eval Studio](https://melanatedintech.com/tools/eval-studio): golden-set evaluation builder for AI outputs.
+- [ROI Calculator](https://melanatedintech.com/tools/roi-calculator): AI token cost and business ROI estimator.
+- [SOP Generator](https://melanatedintech.com/tools/sop-generator): standard operating procedure generator for AI workflows.
+- [Policy Generator](https://melanatedintech.com/tools/policy-generator): AI usage policy builder for organizations.
+- [A/B Tester](https://melanatedintech.com/tools/ab-tester): prompt A/B testing and comparison tool.
+- [RAG Chunker](https://melanatedintech.com/tools/rag-chunker): document chunking strategy visualizer for RAG pipelines.
+
+## Professional Services
+
+- [Custom Agent Build](https://melanatedintech.com/services/custom-agent-build): bespoke AI agent development.
+- [Ministry AI Implementation](https://melanatedintech.com/services/ministry-ai-implementation): AI adoption for churches, nonprofits, and community orgs.
+- [AI Workshop](https://melanatedintech.com/services/ai-workshop): hands-on team AI and agent training.
+- [Strategy Sprint](https://melanatedintech.com/strategy-sprint): 90-minute AI strategy session.
 
 ## Main Knowledge Tracks
 

@@ -8,4 +8,4 @@ Disallow: /auth
 Disallow: /api/
 
 Sitemap: https://melanatedintech.com/sitemap.xml
-# LLMs: https://melanatedintech.com/llms.txt
+LLMs: https://melanatedintech.com/llms.txt

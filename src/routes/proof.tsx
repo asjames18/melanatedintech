@@ -100,9 +100,9 @@ function Proof() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <ReferenceWorkflows />
+        <ReferenceWorkflows />
 
+        <div className="mt-10 flex flex-col gap-3 rounded-2xl border border-border bg-muted/40 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="font-display text-xl font-semibold">
               Need help applying this to your team?

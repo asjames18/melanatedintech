@@ -13,7 +13,6 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as ServicesRouteImport } from './routes/services'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
@@ -30,6 +29,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as PathsIndexRouteImport } from './routes/paths.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
@@ -50,6 +50,9 @@ import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
 import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
 import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
 import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
+import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
+import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
@@ -102,11 +105,6 @@ const StartSmallRoute = StartSmallRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesRoute = ServicesRouteImport.update({
-  id: '/services',
-  path: '/services',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -186,6 +184,11 @@ const IndexRoute = IndexRouteImport.update({
 const ToolsIndexRoute = ToolsIndexRouteImport.update({
   id: '/tools/',
   path: '/tools/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesIndexRoute = ServicesIndexRouteImport.update({
+  id: '/services/',
+  path: '/services/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -286,6 +289,23 @@ const ToolsAbTesterRoute = ToolsAbTesterRouteImport.update({
 const TTagRoute = TTagRouteImport.update({
   id: '/t/$tag',
   path: '/t/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesMinistryAiImplementationRoute =
+  ServicesMinistryAiImplementationRouteImport.update({
+    id: '/services/ministry-ai-implementation',
+    path: '/services/ministry-ai-implementation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesCustomAgentBuildRoute =
+  ServicesCustomAgentBuildRouteImport.update({
+    id: '/services/custom-agent-build',
+    path: '/services/custom-agent-build',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
+  id: '/services/ai-workshop',
+  path: '/services/ai-workshop',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesSlugRoute = ServicesSlugRouteImport.update({
@@ -483,7 +503,6 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
@@ -512,6 +531,9 @@ export interface FileRoutesByFullPath {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -532,6 +554,7 @@ export interface FileRoutesByFullPath {
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
@@ -552,7 +575,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
@@ -579,6 +601,9 @@ export interface FileRoutesByTo {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -599,6 +624,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof KnowledgeIndexRoute
   '/paths': typeof PathsIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
@@ -627,7 +653,6 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
-  '/services': typeof ServicesRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
@@ -656,6 +681,9 @@ export interface FileRoutesById {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-workshop': typeof ServicesAiWorkshopRoute
+  '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -676,6 +704,7 @@ export interface FileRoutesById {
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
@@ -704,7 +733,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/proof'
     | '/search'
-    | '/services'
     | '/sitemap.xml'
     | '/start-small'
     | '/strategy-sprint'
@@ -733,6 +761,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -753,6 +784,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/paths/'
     | '/products/'
+    | '/services/'
     | '/tools/'
     | '/admin/analytics'
     | '/admin/catalog'
@@ -773,7 +805,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/proof'
     | '/search'
-    | '/services'
     | '/sitemap.xml'
     | '/start-small'
     | '/strategy-sprint'
@@ -800,6 +831,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -820,6 +854,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/paths'
     | '/products'
+    | '/services'
     | '/tools'
     | '/admin/analytics'
     | '/admin/catalog'
@@ -847,7 +882,6 @@ export interface FileRouteTypes {
     | '/products'
     | '/proof'
     | '/search'
-    | '/services'
     | '/sitemap.xml'
     | '/start-small'
     | '/strategy-sprint'
@@ -876,6 +910,9 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-workshop'
+    | '/services/custom-agent-build'
+    | '/services/ministry-ai-implementation'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -896,6 +933,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/paths/'
     | '/products/'
+    | '/services/'
     | '/tools/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
@@ -924,7 +962,6 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
   SearchRoute: typeof SearchRoute
-  ServicesRoute: typeof ServicesRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StartSmallRoute: typeof StartSmallRoute
   StrategySprintRoute: typeof StrategySprintRoute
@@ -933,6 +970,9 @@ export interface RootRouteChildren {
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   SellersSlugRoute: typeof SellersSlugRoute
+  ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
+  ServicesCustomAgentBuildRoute: typeof ServicesCustomAgentBuildRoute
+  ServicesMinistryAiImplementationRoute: typeof ServicesMinistryAiImplementationRoute
   TTagRoute: typeof TTagRoute
   ToolsAbTesterRoute: typeof ToolsAbTesterRoute
   ToolsAgentArchitectRoute: typeof ToolsAgentArchitectRoute
@@ -947,6 +987,7 @@ export interface RootRouteChildren {
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   ToolsSopGeneratorRoute: typeof ToolsSopGeneratorRoute
   UUserIdRoute: typeof UUserIdRoute
+  ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -981,13 +1022,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services': {
-      id: '/services'
-      path: '/services'
-      fullPath: '/services'
-      preLoaderRoute: typeof ServicesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -1100,6 +1134,13 @@ declare module '@tanstack/react-router' {
       path: '/tools'
       fullPath: '/tools/'
       preLoaderRoute: typeof ToolsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/': {
+      id: '/services/'
+      path: '/services'
+      fullPath: '/services/'
+      preLoaderRoute: typeof ServicesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -1240,6 +1281,27 @@ declare module '@tanstack/react-router' {
       path: '/t/$tag'
       fullPath: '/t/$tag'
       preLoaderRoute: typeof TTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ministry-ai-implementation': {
+      id: '/services/ministry-ai-implementation'
+      path: '/services/ministry-ai-implementation'
+      fullPath: '/services/ministry-ai-implementation'
+      preLoaderRoute: typeof ServicesMinistryAiImplementationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/custom-agent-build': {
+      id: '/services/custom-agent-build'
+      path: '/services/custom-agent-build'
+      fullPath: '/services/custom-agent-build'
+      preLoaderRoute: typeof ServicesCustomAgentBuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ai-workshop': {
+      id: '/services/ai-workshop'
+      path: '/services/ai-workshop'
+      fullPath: '/services/ai-workshop'
+      preLoaderRoute: typeof ServicesAiWorkshopRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services/$slug': {
@@ -1627,18 +1689,6 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
   ProductsRouteChildren,
 )
 
-interface ServicesRouteChildren {
-  ServicesSlugRoute: typeof ServicesSlugRoute
-}
-
-const ServicesRouteChildren: ServicesRouteChildren = {
-  ServicesSlugRoute: ServicesSlugRoute,
-}
-
-const ServicesRouteWithChildren = ServicesRoute._addFileChildren(
-  ServicesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1655,7 +1705,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
   SearchRoute: SearchRoute,
-  ServicesRoute: ServicesRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StartSmallRoute: StartSmallRoute,
   StrategySprintRoute: StrategySprintRoute,
@@ -1664,6 +1713,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   SellersSlugRoute: SellersSlugRoute,
+  ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
+  ServicesCustomAgentBuildRoute: ServicesCustomAgentBuildRoute,
+  ServicesMinistryAiImplementationRoute: ServicesMinistryAiImplementationRoute,
   TTagRoute: TTagRoute,
   ToolsAbTesterRoute: ToolsAbTesterRoute,
   ToolsAgentArchitectRoute: ToolsAgentArchitectRoute,
@@ -1678,6 +1730,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   ToolsSopGeneratorRoute: ToolsSopGeneratorRoute,
   UUserIdRoute: UUserIdRoute,
+  ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

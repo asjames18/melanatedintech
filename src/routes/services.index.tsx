@@ -36,7 +36,7 @@ const qo = queryOptions({
   },
 });
 
-export const Route = createFileRoute("/services")({
+export const Route = createFileRoute("/services/")({
   head: () => ({
     ...buildSeoMeta({
       title: "AI Agent Services — Melanated In Tech",
@@ -71,7 +71,7 @@ function ServicesIndex() {
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-5 sm:grid-cols-2">
           {services.map((s) => {
-            const price = "Custom Quote (Scope-based)";
+            const price = "Custom scope pricing";
             return s.slug === "agent-strategy-sprint" ? (
               <Link key={s.id} to="/strategy-sprint" className="block">
                 <ServiceCard {...s} price={price} />

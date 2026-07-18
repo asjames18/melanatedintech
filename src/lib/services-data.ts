@@ -82,8 +82,8 @@ Whether you need an automated customer support agent with database write access,
     ],
   },
   {
-    id: "ministry-nonprofit-ai",
-    slug: "ministry-nonprofit-ai",
+    id: "ministry-ai-implementation",
+    slug: "ministry-ai-implementation",
     name: "Ministry & Non-Profit AI Implementation",
     tagline: "Welcoming, high-trust AI agent workflows designed for volunteer intake, donor care, and community outreach.",
     starting_price_cents: null,
@@ -133,8 +133,8 @@ Whether you need an automated customer support agent with database write access,
     ],
   },
   {
-    id: "team-ai-workshop",
-    slug: "team-ai-workshop",
+    id: "ai-workshop",
+    slug: "ai-workshop",
     name: "Hands-On Team AI & Agent Workshop",
     tagline: "Interactive live training workshop equipping your leadership, developers, or staff to build and operate AI agents.",
     starting_price_cents: null,
@@ -244,5 +244,14 @@ Whether you need an automated customer support agent with database write access,
 ];
 
 export function getServiceBySlug(slug: string): ServiceItem | undefined {
-  return FALLBACK_SERVICES.find((s) => s.slug === slug);
+  const normalizedSlug =
+    slug === "ministry-nonprofit-ai"
+      ? "ministry-ai-implementation"
+      : slug === "team-ai-workshop"
+      ? "ai-workshop"
+      : slug;
+  return (
+    FALLBACK_SERVICES.find((s) => s.slug === normalizedSlug) ??
+    FALLBACK_SERVICES.find((s) => s.slug === slug)
+  );
 }

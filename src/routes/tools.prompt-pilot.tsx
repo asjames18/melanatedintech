@@ -48,8 +48,19 @@ import {
 } from "lucide-react";
 import { Chat } from "@/components/agents/Chat";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+
+const GUIDE_DATA = {
+  whatItIs: "An interactive prompt builder and template catalog for constructing, testing, and saving custom AI prompts.",
+  whyUseIt: "Prevents poorly structured AI responses by guiding you step-by-step through setting role, context, variables, and output rules.",
+  howToUse: [
+    "Click quick component blocks (Role, Context, Output Format, Constraints) to build your prompt outline.",
+    "Click 'AI Polish & Enhance' to let AI automatically refine and format your prompt into production quality.",
+    "Save to your personal library, copy to clipboard, or load directly into Model Playground for side-by-side testing.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/prompt-pilot")({
   head: () => {
@@ -576,6 +587,7 @@ function PromptPilotPage() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column: Prompt Builder (Col-span 7) */}
           <div className="lg:col-span-7 space-y-6">

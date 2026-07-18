@@ -31,10 +31,21 @@ import {
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { Chat } from "@/components/agents/Chat";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
 
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
+
+const GUIDE_DATA = {
+  whatItIs: "A system instruction compiler for Custom GPTs, OpenAI Assistants, Claude Artifacts, and Ollama Modelfiles.",
+  whyUseIt: "Enforces strict production safety guardrails (System Leak Protection, Scope Boundaries, PII Protection) and exports clean, structured instructions.",
+  howToUse: [
+    "Define your agent's Role, Objective, Tone, and Knowledge Base context.",
+    "Enable Production Guardrail Presets to prevent prompt injection and unauthorized topic drift.",
+    "Select your target export format (Markdown, OpenAI JSON, Claude, Ollama Modelfile) and click Copy or Download.",
+  ],
+};
 
 const searchSchema = z.object({
   knowledge: z.string().optional(),
@@ -291,6 +302,7 @@ function GptTrainerPage() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column: Input Settings (Col-span 7) */}
           <div className="lg:col-span-7 space-y-6">

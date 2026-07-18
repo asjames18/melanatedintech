@@ -20,7 +20,17 @@ import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Chat } from "@/components/agents/Chat";
-import { Copy, Sparkles, Lock, Play, Wand2 } from "lucide-react";
+import { ToolGuide } from "@/components/tool-guide";
+
+const GUIDE_DATA = {
+  whatItIs: "A niche-tailored prompt generator that instantly creates industry-specific AI prompts for marketing, sales, operations, and customer support.",
+  whyUseIt: "Eliminates generic template guesswork by embedding your exact trade context directly into every prompt block.",
+  howToUse: [
+    "Type your profession or business niche into the input field (e.g. realtor, photographer, ministry leader, plumber).",
+    "Click 'Build my playbook' to generate customized prompt packs.",
+    "Click 'Test Drive Live' on any prompt card to run the prompt instantly in your browser, or click 'Edit in Pilot' to customize it further.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/ai-playbook")({
   validateSearch: (search: Record<string, unknown>): { niche?: string } => ({
@@ -103,6 +113,7 @@ function AiPlaybookPage() {
       />
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         {/* Generator */}
         <Card className="mx-auto max-w-2xl border border-border bg-card shadow-sm">
           <CardHeader className="pb-4">

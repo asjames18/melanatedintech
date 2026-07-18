@@ -10,7 +10,18 @@ import { toast } from "sonner";
 import { Calculator, TrendingUp, DollarSign, Clock, Users, Sparkles, Copy } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "An interactive financial return on investment (ROI) calculator for AI agent implementations.",
+  whyUseIt: "Provides data-driven financial projections comparing estimated LLM API token costs against labor hours saved for business cases and leadership approval.",
+  howToUse: [
+    "Adjust team size and average employee hourly wage sliders.",
+    "Select your target LLM API model (GPT-4o, Claude 3.5 Sonnet, Llama 3.3 70B, etc.) and estimated daily queries.",
+    "Review monthly API costs vs. labor savings to see your Net Annual ROI ($) and Payback Period.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/roi-calculator")({
   head: () => {
@@ -106,6 +117,7 @@ Calculated via Melanated In Tech ROI Tool.`;
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Inputs Panel (Left Col-span 5) */}
           <div className="lg:col-span-5 space-y-6">

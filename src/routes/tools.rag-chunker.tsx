@@ -11,7 +11,18 @@ import { toast } from "sonner";
 import { Layers, Copy, Download, Sparkles, FileText, Upload, Hash, CheckCircle2 } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "A knowledge document chunker that splits large text files into optimized segments for AI Vector Search & RAG.",
+  whyUseIt: "Prevents context truncation and retrieval loss in vector databases (Pinecone, Supabase Vector) by guaranteeing clean boundaries and token limits.",
+  howToUse: [
+    "Paste your raw document text or upload a .txt / .md file.",
+    "Select your chunking strategy (Paragraphs, Headings, or Fixed Word Count with Overlap).",
+    "Inspect the generated chunk cards and token metrics, then click 'Export JSON' to load into your vector index.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/rag-chunker")({
   head: () => {
@@ -159,6 +170,7 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Form Settings (Left Col-span 5) */}
           <div className="lg:col-span-5 space-y-6">

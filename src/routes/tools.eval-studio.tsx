@@ -9,7 +9,18 @@ import { toast } from "sonner";
 import { ShieldCheck, ShieldAlert, Play, Loader2, Copy, Sparkles, RefreshCcw, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "An automated security stress testing studio for evaluating AI agent vulnerability against prompt injection, hallucination, and PII leaks.",
+  whyUseIt: "Identifies security vulnerabilities and domain scope leaks before deploying your agent to customers or public environments.",
+  howToUse: [
+    "Paste your agent's System Instructions into the evaluation target box.",
+    "Select attack vector test suits (Prompt Injection, Hallucination Trap, Scope Boundary, PII Protection).",
+    "Click 'Run Automated Safety Drills' to execute test attacks and generate an Agent Safety Scorecard (0-100%).",
+  ],
+};
 
 export const Route = createFileRoute("/tools/eval-studio")({
   head: () => {
@@ -215,6 +226,7 @@ function EvalStudioPage() {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column: Input Prompt (Col-span 5) */}
           <div className="lg:col-span-5 space-y-6">

@@ -17,9 +17,20 @@ import { toast } from "sonner";
 import { Play, RotateCcw, Sparkles, Timer, Hash, AlertTriangle, ArrowLeft } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
+
+const GUIDE_DATA = {
+  whatItIs: "A side-by-side LLM sandbox for comparing responses, latency, and token cost economics across multiple AI models.",
+  whyUseIt: "Enables objective benchmarking of model quality, generation speed, and API costs before deploying an agent to production.",
+  howToUse: [
+    "Enter your System Prompt and User Test Query in the top control panel (or pick a Preset Benchmark).",
+    "Select different AI models for Column 1, Column 2, or Column 3 (e.g. Llama 3.3 70B, Gemini 2.0, Qwen 2.5).",
+    "Click 'Run Side-by-Side Comparison' to execute all models simultaneously and compare outputs and latency metrics.",
+  ],
+};
 
 const searchSchema = z.object({
   systemPrompt: z.string().optional(),
@@ -265,6 +276,7 @@ function ModelPlaygroundPage() {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-6 lg:grid-cols-12">
           {/* Settings Panel (Left Column) */}
           <div className="lg:col-span-4 space-y-6">

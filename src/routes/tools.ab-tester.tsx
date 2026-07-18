@@ -9,7 +9,18 @@ import { toast } from "sonner";
 import { Trophy, Play, Loader2, Sparkles, CheckCircle2, Copy } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "A side-by-side prompt testing studio for comparing two system prompt variants on real open-source LLMs.",
+  whyUseIt: "Quickly reveals which system prompt variant produces higher quality formatting, better instruction adherence, and faster response times.",
+  howToUse: [
+    "Enter System Prompt A (Baseline) and System Prompt B (Challenger).",
+    "Enter a shared test query that representative users would ask your agent.",
+    "Click 'Run Side-by-Side A/B Test' to execute both prompts simultaneously and review the winner scorecard.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/ab-tester")({
   head: () => {
@@ -151,6 +162,7 @@ function AbTesterPage() {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="space-y-6">
           {/* Test Query Input Card */}
           <Card className="border border-border bg-card shadow-sm">

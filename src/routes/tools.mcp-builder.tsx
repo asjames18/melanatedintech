@@ -10,7 +10,18 @@ import { toast } from "sonner";
 import { Cpu, Copy, Download, Sparkles, Server, Plus, Folder, HelpCircle, Terminal, Trash2 } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "A visual Model Context Protocol (MCP) server environment builder for connecting AI agents to external tools and databases.",
+  whyUseIt: "Generates syntactically correct JSON & SDK code configurations for Claude Desktop, Cursor, Roo Code, Python, and TypeScript without manual JSON formatting errors.",
+  howToUse: [
+    "Select MCP tools from the built-in catalog (Filesystem, Postgres, GitHub, Stripe, Slack, Brave Search, Memory, Puppeteer) or click '+ Add Custom' for internal company APIs.",
+    "Enter required API keys and environment variables in the credential input fields.",
+    "Select your target export format tab (Claude Desktop, Cursor, Roo/Cline, Python, TS) and click 'Copy Config' or 'Download Config'.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/mcp-builder")({
   head: () => {
@@ -283,6 +294,7 @@ function McpBuilderPage() {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Left Column: Server Checklist & Envs (Col-span 6) */}
           <div className="lg:col-span-6 space-y-6">

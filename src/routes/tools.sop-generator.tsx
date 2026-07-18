@@ -10,7 +10,18 @@ import { toast } from "sonner";
 import { FileCode, Copy, Download, Sparkles, Workflow, CheckCircle2 } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "An operational SOP generator for creating formal collaboration documents between human staff and autonomous AI agents.",
+  whyUseIt: "Establishes clear escalation boundaries, human QA review responsibilities, and operational safety protocols when deploying AI into team workflows.",
+  howToUse: [
+    "Enter your Workflow Title, Owner Team, Human Staff Roles, and AI Agent Name.",
+    "Specify the AI Agent's specific automated task responsibilities and human escalation triggers.",
+    "Preview the generated Markdown SOP document and click 'Download Markdown' or 'Copy Document'.",
+  ],
+};
 
 export const Route = createFileRoute("/tools/sop-generator")({
   head: () => {
@@ -120,6 +131,7 @@ ${escalationTriggers.split(",").map((t) => `- 🚨 **Trigger:** ${t.trim()}`).jo
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         <div className="grid gap-8 lg:grid-cols-12">
           {/* Form Settings (Left Col-span 5) */}
           <div className="lg:col-span-5 space-y-6">

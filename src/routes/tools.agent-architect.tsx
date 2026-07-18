@@ -37,7 +37,18 @@ import {
 } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+
+const GUIDE_DATA = {
+  whatItIs: "A visual multi-agent architecture designer and code generator for multi-agent workflows (Router, Orchestrator-Worker, Evaluator-Optimizer).",
+  whyUseIt: "Visualizes complex agent graph topologies, generates production Python & TypeScript code, and simulates multi-agent execution.",
+  howToUse: [
+    "Select an architecture blueprint pattern (Sequential Pipeline, Router, Orchestrator, Evaluator-Optimizer).",
+    "Configure individual agent nodes by assigning custom system prompts, specialist roles, and attached tools.",
+    "Click 'Run Live Agent Simulation' to trace data flow, or export complete Python/TypeScript code.",
+  ],
+};
 
 // Define TypeScript structures for our agent blueprint
 interface AgentNode {
@@ -1047,6 +1058,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <ToolGuide guide={GUIDE_DATA} />
         {/* Preset selector bar */}
         <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

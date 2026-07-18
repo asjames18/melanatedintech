@@ -44,6 +44,7 @@ import {
   Upload,
   Timer,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Chat } from "@/components/agents/Chat";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
@@ -278,6 +279,7 @@ function PromptPilotPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
 
   // Save fields
   const [saveCategory, setSaveCategory] = useState<string>("Other");
@@ -443,6 +445,42 @@ function PromptPilotPage() {
       },
     });
     toast.success("Prompt loaded into Model Playground!");
+  };
+
+  const handleEnhancePrompt = async () => {
+    if (!promptContent.trim()) {
+      toast.warning("Please enter or build a prompt draft first.");
+      return;
+    }
+    setEnhancing(true);
+    try {
+      const res = await fetch("/api/public/agents/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          override_system_prompt:
+            "You are an expert prompt engineer. Your job is to take the user's draft prompt and rewrite it into a highly structured, production-grade prompt. Format it clearly with sections: Role, Primary Goal, Context, Input Variables in [BRACKETS], and explicit Rules/Constraints. Return ONLY the enhanced prompt content without markdown backtick wrappers or introductory conversational filler.",
+          messages: [{ role: "user", content: promptContent }],
+          model: "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to polish prompt");
+
+      const polished = data.message?.content;
+      if (polished) {
+        setPromptContent(polished.trim());
+        trackEvent("prompt_pilot_action", { action: "ai_enhance" });
+        toast.success("Prompt successfully polished with AI!");
+      } else {
+        throw new Error("No response content received.");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Error enhancing prompt.");
+    } finally {
+      setEnhancing(false);
+    }
   };
 
   // Save handling
@@ -626,6 +664,19 @@ function PromptPilotPage() {
                   <Button variant="outline" size="sm" onClick={handleDownload} className="gap-1.5">
                     <Download className="h-4 w-4" />
                     Download TXT
+                  </Button>
+                  <Button
+                    onClick={handleEnhancePrompt}
+                    disabled={enhancing || !promptContent.trim()}
+                    size="sm"
+                    className="gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm"
+                  >
+                    {enhancing ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="h-4 w-4" />
+                    )}
+                    {enhancing ? "Polishing..." : "AI Polish & Enhance"}
                   </Button>
                   <Button onClick={handleCopy} size="sm" className="gap-1.5">
                     <Copy className="h-4 w-4" />

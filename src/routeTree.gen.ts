@@ -309,9 +309,9 @@ const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesSlugRoute = ServicesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ServicesRoute,
+  id: '/services/$slug',
+  path: '/services/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const SellersSlugRoute = SellersSlugRouteImport.update({
   id: '/sellers/$slug',
@@ -970,6 +970,7 @@ export interface RootRouteChildren {
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   SellersSlugRoute: typeof SellersSlugRoute
+  ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
   ServicesCustomAgentBuildRoute: typeof ServicesCustomAgentBuildRoute
   ServicesMinistryAiImplementationRoute: typeof ServicesMinistryAiImplementationRoute
@@ -1306,10 +1307,10 @@ declare module '@tanstack/react-router' {
     }
     '/services/$slug': {
       id: '/services/$slug'
-      path: '/$slug'
+      path: '/services/$slug'
       fullPath: '/services/$slug'
       preLoaderRoute: typeof ServicesSlugRouteImport
-      parentRoute: typeof ServicesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/sellers/$slug': {
       id: '/sellers/$slug'
@@ -1713,6 +1714,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
   SellersSlugRoute: SellersSlugRoute,
+  ServicesSlugRoute: ServicesSlugRoute,
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
   ServicesCustomAgentBuildRoute: ServicesCustomAgentBuildRoute,
   ServicesMinistryAiImplementationRoute: ServicesMinistryAiImplementationRoute,

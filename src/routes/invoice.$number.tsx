@@ -52,7 +52,13 @@ function formatDate(dateString?: string | null) {
 function InvoicePage() {
   const invoice = useLoaderData({ from: "/invoice/$number" }) as ClientInvoiceRecord | null;
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>(invoice?.selected_add_ons || []);
+
+  // Check URL params for payment completion status
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const paymentStatus = searchParams?.get("payment_status");
+  const paymentType = searchParams?.get("payment_type");
 
   const handleToggleAddOn = async (addonName: string) => {
     if (!invoice) return;

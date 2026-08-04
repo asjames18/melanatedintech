@@ -241,6 +241,184 @@ Whether you need an automated customer support agent with database write access,
       },
     ],
   },
+  {
+    id: "website-development",
+    slug: "website-development",
+    name: "Custom Website Development & Design",
+    tagline: "High-converting, mobile-responsive custom websites built to capture leads, showcase services, and grow your business.",
+    starting_price_cents: null,
+    category: "Web & Digital",
+    description: `We build modern, high-performing websites engineered specifically to attract local customers, establish trust, and turn visitors into booked phone calls and quote requests.
+
+Whether you run an automotive trade service (like window tinting or detailing), a professional consultancy, a non-profit, or a retail brand, we deliver a complete custom website tailored to your exact business goals.
+
+### What We Build & Include:
+- **Custom Lead-Generation Architecture**: Mobile-optimized layouts designed for fast navigation, click-to-call/text buttons, and interactive quote forms.
+- **Service & Product Showcases**: High-resolution image galleries, pricing callout cards, warranties, and customer reviews.
+- **Search Engine & Local SEO Foundation**: Technical SEO, page-by-page meta tags, schema markup, and Google Business Profile connection.
+- **Analytics & Tracking**: Integrated Google Analytics 4 and Google Search Console so you know exactly where your leads come from.
+- **Admin Control & Content Updates**: Easy-to-manage structure or managed website care options.`,
+    outcomes: [
+      "Fully responsive custom website optimized for desktop, tablet, and mobile browsers.",
+      "Interactive quote forms, appointment booking, and click-to-call lead conversion triggers.",
+      "Google Analytics 4 & Search Console setup for real-time traffic tracking.",
+      "Page-by-page Local SEO foundation to rank higher in local search results.",
+      "100% ownership of site assets, code, domain, and media content.",
+    ],
+    features: [
+      "Custom Mobile-First Responsive Design",
+      "High Conversion Quote & Lead Forms",
+      "Google Business Profile Integration",
+      "Fast 7–14 Day Delivery Options",
+    ],
+    process: [
+      {
+        title: "1. Brand & Scope Kickoff",
+        desc: "We collect your business logo, services list, brand colors, and primary goals.",
+      },
+      {
+        title: "2. Custom Design & Build",
+        desc: "We build your mobile-optimized website with conversion forms, project galleries, and reviews.",
+      },
+      {
+        title: "3. SEO & Analytics Setup",
+        desc: "We configure local search tags, schema markup, Google Business Profile, and analytics tracking.",
+      },
+      {
+        title: "4. Launch & Handoff",
+        desc: "We deploy your site live to custom domain and provide full account access and training.",
+      },
+    ],
+  },
+  {
+    id: "digital-marketing-seo",
+    slug: "digital-marketing-seo",
+    name: "Digital Marketing & Local SEO Growth",
+    tagline: "Drive local search traffic, dominate Google Maps, and generate consistent high-intent client inquiries.",
+    starting_price_cents: null,
+    category: "Marketing & Growth",
+    description: `Position your business at the top of local Google search results when local customers are actively looking for your services.
+
+Our Local SEO and digital marketing campaigns focus on measurable growth—ranking higher in the Google 3-Pack map results, building local citation authority, and converting search traffic into paying clients.
+
+### Key Strategies Delivered:
+- **Google Business Profile (GBP) Optimization**: Geo-targeted keyword optimization, category tuning, and photo uploads.
+- **Local Citation & Directory Building**: Consistent NAP (Name, Address, Phone) sync across major business directories.
+- **Review Strategy & Reputation Management**: Automated customer review request workflows to build high trust.
+- **On-Page & Content SEO**: Optimizing service pages with high-intent local search terms.`,
+    outcomes: [
+      "Increased visibility in the Google Maps Local 3-Pack search results.",
+      "Higher volume of incoming phone calls and online quote requests from local customers.",
+      "Consistent local directory citations (Yelp, Apple Maps, Bing Places, YellowPages).",
+      "Monthly transparent rank tracking reports and traffic growth analytics.",
+    ],
+    features: [
+      "Google Business Profile Optimization",
+      "Geo-Targeted Local Keyword Strategy",
+      "Customer Review Automation Setup",
+      "Monthly Performance & Rank Reports",
+    ],
+    process: [
+      {
+        title: "1. Local Search Audit",
+        desc: "We analyze your current rankings, Google Business Profile state, and competitor local keywords.",
+      },
+      {
+        title: "2. Profile & On-Page Optimization",
+        desc: "We overhaul your GBP listings, schema metadata, and service landing pages for local search.",
+      },
+      {
+        title: "3. Citation & Growth Execution",
+        desc: "We submit clean directory citations, launch review campaigns, and monitor ranking improvements.",
+      },
+    ],
+  },
+  {
+    id: "video-editing-content",
+    slug: "video-editing-content",
+    name: "Professional Video Editing & Content Creation",
+    tagline: "Turn raw video footage into engaging social media reels, promotional videos, and high-impact brand content.",
+    starting_price_cents: null,
+    category: "Media & Content",
+    description: `Capture attention and elevate your brand with professional video editing tailored for YouTube, Instagram Reels, TikTok, Facebook, and client promo campaigns.
+
+From short-form vertical video clips to full-length marketing videos and podcast episodes, we edit your raw media with crisp pacing, dynamic captions, sound design, and brand color grading.
+
+### Services Provided:
+- **Short-Form Reels & Shorts**: Fast-paced vertical videos (9:16) with animated subtitles, hooks, and trend music.
+- **Promotional & Commercial Videos**: High-quality promo ads highlighting your products, services, or events.
+- **Podcast & Interview Editing**: Multi-camera switching, audio noise reduction, master audio balancing, and show highlight clips.
+- **Corporate & Demo Videos**: Professional explainer videos, customer testimonial edits, and product walkthroughs.`,
+    outcomes: [
+      "Polished, broadcast-quality video content ready for instant social media posting.",
+      "Dynamic animated captions and kinetic typography for maximum mobile engagement.",
+      "Professional audio cleanup, noise reduction, and background music mixing.",
+      "Optimized export formats for YouTube, Instagram Reels, TikTok, and web embedding.",
+    ],
+    features: [
+      "Short-Form & Long-Form Video Editing",
+      "Custom Subtitles & Kinetic Captions",
+      "Professional Sound Design & Color Grading",
+      "Fast Turnaround Options",
+    ],
+    process: [
+      {
+        title: "1. Footage & Brand Upload",
+        desc: "Upload your raw video files, logos, brand guidelines, and desired video style notes.",
+      },
+      {
+        title: "2. Editing & Color/Audio Master",
+        desc: "We cut footage, apply hooks, add custom subtitles, balance audio, and grade colors.",
+      },
+      {
+        title: "3. Review & HD Export",
+        desc: "Review your video draft, request revisions, and download full resolution HD/4K exports.",
+      },
+    ],
+  },
+  {
+    id: "flyer-promotion-design",
+    slug: "flyer-promotion-design",
+    name: "Flyer & Promotional Graphic Design",
+    tagline: "Eye-catching digital and print promotional graphics, event flyers, banners, and marketing collateral.",
+    starting_price_cents: null,
+    category: "Design & Branding",
+    description: `Make your promotions stand out with custom graphic designs that demand attention and drive action.
+
+We craft custom event flyers, digital social media promo graphics, print-ready marketing cards, banners, and branded announcement materials for trade businesses, events, corporate promotions, and ministries.
+
+### What We Design:
+- **Event & Party Flyers**: Vibrant digital and print flyers for grand openings, special events, and sales.
+- **Social Media Promotional Graphics**: Tailored posts, story graphics, and carousel banners for Instagram, Facebook, and LinkedIn.
+- **Print Marketing Collateral**: Business cards, promo cards, door hangers, rack cards, and vinyl banner layouts.
+- **Digital Ad Banners**: High-converting visual ads optimized for web banners and social ad campaigns.`,
+    outcomes: [
+      "High-resolution digital graphics ready for instant social media publication.",
+      "Print-ready CMYK files with crop marks and bleed specifications for commercial printers.",
+      "Multiple format exports (PNG, JPEG, PDF, SVG).",
+      "Fast 24-to-48 hour rush delivery options available.",
+    ],
+    features: [
+      "Custom High-Resolution Artwork",
+      "Print-Ready CMYK & Digital RGB Formats",
+      "Multiple Layout Aspect Ratios (Story, Square, Banner)",
+      "100% Original Design Concepts",
+    ],
+    process: [
+      {
+        title: "1. Design Brief",
+        desc: "Provide your event details, headline text, brand logos, and style preferences.",
+      },
+      {
+        title: "2. Concept Design",
+        desc: "We create initial eye-catching design concepts and present for your feedback.",
+      },
+      {
+        title: "3. Polishing & Final Handoff",
+        desc: "We refine design details and export all digital and print-ready master files.",
+      },
+    ],
+  },
 ];
 
 export function getServiceBySlug(slug: string): ServiceItem | undefined {

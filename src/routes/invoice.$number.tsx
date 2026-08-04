@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useLoaderData, useNavigate } from "@tanstack/react-router";
-import { CheckCircle2, ShieldCheck, Printer, ArrowRight, Loader2, DollarSign, Building2, Calendar, FileText } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Printer, ArrowRight, Loader2, DollarSign, Building2, Calendar, FileText, Check } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
-import { getPublicClientInvoice, createInvoiceCheckoutSession, type ClientInvoiceRecord } from "@/lib/invoices.functions";
+import { getPublicClientInvoice, createInvoiceCheckoutSession, toggleInvoiceAddOnFn, type ClientInvoiceRecord } from "@/lib/invoices.functions";
 
 export const Route = createFileRoute("/invoice/$number")({
   head: ({ loaderData }) => {
@@ -52,12 +52,30 @@ function formatDate(dateString?: string | null) {
 function InvoicePage() {
   const invoice = useLoaderData({ from: "/invoice/$number" }) as ClientInvoiceRecord | null;
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>(invoice?.selected_add_ons || []);
 
-  // Check URL params for payment completion status
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const paymentStatus = searchParams?.get("payment_status");
-  const paymentType = searchParams?.get("payment_type");
+  const handleToggleAddOn = async (addonName: string) => {
+    if (!invoice) return;
+    const isSelected = selectedAddOns.includes(addonName);
+    const newSelected = isSelected
+      ? selectedAddOns.filter((name) => name !== addonName)
+      : [...selectedAddOns, addonName];
+
+    setSelectedAddOns(newSelected);
+
+    try {
+      await toggleInvoiceAddOnFn({
+        data: {
+          invoiceNumber: invoice.invoice_number,
+          addonName,
+          selected: !isSelected,
+        },
+      });
+    } catch {
+      // Revert on error
+      setSelectedAddOns(selectedAddOns);
+    }
+  };
 
   if (!invoice) {
     return (
@@ -303,22 +321,51 @@ function InvoicePage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Optional Monthly Retainers & Growth Add-Ons</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Optional ongoing website care and SEO packages available after initial launch.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Click any optional service below to select and include it with your proposal.</p>
                 </div>
-                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full uppercase">Optional</span>
+                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full uppercase">Interactive Selection</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {invoice.add_ons.map((addon, idx) => (
-                  <div key={idx} className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-2">
-                    <p className="font-semibold text-sm text-foreground">{addon.name}</p>
-                    {addon.description && <p className="text-xs text-muted-foreground leading-relaxed">{addon.description}</p>}
-                    <div className="pt-2 border-t border-border/40 flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground line-through font-mono">{addon.standard_price}</span>
-                      <span className="text-sm font-bold text-primary font-mono">{addon.community_price}</span>
+                {invoice.add_ons.map((addon, idx) => {
+                  const isSelected = selectedAddOns.includes(addon.name);
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => handleToggleAddOn(addon.name)}
+                      className={`cursor-pointer rounded-xl border p-4 transition-all space-y-3 relative ${
+                        isSelected
+                          ? "border-emerald-500 bg-emerald-500/10 shadow-sm ring-1 ring-emerald-500/30"
+                          : "border-border/60 bg-muted/20 hover:border-primary/40 hover:bg-muted/40"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-semibold text-sm text-foreground">{addon.name}</p>
+                        <div
+                          className={`h-5 w-5 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected
+                              ? "bg-emerald-600 border-emerald-600 text-white"
+                              : "border-border/80 bg-background text-transparent"
+                          }`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </div>
+                      </div>
+
+                      {addon.description && (
+                        <p className="text-xs text-muted-foreground leading-relaxed">{addon.description}</p>
+                      )}
+
+                      <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground line-through font-mono">{addon.standard_price}</span>
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 font-mono">{addon.community_price}</span>
+                          {isSelected && <p className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Selected</p>}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

@@ -44,6 +44,7 @@ export type ClientInvoiceRecord = {
   original_total_cents: number | null;
   discount_cents: number | null;
   add_ons: { name: string; standard_price: string; community_price: string; description?: string }[] | null;
+  selected_add_ons: string[] | null;
   total_cents: number;
   deposit_cents: number;
   final_cents: number;
@@ -311,4 +312,54 @@ export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
       .eq("invoice_number" as never, inv.invoice_number);
 
     return { checkoutUrl: session.url };
+  });
+
+export const toggleInvoiceAddOnFn = createServerFn({ method: "POST" })
+  .validator(
+    (d: unknown) =>
+      z
+        .object({
+          invoiceNumber: z.string().trim().min(1),
+          addonName: z.string().trim().min(1),
+          selected: z.boolean(),
+        })
+        .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: invoice } = await supabaseAdmin
+      .from("client_invoices" as never)
+      .select("*")
+      .eq("invoice_number" as never, data.invoiceNumber)
+      .maybeSingle();
+
+    if (!invoice) throw new Error("Invoice not found.");
+    const inv = invoice as unknown as ClientInvoiceRecord;
+    const currentSelected = Array.isArray(inv.selected_add_ons) ? [...inv.selected_add_ons] : [];
+
+    let updatedSelected: string[] = [];
+    if (data.selected) {
+      if (!currentSelected.includes(data.addonName)) {
+        updatedSelected = [...currentSelected, data.addonName];
+      } else {
+        updatedSelected = currentSelected;
+      }
+    } else {
+      updatedSelected = currentSelected.filter((item) => item !== data.addonName);
+    }
+
+    const { error } = await supabaseAdmin
+      .from("client_invoices" as never)
+      .update({
+        selected_add_ons: updatedSelected,
+        updated_at: new Date().toISOString(),
+      } as never)
+      .eq("invoice_number" as never, data.invoiceNumber);
+
+    if (error) {
+      console.error("Failed to update selected add-ons", error);
+      throw new Error("Failed to update selected add-ons.");
+    }
+
+    return { ok: true, selected_add_ons: updatedSelected };
   });

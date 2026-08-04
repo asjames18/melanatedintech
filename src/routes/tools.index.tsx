@@ -1,9 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ExplainerMediaBanner } from "@/components/explainer-media-banner";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
-import { ArrowRight, Sparkles, Wand2, Timer, GitBranch, BookOpenCheck, ShieldCheck, Cpu, Calculator, FileText, Layers, Trophy, Workflow } from "lucide-react";
+import {
+  ArrowRight,
+  Sparkles,
+  Wand2,
+  Timer,
+  GitBranch,
+  BookOpenCheck,
+  ShieldCheck,
+  Cpu,
+  Calculator,
+  FileText,
+  Layers,
+  Trophy,
+  Workflow,
+} from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
   head: () => ({
@@ -136,6 +151,30 @@ function ToolsIndex() {
         title="AI Power-Up Tools."
         description="Simplify prompt engineering, system prompt creation, and agent customization with our interactive tools."
       />
+
+      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
+        <ExplainerMediaBanner
+          title="Interactive Tools Suite — Explainer & Overview"
+          subtitle="Interactive Overview & Reference Notes for 12 AI Tools"
+          sourcePackText={`# Melanated in Tech — Master Knowledge Source Pack: 12 Interactive AI Tools Suite
+
+Melanated in Tech provides 12 web-based interactive AI tools designed to help users design, test, optimize, and deploy AI agents without getting stuck in technical setup.
+
+Key Tools Included:
+1. Prompt Pilot — System prompt composer & launchpad
+2. Agent Architect — Multi-agent workflow designer
+3. MCP Builder — Model Context Protocol server generator
+4. SOP Generator — Standard Operating Procedure creator
+5. Eval Studio — Golden-set benchmark tester
+6. ROI Calculator — Token cost & financial feasibility tool
+7. Policy Generator — Acceptable AI use policy builder
+8. GPT Trainer — Instruction architect for OpenAI GPTs & agents
+9. Model Playground — Side-by-side model response sandbox
+10. AI Playbook Generator — Tailored niche strategy builder
+11. Prompt A/B Tester — Side-by-side prompt performance testing
+12. RAG Chunker — Document chunking visualizer for vector search`}
+        />
+      </div>
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

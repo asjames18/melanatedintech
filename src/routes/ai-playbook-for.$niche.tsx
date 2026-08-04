@@ -3,7 +3,7 @@ import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductWaitlist } from "@/components/product-waitlist";
-import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd, faqLd } from "@/lib/seo";
 import { PLAYBOOK, NICHES, getNiche, personalize } from "@/lib/playbook-data";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
@@ -34,15 +34,15 @@ export const Route = createFileRoute("/ai-playbook-for/$niche")({
             { name: entry.plural, path },
           ]),
         ),
+        // Only emitted when the answers are rendered on the page below.
+        ...(entry.faqs?.length ? [ldScript(faqLd(entry.faqs))] : []),
       ],
     };
   },
   notFoundComponent: () => (
     <SiteLayout>
       <div className="mx-auto max-w-2xl px-4 py-24 text-center">
-        <h1 className="font-display text-3xl font-semibold">
-          No playbook for that niche — yet.
-        </h1>
+        <h1 className="font-display text-3xl font-semibold">No playbook for that niche — yet.</h1>
         <p className="mt-2 text-muted-foreground">
           Type what you do into the generator and it'll build one for you on the spot.
         </p>
@@ -176,13 +176,35 @@ function NichePlaybookPage() {
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 AI Playbook Pro adds 40+ prompts across hiring, finance, and retention, plus
-                step-by-step workflow guides and a recommended AI tool stack for your budget.
-                Join the list and you'll get first access (and the launch price).
+                step-by-step workflow guides and a recommended AI tool stack for your budget. Join
+                the list and you'll get first access (and the launch price).
               </p>
               <ProductWaitlist productSlug="ai-playbook-pro" />
             </CardContent>
           </Card>
         </div>
+
+        {/* Niche FAQs — must stay visible; FAQPage schema mirrors exactly this. */}
+        {entry.faqs?.length ? (
+          <div className="mx-auto mt-16 max-w-3xl">
+            <h2 className="font-display text-2xl font-bold tracking-tight text-foreground">
+              Questions {entry.plural.toLowerCase()} ask about AI
+            </h2>
+            <div className="mt-6 space-y-4">
+              {entry.faqs.map((faq) => (
+                <div
+                  key={faq.question}
+                  className="rounded-2xl border border-border bg-card p-6 shadow-sm"
+                >
+                  <h3 className="font-display text-base font-semibold text-foreground">
+                    {faq.question}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{faq.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {/* Internal links to sibling pages */}
         <div className="mx-auto mt-16 max-w-4xl">

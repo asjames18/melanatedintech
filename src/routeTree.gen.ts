@@ -31,6 +31,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
 import { Route as PathsIndexRouteImport } from './routes/paths.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
@@ -56,13 +57,16 @@ import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-wor
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PodcastFeedDotxmlRouteImport } from './routes/podcast.feed[.]xml'
 import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
 import { Route as KnowledgeWhatIsAnAiAgentRouteImport } from './routes/knowledge.what-is-an-ai-agent'
 import { Route as KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport } from './routes/knowledge.measuring-if-your-agent-actually-works'
+import { Route as KnowledgeFeedDotxmlRouteImport } from './routes/knowledge.feed[.]xml'
 import { Route as KnowledgeControllingAgentCostsRouteImport } from './routes/knowledge.controlling-agent-costs'
 import { Route as KnowledgeChoosingYourFirstAgentWorkflowRouteImport } from './routes/knowledge.choosing-your-first-agent-workflow'
 import { Route as KnowledgeAiAgentsForMinistryRouteImport } from './routes/knowledge.ai-agents-for-ministry'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
+import { Route as InvoiceNumberRouteImport } from './routes/invoice.$number'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
@@ -80,6 +84,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
 import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
@@ -195,6 +200,11 @@ const ProductsIndexRoute = ProductsIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ProductsRoute,
+} as any)
+const PodcastIndexRoute = PodcastIndexRouteImport.update({
+  id: '/podcast/',
+  path: '/podcast/',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PathsIndexRoute = PathsIndexRouteImport.update({
   id: '/',
@@ -323,6 +333,11 @@ const ProductsSlugRoute = ProductsSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => ProductsRoute,
 } as any)
+const PodcastFeedDotxmlRoute = PodcastFeedDotxmlRouteImport.update({
+  id: '/podcast/feed.xml',
+  path: '/podcast/feed.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PathsSlugRoute = PathsSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -340,6 +355,11 @@ const KnowledgeMeasuringIfYourAgentActuallyWorksRoute =
     path: '/measuring-if-your-agent-actually-works',
     getParentRoute: () => KnowledgeRoute,
   } as any)
+const KnowledgeFeedDotxmlRoute = KnowledgeFeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
+  getParentRoute: () => KnowledgeRoute,
+} as any)
 const KnowledgeControllingAgentCostsRoute =
   KnowledgeControllingAgentCostsRouteImport.update({
     id: '/controlling-agent-costs',
@@ -362,6 +382,11 @@ const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => KnowledgeRoute,
+} as any)
+const InvoiceNumberRoute = InvoiceNumberRouteImport.update({
+  id: '/invoice/$number',
+  path: '/invoice/$number',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CommunityIdRoute = CommunityIdRouteImport.update({
   id: '/$id',
@@ -452,6 +477,12 @@ const AuthenticatedSubmissionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedSubmissionsRoute,
   } as any)
+const AuthenticatedAdminInvoicesRoute =
+  AuthenticatedAdminInvoicesRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminContentAgentRoute =
   AuthenticatedAdminContentAgentRouteImport.update({
     id: '/content-agent',
@@ -521,13 +552,16 @@ export interface FileRoutesByFullPath {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
   '/knowledge/choosing-your-first-agent-workflow': typeof KnowledgeChoosingYourFirstAgentWorkflowRoute
   '/knowledge/controlling-agent-costs': typeof KnowledgeControllingAgentCostsRoute
+  '/knowledge/feed.xml': typeof KnowledgeFeedDotxmlRoute
   '/knowledge/measuring-if-your-agent-actually-works': typeof KnowledgeMeasuringIfYourAgentActuallyWorksRoute
   '/knowledge/what-is-an-ai-agent': typeof KnowledgeWhatIsAnAiAgentRoute
   '/paths/$slug': typeof PathsSlugRoute
+  '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -553,12 +587,14 @@ export interface FileRoutesByFullPath {
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
+  '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
@@ -591,13 +627,16 @@ export interface FileRoutesByTo {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
   '/knowledge/choosing-your-first-agent-workflow': typeof KnowledgeChoosingYourFirstAgentWorkflowRoute
   '/knowledge/controlling-agent-costs': typeof KnowledgeControllingAgentCostsRoute
+  '/knowledge/feed.xml': typeof KnowledgeFeedDotxmlRoute
   '/knowledge/measuring-if-your-agent-actually-works': typeof KnowledgeMeasuringIfYourAgentActuallyWorksRoute
   '/knowledge/what-is-an-ai-agent': typeof KnowledgeWhatIsAnAiAgentRoute
   '/paths/$slug': typeof PathsSlugRoute
+  '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -623,12 +662,14 @@ export interface FileRoutesByTo {
   '/community': typeof CommunityIndexRoute
   '/knowledge': typeof KnowledgeIndexRoute
   '/paths': typeof PathsIndexRoute
+  '/podcast': typeof PodcastIndexRoute
   '/products': typeof ProductsIndexRoute
   '/services': typeof ServicesIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
@@ -671,13 +712,16 @@ export interface FileRoutesById {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
   '/knowledge/choosing-your-first-agent-workflow': typeof KnowledgeChoosingYourFirstAgentWorkflowRoute
   '/knowledge/controlling-agent-costs': typeof KnowledgeControllingAgentCostsRoute
+  '/knowledge/feed.xml': typeof KnowledgeFeedDotxmlRoute
   '/knowledge/measuring-if-your-agent-actually-works': typeof KnowledgeMeasuringIfYourAgentActuallyWorksRoute
   '/knowledge/what-is-an-ai-agent': typeof KnowledgeWhatIsAnAiAgentRoute
   '/paths/$slug': typeof PathsSlugRoute
+  '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -703,12 +747,14 @@ export interface FileRoutesById {
   '/community/': typeof CommunityIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
+  '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
+  '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
@@ -751,13 +797,16 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
     | '/knowledge/choosing-your-first-agent-workflow'
     | '/knowledge/controlling-agent-costs'
+    | '/knowledge/feed.xml'
     | '/knowledge/measuring-if-your-agent-actually-works'
     | '/knowledge/what-is-an-ai-agent'
     | '/paths/$slug'
+    | '/podcast/feed.xml'
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
@@ -783,12 +832,14 @@ export interface FileRouteTypes {
     | '/community/'
     | '/knowledge/'
     | '/paths/'
+    | '/podcast/'
     | '/products/'
     | '/services/'
     | '/tools/'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/admin/content-agent'
+    | '/admin/invoices'
     | '/submissions/$id'
     | '/admin/'
     | '/submissions/'
@@ -821,13 +872,16 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
     | '/knowledge/choosing-your-first-agent-workflow'
     | '/knowledge/controlling-agent-costs'
+    | '/knowledge/feed.xml'
     | '/knowledge/measuring-if-your-agent-actually-works'
     | '/knowledge/what-is-an-ai-agent'
     | '/paths/$slug'
+    | '/podcast/feed.xml'
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
@@ -853,12 +907,14 @@ export interface FileRouteTypes {
     | '/community'
     | '/knowledge'
     | '/paths'
+    | '/podcast'
     | '/products'
     | '/services'
     | '/tools'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/admin/content-agent'
+    | '/admin/invoices'
     | '/submissions/$id'
     | '/admin'
     | '/submissions'
@@ -900,13 +956,16 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
     | '/knowledge/choosing-your-first-agent-workflow'
     | '/knowledge/controlling-agent-costs'
+    | '/knowledge/feed.xml'
     | '/knowledge/measuring-if-your-agent-actually-works'
     | '/knowledge/what-is-an-ai-agent'
     | '/paths/$slug'
+    | '/podcast/feed.xml'
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
@@ -932,12 +991,14 @@ export interface FileRouteTypes {
     | '/community/'
     | '/knowledge/'
     | '/paths/'
+    | '/podcast/'
     | '/products/'
     | '/services/'
     | '/tools/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/admin/content-agent'
+    | '/_authenticated/admin/invoices'
     | '/_authenticated/submissions/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
@@ -969,6 +1030,8 @@ export interface RootRouteChildren {
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  InvoiceNumberRoute: typeof InvoiceNumberRoute
+  PodcastFeedDotxmlRoute: typeof PodcastFeedDotxmlRoute
   SellersSlugRoute: typeof SellersSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
@@ -988,6 +1051,7 @@ export interface RootRouteChildren {
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   ToolsSopGeneratorRoute: typeof ToolsSopGeneratorRoute
   UUserIdRoute: typeof UUserIdRoute
+  PodcastIndexRoute: typeof PodcastIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
@@ -1150,6 +1214,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/products/'
       preLoaderRoute: typeof ProductsIndexRouteImport
       parentRoute: typeof ProductsRoute
+    }
+    '/podcast/': {
+      id: '/podcast/'
+      path: '/podcast'
+      fullPath: '/podcast/'
+      preLoaderRoute: typeof PodcastIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/paths/': {
       id: '/paths/'
@@ -1326,6 +1397,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductsSlugRouteImport
       parentRoute: typeof ProductsRoute
     }
+    '/podcast/feed.xml': {
+      id: '/podcast/feed.xml'
+      path: '/podcast/feed.xml'
+      fullPath: '/podcast/feed.xml'
+      preLoaderRoute: typeof PodcastFeedDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/paths/$slug': {
       id: '/paths/$slug'
       path: '/$slug'
@@ -1345,6 +1423,13 @@ declare module '@tanstack/react-router' {
       path: '/measuring-if-your-agent-actually-works'
       fullPath: '/knowledge/measuring-if-your-agent-actually-works'
       preLoaderRoute: typeof KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/feed.xml': {
+      id: '/knowledge/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/knowledge/feed.xml'
+      preLoaderRoute: typeof KnowledgeFeedDotxmlRouteImport
       parentRoute: typeof KnowledgeRoute
     }
     '/knowledge/controlling-agent-costs': {
@@ -1374,6 +1459,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/knowledge/$slug'
       preLoaderRoute: typeof KnowledgeSlugRouteImport
       parentRoute: typeof KnowledgeRoute
+    }
+    '/invoice/$number': {
+      id: '/invoice/$number'
+      path: '/invoice/$number'
+      fullPath: '/invoice/$number'
+      preLoaderRoute: typeof InvoiceNumberRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/community/$id': {
       id: '/community/$id'
@@ -1494,6 +1586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
       parentRoute: typeof AuthenticatedSubmissionsRoute
     }
+    '/_authenticated/admin/invoices': {
+      id: '/_authenticated/admin/invoices'
+      path: '/invoices'
+      fullPath: '/admin/invoices'
+      preLoaderRoute: typeof AuthenticatedAdminInvoicesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/content-agent': {
       id: '/_authenticated/admin/content-agent'
       path: '/content-agent'
@@ -1543,6 +1642,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminCatalogRoute: typeof AuthenticatedAdminCatalogRoute
   AuthenticatedAdminContentAgentRoute: typeof AuthenticatedAdminContentAgentRoute
+  AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -1550,6 +1650,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedAdminCatalogRoute: AuthenticatedAdminCatalogRoute,
   AuthenticatedAdminContentAgentRoute: AuthenticatedAdminContentAgentRoute,
+  AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -1643,6 +1744,7 @@ interface KnowledgeRouteChildren {
   KnowledgeAiAgentsForMinistryRoute: typeof KnowledgeAiAgentsForMinistryRoute
   KnowledgeChoosingYourFirstAgentWorkflowRoute: typeof KnowledgeChoosingYourFirstAgentWorkflowRoute
   KnowledgeControllingAgentCostsRoute: typeof KnowledgeControllingAgentCostsRoute
+  KnowledgeFeedDotxmlRoute: typeof KnowledgeFeedDotxmlRoute
   KnowledgeMeasuringIfYourAgentActuallyWorksRoute: typeof KnowledgeMeasuringIfYourAgentActuallyWorksRoute
   KnowledgeWhatIsAnAiAgentRoute: typeof KnowledgeWhatIsAnAiAgentRoute
   KnowledgeIndexRoute: typeof KnowledgeIndexRoute
@@ -1654,6 +1756,7 @@ const KnowledgeRouteChildren: KnowledgeRouteChildren = {
   KnowledgeChoosingYourFirstAgentWorkflowRoute:
     KnowledgeChoosingYourFirstAgentWorkflowRoute,
   KnowledgeControllingAgentCostsRoute: KnowledgeControllingAgentCostsRoute,
+  KnowledgeFeedDotxmlRoute: KnowledgeFeedDotxmlRoute,
   KnowledgeMeasuringIfYourAgentActuallyWorksRoute:
     KnowledgeMeasuringIfYourAgentActuallyWorksRoute,
   KnowledgeWhatIsAnAiAgentRoute: KnowledgeWhatIsAnAiAgentRoute,
@@ -1713,6 +1816,8 @@ const rootRouteChildren: RootRouteChildren = {
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  InvoiceNumberRoute: InvoiceNumberRoute,
+  PodcastFeedDotxmlRoute: PodcastFeedDotxmlRoute,
   SellersSlugRoute: SellersSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
@@ -1732,6 +1837,7 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   ToolsSopGeneratorRoute: ToolsSopGeneratorRoute,
   UUserIdRoute: UUserIdRoute,
+  PodcastIndexRoute: PodcastIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,

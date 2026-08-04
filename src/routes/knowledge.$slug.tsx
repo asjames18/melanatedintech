@@ -10,12 +10,14 @@ import { ogImage } from "@/lib/og";
 import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { Markdown } from "@/components/markdown";
+import { ExplainerMediaBanner } from "@/components/explainer-media-banner";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { getArticleAuthor } from "@/lib/authors.functions";
 import { useInterests } from "@/hooks/use-interests";
 import { useTrackReadingProgress } from "@/hooks/use-reading-progress";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, articleLd, breadcrumbLd } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import {
   ArrowLeft,
   Sparkles,
@@ -24,7 +26,9 @@ import {
   Wand2,
   ArrowRight,
   Compass,
+  Mail,
 } from "lucide-react";
+import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";
 
 const qo = (slug: string) =>
@@ -78,7 +82,15 @@ export const Route = createFileRoute("/knowledge/$slug")({
         { name: "twitter:label2", content: "Topic" },
         { name: "twitter:data2", content: a.category },
       ],
-      links: seo.links,
+      links: [
+        ...seo.links,
+        {
+          rel: "alternate",
+          type: "application/rss+xml",
+          href: `${SITE_URL}/knowledge/feed.xml`,
+          title: "Melanated In Tech — Knowledge Hub",
+        },
+      ],
       scripts: [
         ldScript(
           articleLd({
@@ -307,7 +319,21 @@ function ArticleView() {
           />
           <SaveArticleButton articleId={article.id} />
         </div>
-        <div className="mt-10">
+        <div className="mt-8">
+          {(article.slug.includes("agent") ||
+            article.slug.includes("workflow") ||
+            article.slug.includes("plain-english")) && (
+            <ExplainerMediaBanner
+              title={`${article.title} — Video Explainer`}
+              subtitle="Generated with NotebookLM — Interactive Video Overview & Master Source Pack"
+              videoUrl="/videos/Melanated_in_Tech.mp4"
+              sourcePackText={`# Master Knowledge Source Pack: ${article.title}
+
+> **NotebookLM Optimization Notice:** Engineered for Google NotebookLM source ingestion.
+
+${article.excerpt}`}
+            />
+          )}
           <Markdown md={article.body} />
         </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-5">
@@ -331,6 +357,33 @@ function ArticleView() {
             className="mt-4"
             onShare={() => trackEvent("content_shared", { itemSlug: slug, surface: "article" })}
           />
+        </div>
+
+        {/* Readers who finish an article are the warmest email audience the
+            site has; the footer form was previously the only capture here. */}
+        <div className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-base font-semibold text-foreground">
+                Get the next one in your inbox
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                One practical agent playbook a week — the same depth as this page, no hype and no
+                daily AI news. Unsubscribe anytime.
+              </p>
+              <div className="mt-4">
+                <WaitlistForm
+                  source="knowledge-article"
+                  interest={article.category}
+                  submitLabel="Subscribe"
+                  pendingLabel="Subscribing…"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </article>
 

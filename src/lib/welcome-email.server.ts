@@ -84,3 +84,147 @@ export async function enqueueWelcomeEmail(rawEmail: string): Promise<void> {
     console.error("Welcome email enqueue failed", e);
   }
 }
+
+export async function enqueueContactNotification(contact: {
+  name: string;
+  email: string;
+  organization?: string | null;
+  topic?: string | null;
+  message: string;
+}): Promise<void> {
+  try {
+    const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0]?.trim() || "melanatedintech@proton.me";
+    const messageId = `contact_notification:${Date.now()}:${contact.email}`;
+
+    const textContent = [
+      `New contact submission on Melanated In Tech:`,
+      ``,
+      `Name: ${contact.name}`,
+      `Email: ${contact.email}`,
+      contact.organization ? `Organization: ${contact.organization}` : null,
+      contact.topic ? `Topic: ${contact.topic}` : null,
+      ``,
+      `Message:`,
+      contact.message,
+    ].filter(Boolean).join("\n");
+
+    const htmlContent = `
+      <div style="font-family:sans-serif;max-width:560px;padding:16px;">
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${contact.name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${contact.email}">${contact.email}</a></p>
+        ${contact.organization ? `<p><strong>Organization:</strong> ${contact.organization}</p>` : ""}
+        ${contact.topic ? `<p><strong>Topic:</strong> ${contact.topic}</p>` : ""}
+        <hr style="margin:16px 0;border:none;border-top:1px solid #ddd;" />
+        <p><strong>Message:</strong></p>
+        <p style="white-space:pre-wrap;background:#f5f2ee;padding:12px;border-radius:6px;">${contact.message}</p>
+      </div>
+    `;
+
+    const { error } = await supabaseAdmin.rpc("enqueue_email" as never, {
+      queue_name: "transactional_emails",
+      payload: {
+        to: adminEmail,
+        from: FROM,
+        subject: `[Contact Form] ${contact.name} - ${contact.topic || "Inquiry"}`,
+        html: htmlContent,
+        text: textContent,
+        label: "contact_notification",
+        purpose: "transactional",
+        message_id: messageId,
+        queued_at: new Date().toISOString(),
+      },
+    } as never);
+    if (error) console.error("Contact notification email enqueue failed", error);
+  } catch (e) {
+    console.error("Contact notification email enqueue failed", e);
+  }
+}
+
+export async function enqueueInvoicePaymentNotifications(params: {
+  invoiceNumber: string;
+  clientName: string;
+  clientEmail: string;
+  paymentType: "deposit" | "final";
+  amountPaidCents: number;
+  serviceType: string;
+  title: string;
+}): Promise<void> {
+  try {
+    const adminEmail = process.env.ADMIN_EMAILS?.split(",")[0]?.trim() || "melanatedintech@proton.me";
+    const formattedAmount = (params.amountPaidCents / 100).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+    const paymentLabel = params.paymentType === "deposit" ? "50% Deposit" : "Final 50% Balance";
+
+    // 1. Send receipt to Client
+    const clientMessageId = `invoice_receipt:${params.invoiceNumber}:${params.paymentType}`;
+    const clientSubject = `Payment Confirmation for Invoice ${params.invoiceNumber} (${paymentLabel})`;
+    const clientHtml = `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:580px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6;">
+        <h2 style="color:#8a5a2b;margin-bottom:8px;">Melanated in Tech</h2>
+        <p style="font-size:16px;font-weight:600;margin-top:0;">Payment Receipt</p>
+        <p>Hi ${params.clientName},</p>
+        <p>Thank you for your payment! We have received your <strong>${paymentLabel}</strong> of <strong>${formattedAmount}</strong> for <strong>${params.title}</strong> (${params.invoiceNumber}).</p>
+        
+        <div style="background:#f5f2ee;border-radius:8px;padding:16px;margin:20px 0;">
+          <p style="margin:4px 0;"><strong>Invoice Number:</strong> ${params.invoiceNumber}</p>
+          <p style="margin:4px 0;"><strong>Service:</strong> ${params.serviceType}</p>
+          <p style="margin:4px 0;"><strong>Payment Type:</strong> ${paymentLabel}</p>
+          <p style="margin:4px 0;"><strong>Amount Paid:</strong> ${formattedAmount}</p>
+        </div>
+
+        <p>${params.paymentType === "deposit" ? "We are now starting work on your project and will keep you updated on progress!" : "Thank you for working with Melanated in Tech — it has been a pleasure partnering with you!"}</p>
+        
+        <p style="margin-top:24px;">Warm regards,<br/><strong>Antonio</strong><br/><span style="color:#8b7a68;font-size:13px;">Melanated in Tech · melanatedintech.com</span></p>
+      </div>
+    `;
+
+    await supabaseAdmin.rpc("enqueue_email" as never, {
+      queue_name: "transactional_emails",
+      payload: {
+        to: params.clientEmail,
+        from: FROM,
+        subject: clientSubject,
+        html: clientHtml,
+        label: "invoice_client_receipt",
+        purpose: "transactional",
+        message_id: clientMessageId,
+        queued_at: new Date().toISOString(),
+      },
+    } as never);
+
+    // 2. Send alert to Admin (Antonio)
+    const adminMessageId = `invoice_admin_alert:${params.invoiceNumber}:${params.paymentType}`;
+    const adminSubject = `💰 Payment Received: ${formattedAmount} for ${params.invoiceNumber} (${params.clientName})`;
+    const adminHtml = `
+      <div style="font-family:sans-serif;max-width:560px;padding:16px;">
+        <h2 style="color:#8a5a2b;">💰 Payment Received!</h2>
+        <p><strong>Invoice:</strong> ${params.invoiceNumber}</p>
+        <p><strong>Client:</strong> ${params.clientName} (&lt;${params.clientEmail}&gt;)</p>
+        <p><strong>Service:</strong> ${params.serviceType} — ${params.title}</p>
+        <p><strong>Payment:</strong> ${paymentLabel} (${formattedAmount})</p>
+        <p style="margin-top:16px;">View invoice details at: <a href="${SITE_URL}/invoice/${params.invoiceNumber}">${SITE_URL}/invoice/${params.invoiceNumber}</a></p>
+      </div>
+    `;
+
+    await supabaseAdmin.rpc("enqueue_email" as never, {
+      queue_name: "transactional_emails",
+      payload: {
+        to: adminEmail,
+        from: FROM,
+        subject: adminSubject,
+        html: adminHtml,
+        label: "invoice_admin_alert",
+        purpose: "transactional",
+        message_id: adminMessageId,
+        queued_at: new Date().toISOString(),
+      },
+    } as never);
+  } catch (e) {
+    console.error("Invoice payment notification failed", e);
+  }
+}
+
+

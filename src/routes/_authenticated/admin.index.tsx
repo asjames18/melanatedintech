@@ -62,6 +62,7 @@ import {
   Search,
   Download,
   Menu,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
@@ -210,9 +211,17 @@ function AdminPage() {
       <PageHeader
         eyebrow="Admin"
         title="Manage the platform."
-        description="Edit marketplace listings, knowledge content, services, and review inbound activity."
+        description="Edit marketplace listings, knowledge content, services, client invoices, and review inbound activity."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="mb-6 flex justify-end">
+          <Link to="/admin/invoices">
+            <Button variant="outline" className="gap-2 border-primary/30 hover:border-primary/60">
+              <FileText className="h-4 w-4 text-primary" />
+              <span>Client Invoices & 50% Deposits</span>
+            </Button>
+          </Link>
+        </div>
         {/* SUMMARY METRICS CARDS */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-8">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">

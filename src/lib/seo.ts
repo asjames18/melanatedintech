@@ -172,6 +172,64 @@ export function productLd(p: {
   };
 }
 
+/** PodcastSeries JSON-LD with a PodcastEpisode for each released episode. */
+export function podcastSeriesLd(p: {
+  name: string;
+  description: string;
+  url: string;
+  feedUrl: string;
+  image?: string | null;
+  episodes: {
+    name: string;
+    description: string;
+    episodeNumber: number;
+    datePublished: string;
+    duration?: string;
+    audioUrl?: string | null;
+  }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "PodcastSeries",
+    name: p.name,
+    description: p.description,
+    url: absoluteUrl(p.url),
+    webFeed: absoluteUrl(p.feedUrl),
+    image: absoluteUrl(p.image ?? "/og-default.png"),
+    author: { "@type": "Organization", name: DEFAULT_SITE },
+    publisher: { "@type": "Organization", name: DEFAULT_SITE },
+    hasPart: p.episodes.map((e) => ({
+      "@type": "PodcastEpisode",
+      name: e.name,
+      description: e.description,
+      episodeNumber: e.episodeNumber,
+      datePublished: e.datePublished,
+      duration: e.duration,
+      url: absoluteUrl(p.url),
+      associatedMedia: e.audioUrl
+        ? { "@type": "MediaObject", contentUrl: absoluteUrl(e.audioUrl) }
+        : undefined,
+    })),
+  };
+}
+
+/**
+ * FAQPage JSON-LD. Only emit this when the same questions and answers are
+ * visible on the page — Google treats schema-only FAQ content as a violation
+ * and it is the fastest way to lose the rich result entirely.
+ */
+export function faqLd(faqs: { question: string; answer: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.question,
+      acceptedAnswer: { "@type": "Answer", text: f.answer },
+    })),
+  };
+}
+
 /** BreadcrumbList JSON-LD. Pass an array of { name, path } crumbs. */
 export function breadcrumbLd(crumbs: { name: string; path: string }[]) {
   return {

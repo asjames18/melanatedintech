@@ -4,14 +4,24 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 import { SITE_URL } from "@/lib/site";
+import { NICHES } from "@/lib/playbook-data";
 
 const BASE_URL = SITE_URL;
+
+/**
+ * Niche playbook pages enter the sitemap only once they carry niche-specific
+ * FAQs — the uniqueness gate from docs/content-seo-roadmap-2026-07-15.md. Pages
+ * that are still just the shared prompt list with a swapped noun stay out, so
+ * they cannot be read as doorway pages.
+ */
+const INDEXABLE_NICHES = NICHES.filter((n) => (n.faqs?.length ?? 0) > 0);
 
 const STATIC_PATHS = [
   { path: "/", changefreq: "weekly" as const, priority: "1.0" },
   { path: "/agents", changefreq: "daily" as const, priority: "0.9" },
   { path: "/paths", changefreq: "weekly" as const, priority: "0.9" },
   { path: "/knowledge", changefreq: "daily" as const, priority: "0.9" },
+  { path: "/podcast", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/start-small", changefreq: "monthly" as const, priority: "0.9" },
   { path: "/strategy-sprint", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/fit-finder", changefreq: "monthly" as const, priority: "0.8" },
@@ -42,7 +52,9 @@ const STATIC_PATHS = [
   { path: "/community", changefreq: "monthly" as const, priority: "0.6" },
   { path: "/about", changefreq: "monthly" as const, priority: "0.5" },
   { path: "/contact", changefreq: "yearly" as const, priority: "0.4" },
-  { path: "/search", changefreq: "monthly" as const, priority: "0.3" },
+  // /search is intentionally absent: the route sets `noindex, follow`, and
+  // submitting a noindexed URL in the sitemap trips Search Console's
+  // "Submitted URL marked 'noindex'" error and wastes crawl budget.
   { path: "/privacy", changefreq: "yearly" as const, priority: "0.2" },
   { path: "/terms", changefreq: "yearly" as const, priority: "0.2" },
 ];
@@ -77,6 +89,14 @@ export const Route = createFileRoute("/sitemap.xml")({
           ]);
 
         const entries: Entry[] = [...STATIC_PATHS];
+
+        for (const niche of INDEXABLE_NICHES) {
+          entries.push({
+            path: `/ai-playbook-for/${niche.slug}`,
+            changefreq: "monthly",
+            priority: "0.6",
+          });
+        }
 
         for (const a of agents.data ?? []) {
           entries.push({

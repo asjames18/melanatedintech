@@ -35,6 +35,16 @@ export async function grantFromSession(
   env: StripeEnv,
 ): Promise<GrantResult> {
   const meta = sessionObj?.metadata ?? {};
+
+  // Check if this checkout session belongs to a client invoice
+  if (meta.invoice_number && meta.payment_type) {
+    const res = await handleInvoicePaymentFromSession(sessionObj);
+    if (res.processed) {
+      // Invoices process entitlement through their own status flow
+      return { granted: false, reason: "missing-metadata" };
+    }
+  }
+
   const userId = meta.userId;
   const kind = meta.unlock_kind as PremiumKind | undefined;
   const slug = meta.unlock_slug;
@@ -110,4 +120,82 @@ export async function grantFromSession(
     return { granted: false, reason: "db-error" };
   }
   return { granted: true, kind, slug };
+}
+
+export async function handleInvoicePaymentFromSession(
+  sessionObj: CheckoutSessionLike,
+): Promise<{ processed: boolean; error?: string }> {
+  const meta = sessionObj?.metadata ?? {};
+  const invoiceNumber = meta.invoice_number;
+  const paymentType = meta.payment_type as "deposit" | "final" | undefined;
+
+  if (!invoiceNumber || !paymentType) {
+    return { processed: false };
+  }
+
+  if (sessionObj?.payment_status && sessionObj.payment_status !== "paid") {
+    console.log("[invoice-grant] skipping: not paid yet", { invoiceNumber, paymentType });
+    return { processed: false, error: "not-paid" };
+  }
+
+  const admin = await getAdmin();
+  const { data: invoice } = await admin
+    .from("client_invoices" as never)
+    .select("*")
+    .eq("invoice_number" as never, invoiceNumber)
+    .maybeSingle();
+
+  if (!invoice) {
+    console.warn("[invoice-grant] invoice not found", invoiceNumber);
+    return { processed: false, error: "invoice-not-found" };
+  }
+
+  const inv = invoice as any;
+  const now = new Date().toISOString();
+
+  if (paymentType === "deposit" && inv.status === "deposit_pending") {
+    await admin
+      .from("client_invoices" as never)
+      .update({
+        status: "deposit_paid",
+        deposit_paid_at: now,
+        updated_at: now,
+      } as never)
+      .eq("invoice_number" as never, invoiceNumber);
+
+    const { enqueueInvoicePaymentNotifications } = await import("@/lib/welcome-email.server");
+    await enqueueInvoicePaymentNotifications({
+      invoiceNumber: inv.invoice_number,
+      clientName: inv.client_name,
+      clientEmail: inv.client_email,
+      paymentType: "deposit",
+      amountPaidCents: inv.deposit_cents,
+      serviceType: inv.service_type,
+      title: inv.title,
+    });
+    return { processed: true };
+  } else if (paymentType === "final" && inv.status === "deposit_paid") {
+    await admin
+      .from("client_invoices" as never)
+      .update({
+        status: "fully_paid",
+        final_paid_at: now,
+        updated_at: now,
+      } as never)
+      .eq("invoice_number" as never, invoiceNumber);
+
+    const { enqueueInvoicePaymentNotifications } = await import("@/lib/welcome-email.server");
+    await enqueueInvoicePaymentNotifications({
+      invoiceNumber: inv.invoice_number,
+      clientName: inv.client_name,
+      clientEmail: inv.client_email,
+      paymentType: "final",
+      amountPaidCents: inv.final_cents,
+      serviceType: inv.service_type,
+      title: inv.title,
+    });
+    return { processed: true };
+  }
+
+  return { processed: true };
 }

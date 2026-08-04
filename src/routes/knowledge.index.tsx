@@ -18,11 +18,13 @@ import {
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
+import { ExplainerMediaBanner } from "@/components/explainer-media-banner";
 import { ArticleCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
 import { listMyLearningProgress } from "@/lib/retention.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useReadingProgressList } from "@/hooks/use-reading-progress";
@@ -85,14 +87,26 @@ const TRACKS = [
 
 export const Route = createFileRoute("/knowledge/")({
   validateSearch: zodValidator(searchSchema),
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Agent Knowledge Hub - Melanated In Tech",
       description:
         "Practical AI agent playbooks for builders, operators, community learners, and teams deciding what to ship next.",
       url: "/knowledge",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: [
+        ...seo.links,
+        {
+          rel: "alternate",
+          type: "application/rss+xml",
+          href: `${SITE_URL}/knowledge/feed.xml`,
+          title: "Melanated In Tech — Knowledge Hub",
+        },
+      ],
+    };
+  },
   loader: ({ context }) => context.queryClient.ensureQueryData(qo),
   pendingMs: 0,
   pendingComponent: () => (
@@ -191,6 +205,22 @@ function KnowledgeIndex() {
         title="The operating library for practical AI agents."
         description="Build useful agents, operate them with evidence, secure the risky edges, and decide what deserves investment."
       />
+
+      {/* Featured Video & NotebookLM Audio Overview */}
+      <div className="mx-auto max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+        <ExplainerMediaBanner
+          title="Featured Knowledge Overview — Escaping AI Hype & Building Real Agents"
+          subtitle="Interactive Video Overview & Knowledge Reference Guide"
+          videoUrl="/videos/Melanated_in_Tech.mp4"
+          sourcePackText={`# Melanated in Tech — Knowledge Hub Master Overview
+
+Practical AI Agent Playbooks & Field Guides covering:
+- Build: Prompt engineering, RAG pipelines, and MCP connectors.
+- Operate: Golden-set evaluation, logging, and cost optimization.
+- Secure: Guardrails, prompt injection safety, and human approvals.
+- Decide: ROI calculators, build vs. buy frameworks, and vendor evaluation.`}
+        />
+      </div>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-10 border-b border-border pb-10">
@@ -300,7 +330,10 @@ function KnowledgeIndex() {
           ))}
         </div>
 
-        <div id="articles-grid" className="scroll-mt-20 rounded-2xl border border-border bg-card p-4 sm:p-5">
+        <div
+          id="articles-grid"
+          className="scroll-mt-20 rounded-2xl border border-border bg-card p-4 sm:p-5"
+        >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

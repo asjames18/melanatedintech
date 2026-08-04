@@ -225,6 +225,16 @@ export const submitContact = createServerFn({ method: "POST" })
       ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
     }
     if (error) throw new Error("Could not send message. Please try again.");
+
+    const { enqueueContactNotification } = await import("@/lib/welcome-email.server");
+    await enqueueContactNotification({
+      name: data.name,
+      email: data.email,
+      organization: data.organization,
+      topic: data.topic,
+      message: data.message,
+    });
+
     return { ok: true };
   });
 

@@ -143,6 +143,11 @@ export function personalize(body: string, nicheNoun: string) {
 // nicheNoun is what gets substituted into the prompts ("a {nicheNoun}").
 // ---------------------------------------------------------------------------
 
+export interface NicheFaq {
+  question: string;
+  answer: string;
+}
+
 export interface NicheEntry {
   slug: string;
   /** Plural, title-case — used in H1s: "The AI Playbook for Hair Salons" */
@@ -151,6 +156,13 @@ export interface NicheEntry {
   nicheNoun: string;
   intro: string;
   painPoints: [string, string, string];
+  /**
+   * Niche-specific questions with real answers — including where AI should not
+   * be used for this trade. Presence of this field is the uniqueness gate: only
+   * niches with genuine FAQs enter the sitemap (see routes/sitemap[.]xml.ts).
+   * Rendered on the page and mirrored into FAQPage schema, never schema-only.
+   */
+  faqs?: NicheFaq[];
 }
 
 export const NICHES: NicheEntry[] = [
@@ -164,6 +176,28 @@ export const NICHES: NicheEntry[] = [
       "Instagram goes quiet the week you're busiest — which is every week",
       "No-shows and last-minute cancels eat chair time you can't get back",
       "New clients pick whoever answers their DM first, and you're mid-color",
+    ],
+    faqs: [
+      {
+        question: "Will AI captions make my salon sound like every other salon?",
+        answer:
+          "They will if you accept the first draft. The fix is to paste five of your own past captions into the prompt and tell the model to match that voice, then make it name specifics — the technique, the formula or toner used, the hair type and texture it works on. Generic beauty copy reads generic because it never mentions anything only you would know.",
+      },
+      {
+        question: "Can AI stop my no-shows?",
+        answer:
+          "Not on its own. No-shows drop because of a deposit policy, a waitlist, and reminders that actually go out — AI writes the reminder and waitlist messages, your booking software sends them. If you do not already charge a deposit or hold a waitlist, no amount of better wording will move the number much.",
+      },
+      {
+        question: "Should I let AI reply to DMs asking about color corrections?",
+        answer:
+          "Use it to draft a reply that books a consultation, never one that quotes a price or promises a result. A correction depends on what is already on the hair, how it was applied, and how it lifts — none of which is visible in a DM photo. Have it ask for the two or three details you always need, then hand the conversation to you.",
+      },
+      {
+        question: "What is the single highest-value thing to automate first?",
+        answer:
+          "Review requests, then rebooking reminders. Both take under a minute per client to send, both compound, and both directly affect how many new clients find you and how often existing ones return. Content scheduling matters less than either until those two are running.",
+      },
     ],
   },
   {
@@ -225,6 +259,28 @@ export const NICHES: NicheEntry[] = [
       "Every listing needs fresh copy, photos captioned, posts scheduled",
       "Past clients forget you exist right up until they list with someone else",
     ],
+    faqs: [
+      {
+        question: "Can I use AI to write MLS listing descriptions?",
+        answer:
+          "Yes, with one hard rule: it describes the property, never the buyer. Fair Housing liability attaches to language about who a home suits — references to schools, churches, 'family-friendly', 'safe neighborhood', walkability framed around demographics, or anything touching a protected class. Instruct the model explicitly to avoid those, then read the output as if opposing counsel were reading it.",
+      },
+      {
+        question: "Will AI-written listing copy create a compliance problem with my brokerage?",
+        answer:
+          "Most brokerages require a licensed person to review any published listing content, and that does not change because a model drafted it — you remain responsible for every claim. The specific risks are invented square footage, unverified permit or renovation history, and school-district statements. Keep your standard disclaimers and verify every number against the source record.",
+      },
+      {
+        question: "Can AI produce a CMA or tell me what to list at?",
+        answer:
+          "No. A model has no reliable access to current comparable sales, and pricing is exactly where a confident wrong answer costs a client real money. Pull the comps yourself, then use AI to turn your analysis into a clear narrative the seller can follow.",
+      },
+      {
+        question: "What is the best first workflow for a solo agent?",
+        answer:
+          "A written follow-up sequence for leads that have gone quiet. Follow-up is the task that fails first when you get busy, it is entirely text, and it is where most solo-agent pipeline is actually lost — which makes it the highest-return thing to hand off.",
+      },
+    ],
   },
   {
     slug: "landscaping-companies",
@@ -248,6 +304,28 @@ export const NICHES: NicheEntry[] = [
       "Emergency-season call volume buries the office; leads leak away",
       "Maintenance plans would smooth revenue but nobody markets them",
       "You're invisible on Google next to companies with 10x the reviews",
+    ],
+    faqs: [
+      {
+        question: "Can AI quote a job for me?",
+        answer:
+          "No, and this is the one place to be strict. Equipment sizing depends on a load calculation and an eyes-on inspection of the ductwork, envelope, and existing system — a model guessing tonnage from a description will be confidently wrong and you will own the callback. Price the job yourself, then use AI to write the explanation that goes with the quote.",
+      },
+      {
+        question: "How do I use this during peak season when nobody has a spare minute?",
+        answer:
+          "Peak season is exactly when the text-based work slips, so target that: after-hours auto-replies that set a realistic callback window, dispatch and 'tech is en route' templates, and the maintenance-plan renewal notices that never get sent in August. Write them once in the shoulder season and they run when you are buried.",
+      },
+      {
+        question: "Can AI help explain repair versus replace to a homeowner?",
+        answer:
+          "Yes — translating SEER2, AFUE, tonnage, and refrigerant phase-out into plain English is genuinely useful, and a homeowner who understands the tradeoff decides faster. Do not let it attach specific savings figures or payback periods to that explanation unless the numbers come from your own calculation for that home.",
+      },
+      {
+        question: "Can I use it to write my maintenance agreement terms?",
+        answer:
+          "Use it for a first draft of the customer-facing summary, not the binding terms. Models invent warranty coverage, response-time guarantees, and cancellation language that sound standard and are not. Anything contractual goes to your attorney before a customer signs it.",
+      },
     ],
   },
   {
@@ -345,6 +423,28 @@ export const NICHES: NicheEntry[] = [
       "The same three volunteers write every announcement, email, and bulletin",
       "Events are planned well but promoted late, so attendance underperforms the effort",
     ],
+    faqs: [
+      {
+        question: "Is it appropriate to use AI for sermon preparation?",
+        answer:
+          "There is a real line between research and authorship, and it is worth naming out loud before your team starts. Using AI to gather background on a passage, surface cross-references, outline what you already believe, or turn a finished message into a study guide is preparation support. Having it write the message is something else. Where your church draws that line is a leadership decision — make it explicitly rather than by drift.",
+      },
+      {
+        question: "Can we put member information into an AI tool?",
+        answer:
+          "Pastoral care notes, prayer requests, counseling records, giving history, and anything about minors should never go into a public AI tool. These carry both a confidentiality obligation and, for counseling content, potential legal privilege. If you need help drafting a sensitive communication, describe the situation in general terms without names or identifying details.",
+      },
+      {
+        question: "Do we need to tell the congregation we use AI?",
+        answer:
+          "Trust costs far more to rebuild than to maintain, and a one-paragraph policy stating where AI is and is not used — administrative content yes, pastoral care and counseling no — costs you nothing now and prevents a much harder conversation later. Label AI-assisted content where it is not obvious, and keep a human reviewing anything before it goes out.",
+      },
+      {
+        question: "What should a small church automate first?",
+        answer:
+          "Turning one Sunday message into the week's other content — a devotional, small-group discussion questions, social posts, and the announcement recap. The thinking is already done and the material already exists; you are only reformatting it, which is the task AI does most reliably and the one currently eating a volunteer's whole week.",
+      },
+    ],
   },
   {
     slug: "nonprofits",
@@ -356,6 +456,28 @@ export const NICHES: NicheEntry[] = [
       "Grant applications and reports consume weeks of scarce staff time",
       "Donors give once and lapse because thank-yous and updates lag",
       "The mission's stories are powerful and mostly untold",
+    ],
+    faqs: [
+      {
+        question: "Can AI write our grant applications?",
+        answer:
+          "It can draft narrative sections from outcomes you supply, and that alone saves real days. Two cautions: it must never generate a number, outcome, or beneficiary count that did not come from your own records, and a growing number of funders now ask applicants to disclose AI use or restrict it outright. Read each funder's terms before you start, not after you submit.",
+      },
+      {
+        question: "Is it safe to put donor data into AI tools?",
+        answer:
+          "No. Donor names, contact details, giving history, and any beneficiary or client information stay out of public AI tools — you hold that data in trust, and a breach of it is a breach of the relationship your organization runs on. Work from aggregate or anonymized figures when you need help with analysis or reporting.",
+      },
+      {
+        question: "How should we handle AI disclosure with our board and funders?",
+        answer:
+          "Write a short internal policy before questions arrive: which tools are approved, what data may never be entered, and who reviews AI-assisted material before it goes out. Bring it to the board as an operational decision rather than waiting to answer a funder's compliance question without one.",
+      },
+      {
+        question: "What is the highest-value first use for a three-person nonprofit?",
+        answer:
+          "Donor thank-yous and impact updates. Lapsed donors are cheaper to retain than new ones are to acquire, the follow-up is pure writing, and it is reliably the first thing to slip when a small team gets stretched — which makes it both the biggest leak and the easiest one to close.",
+      },
     ],
   },
   {

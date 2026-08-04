@@ -16,6 +16,7 @@ export const NAV = [
   { to: "/agents", label: "Marketplace" },
   { to: "/paths", label: "Paths" },
   { to: "/knowledge", label: "Knowledge Hub" },
+  { to: "/podcast", label: "Podcast" },
   { to: "/products", label: "Products" },
   { to: "/tools", label: "AI Tools" },
   { to: "/services", label: "Services" },

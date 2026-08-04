@@ -11,10 +11,15 @@ export function WaitlistForm({
   source = "site",
   interest,
   compact = false,
+  submitLabel = "Join waitlist",
+  pendingLabel = "Joining…",
 }: {
   source?: string;
   interest?: string;
   compact?: boolean;
+  /** Override when the form is a subscribe box rather than a launch waitlist. */
+  submitLabel?: string;
+  pendingLabel?: string;
 }) {
   const [email, setEmail] = useState("");
   const [hp, setHp] = useState("");
@@ -77,7 +82,7 @@ export function WaitlistForm({
         className="flex-1"
       />
       <Button type="submit" disabled={loading}>
-        {loading ? "Joining…" : "Join waitlist"}
+        {loading ? pendingLabel : submitLabel}
       </Button>
     </form>
   );

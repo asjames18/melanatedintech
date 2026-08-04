@@ -515,6 +515,15 @@ function AdminInvoices() {
                       <td className="py-4 px-6">
                         <div className="font-medium text-foreground">{inv.client_name}</div>
                         <div className="text-xs text-muted-foreground">{inv.client_email}</div>
+                        {inv.selected_add_ons && inv.selected_add_ons.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {inv.selected_add_ons.map((addon, aIdx) => (
+                              <span key={aIdx} className="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                                ✓ {addon}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="py-4 px-6">
                         <span className="inline-block rounded-full bg-secondary/20 px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">

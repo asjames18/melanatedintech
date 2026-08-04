@@ -98,9 +98,10 @@ import {
   type CommunityStats,
 } from "@/lib/community.functions";
 import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
+import { listClientInvoices } from "@/lib/invoices.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Admin â€” Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Admin — Melanated In Tech" }] }),
   component: AdminPage,
 });
 
@@ -114,6 +115,7 @@ function AdminPage() {
   const listWaitlistFn = useServerFn(adminListWaitlist);
   const listMessagesFn = useServerFn(adminListMessages);
   const listPurchasesFn = useServerFn(adminListPurchases);
+  const listInvoicesFn = useServerFn(listClientInvoices);
   const getAnalyticsFn = useServerFn(adminAnalyticsSummary);
 
   const isAdmin = status.data?.isAdmin ?? false;
@@ -146,6 +148,11 @@ function AdminPage() {
   const purchasesQuery = useQuery({
     queryKey: ["admin-purchases"],
     queryFn: () => listPurchasesFn(),
+    enabled: isAdmin,
+  });
+  const invoicesQuery = useQuery({
+    queryKey: ["admin_client_invoices"],
+    queryFn: () => listInvoicesFn(),
     enabled: isAdmin,
   });
   const analyticsQuery = useQuery({
@@ -206,6 +213,40 @@ function AdminPage() {
   const grossSalesCents = purchases.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
   const sellerSalesCount = purchases.filter((row) => row.seller_id).length;
 
+  // Client Invoice Analytics
+  const invoices = invoicesQuery.data ?? [];
+  const paidInvoiceRevenueCents = invoices.reduce((sum, inv) => {
+    if (inv.status === "fully_paid") return sum + inv.total_cents;
+    if (inv.status === "deposit_paid") return sum + inv.deposit_cents;
+    return sum;
+  }, 0);
+
+  const pendingInvoiceCents = invoices.reduce((sum, inv) => {
+    if (inv.status === "deposit_pending") return sum + inv.total_cents;
+    if (inv.status === "deposit_paid") return sum + inv.final_cents;
+    return sum;
+  }, 0);
+
+  const monthlyRetainerMRRCents = invoices.reduce((sum, inv) => {
+    if (!inv.selected_add_ons || inv.selected_add_ons.length === 0) return sum;
+    let invSum = 0;
+    for (const addon of inv.selected_add_ons) {
+      const lower = addon.toLowerCase();
+      if (lower.includes("care & minor") || lower.includes("care and minor")) {
+        invSum += 12500;
+      } else if (lower.includes("seo growth plan") || lower.includes("local seo")) {
+        invSum += 45000;
+      } else if (lower.includes("seo + website care") || lower.includes("care package")) {
+        invSum += 55000;
+      } else {
+        invSum += 12500;
+      }
+    }
+    return sum + invSum;
+  }, 0);
+
+  const combinedGrossRevenueCents = grossSalesCents + paidInvoiceRevenueCents;
+
   return (
     <SiteLayout>
       <PageHeader
@@ -214,14 +255,88 @@ function AdminPage() {
         description="Edit marketplace listings, knowledge content, services, client invoices, and review inbound activity."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex justify-end">
-          <Link to="/admin/invoices">
-            <Button variant="outline" className="gap-2 border-primary/30 hover:border-primary/60">
-              <FileText className="h-4 w-4 text-primary" />
-              <span>Client Invoices & 50% Deposits</span>
-            </Button>
-          </Link>
+        
+        {/* EXECUTIVE SALES & REVENUE ANALYTICS BANNER */}
+        <div className="mb-8 rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/50 pb-5 mb-6">
+            <div>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary animate-pulse" />
+                <h2 className="font-serif text-xl font-bold text-foreground">
+                  Revenue & Sales Executive Overview
+                </h2>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Real-time tracking across client invoices, monthly retainers, and digital checkout sales.
+              </p>
+            </div>
+            <Link to="/admin/invoices">
+              <Button className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm">
+                <FileText className="h-4 w-4" />
+                <span>Invoice Manager ({invoices.length})</span>
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {/* TOTAL COMBINED REVENUE */}
+            <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+              <div className="flex items-center justify-between text-xs text-emerald-700 dark:text-emerald-300 font-semibold uppercase tracking-wider">
+                <span>Total Collected Revenue</span>
+                <DollarSign className="h-4 w-4 text-emerald-500" />
+              </div>
+              <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
+                ${(combinedGrossRevenueCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Digital sales + paid client deposits/invoices
+              </p>
+            </div>
+
+            {/* CLIENT SERVICE INVOICES */}
+            <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4">
+              <div className="flex items-center justify-between text-xs text-blue-700 dark:text-blue-300 font-semibold uppercase tracking-wider">
+                <span>Client Service Invoices</span>
+                <FileText className="h-4 w-4 text-blue-500" />
+              </div>
+              <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
+                ${(paidInvoiceRevenueCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                ${(pendingInvoiceCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })} pending collection
+              </p>
+            </div>
+
+            {/* MONTHLY RETAINERS (MRR) */}
+            <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4">
+              <div className="flex items-center justify-between text-xs text-purple-700 dark:text-purple-300 font-semibold uppercase tracking-wider">
+                <span>Monthly Retainers (MRR)</span>
+                <CreditCard className="h-4 w-4 text-purple-500" />
+              </div>
+              <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
+                ${(monthlyRetainerMRRCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}<span className="text-xs font-normal text-muted-foreground">/mo</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                Client-selected post-launch Care & SEO
+              </p>
+            </div>
+
+            {/* DIGITAL MARKETPLACE SALES */}
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4">
+              <div className="flex items-center justify-between text-xs text-amber-700 dark:text-amber-300 font-semibold uppercase tracking-wider">
+                <span>Digital Products Sales</span>
+                <BookOpen className="h-4 w-4 text-amber-500" />
+              </div>
+              <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
+                ${(grossSalesCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">
+                {purchases.length} checkout orders ({sellerSalesCount} seller orders)
+              </p>
+            </div>
+          </div>
         </div>
+
         {/* SUMMARY METRICS CARDS */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 mb-8">
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -283,15 +398,15 @@ function AdminPage() {
           <div className="rounded-2xl border border-border bg-card p-5 shadow-sm hover:border-purple-500/30 transition-all">
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="text-[10px] font-bold uppercase tracking-wider">
-                Gross Sales
+                Client Invoices
               </span>
               <CreditCard className="h-4 w-4 text-purple-500" />
             </div>
             <div className="mt-2 font-display text-2xl font-bold text-foreground">
-              {purchasesQuery.isLoading ? "..." : `$${(grossSalesCents / 100).toFixed(2)}`}
+              {invoicesQuery.isLoading ? "..." : invoices.length}
             </div>
             <p className="text-[10px] text-muted-foreground mt-1">
-              {purchases.length} total orders ({sellerSalesCount} seller sales)
+              Total client invoices generated
             </p>
           </div>
         </div>

@@ -9,6 +9,13 @@ const lineItemSchema = z.object({
   amount_cents: z.number().int().positive(),
 });
 
+const addOnSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  standard_price: z.string().trim().min(1).max(100),
+  community_price: z.string().trim().min(1).max(100),
+  description: z.string().trim().max(500).optional(),
+});
+
 const createInvoiceSchema = z.object({
   client_name: z.string().trim().min(1).max(100),
   client_email: z.string().trim().email().max(255),
@@ -17,6 +24,9 @@ const createInvoiceSchema = z.object({
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(2000).optional(),
   line_items: z.array(lineItemSchema).min(1),
+  original_total_cents: z.number().int().nonnegative().optional(),
+  discount_cents: z.number().int().nonnegative().optional(),
+  add_ons: z.array(addOnSchema).optional(),
   due_date: z.string().optional(),
   notes: z.string().trim().max(1000).optional(),
 });
@@ -31,6 +41,9 @@ export type ClientInvoiceRecord = {
   title: string;
   description: string | null;
   line_items: { description: string; amount_cents: number }[];
+  original_total_cents: number | null;
+  discount_cents: number | null;
+  add_ons: { name: string; standard_price: string; community_price: string; description?: string }[] | null;
   total_cents: number;
   deposit_cents: number;
   final_cents: number;
@@ -98,6 +111,9 @@ export const createClientInvoice = createServerFn({ method: "POST" })
       title: data.title,
       description: data.description || null,
       line_items: data.line_items,
+      original_total_cents: data.original_total_cents ?? null,
+      discount_cents: data.discount_cents ?? null,
+      add_ons: data.add_ons ?? [],
       total_cents: totalCents,
       deposit_cents: depositCents,
       final_cents: finalCents,

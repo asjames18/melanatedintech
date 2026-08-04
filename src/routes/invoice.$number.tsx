@@ -195,6 +195,37 @@ function InvoicePage() {
             </div>
           </div>
 
+          {/* Original Professional Value & Community Discount Callout */}
+          {(invoice.original_total_cents || invoice.discount_cents) && (
+            <div className="py-6 border-b border-border/60">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 rounded-xl border border-primary/25 bg-primary/5 p-4 text-center">
+                <div className="p-2">
+                  <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground">Standard Professional Value</p>
+                  <p className="mt-1 font-serif text-xl font-bold line-through text-muted-foreground/80">
+                    {formatCurrency(invoice.original_total_cents || invoice.total_cents + (invoice.discount_cents || 0))}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">Full market-value scope</p>
+                </div>
+
+                <div className="p-2 border-t sm:border-t-0 sm:border-l border-border/40">
+                  <p className="text-xs uppercase tracking-wider font-semibold text-amber-700 dark:text-amber-300">Special Community Discount</p>
+                  <p className="mt-1 font-serif text-xl font-bold text-amber-600 dark:text-amber-400">
+                    -{formatCurrency(invoice.discount_cents || (invoice.original_total_cents ? invoice.original_total_cents - invoice.total_cents : 0))}
+                  </p>
+                  <p className="text-[11px] text-amber-700/80 dark:text-amber-300/80">Relationship savings applied</p>
+                </div>
+
+                <div className="p-2 border-t sm:border-t-0 sm:border-l border-border/40">
+                  <p className="text-xs uppercase tracking-wider font-semibold text-primary">Client Net Investment</p>
+                  <p className="mt-1 font-serif text-2xl font-bold text-primary">
+                    {formatCurrency(invoice.total_cents)}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">Two payments of {formatCurrency(invoice.deposit_cents)}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Project Title & Description */}
           <div className="py-6 border-b border-border/60">
             <h2 className="font-semibold text-foreground text-lg">{invoice.title}</h2>
@@ -265,6 +296,32 @@ function InvoicePage() {
               </div>
             </div>
           </div>
+
+          {/* Optional Monthly Add-Ons & Ongoing Growth Services */}
+          {invoice.add_ons && invoice.add_ons.length > 0 && (
+            <div className="py-6 border-b border-border/60">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Optional Monthly Retainers & Growth Add-Ons</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Optional ongoing website care and SEO packages available after initial launch.</p>
+                </div>
+                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full uppercase">Optional</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {invoice.add_ons.map((addon, idx) => (
+                  <div key={idx} className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-2">
+                    <p className="font-semibold text-sm text-foreground">{addon.name}</p>
+                    {addon.description && <p className="text-xs text-muted-foreground leading-relaxed">{addon.description}</p>}
+                    <div className="pt-2 border-t border-border/40 flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground line-through font-mono">{addon.standard_price}</span>
+                      <span className="text-sm font-bold text-primary font-mono">{addon.community_price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Action Box: Pay Buttons & Print */}
           <div className="mt-6 rounded-2xl bg-card border border-primary/20 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">

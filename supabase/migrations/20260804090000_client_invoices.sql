@@ -1,4 +1,5 @@
 -- Migration: client_invoices table for custom project invoicing (50% deposit & 50% final balance)
+-- Updated with original_total_cents, discount_cents, and add_ons fields
 
 CREATE TABLE IF NOT EXISTS public.client_invoices (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -10,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.client_invoices (
   title TEXT NOT NULL,
   description TEXT,
   line_items JSONB NOT NULL DEFAULT '[]'::jsonb, -- Array of { description: string, amount_cents: number }
+  original_total_cents INTEGER,
+  discount_cents INTEGER,
+  add_ons JSONB NOT NULL DEFAULT '[]'::jsonb, -- Array of { name: string, standard_price: string, community_price: string, description?: string }
   total_cents INTEGER NOT NULL CHECK (total_cents > 0),
   deposit_cents INTEGER NOT NULL CHECK (deposit_cents > 0),
   final_cents INTEGER NOT NULL CHECK (final_cents > 0),
@@ -23,6 +27,11 @@ CREATE TABLE IF NOT EXISTS public.client_invoices (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Idempotent column additions for existing tables
+ALTER TABLE public.client_invoices ADD COLUMN IF NOT EXISTS original_total_cents INTEGER;
+ALTER TABLE public.client_invoices ADD COLUMN IF NOT EXISTS discount_cents INTEGER;
+ALTER TABLE public.client_invoices ADD COLUMN IF NOT EXISTS add_ons JSONB DEFAULT '[]'::jsonb;
 
 -- Index for quick lookups by invoice_number and status
 CREATE INDEX IF NOT EXISTS client_invoices_number_idx ON public.client_invoices (invoice_number);

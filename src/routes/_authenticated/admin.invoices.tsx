@@ -93,11 +93,18 @@ function AdminInvoices() {
   const [serviceType, setServiceType] = useState("Web Design");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [originalTotal, setOriginalTotal] = useState("");
+  const [discountAmount, setDiscountAmount] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [lineItems, setLineItems] = useState<{ description: string; amount: string }[]>([
-    { description: "50% Initial Deposit (Web Design / AI Agent / Automation)", amount: "500" },
-    { description: "50% Final Balance Upon Completion", amount: "500" },
+    { description: "50% Initial Deposit (Web Design / AI Agent / Automation)", amount: "150" },
+    { description: "50% Final Balance Upon Completion", amount: "150" },
+  ]);
+  const [addOns, setAddOns] = useState<{ name: string; standard_price: string; community_price: string; description?: string }[]>([
+    { name: "Website care & minor updates", standard_price: "$200/mo", community_price: "$125/mo", description: "Ongoing security, backups, & monthly content updates" },
+    { name: "Local SEO growth plan", standard_price: "$750/mo", community_price: "$450/mo", description: "Keyword optimization & Google Business Profile management" },
+    { name: "SEO + Website care package", standard_price: "$900/mo", community_price: "$550/mo", description: "Complete technical SEO, care & search growth package" },
   ]);
 
   const { data: invoices = [], isLoading } = useQuery({
@@ -117,6 +124,10 @@ function AdminInvoices() {
         };
       });
 
+      const origNum = originalTotal ? parseFloat(originalTotal) : undefined;
+      const discNum = discountAmount ? parseFloat(discountAmount) : undefined;
+      const filteredAddOns = addOns.filter((a) => a.name.trim().length > 0);
+
       return await createInvoiceFn({
         data: {
           client_name: clientName,
@@ -126,6 +137,9 @@ function AdminInvoices() {
           title,
           description,
           line_items: parsedItems,
+          original_total_cents: origNum && !isNaN(origNum) ? Math.round(origNum * 100) : undefined,
+          discount_cents: discNum && !isNaN(discNum) ? Math.round(discNum * 100) : undefined,
+          add_ons: filteredAddOns,
           due_date: dueDate,
           notes,
         },
@@ -163,11 +177,18 @@ function AdminInvoices() {
     setServiceType("Web Design");
     setTitle("");
     setDescription("");
+    setOriginalTotal("");
+    setDiscountAmount("");
     setDueDate("");
     setNotes("");
     setLineItems([
-      { description: "Project Kickoff & Deposit", amount: "500" },
-      { description: "Final Delivery & Handoff", amount: "500" },
+      { description: "Project Kickoff & Deposit", amount: "150" },
+      { description: "Final Delivery & Handoff", amount: "150" },
+    ]);
+    setAddOns([
+      { name: "Website care & minor updates", standard_price: "$200/mo", community_price: "$125/mo", description: "Ongoing security, backups, & monthly content updates" },
+      { name: "Local SEO growth plan", standard_price: "$750/mo", community_price: "$450/mo", description: "Keyword optimization & Google Business Profile management" },
+      { name: "SEO + Website care package", standard_price: "$900/mo", community_price: "$550/mo", description: "Complete technical SEO, care & search growth package" },
     ]);
   };
 
@@ -313,6 +334,39 @@ function AdminInvoices() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                   />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="originalTotal">Original Value ($) (Optional)</Label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">$</span>
+                      <Input
+                        id="originalTotal"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 3900"
+                        value={originalTotal}
+                        onChange={(e) => setOriginalTotal(e.target.value)}
+                        className="pl-6"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="discountAmount">Community Discount ($) (Optional)</Label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-2.5 text-xs text-muted-foreground">$</span>
+                      <Input
+                        id="discountAmount"
+                        type="number"
+                        step="0.01"
+                        placeholder="e.g. 3600"
+                        value={discountAmount}
+                        onChange={(e) => setDiscountAmount(e.target.value)}
+                        className="pl-6"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Line Items */}

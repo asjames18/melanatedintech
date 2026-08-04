@@ -12,8 +12,7 @@ const qo = queryOptions({
     try {
       const data = await listServices();
       if (data && data.length > 0) {
-        // Merge Supabase services with fallback data metadata if missing
-        return data.map((s) => {
+        const dbServices = data.map((s) => {
           const fb = FALLBACK_SERVICES.find((f) => f.slug === s.slug);
           return {
             id: s.id,
@@ -25,9 +24,13 @@ const qo = queryOptions({
             starting_price_cents: s.starting_price_cents ?? fb?.starting_price_cents ?? null,
             features: fb?.features ?? [],
             process: fb?.process ?? [],
-            category: fb?.category ?? "AI Service",
+            category: fb?.category ?? "Professional Service",
           };
         });
+        const unlistedFallbacks = FALLBACK_SERVICES.filter(
+          (fb) => !dbServices.some((s) => s.slug === fb.slug),
+        );
+        return [...dbServices, ...unlistedFallbacks];
       }
     } catch (err) {
       console.warn("Failed to fetch services from Supabase, returning fallbacks...", err);

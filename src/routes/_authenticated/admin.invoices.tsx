@@ -16,6 +16,7 @@ import {
   AlertCircle,
   ArrowLeft,
   Sparkles,
+  Pencil,
 } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ import {
 } from "@/components/ui/dialog";
 import {
   createClientInvoice,
+  updateClientInvoice,
+  deleteClientInvoice,
   listClientInvoices,
   updateInvoiceStatus,
   type ClientInvoiceRecord,
@@ -80,9 +83,12 @@ function AdminInvoices() {
   const queryClient = useQueryClient();
   const getInvoicesFn = useServerFn(listClientInvoices);
   const createInvoiceFn = useServerFn(createClientInvoice);
+  const updateInvoiceFn = useServerFn(updateClientInvoice);
+  const deleteInvoiceFn = useServerFn(deleteClientInvoice);
   const updateStatusFn = useServerFn(updateInvoiceStatus);
 
   const [isOpen, setIsOpen] = useState(false);
+  const [editingInvoiceNumber, setEditingInvoiceNumber] = useState<string | null>(null);
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -112,7 +118,7 @@ function AdminInvoices() {
     queryFn: () => getInvoicesFn(),
   });
 
-  const createMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
       setErrorMsg(null);
       const parsedItems = lineItems.map((item) => {
@@ -128,30 +134,57 @@ function AdminInvoices() {
       const discNum = discountAmount ? parseFloat(discountAmount) : undefined;
       const filteredAddOns = addOns.filter((a) => a.name.trim().length > 0);
 
-      return await createInvoiceFn({
-        data: {
-          client_name: clientName,
-          client_email: clientEmail,
-          client_organization: clientOrg,
-          service_type: serviceType,
-          title,
-          description,
-          line_items: parsedItems,
-          original_total_cents: origNum && !isNaN(origNum) ? Math.round(origNum * 100) : undefined,
-          discount_cents: discNum && !isNaN(discNum) ? Math.round(discNum * 100) : undefined,
-          add_ons: filteredAddOns,
-          due_date: dueDate,
-          notes,
-        },
-      });
+      const payload = {
+        client_name: clientName,
+        client_email: clientEmail,
+        client_organization: clientOrg,
+        service_type: serviceType,
+        title,
+        description,
+        line_items: parsedItems,
+        original_total_cents: origNum && !isNaN(origNum) ? Math.round(origNum * 100) : undefined,
+        discount_cents: discNum && !isNaN(discNum) ? Math.round(discNum * 100) : undefined,
+        add_ons: filteredAddOns,
+        due_date: dueDate,
+        notes,
+      };
+
+      if (editingInvoiceNumber) {
+        return await updateInvoiceFn({
+          data: {
+            invoiceNumber: editingInvoiceNumber,
+            ...payload,
+          },
+        });
+      } else {
+        return await createInvoiceFn({
+          data: payload,
+        });
+      }
     },
-    onSuccess: (newInv) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_client_invoices"] });
       setIsOpen(false);
       resetForm();
     },
     onError: (e: any) => {
-      setErrorMsg(e.message || "Failed to create invoice.");
+      setErrorMsg(e.message || "Failed to save invoice.");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (invNum: string) => {
+      if (typeof window !== "undefined") {
+        const confirmed = window.confirm(`Are you sure you want to delete invoice ${invNum}?`);
+        if (!confirmed) return;
+      }
+      await deleteInvoiceFn({ data: { invoiceNumber: invNum } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin_client_invoices"] });
+    },
+    onError: (e: any) => {
+      alert(e.message || "Failed to delete invoice.");
     },
   });
 
@@ -171,6 +204,7 @@ function AdminInvoices() {
   });
 
   const resetForm = () => {
+    setEditingInvoiceNumber(null);
     setClientName("");
     setClientEmail("");
     setClientOrg("");
@@ -190,6 +224,32 @@ function AdminInvoices() {
       { name: "Local SEO growth plan", standard_price: "$750/mo", community_price: "$450/mo", description: "Keyword optimization & Google Business Profile management" },
       { name: "SEO + Website care package", standard_price: "$900/mo", community_price: "$550/mo", description: "Complete technical SEO, care & search growth package" },
     ]);
+  };
+
+  const handleEditInvoice = (inv: ClientInvoiceRecord) => {
+    setEditingInvoiceNumber(inv.invoice_number);
+    setClientName(inv.client_name);
+    setClientEmail(inv.client_email);
+    setClientOrg(inv.client_organization || "");
+    setServiceType(inv.service_type || "Web Design");
+    setTitle(inv.title);
+    setDescription(inv.description || "");
+    setOriginalTotal(inv.original_total_cents ? String(inv.original_total_cents / 100) : "");
+    setDiscountAmount(inv.discount_cents ? String(inv.discount_cents / 100) : "");
+    setDueDate(inv.due_date || "");
+    setNotes(inv.notes || "");
+    if (inv.line_items && inv.line_items.length > 0) {
+      setLineItems(
+        inv.line_items.map((item) => ({
+          description: item.description,
+          amount: String(item.amount_cents / 100),
+        })),
+      );
+    }
+    if (inv.add_ons && inv.add_ons.length > 0) {
+      setAddOns(inv.add_ons);
+    }
+    setIsOpen(true);
   };
 
   const handleAddLineItem = () => {
@@ -237,16 +297,16 @@ function AdminInvoices() {
             <ArrowLeft className="h-4 w-4" /> Back to Main Admin
           </Link>
 
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="gap-2 bg-primary text-primary-foreground font-semibold">
+              <Button onClick={() => resetForm()} className="gap-2 bg-primary text-primary-foreground font-semibold">
                 <Plus className="h-4 w-4" /> Create New Invoice
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2 font-serif text-xl">
-                  <Sparkles className="h-5 w-5 text-primary" /> Create Client Invoice
+                  <Sparkles className="h-5 w-5 text-primary" /> {editingInvoiceNumber ? `Edit Invoice #${editingInvoiceNumber}` : "Create Client Invoice"}
                 </DialogTitle>
               </DialogHeader>
 
@@ -259,7 +319,7 @@ function AdminInvoices() {
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  createMutation.mutate();
+                  saveMutation.mutate();
                 }}
                 className="space-y-4 text-sm mt-2"
               >
@@ -463,11 +523,17 @@ function AdminInvoices() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={createMutation.isPending || totalCalculatedCents <= 0}
+                    disabled={saveMutation.isPending || totalCalculatedCents <= 0}
                     className="gap-2 bg-primary text-primary-foreground font-semibold"
                   >
-                    {createMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileText className="h-4 w-4" />}
-                    Create Invoice
+                    {saveMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : editingInvoiceNumber ? (
+                      <Pencil className="h-4 w-4" />
+                    ) : (
+                      <FileText className="h-4 w-4" />
+                    )}
+                    {editingInvoiceNumber ? "Update Invoice" : "Create Invoice"}
                   </Button>
                 </div>
               </form>
@@ -554,7 +620,16 @@ function AdminInvoices() {
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="py-4 px-6 text-right space-x-2">
+                      <td className="py-4 px-6 text-right space-x-1 sm:space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditInvoice(inv)}
+                          className="gap-1 text-xs"
+                          title="Edit Invoice"
+                        >
+                          <Pencil className="h-3.5 w-3.5" /> Edit
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
@@ -572,10 +647,19 @@ function AdminInvoices() {
                           )}
                         </Button>
                         <Link to={`/invoice/${inv.invoice_number}`} target="_blank">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" title="View Public Invoice Page">
                             <ExternalLink className="h-4 w-4" />
                           </Button>
                         </Link>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(inv.invoice_number)}
+                          className="h-8 w-8 text-muted-foreground hover:text-red-500"
+                          title="Delete Invoice"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </td>
                     </tr>
                   ))}

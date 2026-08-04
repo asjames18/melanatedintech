@@ -228,6 +228,97 @@ export const updateInvoiceStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const updateClientInvoice = createServerFn({ method: "POST" })
+  .validator((d: unknown) =>
+    createInvoiceSchema
+      .extend({
+        invoiceNumber: z.string().trim().min(1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data }) => {
+    const { userId } = await requireSupabaseAuth();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: roleRow } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleRow) {
+      throw new Error("Forbidden: Admin access required.");
+    }
+
+    const totalCents = data.line_items.reduce((acc, item) => acc + item.amount_cents, 0);
+    const depositCents = Math.round(totalCents / 2);
+    const finalCents = totalCents - depositCents;
+
+    const updatePayload = {
+      client_name: data.client_name,
+      client_email: data.client_email.toLowerCase(),
+      client_organization: data.client_organization || null,
+      service_type: data.service_type,
+      title: data.title,
+      description: data.description || null,
+      line_items: data.line_items,
+      original_total_cents: data.original_total_cents ?? null,
+      discount_cents: data.discount_cents ?? null,
+      add_ons: data.add_ons ?? [],
+      total_cents: totalCents,
+      deposit_cents: depositCents,
+      final_cents: finalCents,
+      due_date: data.due_date || null,
+      notes: data.notes || null,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: updated, error } = await supabaseAdmin
+      .from("client_invoices" as never)
+      .update(updatePayload as never)
+      .eq("invoice_number" as never, data.invoiceNumber)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("Failed to update invoice", error);
+      throw new Error("Database error while updating invoice.");
+    }
+
+    return updated as unknown as ClientInvoiceRecord;
+  });
+
+export const deleteClientInvoice = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ invoiceNumber: z.string().trim().min(1) }).parse(d))
+  .handler(async ({ data }) => {
+    const { userId } = await requireSupabaseAuth();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: roleRow } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (!roleRow) {
+      throw new Error("Forbidden: Admin access required.");
+    }
+
+    const { error } = await supabaseAdmin
+      .from("client_invoices" as never)
+      .delete()
+      .eq("invoice_number" as never, data.invoiceNumber);
+
+    if (error) {
+      console.error("Failed to delete invoice", error);
+      throw new Error("Database error while deleting invoice.");
+    }
+
+    return { ok: true };
+  });
+
 export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
   .validator(
     (d: unknown) =>

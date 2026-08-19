@@ -9,11 +9,14 @@
     "generate:og": "node scripts/generate-og.mjs",
     "generate:podcast-art": "node scripts/generate-podcast-art.mjs",
     "build:dev": "vite build --mode development",
-    "deploy:cloudflare": "npm run build && npx nitro deploy --prebuilt",
+    "deploy:cloudflare": "npm run check && npx nitro deploy --prebuilt",
     "preview": "npx wrangler dev --config dist/server/wrangler.json",
     "preview:env": "npx wrangler dev --config dist/server/wrangler.json --env-file .env",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit --pretty false",
+    "check": "npm run lint && npm run typecheck && npm run build",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "audit:links": "node scripts/audit-internal-links.mjs"
   },
   "dependencies": {

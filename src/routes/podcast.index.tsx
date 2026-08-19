@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { buildSeoMeta, breadcrumbLd, ldScript, podcastSeriesLd } from "@/lib/seo";
 import {
@@ -19,6 +19,9 @@ const FEED_PATH = "/podcast/feed.xml";
 const FEED_URL = `https://melanatedintech.com${FEED_PATH}`;
 
 export const Route = createFileRoute("/podcast/")({
+  beforeLoad: () => {
+    throw redirect({ to: "/knowledge", statusCode: 302 });
+  },
   head: () => {
     const seo = buildSeoMeta({
       title: "Melanated In Tech Podcast — Weekly AI Audio Deep Dives",

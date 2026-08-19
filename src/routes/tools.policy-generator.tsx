@@ -72,7 +72,7 @@ function PolicyGeneratorPage() {
 
   // Derived Policy Document
   const compiledPolicy = useMemo(() => {
-    let doc = `# ACCEPTABLE AI USE POLICY
+    const doc = `# ACCEPTABLE AI USE POLICY
 **Organization:** ${orgName.trim() || "Organization"}
 **Classification:** ${orgType}
 **Effective Date:** ${effectiveDate}

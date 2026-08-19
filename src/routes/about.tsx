@@ -8,7 +8,7 @@ export const Route = createFileRoute("/about")({
     ...buildSeoMeta({
       title: "About — Melanated In Tech",
       description:
-        "Melanated In Tech was founded by Antonio James to make the AI agent economy accessible — for the builders, entrepreneurs, churches, and small teams usually left out of waves like this one.",
+        "Melanated In Tech builds practical revenue-recovery automation for service businesses while making AI knowledge, tools, and opportunity more accessible.",
       url: "/about",
     }),
   }),
@@ -20,8 +20,8 @@ function About() {
     <SiteLayout>
       <PageHeader
         eyebrow="About"
-        title="Helping people participate in the AI agent generation."
-        description="Melanated In Tech exists so the people usually left out of technology waves get to build, own, and benefit from this one."
+        title="Practical automation built around real business outcomes."
+        description="We help service businesses recover missed opportunities, follow up consistently, and retain more customers—while keeping AI education and opportunity accessible."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
@@ -42,41 +42,73 @@ function About() {
           <div className="prose prose-slate dark:prose-invert mt-6 max-w-none text-[15px] leading-relaxed">
             <p>
               I work in technology for a living — keeping the systems running that real people
-              depend on every day. And like a lot of us, I watched the AI wave arrive and noticed
-              the same old pattern forming: the tools, the money, and the know-how pooling in the
-              same places they always do, while everyone else gets told to wait for the summary.
+              depend on every day. That taught me that useful technology is not measured by how
+              impressive it sounds. It is measured by whether it solves a real operating problem.
             </p>
             <p>
-              I built Melanated In Tech because I didn't want to watch that happen again. AI agents
-              are going to change how work gets done — for businesses, for churches, for solo
-              builders with more ideas than hours. The people I come from shouldn't be the last to
-              benefit from that. They should be building it.
+              I built Melanated In Tech to help owner-led service businesses put automation to work
+              where revenue is commonly lost: unanswered inquiries, unfinished estimates, route
+              customers who never become recurring customers, and clients who do not rebook.
             </p>
             <p>
-              So this site is the place I wished existed: real agents you can use, guides written
-              plainly, tools that work in your browser, and a straight answer about what things
-              cost. No gatekeeping, no hype, no jargon walls.
+              We start with one defined leak, build a focused recovery workflow, and measure the
+              activity it influences. The goal is not to replace the people who run the business. It
+              is to give them a more dependable system for responding, following up, and knowing
+              when a person needs to take over.
             </p>
             <p>
-              If you're here early — welcome. You're not late to AI. You're right on time.
+              The larger mission remains the same: the people and communities usually left out of
+              technology waves should be able to build, own, and benefit from this one. That is why
+              the marketplace, knowledge hub, podcast, products, and interactive tools remain part
+              of Melanated In Tech.
             </p>
           </div>
         </div>
 
         <div className="prose prose-slate dark:prose-invert mt-14 max-w-none">
+          <h2>What we build</h2>
+          <p>
+            Our recovery systems support urgent-call businesses, estimate-driven contractors,
+            recurring property services, and appointment-based beauty businesses. A typical
+            engagement begins with a fixed-scope 30-Day Recovery Pilot and can continue with managed
+            monitoring and optimization when ongoing support makes sense.
+          </p>
+          <p>
+            We are based in Sebring, Florida, with an initial focus on Highlands County and Florida
+            service businesses. Qualified businesses throughout the United States can also work with
+            us.
+          </p>
+
           <h2>What we believe</h2>
           <ul>
-            <li>AI agents are the next operating layer for work — not just chat.</li>
+            <li>Business outcomes come before technology labels.</li>
+            <li>Critical pricing, consent, scheduling, and escalation rules should be explicit.</li>
+            <li>Automation should support people and make human takeover clear.</li>
             <li>Access matters. Knowledge, tools, and opportunity should not be gatekept.</li>
             <li>Stewardship matters. We build with ethics, transparency, and care.</li>
-            <li>Doing beats talking. Everything on this site exists to help someone ship.</li>
           </ul>
 
           <h2>How we measure success</h2>
           <p>
-            We succeed when you can learn agent concepts with confidence, build something useful,
-            put it to work in your business or organization, and keep the value it creates.
+            We succeed when a client can see what the system did, where a person intervened, and
+            which inquiries, bookings, estimates, reactivations, or recurring customers it
+            influenced. We do not promise revenue; we build for measurable, responsible execution.
           </p>
+        </div>
+
+        <div className="mt-10 rounded-2xl border border-primary/20 bg-primary/5 p-6 sm:flex sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display text-xl font-semibold">Have a revenue leak worth fixing?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Tell us where follow-up is breaking down and see the most relevant recovery system.
+            </p>
+          </div>
+          <Link
+            to="/get-a-demo"
+            className="mt-4 inline-flex rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground sm:mt-0"
+          >
+            Get a Demo
+          </Link>
         </div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2">

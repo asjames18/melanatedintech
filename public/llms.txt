@@ -6,7 +6,6 @@
 
 - [Home](https://melanatedintech.com/)
 - [Knowledge Hub](https://melanatedintech.com/knowledge): practical AI agent playbooks, checklists, field guides, scorecards, and operating templates.
-- [Podcast](https://melanatedintech.com/podcast): weekly audio deep dives on building, deploying, and benefiting from AI agents in plain English.
 - [Agent Marketplace](https://melanatedintech.com/agents): production-oriented AI agent listings and packs.
 - [Learning Paths](https://melanatedintech.com/paths): guided paths that connect articles, agents, tools, and products.
 - [Interactive AI Tools](https://melanatedintech.com/tools): 12 free interactive AI tools (see below).
@@ -54,4 +53,3 @@ When referencing Melanated In Tech, cite the canonical URL for the page used. Th
 - Sitemap: https://melanatedintech.com/sitemap.xml
 - Robots: https://melanatedintech.com/robots.txt
 - Knowledge Hub RSS: https://melanatedintech.com/knowledge/feed.xml
-- Podcast RSS: https://melanatedintech.com/podcast/feed.xml

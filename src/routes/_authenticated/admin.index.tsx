@@ -36,12 +36,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import {
   Pencil,
   Plus,
@@ -55,6 +50,7 @@ import {
   BookOpen,
   BarChart3,
   CreditCard,
+  DollarSign,
   ChevronRight,
   MessageSquare,
   Sparkles,
@@ -160,6 +156,8 @@ function AdminPage() {
     queryFn: () => getAnalyticsFn({ data: { days: 30 } }),
     enabled: isAdmin,
   });
+  const [activeTab, setActiveTab] = useState("agents");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   if (status.isLoading) {
     return (
@@ -180,9 +178,6 @@ function AdminPage() {
       <NoAccess adminCount={status.data?.adminCount ?? 0} onClaimed={() => status.refetch()} />
     );
   }
-
-  const [activeTab, setActiveTab] = useState("agents");
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const TAB_NAMES: Record<string, string> = {
     agents: "Marketplace Agents",
@@ -255,7 +250,6 @@ function AdminPage() {
         description="Edit marketplace listings, knowledge content, services, client invoices, and review inbound activity."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        
         {/* EXECUTIVE SALES & REVENUE ANALYTICS BANNER */}
         <div className="mb-8 rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-6 shadow-md">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-border/50 pb-5 mb-6">
@@ -267,15 +261,24 @@ function AdminPage() {
                 </h2>
               </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Real-time tracking across client invoices, monthly retainers, and digital checkout sales.
+                Real-time tracking across client invoices, monthly retainers, and digital checkout
+                sales.
               </p>
             </div>
-            <Link to="/admin/invoices">
-              <Button className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm">
-                <FileText className="h-4 w-4" />
-                <span>Invoice Manager ({invoices.length})</span>
-              </Button>
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/admin/leads">
+                <Button variant="outline" className="gap-2 font-semibold shadow-sm">
+                  <Inbox className="h-4 w-4" />
+                  <span>Recovery Leads</span>
+                </Button>
+              </Link>
+              <Link to="/admin/invoices">
+                <Button className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm">
+                  <FileText className="h-4 w-4" />
+                  <span>Invoice Manager ({invoices.length})</span>
+                </Button>
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -286,7 +289,10 @@ function AdminPage() {
                 <DollarSign className="h-4 w-4 text-emerald-500" />
               </div>
               <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
-                ${(combinedGrossRevenueCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                $
+                {(combinedGrossRevenueCents / 100).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                })}
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
                 Digital sales + paid client deposits/invoices
@@ -300,10 +306,14 @@ function AdminPage() {
                 <FileText className="h-4 w-4 text-blue-500" />
               </div>
               <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
-                ${(paidInvoiceRevenueCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                $
+                {(paidInvoiceRevenueCents / 100).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                })}
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
-                ${(pendingInvoiceCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })} pending collection
+                ${(pendingInvoiceCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}{" "}
+                pending collection
               </p>
             </div>
 
@@ -314,7 +324,11 @@ function AdminPage() {
                 <CreditCard className="h-4 w-4 text-purple-500" />
               </div>
               <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
-                ${(monthlyRetainerMRRCents / 100).toLocaleString("en-US", { minimumFractionDigits: 2 })}<span className="text-xs font-normal text-muted-foreground">/mo</span>
+                $
+                {(monthlyRetainerMRRCents / 100).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                })}
+                <span className="text-xs font-normal text-muted-foreground">/mo</span>
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
                 Client-selected post-launch Care & SEO
@@ -412,29 +426,38 @@ function AdminPage() {
         </div>
 
         {/* SIDEBAR NAVIGATION GRID */}
-        <Tabs value={activeTab} onValueChange={(val) => {
-          setActiveTab(val);
-          setSheetOpen(false);
-        }} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(val) => {
+            setActiveTab(val);
+            setSheetOpen(false);
+          }}
+          className="w-full"
+        >
           {/* MOBILE NAVIGATION BAR (Visible on mobile/tablet, hidden on desktop) */}
           <div className="flex items-center justify-between lg:hidden bg-card border border-border rounded-2xl p-3 mb-6 shadow-sm">
             <div className="flex items-center gap-2 px-1">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Section:
               </span>
-              <span className="text-sm font-bold text-primary">
-                {activeTabDisplayName}
-              </span>
+              <span className="text-sm font-bold text-primary">{activeTabDisplayName}</span>
             </div>
 
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1.5 rounded-xl cursor-pointer">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1.5 rounded-xl cursor-pointer"
+                >
                   <Menu className="h-4 w-4" />
                   <span>Navigate</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-6 overflow-y-auto bg-card border-r border-border">
+              <SheetContent
+                side="left"
+                className="w-[300px] p-6 overflow-y-auto bg-card border-r border-border"
+              >
                 <SheetTitle className="font-display text-base font-bold text-foreground mb-4">
                   Admin Navigation
                 </SheetTitle>
@@ -468,12 +491,10 @@ function AdminPage() {
                       >
                         <Server className="h-4 w-4 mr-3" /> Professional Services
                       </TabsTrigger>
-
                       <hr className="my-2 border-border" />
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 mb-1">
                         Inbound Activity
                       </p>
-
                       <TabsTrigger
                         value="submissions"
                         className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
@@ -525,18 +546,17 @@ function AdminPage() {
                             {purchases.length}
                           </span>
                         )}
-                      </TabsTrigger>                      <TabsTrigger
+                      </TabsTrigger>{" "}
+                      <TabsTrigger
                         value="community"
                         className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                       >
                         <MessageSquare className="h-4 w-4 mr-3" /> Community Moderation
                       </TabsTrigger>
-
                       <hr className="my-2 border-border" />
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 mb-1">
                         Performance
                       </p>
-
                       <TabsTrigger
                         value="analytics"
                         className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
@@ -566,7 +586,9 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl animate-none"
                     >
-                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)}>Catalog verification â†’</Link>
+                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)}>
+                        Catalog verification â†’
+                      </Link>
                     </Button>
                     <Button
                       asChild
@@ -574,7 +596,9 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl mt-1.5 animate-none"
                     >
-                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)}>View full analytics â†’</Link>
+                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)}>
+                        View full analytics â†’
+                      </Link>
                     </Button>
                   </div>
                 </div>
@@ -614,12 +638,10 @@ function AdminPage() {
                   >
                     <Server className="h-4 w-4 mr-3" /> Professional Services
                   </TabsTrigger>
-
                   <hr className="my-2 border-border" />
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 mb-2">
                     Inbound Activity
                   </p>
-
                   <TabsTrigger
                     value="submissions"
                     className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
@@ -671,18 +693,17 @@ function AdminPage() {
                         {purchases.length}
                       </span>
                     )}
-                  </TabsTrigger>                  <TabsTrigger
+                  </TabsTrigger>{" "}
+                  <TabsTrigger
                     value="community"
                     className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                   >
                     <MessageSquare className="h-4 w-4 mr-3" /> Community Moderation
                   </TabsTrigger>
-
                   <hr className="my-2 border-border" />
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-3 mb-2">
                     Performance
                   </p>
-
                   <TabsTrigger
                     value="analytics"
                     className="flex justify-start items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
@@ -1604,7 +1625,6 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
   );
 }
 
-
 type PurchaseRow = Awaited<ReturnType<typeof adminListPurchases>>[number];
 
 function PurchasesPanel() {
@@ -1681,7 +1701,15 @@ function PurchasesPanel() {
         loading={q.isLoading}
         rows={rows}
         searchPlaceholder="Search buyer, seller, item, slug, Stripe session..."
-        searchFields={["buyer_name", "user_id", "seller_name", "item_name", "slug", "stripe_session_id", "environment"]}
+        searchFields={[
+          "buyer_name",
+          "user_id",
+          "seller_name",
+          "item_name",
+          "slug",
+          "stripe_session_id",
+          "environment",
+        ]}
         columns={[
           {
             header: "When",
@@ -1707,7 +1735,9 @@ function PurchasesPanel() {
             cell: (r) => (
               <div>
                 <div className="font-medium">{r.buyer_name ?? "Unknown buyer"}</div>
-                <div className="font-mono text-[11px] text-muted-foreground">{r.user_id.slice(0, 8)}…</div>
+                <div className="font-mono text-[11px] text-muted-foreground">
+                  {r.user_id.slice(0, 8)}…
+                </div>
               </div>
             ),
           },
@@ -2625,22 +2655,24 @@ function PublishBadge({
   status,
   scheduledAt,
 }: {
-  status: PublishStatus;
+  status: string;
   scheduledAt: string | null;
 }) {
+  const publishStatus: PublishStatus =
+    status === "published" || status === "scheduled" ? status : "draft";
   const live =
-    status === "published" ||
-    (status === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
+    publishStatus === "published" ||
+    (publishStatus === "scheduled" && scheduledAt && new Date(scheduledAt) <= new Date());
   const tone =
-    status === "published"
+    publishStatus === "published"
       ? "bg-accent2/15 text-accent2 ring-accent2/30"
-      : status === "scheduled"
+      : publishStatus === "scheduled"
         ? "bg-amber-500/15 text-amber-600 ring-amber-500/30 dark:text-amber-400"
         : "bg-muted text-muted-foreground ring-border";
   const label =
-    status === "published"
+    publishStatus === "published"
       ? "Published"
-      : status === "scheduled"
+      : publishStatus === "scheduled"
         ? scheduledAt
           ? live
             ? "Live (scheduled)"

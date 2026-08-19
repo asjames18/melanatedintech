@@ -138,6 +138,22 @@ const BUILTIN_SERVERS: McpServerOption[] = [
     envKeys: [],
     description: "Perform lightweight SQL database inspection and analytics.",
   },
+  {
+    id: "gdrive",
+    name: "Google Drive & Workspace",
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-gdrive"],
+    envKeys: ["GDRIVE_CLIENT_ID", "GDRIVE_CLIENT_SECRET"],
+    description: "Access, read, and search Google Docs, Sheets, and Drive files.",
+  },
+  {
+    id: "supabase",
+    name: "Supabase Database & Auth",
+    command: "npx",
+    args: ["-y", "@supabase/mcp-server-supabase"],
+    envKeys: ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    description: "Query Supabase tables, manage auth policies, and view storage buckets.",
+  },
 ];
 
 function McpBuilderPage() {

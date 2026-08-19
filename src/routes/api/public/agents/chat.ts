@@ -77,12 +77,18 @@ export const Route = createFileRoute("/api/public/agents/chat")({
         }
 
         // Identify the caller (optional) and rate-limit by IP + identity.
-        const { allowRequest, getClientIp, getCallerUserId } =
+        const { allowPersistentRequest, getClientIp, getCallerUserId } =
           await import("@/lib/request-guard.server");
         const userId = await getCallerUserId(request);
         const ip = getClientIp(request.headers);
         const rate = userId ? RATE_AUTHED : RATE_ANON;
-        if (!allowRequest(`chat:${ip}:${userId ?? "anon"}`, rate.max, rate.windowMs)) {
+        if (
+          !(await allowPersistentRequest(
+            `chat:${ip}:${userId ?? "anon"}`,
+            rate.max,
+            rate.windowMs,
+          ))
+        ) {
           return Response.json(
             { error: "Too many requests — please slow down and try again in a minute." },
             { status: 429 },

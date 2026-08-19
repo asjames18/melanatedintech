@@ -138,17 +138,28 @@ function AiPlaybookPage() {
                 Build my playbook
               </Button>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-              <span>Try:</span>
-              {EXAMPLE_NICHES.map((n) => (
-                <button
-                  key={n}
-                  onClick={() => generate(n)}
-                  className="rounded-full bg-secondary px-2.5 py-0.5 text-xs text-secondary-foreground transition-colors hover:bg-muted"
-                >
-                  {n}
-                </button>
-              ))}
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">Browse by Sector:</span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: "HVAC & Plumbing", niche: "hvac contractor" },
+                  { label: "Realtors & Real Estate", niche: "realtor" },
+                  { label: "Ministry & Non-Profit", niche: "ministry leader" },
+                  { label: "Wedding Photographers", niche: "wedding photographer" },
+                  { label: "Fitness & Wellness", niche: "fitness coach" },
+                  { label: "Lawyers & Legal", niche: "attorney" },
+                  { label: "Software Engineers", niche: "software developer" },
+                  { label: "Campus IT", niche: "helpdesk technician" },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    onClick={() => generate(item.niche)}
+                    className="rounded-full border border-border bg-secondary/60 px-3 py-1 text-xs font-medium text-secondary-foreground transition-all hover:bg-primary hover:text-primary-foreground hover:border-primary"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>

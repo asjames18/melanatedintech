@@ -1,14 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { ArrowRight, BookOpen, Bot, PackageOpen } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
-import { WaitlistForm } from "@/components/waitlist-form";
-import { CommunityStrip } from "@/components/community-strip";
+import { SystemDemo } from "@/components/system-demo";
+import {
+  CommercialTrust,
+  EngagementProcess,
+  PilotOffer,
+  SystemsGrid,
+} from "@/components/system-sections";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
-import { PILLARS } from "@/lib/site";
+import { SOLUTIONS } from "@/lib/service-systems";
 import { buildSeoMeta } from "@/lib/seo";
-import { ArrowRight, Compass, ShieldCheck, Wrench } from "lucide-react";
 
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
@@ -17,9 +22,9 @@ const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listPro
 export const Route = createFileRoute("/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Melanated In Tech — The home for AI agents",
+      title: "Revenue Recovery Automation for Service Businesses | Melanated In Tech",
       description:
-        "Marketplace, knowledge hub, products, and services for people building, deploying, and benefiting from AI agents.",
+        "Practical lead, estimate, route, and client recovery systems for local service businesses. Based in Sebring, Florida and serving qualified teams nationwide.",
       url: "/",
     }),
   }),
@@ -30,42 +35,14 @@ export const Route = createFileRoute("/")({
       context.queryClient.ensureQueryData(productsQO),
     ]);
   },
-  errorComponent: ({ error }) => (
-    <SiteLayout>
-      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
-    </SiteLayout>
-  ),
-  notFoundComponent: () => (
-    <SiteLayout>
-      <div className="p-12">Not found.</div>
-    </SiteLayout>
-  ),
   component: Home,
 });
-
-const TRUST = [
-  {
-    Icon: Wrench,
-    title: "Built by operators, not theorists",
-    body: "Every agent and guide comes from real deployments — patterns we run in production, not slideware.",
-  },
-  {
-    Icon: ShieldCheck,
-    title: "Production-tested patterns",
-    body: "Memory, tools, guardrails, and evals baked in — so what you ship is reliable, not a demo that breaks on day two.",
-  },
-  {
-    Icon: Compass,
-    title: "Stewardship-first for ministries",
-    body: "Practical AI for churches and nonprofits, with the ethics and guardrails the mission deserves.",
-  },
-];
 
 function Home() {
   const { data: agents } = useSuspenseQuery(agentsQO);
   const { data: articles } = useSuspenseQuery(articlesQO);
   const { data: products } = useSuspenseQuery(productsQO);
-  const featuredAgents = agents.filter((a) => a.featured).slice(0, 4);
+  const featuredAgents = agents.filter((agent) => agent.featured).slice(0, 4);
   const topArticles = articles.slice(0, 3);
   const topProducts = products.slice(0, 3);
 
@@ -73,90 +50,26 @@ function Home() {
     <SiteLayout>
       <Hero />
 
-      {/* Featured agents */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                Featured agents
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                Production-ready AI agents.
-              </h2>
-              <p className="mt-2 max-w-xl text-muted-foreground">
-                Hand-picked agents that solve real problems for ministries, businesses, sales teams,
-                and creators.
-              </p>
-            </div>
-            <Link
-              to="/agents"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-            >
-              All agents <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {featuredAgents.map((a) => (
-              <AgentCard key={a.id} {...a} tier={a.tier} capabilities={a.capabilities} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Trust — honest credibility band with real catalog stats */}
-      <section className="border-b border-border bg-muted/30">
+      <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                Why builders trust us
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                A real catalog, not a landing page.
-              </h2>
-              <div className="mt-6 flex flex-wrap gap-6">
-                <Stat value={`${agents.length}`} label="AI agents" />
-                <Stat value={`${articles.length}`} label="field guides" />
-                <Stat value={`${products.length}`} label="digital products" />
-              </div>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {TRUST.map(({ Icon, title, body }) => (
-                <div key={title} className="rounded-2xl border border-border bg-card p-5">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-3 font-display text-base font-semibold">{title}</h3>
-                  <p className="mt-1.5 text-sm text-muted-foreground">{body}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pillars — all about agents */}
-      <section className="border-b border-border bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-primary">The platform</p>
-          <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
-            One focus: AI agents.
-          </h2>
-          <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {PILLARS.map((p) => (
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            Choose your service model
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {SOLUTIONS.map((solution) => (
               <Link
-                key={p.title}
-                to={p.href}
-                className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                key={solution.slug}
+                to="/solutions/$slug"
+                params={{ slug: solution.slug }}
+                className="group rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-md"
               >
-                <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  {p.tag}
-                </span>
-                <h3 className="mt-2 font-display text-xl font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{p.blurb}</p>
-                <span className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                  Explore{" "}
-                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                <h2 className="font-display text-lg font-semibold">{solution.title}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {solution.description}
+                </p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  See your use cases{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
             ))}
@@ -164,99 +77,177 @@ function Home() {
         </div>
       </section>
 
-      {/* Digital products */}
-      {topProducts.length > 0 && (
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-            <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                  Digital products
-                </p>
-                <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                  Ship agents faster.
-                </h2>
-                <p className="mt-2 max-w-xl text-muted-foreground">
-                  Starter kits, blueprints, prompt libraries, and memory systems — lift and adapt.
-                </p>
-              </div>
-              <Link
-                to="/products"
-                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-              >
-                All products <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {topProducts.map((p) => (
-                <ProductCard key={p.id} {...p} />
-              ))}
-            </div>
+      <section className="border-b border-border">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Revenue is already leaking
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              The opportunity is often in the follow-up.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Advertising creates demand. Recovery systems help your team act on it—without asking
+              staff to remember every missed call, estimate, renewal, cancellation, or rebooking
+              window.
+            </p>
           </div>
-        </section>
-      )}
+          <CommercialTrust />
+        </div>
+      </section>
 
-      {/* Knowledge */}
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Four focused systems
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              Start with the revenue leak you can measure.
+            </h2>
+          </div>
+          <div className="mt-10">
+            <SystemsGrid />
+          </div>
+        </div>
+      </section>
+
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="mb-9 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Interactive workflow preview
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              See the handoffs before we touch your software.
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              Choose a scenario and step through the customer, system, and team experience.
+            </p>
+          </div>
+          <SystemDemo compact />
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <PilotOffer />
+        </div>
+      </section>
+
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we work</p>
+          <h2 className="mt-2 font-display text-3xl font-semibold">
+            From qualification to optimization.
+          </h2>
+          <div className="mt-8">
+            <EngagementProcess />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-primary">
-                Knowledge hub
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                The broader platform
               </p>
               <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                Field notes from people shipping agents.
+                Tools and knowledge behind the work.
               </h2>
+              <p className="mt-3 max-w-2xl text-muted-foreground">
+                Explore the existing agent marketplace, practical field guides, and digital products
+                that make Melanated In Tech more than a services landing page.
+              </p>
             </div>
             <Link
               to="/knowledge"
-              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
             >
-              All articles <ArrowRight className="h-4 w-4" />
+              Explore the knowledge hub <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {topArticles.map((a) => (
-              <ArticleCard key={a.id} {...a} />
+          <div className="mt-9 grid gap-4 sm:grid-cols-3">
+            {[
+              { Icon: Bot, label: `${agents.length} AI agents`, to: "/agents" as const },
+              {
+                Icon: BookOpen,
+                label: `${articles.length} field guides`,
+                to: "/knowledge" as const,
+              },
+              {
+                Icon: PackageOpen,
+                label: `${products.length} digital products`,
+                to: "/products" as const,
+              },
+            ].map(({ Icon, label, to }) => (
+              <Link
+                key={to}
+                to={to}
+                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-5 font-display text-lg font-semibold hover:border-primary/40"
+              >
+                <Icon className="h-5 w-5 text-primary" /> {label}
+              </Link>
             ))}
           </div>
+          {featuredAgents.length > 0 && (
+            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {featuredAgents.map((agent) => (
+                <AgentCard
+                  key={agent.id}
+                  {...agent}
+                  tier={agent.tier}
+                  capabilities={agent.capabilities}
+                />
+              ))}
+            </div>
+          )}
+          {topProducts.length > 0 && (
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {topProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+          )}
+          {topArticles.length > 0 && (
+            <div className="mt-10 grid gap-5 md:grid-cols-3">
+              {topArticles.map((article) => (
+                <ArticleCard key={article.id} {...article} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Community */}
-      <CommunityStrip />
-
-      {/* Waitlist */}
       <section>
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl border border-border bg-foreground p-6 text-background sm:p-14">
-            <div className="bg-grid absolute inset-0 opacity-[0.08]" />
-            <div className="relative grid gap-8 lg:grid-cols-2 lg:items-center">
+          <div className="relative overflow-hidden rounded-3xl bg-foreground p-7 text-background sm:p-12">
+            <div className="bg-grid absolute inset-0 opacity-10" />
+            <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-center">
               <div>
-                <h2 className="font-display text-3xl font-semibold sm:text-4xl">
-                  Join the agent builder waitlist.
+                <p className="text-xs font-semibold uppercase tracking-wider text-background/60">
+                  One clear next step
+                </p>
+                <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
+                  Show us where revenue gets stuck.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm text-background/70">
-                  Be first to access new agents, blueprints, and the builder community. No spam —
-                  just what's worth your time.
+                <p className="mt-3 max-w-2xl text-background/70">
+                  Complete the short qualification form and see the demonstration that matches your
+                  service model.
                 </p>
               </div>
-              <div className="lg:justify-self-end lg:w-full lg:max-w-md">
-                <WaitlistForm source="home" />
-              </div>
+              <Link
+                to="/get-a-demo"
+                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground"
+              >
+                Get a relevant demo <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
     </SiteLayout>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-3xl font-semibold text-foreground">{value}</div>
-      <div className="mt-0.5 text-sm text-muted-foreground">{label}</div>
-    </div>
   );
 }

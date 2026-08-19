@@ -1,7 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,18 +90,21 @@ function AuthPage() {
 
   async function onGoogle() {
     try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+      setLoading(true);
+      const redirectTo = new URL("/auth", window.location.origin).toString();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
       });
-      if (result.error) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const msg = (result.error as any)?.message ?? String(result.error);
-        toast.error(friendlyAuthError(msg, mode));
-        return;
-      }
-      if (result.redirected) return;
-      navigate({ to: "/account" });
+      if (error) throw error;
+      if (!data.url) throw new Error("Google sign-in could not be started.");
+
+      window.location.assign(data.url);
     } catch (err) {
+      setLoading(false);
       toast.error(friendlyAuthError(err instanceof Error ? err.message : "", mode));
     }
   }
@@ -147,8 +149,8 @@ function AuthPage() {
             </div>
 
             <div className="mt-8 rounded-2xl border border-border bg-card p-6">
-              <Button type="button" variant="outline" className="w-full" onClick={onGoogle}>
-                Continue with Google
+              <Button type="button" variant="outline" className="w-full" onClick={onGoogle} disabled={loading}>
+                {loading ? "Opening Google…" : "Continue with Google"}
               </Button>
               <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
                 <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />

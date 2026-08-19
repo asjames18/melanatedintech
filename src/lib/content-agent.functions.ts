@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
+type JsonObject = { [key: string]: JsonValue };
+
 const decisionSchema = z.enum(["refresh", "consolidate", "create", "reject"]);
 const clusterSchema = z.enum([
   "beginners",
@@ -103,7 +106,7 @@ export type ContentPacketEvent = {
   actor_id: string | null;
   from_status: string | null;
   to_status: string | null;
-  details: Record<string, unknown>;
+  details: JsonObject;
   created_at: string;
 };
 
@@ -119,14 +122,14 @@ export type ContentReviewRow = {
   reader_outcome: string | null;
   primary_url: string | null;
   packet: ContentPacket | Record<string, never>;
-  source_annotations: Array<Record<string, unknown>>;
+  source_annotations: JsonObject[];
   validation_errors: string[];
   provider: string;
   model_requested: string | null;
   model_used: string | null;
   provider_request_id: string | null;
   prompt_version: string;
-  usage: Record<string, unknown>;
+  usage: JsonObject;
   duration_ms: number | null;
   failure_code: string | null;
   failure_message: string | null;
@@ -647,9 +650,9 @@ async function callContentAgent(args: {
     const data = (await response.json()) as {
       id?: string;
       model?: string;
-      usage?: Record<string, unknown>;
+      usage?: JsonObject;
       choices?: Array<{
-        message?: { content?: string; annotations?: Array<Record<string, unknown>> };
+        message?: { content?: string; annotations?: JsonObject[] };
       }>;
     };
     const message = data.choices?.[0]?.message;

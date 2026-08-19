@@ -62,13 +62,22 @@ export const Route = createFileRoute("/tools/model-playground")({
   component: ModelPlaygroundPage,
 });
 
-const FREE_MODELS = [
-  { id: "openrouter/openrouter/free", name: "Auto Free Router" },
-  { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B" },
-  { id: "google/gemini-2.5-flash:free", name: "Gemini 2.5 Flash" },
-  { id: "deepseek/deepseek-chat:free", name: "DeepSeek V3" },
-  { id: "deepseek/deepseek-r1:free", name: "DeepSeek R1" },
-  { id: "qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B" },
+export interface ModelSpec {
+  id: string;
+  name: string;
+  contextWindow: string;
+  speed: string;
+  pricing: string;
+  specialty: string;
+}
+
+const FREE_MODELS: ModelSpec[] = [
+  { id: "google/gemini-2.5-flash:free", name: "Gemini 2.5 Flash", contextWindow: "1,000,000", speed: "~150 tok/s", pricing: "$0.15 / 1M tokens", specialty: "Fast Chat & Huge Context" },
+  { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B", contextWindow: "128,000", speed: "~85 tok/s", pricing: "$0.40 / 1M tokens", specialty: "Open Source Generalist" },
+  { id: "deepseek/deepseek-chat:free", name: "DeepSeek V3", contextWindow: "64,000", speed: "~95 tok/s", pricing: "$0.14 / 1M tokens", specialty: "Coding & General Intelligence" },
+  { id: "deepseek/deepseek-r1:free", name: "DeepSeek R1", contextWindow: "64,000", speed: "~45 tok/s", pricing: "$0.55 / 1M tokens", specialty: "Chain of Thought Reasoning" },
+  { id: "qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B", contextWindow: "128,000", speed: "~80 tok/s", pricing: "$0.35 / 1M tokens", specialty: "Multilingual & Complex Tasks" },
+  { id: "openrouter/openrouter/free", name: "Auto Free Router", contextWindow: "Dynamic", speed: "Variable", pricing: "Free Auto-Selection", specialty: "Fallback Routing" },
 ];
 
 const PRESET_BENCHMARKS = [
@@ -401,7 +410,9 @@ function ModelPlaygroundPage() {
           {/* Comparison Deck (Right Column) */}
           <div className="lg:col-span-8">
             <div className="grid gap-4 md:grid-cols-3">
-              {columns.map((col, index) => (
+              {columns.map((col, index) => {
+                const spec = FREE_MODELS.find((m) => m.id === col.model);
+                return (
                 <div key={index} className="flex flex-col space-y-4">
                   {/* Select Model Dropdown */}
                   <div className="space-y-2">
@@ -424,6 +435,25 @@ function ModelPlaygroundPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {spec && (
+                      <div className="rounded-lg border border-border/60 bg-muted/30 p-2.5 space-y-1 text-[11px]">
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span>Context:</span>
+                          <span className="font-semibold text-foreground">{spec.contextWindow}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span>Est. Speed:</span>
+                          <span className="font-semibold text-foreground">{spec.speed}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span>Rate Tier:</span>
+                          <span className="font-semibold text-foreground">{spec.pricing}</span>
+                        </div>
+                        <div className="mt-1 pt-1 border-t border-border/40 text-[10px] font-medium text-primary">
+                          ✨ {spec.specialty}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Output Card */}
@@ -502,7 +532,8 @@ function ModelPlaygroundPage() {
                     )}
                   </Card>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             <ToolCrossSell tool="model-playground" />

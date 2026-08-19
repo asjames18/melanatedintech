@@ -83,26 +83,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#3a2f24" },
-      { title: "Melanated In Tech - The home for AI agents" },
+      { title: "Melanated In Tech - Revenue Recovery Systems" },
       {
         name: "description",
         content:
-          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+          "Lead, estimate, route, and client recovery systems for local service businesses, plus practical AI tools and knowledge.",
       },
       { name: "author", content: "Melanated In Tech" },
-      { property: "og:title", content: "Melanated In Tech - The home for AI agents" },
+      { property: "og:title", content: "Melanated In Tech - Revenue Recovery Systems" },
       {
         property: "og:description",
-        content:
-          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+        content: "Practical revenue recovery automation for local service businesses.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Melanated In Tech - The home for AI agents" },
+      { name: "twitter:title", content: "Melanated In Tech - Revenue Recovery Systems" },
       {
         name: "twitter:description",
-        content:
-          "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+        content: "Practical revenue recovery automation for local service businesses.",
       },
       {
         property: "og:image",

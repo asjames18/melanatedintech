@@ -3,9 +3,96 @@ import { z } from "zod";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+const ALLOWED_PUBLIC_EVENTS = new Set([
+  "ab_tester_run",
+  "agent_architect_action",
+  "agent_clicked",
+  "ai_playbook_generated",
+  "ai_playbook_prompt_copied",
+  "ai_playbook_send_to_pilot",
+  "checkout_started",
+  "contact_submission_completed",
+  "content_shared",
+  "custom_agent_build_application_started",
+  "custom_agent_build_viewed",
+  "demo_completed",
+  "demo_cta_clicked",
+  "demo_requested",
+  "demo_started",
+  "deposit_paid",
+  "deposit_started",
+  "eval_studio_run",
+  "final_payment_started",
+  "fit_finder_completed",
+  "fit_finder_recommendation_clicked",
+  "fit_finder_started",
+  "fit_finder_viewed",
+  "funnel_landing_viewed",
+  "gpt_trainer_action",
+  "guide_message_sent",
+  "lead_qualified",
+  "mcp_builder_action",
+  "ministry_ai_application_started",
+  "ministry_ai_implementation_viewed",
+  "model_playground_run",
+  "pilot_converted_to_managed",
+  "pilot_launched",
+  "policy_generator_action",
+  "product_clicked",
+  "prompt_pilot_action",
+  "proposal_sent",
+  "purchase_completed",
+  "rag_chunker_export",
+  "recommendation_click",
+  "recommendation_impression",
+  "recommendation_reason_click",
+  "roi_calculator_share",
+  "service_model_selected",
+  "service_page_viewed",
+  "sop_generator_action",
+  "start_small_viewed",
+  "starter_kit_downloaded",
+  "starter_kit_email_captured",
+  "strategy_sprint_application_started",
+  "strategy_sprint_application_submitted",
+  "strategy_sprint_clicked",
+  "strategy_sprint_viewed",
+  "systems_page_viewed",
+  "team_ai_workshop_application_started",
+  "team_ai_workshop_viewed",
+  "tool_card_clicked",
+  "tool_cross_sell_clicked",
+  "unlock_clicked",
+  "waitlist_joined",
+]);
+
+const SENSITIVE_PROP_KEYS = /(^|_)(email|phone|name|message|content|address)($|_)/i;
+
+function containsSensitiveProp(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  if (Array.isArray(value)) return value.some(containsSensitiveProp);
+  return Object.entries(value).some(
+    ([key, nested]) => SENSITIVE_PROP_KEYS.test(key) || containsSensitiveProp(nested),
+  );
+}
+
+const analyticsPropsSchema = z.record(z.string(), z.unknown()).superRefine((props, ctx) => {
+  if (containsSensitiveProp(props)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Analytics properties may not contain PII." });
+  }
+  if (JSON.stringify(props).length > 4_096) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Analytics properties are too large." });
+  }
+});
+
 const eventSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  props: z.record(z.string(), z.unknown()).default({}),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .refine((name) => ALLOWED_PUBLIC_EVENTS.has(name), "Unsupported analytics event."),
+  props: analyticsPropsSchema.default({}),
   session_id: z.string().trim().max(80).nullable().optional(),
   occurred_at: z.string().datetime().optional(),
 });
@@ -23,9 +110,12 @@ export const recordEvents = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     // Dampen metric pollution: cap how fast one IP can pump events in.
     const { getRequest } = await import("@tanstack/react-start/server");
-    const { allowRequest, getClientIp } = await import("@/lib/request-guard.server");
+    const { allowPersistentRequest, getClientIp } = await import("@/lib/request-guard.server");
     const headers = getRequest()?.headers;
-    if (headers && !allowRequest(`analytics:${getClientIp(headers)}`, 20, 60_000)) {
+    if (
+      headers &&
+      !(await allowPersistentRequest(`analytics:${getClientIp(headers)}`, 20, 60_000))
+    ) {
       return { ok: true, count: 0 }; // silently drop — never break the page over analytics
     }
 

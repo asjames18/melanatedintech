@@ -19,6 +19,7 @@ import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PathsRouteImport } from './routes/paths'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as GetADemoRouteImport } from './routes/get-a-demo'
 import { Route as FitFinderRouteImport } from './routes/fit-finder'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CommunityRouteImport } from './routes/community'
@@ -29,6 +30,8 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
+import { Route as SystemsIndexRouteImport } from './routes/systems.index'
+import { Route as StarterPacksIndexRouteImport } from './routes/starter-packs.index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
@@ -38,6 +41,7 @@ import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsVoiceAgentBuilderRouteImport } from './routes/tools.voice-agent-builder'
 import { Route as ToolsSopGeneratorRouteImport } from './routes/tools.sop-generator'
 import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
 import { Route as ToolsRagChunkerRouteImport } from './routes/tools.rag-chunker'
@@ -51,6 +55,9 @@ import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
 import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
 import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
 import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as SystemsSlugRouteImport } from './routes/systems.$slug'
+import { Route as StarterPacksSlugRouteImport } from './routes/starter-packs.$slug'
+import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
 import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
 import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
 import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
@@ -84,6 +91,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
 import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
@@ -142,6 +150,11 @@ const KnowledgeRoute = KnowledgeRouteImport.update({
   path: '/knowledge',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GetADemoRoute = GetADemoRouteImport.update({
+  id: '/get-a-demo',
+  path: '/get-a-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FitFinderRoute = FitFinderRouteImport.update({
   id: '/fit-finder',
   path: '/fit-finder',
@@ -191,6 +204,16 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SystemsIndexRoute = SystemsIndexRouteImport.update({
+  id: '/systems/',
+  path: '/systems/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StarterPacksIndexRoute = StarterPacksIndexRouteImport.update({
+  id: '/starter-packs/',
+  path: '/starter-packs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
@@ -234,6 +257,11 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
 const UUserIdRoute = UUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsVoiceAgentBuilderRoute = ToolsVoiceAgentBuilderRouteImport.update({
+  id: '/tools/voice-agent-builder',
+  path: '/tools/voice-agent-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsSopGeneratorRoute = ToolsSopGeneratorRouteImport.update({
@@ -299,6 +327,21 @@ const ToolsAbTesterRoute = ToolsAbTesterRouteImport.update({
 const TTagRoute = TTagRouteImport.update({
   id: '/t/$tag',
   path: '/t/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemsSlugRoute = SystemsSlugRouteImport.update({
+  id: '/systems/$slug',
+  path: '/systems/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StarterPacksSlugRoute = StarterPacksSlugRouteImport.update({
+  id: '/starter-packs/$slug',
+  path: '/starter-packs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
+  id: '/solutions/$slug',
+  path: '/solutions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesMinistryAiImplementationRoute =
@@ -477,6 +520,11 @@ const AuthenticatedSubmissionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedSubmissionsRoute,
   } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminInvoicesRoute =
   AuthenticatedAdminInvoicesRouteImport.update({
     id: '/invoices',
@@ -528,6 +576,7 @@ export interface FileRoutesByFullPath {
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
   '/fit-finder': typeof FitFinderRoute
+  '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -568,6 +617,9 @@ export interface FileRoutesByFullPath {
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
+  '/starter-packs/$slug': typeof StarterPacksSlugRoute
+  '/systems/$slug': typeof SystemsSlugRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -581,6 +633,7 @@ export interface FileRoutesByFullPath {
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -590,11 +643,14 @@ export interface FileRoutesByFullPath {
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/starter-packs/': typeof StarterPacksIndexRoute
+  '/systems/': typeof SystemsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
@@ -608,6 +664,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/fit-finder': typeof FitFinderRoute
+  '/get-a-demo': typeof GetADemoRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
@@ -643,6 +700,9 @@ export interface FileRoutesByTo {
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
+  '/starter-packs/$slug': typeof StarterPacksSlugRoute
+  '/systems/$slug': typeof SystemsSlugRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -656,6 +716,7 @@ export interface FileRoutesByTo {
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
@@ -665,11 +726,14 @@ export interface FileRoutesByTo {
   '/podcast': typeof PodcastIndexRoute
   '/products': typeof ProductsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/starter-packs': typeof StarterPacksIndexRoute
+  '/systems': typeof SystemsIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
@@ -688,6 +752,7 @@ export interface FileRoutesById {
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
   '/fit-finder': typeof FitFinderRoute
+  '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -728,6 +793,9 @@ export interface FileRoutesById {
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/solutions/$slug': typeof SolutionsSlugRoute
+  '/starter-packs/$slug': typeof StarterPacksSlugRoute
+  '/systems/$slug': typeof SystemsSlugRoute
   '/t/$tag': typeof TTagRoute
   '/tools/ab-tester': typeof ToolsAbTesterRoute
   '/tools/agent-architect': typeof ToolsAgentArchitectRoute
@@ -741,6 +809,7 @@ export interface FileRoutesById {
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -750,11 +819,14 @@ export interface FileRoutesById {
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/starter-packs/': typeof StarterPacksIndexRoute
+  '/systems/': typeof SystemsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/catalog': typeof AuthenticatedAdminCatalogRoute
   '/_authenticated/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
@@ -773,6 +845,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/contact'
     | '/fit-finder'
+    | '/get-a-demo'
     | '/knowledge'
     | '/paths'
     | '/privacy'
@@ -813,6 +886,9 @@ export interface FileRouteTypes {
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
     | '/services/ministry-ai-implementation'
+    | '/solutions/$slug'
+    | '/starter-packs/$slug'
+    | '/systems/$slug'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -826,6 +902,7 @@ export interface FileRouteTypes {
     | '/tools/rag-chunker'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/voice-agent-builder'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -835,11 +912,14 @@ export interface FileRouteTypes {
     | '/podcast/'
     | '/products/'
     | '/services/'
+    | '/starter-packs/'
+    | '/systems/'
     | '/tools/'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/admin/content-agent'
     | '/admin/invoices'
+    | '/admin/leads'
     | '/submissions/$id'
     | '/admin/'
     | '/submissions/'
@@ -853,6 +933,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/fit-finder'
+    | '/get-a-demo'
     | '/privacy'
     | '/proof'
     | '/search'
@@ -888,6 +969,9 @@ export interface FileRouteTypes {
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
     | '/services/ministry-ai-implementation'
+    | '/solutions/$slug'
+    | '/starter-packs/$slug'
+    | '/systems/$slug'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -901,6 +985,7 @@ export interface FileRouteTypes {
     | '/tools/rag-chunker'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/voice-agent-builder'
     | '/u/$userId'
     | '/agents'
     | '/challenges'
@@ -910,11 +995,14 @@ export interface FileRouteTypes {
     | '/podcast'
     | '/products'
     | '/services'
+    | '/starter-packs'
+    | '/systems'
     | '/tools'
     | '/admin/analytics'
     | '/admin/catalog'
     | '/admin/content-agent'
     | '/admin/invoices'
+    | '/admin/leads'
     | '/submissions/$id'
     | '/admin'
     | '/submissions'
@@ -932,6 +1020,7 @@ export interface FileRouteTypes {
     | '/community'
     | '/contact'
     | '/fit-finder'
+    | '/get-a-demo'
     | '/knowledge'
     | '/paths'
     | '/privacy'
@@ -972,6 +1061,9 @@ export interface FileRouteTypes {
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
     | '/services/ministry-ai-implementation'
+    | '/solutions/$slug'
+    | '/starter-packs/$slug'
+    | '/systems/$slug'
     | '/t/$tag'
     | '/tools/ab-tester'
     | '/tools/agent-architect'
@@ -985,6 +1077,7 @@ export interface FileRouteTypes {
     | '/tools/rag-chunker'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/voice-agent-builder'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -994,11 +1087,14 @@ export interface FileRouteTypes {
     | '/podcast/'
     | '/products/'
     | '/services/'
+    | '/starter-packs/'
+    | '/systems/'
     | '/tools/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/catalog'
     | '/_authenticated/admin/content-agent'
     | '/_authenticated/admin/invoices'
+    | '/_authenticated/admin/leads'
     | '/_authenticated/submissions/$id'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
@@ -1017,6 +1113,7 @@ export interface RootRouteChildren {
   CommunityRoute: typeof CommunityRouteWithChildren
   ContactRoute: typeof ContactRoute
   FitFinderRoute: typeof FitFinderRoute
+  GetADemoRoute: typeof GetADemoRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
   PathsRoute: typeof PathsRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -1037,6 +1134,9 @@ export interface RootRouteChildren {
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
   ServicesCustomAgentBuildRoute: typeof ServicesCustomAgentBuildRoute
   ServicesMinistryAiImplementationRoute: typeof ServicesMinistryAiImplementationRoute
+  SolutionsSlugRoute: typeof SolutionsSlugRoute
+  StarterPacksSlugRoute: typeof StarterPacksSlugRoute
+  SystemsSlugRoute: typeof SystemsSlugRoute
   TTagRoute: typeof TTagRoute
   ToolsAbTesterRoute: typeof ToolsAbTesterRoute
   ToolsAgentArchitectRoute: typeof ToolsAgentArchitectRoute
@@ -1050,9 +1150,12 @@ export interface RootRouteChildren {
   ToolsRagChunkerRoute: typeof ToolsRagChunkerRoute
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   ToolsSopGeneratorRoute: typeof ToolsSopGeneratorRoute
+  ToolsVoiceAgentBuilderRoute: typeof ToolsVoiceAgentBuilderRoute
   UUserIdRoute: typeof UUserIdRoute
   PodcastIndexRoute: typeof PodcastIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  StarterPacksIndexRoute: typeof StarterPacksIndexRoute
+  SystemsIndexRoute: typeof SystemsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1131,6 +1234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KnowledgeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/get-a-demo': {
+      id: '/get-a-demo'
+      path: '/get-a-demo'
+      fullPath: '/get-a-demo'
+      preLoaderRoute: typeof GetADemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fit-finder': {
       id: '/fit-finder'
       path: '/fit-finder'
@@ -1201,6 +1311,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/systems/': {
+      id: '/systems/'
+      path: '/systems'
+      fullPath: '/systems/'
+      preLoaderRoute: typeof SystemsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/starter-packs/': {
+      id: '/starter-packs/'
+      path: '/starter-packs'
+      fullPath: '/starter-packs/'
+      preLoaderRoute: typeof StarterPacksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services/': {
       id: '/services/'
       path: '/services'
@@ -1262,6 +1386,13 @@ declare module '@tanstack/react-router' {
       path: '/u/$userId'
       fullPath: '/u/$userId'
       preLoaderRoute: typeof UUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/voice-agent-builder': {
+      id: '/tools/voice-agent-builder'
+      path: '/tools/voice-agent-builder'
+      fullPath: '/tools/voice-agent-builder'
+      preLoaderRoute: typeof ToolsVoiceAgentBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/sop-generator': {
@@ -1353,6 +1484,27 @@ declare module '@tanstack/react-router' {
       path: '/t/$tag'
       fullPath: '/t/$tag'
       preLoaderRoute: typeof TTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/systems/$slug': {
+      id: '/systems/$slug'
+      path: '/systems/$slug'
+      fullPath: '/systems/$slug'
+      preLoaderRoute: typeof SystemsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/starter-packs/$slug': {
+      id: '/starter-packs/$slug'
+      path: '/starter-packs/$slug'
+      fullPath: '/starter-packs/$slug'
+      preLoaderRoute: typeof StarterPacksSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/$slug': {
+      id: '/solutions/$slug'
+      path: '/solutions/$slug'
+      fullPath: '/solutions/$slug'
+      preLoaderRoute: typeof SolutionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services/ministry-ai-implementation': {
@@ -1586,6 +1738,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
       parentRoute: typeof AuthenticatedSubmissionsRoute
     }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/invoices': {
       id: '/_authenticated/admin/invoices'
       path: '/invoices'
@@ -1643,6 +1802,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminCatalogRoute: typeof AuthenticatedAdminCatalogRoute
   AuthenticatedAdminContentAgentRoute: typeof AuthenticatedAdminContentAgentRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -1651,6 +1811,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminCatalogRoute: AuthenticatedAdminCatalogRoute,
   AuthenticatedAdminContentAgentRoute: AuthenticatedAdminContentAgentRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -1803,6 +1964,7 @@ const rootRouteChildren: RootRouteChildren = {
   CommunityRoute: CommunityRouteWithChildren,
   ContactRoute: ContactRoute,
   FitFinderRoute: FitFinderRoute,
+  GetADemoRoute: GetADemoRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
   PathsRoute: PathsRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
@@ -1823,6 +1985,9 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
   ServicesCustomAgentBuildRoute: ServicesCustomAgentBuildRoute,
   ServicesMinistryAiImplementationRoute: ServicesMinistryAiImplementationRoute,
+  SolutionsSlugRoute: SolutionsSlugRoute,
+  StarterPacksSlugRoute: StarterPacksSlugRoute,
+  SystemsSlugRoute: SystemsSlugRoute,
   TTagRoute: TTagRoute,
   ToolsAbTesterRoute: ToolsAbTesterRoute,
   ToolsAgentArchitectRoute: ToolsAgentArchitectRoute,
@@ -1836,9 +2001,12 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsRagChunkerRoute: ToolsRagChunkerRoute,
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   ToolsSopGeneratorRoute: ToolsSopGeneratorRoute,
+  ToolsVoiceAgentBuilderRoute: ToolsVoiceAgentBuilderRoute,
   UUserIdRoute: UUserIdRoute,
   PodcastIndexRoute: PodcastIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  StarterPacksIndexRoute: StarterPacksIndexRoute,
+  SystemsIndexRoute: SystemsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,

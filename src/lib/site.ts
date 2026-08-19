@@ -5,21 +5,21 @@ export const SITE_URL = "https://melanatedintech.com";
 export const SITE = {
   name: "Melanated In Tech",
   short: "MIT",
-  tagline: "The home for AI agents.",
+  tagline: "Revenue recovery systems for service businesses.",
   description:
-    "Melanated In Tech is the destination for AI agent knowledge, marketplace, products, and services - built for the people putting agents to work.",
+    "Melanated In Tech builds practical lead, estimate, route, and client recovery systems for local service businesses.",
 };
 
 // Community is intentionally out of NAV until the feed has real activity —
 // an empty feed hurts trust more than a missing link. Route stays live.
 export const NAV = [
+  { to: "/solutions/recurring-property-services", label: "Solutions" },
+  { to: "/systems", label: "Systems" },
   { to: "/agents", label: "Marketplace" },
-  { to: "/paths", label: "Paths" },
-  { to: "/knowledge", label: "Knowledge Hub" },
-  { to: "/podcast", label: "Podcast" },
+  { to: "/knowledge", label: "Learn" },
+  { to: "/starter-packs", label: "Starter Packs" },
   { to: "/products", label: "Products" },
-  { to: "/tools", label: "AI Tools" },
-  { to: "/services", label: "Services" },
+  { to: "/about", label: "About" },
 ] as const;
 
 export const PILLARS = [

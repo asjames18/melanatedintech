@@ -95,7 +95,7 @@ export function organizationLd() {
       "https://www.linkedin.com/company/melanatedintech",
     ],
     description:
-      "Marketplace, knowledge hub, products, and services for the people building, deploying, and benefiting from AI agents.",
+      "Revenue recovery systems for local service businesses, plus a practical AI marketplace, knowledge hub, products, and tools.",
   };
 }
 
@@ -106,7 +106,7 @@ export function websiteLd() {
     name: DEFAULT_SITE,
     url: SITE_URL,
     description:
-      "AI agent knowledge, marketplace, tools, products, and services for builders, operators, and teams putting agents to work.",
+      "Lead, estimate, route, and client recovery systems for service businesses, plus practical AI tools and knowledge.",
     potentialAction: {
       "@type": "SearchAction",
       target: `${SITE_URL}/search?q={search_term_string}`,
@@ -169,6 +169,35 @@ export function productLd(p: {
     image: p.image ?? undefined,
     brand: { "@type": "Organization", name: DEFAULT_SITE },
     offers,
+  };
+}
+
+export function serviceLd(service: {
+  name: string;
+  description: string;
+  url: string;
+  areaServed?: string[];
+  priceFrom?: number;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: service.name,
+    description: service.description,
+    url: absoluteUrl(service.url),
+    provider: { "@type": "Organization", name: DEFAULT_SITE, url: SITE_URL },
+    areaServed: (service.areaServed ?? ["Florida", "United States"]).map((name) => ({
+      "@type": "AdministrativeArea",
+      name,
+    })),
+    offers: service.priceFrom
+      ? {
+          "@type": "Offer",
+          priceCurrency: "USD",
+          price: service.priceFrom.toFixed(2),
+          description: "Starting price for a fixed-scope 30-day Recovery Pilot",
+        }
+      : undefined,
   };
 }
 

@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { ExplainerMediaBanner } from "@/components/explainer-media-banner";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -18,6 +17,7 @@ import {
   Layers,
   Trophy,
   Workflow,
+  PhoneCall,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
@@ -34,6 +34,15 @@ export const Route = createFileRoute("/tools/")({
 
 function ToolsIndex() {
   const tools = [
+    {
+      title: "Voice Agent Builder",
+      description:
+        "Design, rehearse, and export starter phone voice AI agent configs for Vapi AI and Retell AI, built for small businesses, non-profits, ministries, and customer support.",
+      href: "/tools/voice-agent-builder" as const,
+      Icon: PhoneCall,
+      badge: "Voice AI & Calls",
+      colorClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
+    },
     {
       title: "AI Playbook",
       description:
@@ -73,7 +82,7 @@ function ToolsIndex() {
     {
       title: "Agent Architect",
       description:
-        "Design multi-agent architectures and workflows. Select patterns like router, orchestrator, or evaluator, configure custom instructions and tools for each node, and generate boilerplate code in Python or TypeScript.",
+        "Design multi-agent architectures and workflows. Select patterns like router, orchestrator, or evaluator, configure custom instructions, and export code for LangGraph, CrewAI & Vercel AI SDK.",
       href: "/tools/agent-architect" as const,
       Icon: GitBranch,
       badge: "Workflow Designer",
@@ -109,16 +118,16 @@ function ToolsIndex() {
     {
       title: "Eval Studio",
       description:
-        "Automated stress testing studio for AI agents. Run prompt injection, hallucination traps, domain boundary checks, and PII protection drills to generate a visual safety scorecard.",
+        "Automated stress testing studio for AI agents. Run prompt injection, hallucination traps, PII drills, and generate formal OWASP / NIST compliance audit reports.",
       href: "/tools/eval-studio" as const,
       Icon: ShieldCheck,
-      badge: "Agent Stress Tester",
+      badge: "Agent Safety Audit",
       colorClass: "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/50",
     },
     {
       title: "MCP Builder",
       description:
-        "Visual Model Context Protocol (MCP) server builder. Connect AI agents to databases, GitHub, Stripe, and file systems with 1-click config exports for Claude, Cursor, Python & TypeScript.",
+        "Visual Model Context Protocol (MCP) server builder. Connect AI agents to Supabase, Google Drive, Notion, GitHub, and Slack with 1-click config exports.",
       href: "/tools/mcp-builder" as const,
       Icon: Cpu,
       badge: "MCP Config Generator",
@@ -151,30 +160,6 @@ function ToolsIndex() {
         title="AI Power-Up Tools."
         description="Simplify prompt engineering, system prompt creation, and agent customization with our interactive tools."
       />
-
-      <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
-        <ExplainerMediaBanner
-          title="Interactive Tools Suite — Explainer & Overview"
-          subtitle="Interactive Overview & Reference Notes for 12 AI Tools"
-          sourcePackText={`# Melanated in Tech — Master Knowledge Source Pack: 12 Interactive AI Tools Suite
-
-Melanated in Tech provides 12 web-based interactive AI tools designed to help users design, test, optimize, and deploy AI agents without getting stuck in technical setup.
-
-Key Tools Included:
-1. Prompt Pilot — System prompt composer & launchpad
-2. Agent Architect — Multi-agent workflow designer
-3. MCP Builder — Model Context Protocol server generator
-4. SOP Generator — Standard Operating Procedure creator
-5. Eval Studio — Golden-set benchmark tester
-6. ROI Calculator — Token cost & financial feasibility tool
-7. Policy Generator — Acceptable AI use policy builder
-8. GPT Trainer — Instruction architect for OpenAI GPTs & agents
-9. Model Playground — Side-by-side model response sandbox
-10. AI Playbook Generator — Tailored niche strategy builder
-11. Prompt A/B Tester — Side-by-side prompt performance testing
-12. RAG Chunker — Document chunking visualizer for vector search`}
-        />
-      </div>
 
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">

@@ -22,8 +22,8 @@ export function SiteFooter() {
             </picture>
           </Link>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            The home for AI agents - knowledge, marketplace, products, and services for the people
-            putting agents to work.
+            Revenue recovery systems for local service businesses, backed by a practical AI
+            marketplace, knowledge hub, products, and tools.
           </p>
         </div>
 
@@ -31,11 +31,11 @@ export function SiteFooter() {
           <div>
             <p className="font-medium">Platform</p>
             <ul className="mt-3 space-y-2 text-muted-foreground">
-              {NAV.map((n) => (
+              {NAV.filter((n) => n.to !== "/about").map((n) => (
                 <li key={n.to}>
-                  <Link to={n.to} className="hover:text-foreground">
+                  <a href={n.to} className="hover:text-foreground">
                     {n.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -73,9 +73,9 @@ export function SiteFooter() {
         </div>
 
         <div className="lg:col-span-1">
-          <p className="text-sm font-medium">Get early access</p>
+          <p className="text-sm font-medium">Build smarter operations</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            New agents, blueprints, and field notes - straight to your inbox.
+            Useful field guides, tools, and system updates - straight to your inbox.
           </p>
           <div className="mt-3">
             <WaitlistForm source="footer" compact />
@@ -88,7 +88,7 @@ export function SiteFooter() {
           <p>
             &copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.
           </p>
-          <p>Built for the AI agent generation.</p>
+          <p>Based in Sebring, Florida. Serving qualified teams nationwide.</p>
         </div>
       </div>
     </footer>

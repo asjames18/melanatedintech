@@ -1,26 +1,46 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useLoaderData, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { CheckCircle2, ShieldCheck, Printer, ArrowRight, Loader2, DollarSign, Building2, Calendar, FileText, Check } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
-import { getPublicClientInvoice, createInvoiceCheckoutSession, toggleInvoiceAddOnFn, type ClientInvoiceRecord } from "@/lib/invoices.functions";
+import {
+  getPublicClientInvoice,
+  createInvoiceCheckoutSession,
+  toggleInvoiceAddOnFn,
+  type PublicClientInvoiceRecord,
+} from "@/lib/invoices.functions";
+import { trackEvent } from "@/lib/analytics";
+
+const invoiceSearchSchema = z.object({
+  token: z.string().uuid().optional().catch(undefined),
+  payment_status: z.string().optional(),
+  payment_type: z.string().optional(),
+});
 
 export const Route = createFileRoute("/invoice/$number")({
   head: ({ loaderData }) => {
-    const inv = loaderData as ClientInvoiceRecord | null;
+    const inv = loaderData as PublicClientInvoiceRecord | null | undefined;
     const title = inv ? `Invoice ${inv.invoice_number} — ${inv.client_name}` : "Client Invoice — Melanated in Tech";
+    const seo = buildSeoMeta({
+      title,
+      description: inv ? `Invoice for ${inv.service_type} (${inv.title})` : "Melanated in Tech Client Invoice",
+      canonical: false,
+    });
     return {
-      ...buildSeoMeta({
-        title,
-        description: inv ? `Invoice for ${inv.service_type} (${inv.title})` : "Melanated in Tech Client Invoice",
-        url: `/invoice/${inv?.invoice_number || ""}`,
-      }),
+      ...seo,
+      meta: [...seo.meta, { name: "robots", content: "noindex, nofollow, noarchive" }],
     };
   },
-  loader: async ({ params }) => {
+  validateSearch: invoiceSearchSchema,
+  loader: async ({ params, location }) => {
     try {
-      const invoice = await getPublicClientInvoice({ data: { invoiceNumber: params.number } });
+      const accessToken = new URLSearchParams(location.searchStr).get("token");
+      if (!accessToken) return null;
+      const invoice = await getPublicClientInvoice({
+        data: { invoiceNumber: params.number, accessToken },
+      });
       return invoice;
     } catch {
       return null;
@@ -50,15 +70,24 @@ function formatDate(dateString?: string | null) {
 }
 
 function InvoicePage() {
-  const invoice = useLoaderData({ from: "/invoice/$number" }) as ClientInvoiceRecord | null;
+  const invoice = useLoaderData({ from: "/invoice/$number" }) as PublicClientInvoiceRecord | null;
+  const search = Route.useSearch();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedAddOns, setSelectedAddOns] = useState<string[]>(invoice?.selected_add_ons || []);
 
   // Check URL params for payment completion status
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const paymentStatus = searchParams?.get("payment_status");
-  const paymentType = searchParams?.get("payment_type");
+  const paymentStatus = search.payment_status;
+  const paymentType = search.payment_type;
+
+  useEffect(() => {
+    if (paymentStatus === "success" && (paymentType === "deposit" || paymentType === "final")) {
+      trackEvent(paymentType === "deposit" ? "deposit_paid" : "pilot_launched", {
+        payment_type: paymentType,
+        surface: "invoice_return",
+      });
+    }
+  }, [paymentStatus, paymentType]);
 
   const handleToggleAddOn = async (addonName: string) => {
     if (!invoice) return;
@@ -73,6 +102,7 @@ function InvoicePage() {
       await toggleInvoiceAddOnFn({
         data: {
           invoiceNumber: invoice.invoice_number,
+          accessToken: search.token,
           addonName,
           selected: !isSelected,
         },
@@ -101,11 +131,16 @@ function InvoicePage() {
 
   const handlePay = async (type: "deposit" | "final") => {
     try {
+      trackEvent(type === "deposit" ? "deposit_started" : "final_payment_started", {
+        payment_type: type,
+        surface: "client_invoice",
+      });
       setLoading(true);
       setErrorMessage(null);
       const res = await createInvoiceCheckoutSession({
         data: {
           invoiceNumber: invoice.invoice_number,
+          accessToken: search.token,
           paymentType: type,
           environment: "live", // Uses live/sandbox as configured
         },
@@ -113,9 +148,11 @@ function InvoicePage() {
       if (res.checkoutUrl) {
         window.location.href = res.checkoutUrl;
       }
-    } catch (e: any) {
+    } catch (error: unknown) {
       setLoading(false);
-      setErrorMessage(e.message || "Could not launch checkout. Please try again.");
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not launch checkout. Please try again.",
+      );
     }
   };
 
@@ -133,7 +170,7 @@ function InvoicePage() {
                   {paymentType === "deposit" ? "50% Deposit Received!" : "Final Payment Complete!"}
                 </h3>
                 <p className="text-sm opacity-90">
-                  Thank you! Your payment has been received and confirmed. A receipt has been sent to {invoice.client_email}.
+                  Thank you! Your payment has been received and confirmed. A receipt has been sent to the billing email on file.
                 </p>
               </div>
             </div>
@@ -209,7 +246,6 @@ function InvoicePage() {
                   {invoice.client_organization}
                 </p>
               )}
-              <p className="text-sm text-muted-foreground">{invoice.client_email}</p>
             </div>
 
             <div className="sm:text-right space-y-1 text-sm">
@@ -327,9 +363,13 @@ function InvoicePage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Optional Monthly Retainers & Growth Add-Ons</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Click any optional service below to select and include it with your proposal.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Select any service you want quoted. These are requests, not purchases — they
+                    are not added to the invoice total below, and we will follow up with separate
+                    monthly pricing before anything starts.
+                  </p>
                 </div>
-                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full uppercase">Interactive Selection</span>
+                <span className="text-[10px] font-semibold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full uppercase">Request Only</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

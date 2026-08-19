@@ -43,7 +43,9 @@ export type ClientInvoiceRecord = {
   line_items: { description: string; amount_cents: number }[];
   original_total_cents: number | null;
   discount_cents: number | null;
-  add_ons: { name: string; standard_price: string; community_price: string; description?: string }[] | null;
+  add_ons:
+    | { name: string; standard_price: string; community_price: string; description?: string }[]
+    | null;
   selected_add_ons: string[] | null;
   total_cents: number;
   deposit_cents: number;
@@ -55,9 +57,54 @@ export type ClientInvoiceRecord = {
   final_paid_at: string | null;
   due_date: string | null;
   notes: string | null;
+  public_access_token: string;
   created_at: string;
   updated_at: string;
 };
+
+export type PublicClientInvoiceRecord = Omit<
+  ClientInvoiceRecord,
+  | "client_email"
+  | "notes"
+  | "public_access_token"
+  | "stripe_deposit_session_id"
+  | "stripe_final_session_id"
+>;
+
+const publicInvoiceAccessSchema = z.object({
+  invoiceNumber: z.string().trim().min(1).max(80),
+  accessToken: z.string().uuid(),
+});
+
+function toPublicInvoice(invoice: ClientInvoiceRecord): PublicClientInvoiceRecord {
+  const {
+    client_email: _clientEmail,
+    notes: _notes,
+    public_access_token: _publicAccessToken,
+    stripe_deposit_session_id: _depositSession,
+    stripe_final_session_id: _finalSession,
+    ...publicInvoice
+  } = invoice;
+  return publicInvoice;
+}
+
+async function enforcePublicInvoiceRateLimit(
+  action: "read" | "checkout" | "addon",
+  invoiceNumber: string,
+  max: number,
+  windowMs: number,
+): Promise<void> {
+  const [{ getRequest }, { allowRequest, getClientIp }] = await Promise.all([
+    import("@tanstack/react-start/server"),
+    import("@/lib/request-guard.server"),
+  ]);
+  const request = getRequest();
+  if (!request) return;
+  const key = `invoice:${action}:${invoiceNumber}:${getClientIp(request.headers)}`;
+  if (!allowRequest(key, max, windowMs)) {
+    throw new Error("Too many invoice requests. Please wait and try again.");
+  }
+}
 
 // Generate unique invoice number: MIT-YYYY-XXX
 function generateInvoiceNumber(): string {
@@ -138,20 +185,23 @@ export const createClientInvoice = createServerFn({ method: "POST" })
   });
 
 export const getPublicClientInvoice = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ invoiceNumber: z.string().trim().min(1) }).parse(d))
+  .validator((d: unknown) => publicInvoiceAccessSchema.parse(d))
   .handler(async ({ data }) => {
+    await enforcePublicInvoiceRateLimit("read", data.invoiceNumber, 60, 60_000);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: invoice, error } = await supabaseAdmin
       .from("client_invoices" as never)
       .select("*")
       .eq("invoice_number" as never, data.invoiceNumber)
+      .eq("public_access_token" as never, data.accessToken)
+      .neq("status" as never, "draft")
       .maybeSingle();
 
     if (error || !invoice) {
       return null;
     }
 
-    return invoice as unknown as ClientInvoiceRecord;
+    return toPublicInvoice(invoice as unknown as ClientInvoiceRecord);
   });
 
 export const listClientInvoices = createServerFn({ method: "GET" })
@@ -185,14 +235,13 @@ export const listClientInvoices = createServerFn({ method: "GET" })
 
 export const updateInvoiceStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
-    (d: unknown) =>
-      z
-        .object({
-          invoiceNumber: z.string(),
-          status: z.enum(["draft", "deposit_pending", "deposit_paid", "fully_paid", "cancelled"]),
-        })
-        .parse(d),
+  .validator((d: unknown) =>
+    z
+      .object({
+        invoiceNumber: z.string(),
+        status: z.enum(["draft", "deposit_pending", "deposit_paid", "fully_paid", "cancelled"]),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -228,7 +277,82 @@ export const updateInvoiceStatus = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const sendClientInvoiceEmail = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) =>
+    z
+      .object({
+        invoiceNumber: z.string().trim().min(1).max(80),
+        note: z.string().trim().max(1000).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: roleRow } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!roleRow) throw new Error("Forbidden: Admin access required.");
+
+    const { data: invoice, error } = await supabaseAdmin
+      .from("client_invoices" as never)
+      .select("*")
+      .eq("invoice_number" as never, data.invoiceNumber)
+      .maybeSingle();
+    if (error || !invoice) throw new Error("Invoice not found.");
+
+    const inv = invoice as unknown as ClientInvoiceRecord;
+    if (inv.status === "cancelled") throw new Error("A cancelled invoice cannot be emailed.");
+    if (inv.status === "fully_paid") throw new Error("This invoice is already paid in full.");
+    if (!inv.public_access_token) {
+      throw new Error("This invoice needs a secure access link before it can be emailed.");
+    }
+
+    const paymentLabel = inv.status === "deposit_paid" ? "final balance" : "50% deposit";
+    const amountDueCents = inv.status === "deposit_paid" ? inv.final_cents : inv.deposit_cents;
+    const { sendInvoiceDeliveryEmail } = await import("@/lib/welcome-email.server");
+    const delivery = await sendInvoiceDeliveryEmail({
+      invoiceNumber: inv.invoice_number,
+      publicAccessToken: inv.public_access_token,
+      clientName: inv.client_name,
+      clientEmail: inv.client_email,
+      clientOrganization: inv.client_organization,
+      title: inv.title,
+      totalCents: inv.total_cents,
+      amountDueCents,
+      paymentLabel,
+      idempotencyVersion: inv.updated_at,
+      dueDate: inv.due_date,
+      customerNote: data.note || null,
+    });
+
+    const { data: linkedLead } = await supabaseAdmin
+      .from("service_system_leads" as never)
+      .select("id")
+      .eq("invoice_number" as never, inv.invoice_number)
+      .maybeSingle();
+    if (linkedLead) {
+      await supabaseAdmin.from("service_system_lead_events" as never).insert({
+        lead_id: (linkedLead as { id: string }).id,
+        event_type: "invoice_emailed",
+        metadata: {
+          invoice_number: inv.invoice_number,
+          delivery,
+          payment_label: paymentLabel,
+          included_note: !!data.note,
+        },
+        created_by: context.userId,
+      } as never);
+    }
+
+    return { ok: true, delivery, email: inv.client_email };
+  });
+
 export const updateClientInvoice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .validator((d: unknown) =>
     createInvoiceSchema
       .extend({
@@ -236,8 +360,8 @@ export const updateClientInvoice = createServerFn({ method: "POST" })
       })
       .parse(d),
   )
-  .handler(async ({ data }) => {
-    const { userId } = await requireSupabaseAuth();
+  .handler(async ({ data, context }) => {
+    const userId = context.userId;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: roleRow } = await supabaseAdmin
@@ -290,9 +414,10 @@ export const updateClientInvoice = createServerFn({ method: "POST" })
   });
 
 export const deleteClientInvoice = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .validator((d: unknown) => z.object({ invoiceNumber: z.string().trim().min(1) }).parse(d))
-  .handler(async ({ data }) => {
-    const { userId } = await requireSupabaseAuth();
+  .handler(async ({ data, context }) => {
+    const userId = context.userId;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: roleRow } = await supabaseAdmin
@@ -320,22 +445,25 @@ export const deleteClientInvoice = createServerFn({ method: "POST" })
   });
 
 export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
-  .validator(
-    (d: unknown) =>
-      z
-        .object({
-          invoiceNumber: z.string().trim().min(1),
-          paymentType: z.enum(["deposit", "final"]),
-          environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
-        })
-        .parse(d),
+  .validator((d: unknown) =>
+    z
+      .object({
+        invoiceNumber: z.string().trim().min(1),
+        accessToken: z.string().uuid(),
+        paymentType: z.enum(["deposit", "final"]),
+        environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
+      })
+      .parse(d),
   )
   .handler(async ({ data }) => {
+    await enforcePublicInvoiceRateLimit("checkout", data.invoiceNumber, 6, 10 * 60_000);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: invoice } = await supabaseAdmin
       .from("client_invoices" as never)
       .select("*")
       .eq("invoice_number" as never, data.invoiceNumber)
+      .eq("public_access_token" as never, data.accessToken)
+      .neq("status" as never, "draft")
       .maybeSingle();
 
     if (!invoice) throw new Error("Invoice not found.");
@@ -379,8 +507,8 @@ export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
         },
       ],
       mode: "payment",
-      success_url: `${SITE_URL}/invoice/${inv.invoice_number}?payment_status=success&payment_type=${data.paymentType}`,
-      cancel_url: `${SITE_URL}/invoice/${inv.invoice_number}?payment_status=cancelled`,
+      success_url: `${SITE_URL}/invoice/${encodeURIComponent(inv.invoice_number)}?token=${encodeURIComponent(inv.public_access_token)}&payment_status=success&payment_type=${data.paymentType}`,
+      cancel_url: `${SITE_URL}/invoice/${encodeURIComponent(inv.invoice_number)}?token=${encodeURIComponent(inv.public_access_token)}&payment_status=cancelled`,
       metadata: {
         invoice_number: inv.invoice_number,
         payment_type: data.paymentType,
@@ -406,26 +534,36 @@ export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
   });
 
 export const toggleInvoiceAddOnFn = createServerFn({ method: "POST" })
-  .validator(
-    (d: unknown) =>
-      z
-        .object({
-          invoiceNumber: z.string().trim().min(1),
-          addonName: z.string().trim().min(1),
-          selected: z.boolean(),
-        })
-        .parse(d),
+  .validator((d: unknown) =>
+    z
+      .object({
+        invoiceNumber: z.string().trim().min(1),
+        accessToken: z.string().uuid(),
+        addonName: z.string().trim().min(1),
+        selected: z.boolean(),
+      })
+      .parse(d),
   )
   .handler(async ({ data }) => {
+    await enforcePublicInvoiceRateLimit("addon", data.invoiceNumber, 30, 10 * 60_000);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: invoice } = await supabaseAdmin
       .from("client_invoices" as never)
       .select("*")
       .eq("invoice_number" as never, data.invoiceNumber)
+      .eq("public_access_token" as never, data.accessToken)
+      .neq("status" as never, "draft")
       .maybeSingle();
 
     if (!invoice) throw new Error("Invoice not found.");
     const inv = invoice as unknown as ClientInvoiceRecord;
+    if (inv.status !== "deposit_pending") {
+      throw new Error("Add-ons can only be changed before the deposit is paid.");
+    }
+    const allowedAddOns = Array.isArray(inv.add_ons) ? inv.add_ons.map((item) => item.name) : [];
+    if (!allowedAddOns.includes(data.addonName)) {
+      throw new Error("This add-on is not available for the invoice.");
+    }
     const currentSelected = Array.isArray(inv.selected_add_ons) ? [...inv.selected_add_ons] : [];
 
     let updatedSelected: string[] = [];

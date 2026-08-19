@@ -3,7 +3,7 @@
 // *.functions.ts module) so it stays out of the client bundle.
 import { getRequest } from "@tanstack/react-start/server";
 
-type ThrottledTable = "contact_messages" | "waitlist_signups";
+type ThrottledTable = "contact_messages" | "waitlist_signups" | "service_system_leads";
 
 /**
  * SHA-256 hash of the caller's IP, or null when no IP header is present.

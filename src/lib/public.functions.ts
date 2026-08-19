@@ -26,28 +26,21 @@ export const listAgents = createServerFn({ method: "GET" }).handler(async () => 
 export const getAgent = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
     const baseCols =
       "id,slug,name,tagline,description,category,capabilities,tier,price_cents,image_url,featured,model";
-    // Never select unlock_content here — RLS is row-level, so select("*") would
-    // hand the paid pack to anyone. Fetch the gated fields only to derive a
-    // boolean, then strip them. Degrade gracefully if the columns aren't there
-    // yet (code deployed ahead of the migration). Mirrors getProduct below.
-    let { data: row, error } = await sb
+    // unlock_content / asset_path are revoked from anon and authenticated at the
+    // column level, so this read goes through the service role and the status
+    // filter below stands in for the row policy. The gated fields are used only
+    // to derive has_fulfillment and are stripped before returning. Mirrors
+    // getProduct below.
+    const { data: row, error } = await supabaseAdmin
       .from("agents")
       .select(`${baseCols},unlock_content,asset_path,seller_profiles(id, display_name, slug)`)
       .eq("slug", data.slug)
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
-    if (error && /unlock_content|asset_path|column/i.test(error.message)) {
-      ({ data: row, error } = await sb
-        .from("agents")
-        .select(`${baseCols},seller_profiles(id, display_name, slug)`)
-        .eq("slug", data.slug)
-        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
-        .maybeSingle());
-    }
     if (error) throw new Error(error.message);
     if (!row) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,28 +91,21 @@ export const listProducts = createServerFn({ method: "GET" }).handler(async () =
 export const getProduct = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
     const baseCols =
       "id,slug,name,tagline,description,category,tier,price_cents,image_url,active,created_at,updated_at";
-    // Never select unlock_content here — RLS is row-level, so select("*") would
-    // hand the paid pack to anyone. Fetch the gated fields only to derive a
-    // boolean, then strip them. Degrade gracefully if the columns aren't there
-    // yet (code deployed ahead of the migration).
-    let { data: row, error } = await sb
+    // unlock_content / asset_path are revoked from anon and authenticated at the
+    // column level, so this read goes through the service role and the status
+    // filter below stands in for the row policy. Free packs are returned to
+    // everyone; premium content is stripped and only ever served by
+    // getProductFulfillment to a verified owner.
+    const { data: row, error } = await supabaseAdmin
       .from("products")
       .select(`${baseCols},unlock_content,asset_path,seller_profiles(id, display_name, slug)`)
       .eq("slug", data.slug)
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .maybeSingle();
-    if (error && /unlock_content|asset_path|column/i.test(error.message)) {
-      ({ data: row, error } = await sb
-        .from("products")
-        .select(`${baseCols},seller_profiles(id, display_name, slug)`)
-        .eq("slug", data.slug)
-        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
-        .maybeSingle());
-    }
     if (error) throw new Error(error.message);
     if (!row) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

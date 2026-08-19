@@ -150,7 +150,16 @@ export async function handleInvoicePaymentFromSession(
     return { processed: false, error: "invoice-not-found" };
   }
 
-  const inv = invoice as any;
+  const inv = invoice as unknown as {
+    invoice_number: string;
+    client_name: string;
+    client_email: string;
+    service_type: string;
+    title: string;
+    deposit_cents: number;
+    final_cents: number;
+    status: "deposit_pending" | "deposit_paid" | "fully_paid" | "cancelled" | "draft";
+  };
   const now = new Date().toISOString();
 
   if (paymentType === "deposit" && inv.status === "deposit_pending") {
@@ -173,6 +182,7 @@ export async function handleInvoicePaymentFromSession(
       serviceType: inv.service_type,
       title: inv.title,
     });
+    await advanceLinkedServiceLead(admin, invoiceNumber, "deposit");
     return { processed: true };
   } else if (paymentType === "final" && inv.status === "deposit_paid") {
     await admin
@@ -194,8 +204,48 @@ export async function handleInvoicePaymentFromSession(
       serviceType: inv.service_type,
       title: inv.title,
     });
+    await advanceLinkedServiceLead(admin, invoiceNumber, "final");
     return { processed: true };
   }
 
   return { processed: true };
+}
+
+async function advanceLinkedServiceLead(
+  admin: Awaited<ReturnType<typeof getAdmin>>,
+  invoiceNumber: string,
+  paymentType: "deposit" | "final",
+) {
+  try {
+    const { data: lead } = await admin
+      .from("service_system_leads" as never)
+      .select("id,service_model")
+      .eq("invoice_number" as never, invoiceNumber)
+      .maybeSingle();
+    if (!lead) return;
+    const record = lead as unknown as { id: string; service_model: string };
+    const now = new Date().toISOString();
+    if (paymentType === "deposit") {
+      await admin
+        .from("service_system_leads" as never)
+        .update({ status: "won", updated_at: now } as never)
+        .eq("id" as never, record.id);
+    }
+    const eventName = paymentType === "deposit" ? "deposit_paid" : "pilot_launched";
+    await Promise.all([
+      admin.from("service_system_lead_events" as never).insert({
+        lead_id: record.id,
+        event_type: eventName,
+        metadata: { payment_type: paymentType },
+      } as never),
+      admin.from("analytics_events").insert({
+        name: eventName,
+        occurred_at: now,
+        props: { service_model: record.service_model, funnel_stage: eventName },
+      }),
+    ]);
+  } catch (error) {
+    // Lead-pipeline telemetry must never block paid invoice fulfillment.
+    console.error("[invoice-grant] linked lead update failed", error);
+  }
 }

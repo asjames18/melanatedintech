@@ -32,6 +32,48 @@ export function allowRequest(key: string, max: number, windowMs: number): boolea
   return true;
 }
 
+async function hashRateLimitKey(key: string): Promise<string> {
+  const { getSupabaseServiceRoleKey } = await import("@/integrations/supabase/env");
+  const secret = getSupabaseServiceRoleKey() || "local-rate-limit-fallback";
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, new TextEncoder().encode(key));
+  return Array.from(new Uint8Array(signature))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
+ * Shared Supabase-backed limiter for Cloudflare isolates. During a database or
+ * migration outage, retain the local limiter as a safe availability fallback.
+ */
+export async function allowPersistentRequest(
+  key: string,
+  max: number,
+  windowMs: number,
+): Promise<boolean> {
+  const locallyAllowed = allowRequest(key, max, windowMs);
+  if (!locallyAllowed) return false;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const keyHash = await hashRateLimitKey(key);
+    const { data, error } = await supabaseAdmin.rpc("consume_public_rate_limit" as never, {
+      p_key_hash: keyHash,
+      p_window_seconds: Math.max(1, Math.ceil(windowMs / 1000)),
+      p_max_requests: max,
+    } as never);
+    if (error) return locallyAllowed;
+    return data === true;
+  } catch {
+    return locallyAllowed;
+  }
+}
+
 /** Best-effort client IP from proxy headers (Cloudflare first). */
 export function getClientIp(headers: Headers): string {
   return (

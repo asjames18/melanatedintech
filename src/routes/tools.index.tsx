@@ -151,6 +151,51 @@ function ToolsIndex() {
       badge: "AI Governance",
       colorClass: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50",
     },
+    {
+      title: "Workflow Spec Builder",
+      description:
+        "Visually construct AI automation pipelines and export ready-to-import blueprints for Zapier, Make.com, n8n, or raw Webhooks.",
+      href: "/tools/workflow-spec-builder" as const,
+      Icon: Workflow,
+      badge: "Automation Blueprint",
+      colorClass: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50",
+    },
+    {
+      title: "Revenue Leak Calculator",
+      description:
+        "Model how much revenue your service business loses annually to unanswered calls, slow follow-up, and stale quotes.",
+      href: "/tools/revenue-leak-calculator" as const,
+      Icon: Calculator,
+      badge: "Lead Financial Model",
+      colorClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
+    },
+    {
+      title: "Token & API Cost Estimator",
+      description:
+        "Estimate and compare monthly LLM API spending across GPT-4o, Claude 3.5, Gemini 1.5, and Llama 3 based on token consumption.",
+      href: "/tools/token-cost-calculator" as const,
+      Icon: Cpu,
+      badge: "LLM Budget Model",
+      colorClass: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50",
+    },
+    {
+      title: "JSON Schema Studio",
+      description:
+        "Visually define structured data types and generate Zod (TypeScript), Pydantic (Python), or JSON Schema for OpenAI Function Calling.",
+      href: "/tools/json-schema-studio" as const,
+      Icon: Layers,
+      badge: "Function Calling Schemas",
+      colorClass: "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50",
+    },
+    {
+      title: "Prompt Guard & Security Auditor",
+      description:
+        "Audit system prompts for prompt injection vulnerabilities, jailbreak risks, and data leaks, and export a hardened prompt.",
+      href: "/tools/prompt-guard-auditor" as const,
+      Icon: ShieldCheck,
+      badge: "Prompt Guardrail Audit",
+      colorClass: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50",
+    },
   ];
 
   return (

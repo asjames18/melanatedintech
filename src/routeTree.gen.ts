@@ -42,14 +42,19 @@ import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsWorkflowSpecBuilderRouteImport } from './routes/tools.workflow-spec-builder'
 import { Route as ToolsVoiceAgentBuilderRouteImport } from './routes/tools.voice-agent-builder'
+import { Route as ToolsTokenCostCalculatorRouteImport } from './routes/tools.token-cost-calculator'
 import { Route as ToolsSopGeneratorRouteImport } from './routes/tools.sop-generator'
 import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
+import { Route as ToolsRevenueLeakCalculatorRouteImport } from './routes/tools.revenue-leak-calculator'
 import { Route as ToolsRagChunkerRouteImport } from './routes/tools.rag-chunker'
 import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
+import { Route as ToolsPromptGuardAuditorRouteImport } from './routes/tools.prompt-guard-auditor'
 import { Route as ToolsPolicyGeneratorRouteImport } from './routes/tools.policy-generator'
 import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
 import { Route as ToolsMcpBuilderRouteImport } from './routes/tools.mcp-builder'
+import { Route as ToolsJsonSchemaStudioRouteImport } from './routes/tools.json-schema-studio'
 import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
 import { Route as ToolsEvalStudioRouteImport } from './routes/tools.eval-studio'
 import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
@@ -267,11 +272,23 @@ const UUserIdRoute = UUserIdRouteImport.update({
   path: '/u/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsWorkflowSpecBuilderRoute =
+  ToolsWorkflowSpecBuilderRouteImport.update({
+    id: '/tools/workflow-spec-builder',
+    path: '/tools/workflow-spec-builder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsVoiceAgentBuilderRoute = ToolsVoiceAgentBuilderRouteImport.update({
   id: '/tools/voice-agent-builder',
   path: '/tools/voice-agent-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsTokenCostCalculatorRoute =
+  ToolsTokenCostCalculatorRouteImport.update({
+    id: '/tools/token-cost-calculator',
+    path: '/tools/token-cost-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsSopGeneratorRoute = ToolsSopGeneratorRouteImport.update({
   id: '/tools/sop-generator',
   path: '/tools/sop-generator',
@@ -282,6 +299,12 @@ const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
   path: '/tools/roi-calculator',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ToolsRevenueLeakCalculatorRoute =
+  ToolsRevenueLeakCalculatorRouteImport.update({
+    id: '/tools/revenue-leak-calculator',
+    path: '/tools/revenue-leak-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ToolsRagChunkerRoute = ToolsRagChunkerRouteImport.update({
   id: '/tools/rag-chunker',
   path: '/tools/rag-chunker',
@@ -290,6 +313,11 @@ const ToolsRagChunkerRoute = ToolsRagChunkerRouteImport.update({
 const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
   id: '/tools/prompt-pilot',
   path: '/tools/prompt-pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPromptGuardAuditorRoute = ToolsPromptGuardAuditorRouteImport.update({
+  id: '/tools/prompt-guard-auditor',
+  path: '/tools/prompt-guard-auditor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsPolicyGeneratorRoute = ToolsPolicyGeneratorRouteImport.update({
@@ -305,6 +333,11 @@ const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
 const ToolsMcpBuilderRoute = ToolsMcpBuilderRouteImport.update({
   id: '/tools/mcp-builder',
   path: '/tools/mcp-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsJsonSchemaStudioRoute = ToolsJsonSchemaStudioRouteImport.update({
+  id: '/tools/json-schema-studio',
+  path: '/tools/json-schema-studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
@@ -646,14 +679,19 @@ export interface FileRoutesByFullPath {
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/json-schema-studio': typeof ToolsJsonSchemaStudioRoute
   '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
+  '/tools/prompt-guard-auditor': typeof ToolsPromptGuardAuditorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
+  '/tools/revenue-leak-calculator': typeof ToolsRevenueLeakCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/token-cost-calculator': typeof ToolsTokenCostCalculatorRoute
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
+  '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -732,14 +770,19 @@ export interface FileRoutesByTo {
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/json-schema-studio': typeof ToolsJsonSchemaStudioRoute
   '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
+  '/tools/prompt-guard-auditor': typeof ToolsPromptGuardAuditorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
+  '/tools/revenue-leak-calculator': typeof ToolsRevenueLeakCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/token-cost-calculator': typeof ToolsTokenCostCalculatorRoute
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
+  '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
@@ -828,14 +871,19 @@ export interface FileRoutesById {
   '/tools/ai-playbook': typeof ToolsAiPlaybookRoute
   '/tools/eval-studio': typeof ToolsEvalStudioRoute
   '/tools/gpt-trainer': typeof ToolsGptTrainerRoute
+  '/tools/json-schema-studio': typeof ToolsJsonSchemaStudioRoute
   '/tools/mcp-builder': typeof ToolsMcpBuilderRoute
   '/tools/model-playground': typeof ToolsModelPlaygroundRoute
   '/tools/policy-generator': typeof ToolsPolicyGeneratorRoute
+  '/tools/prompt-guard-auditor': typeof ToolsPromptGuardAuditorRoute
   '/tools/prompt-pilot': typeof ToolsPromptPilotRoute
   '/tools/rag-chunker': typeof ToolsRagChunkerRoute
+  '/tools/revenue-leak-calculator': typeof ToolsRevenueLeakCalculatorRoute
   '/tools/roi-calculator': typeof ToolsRoiCalculatorRoute
   '/tools/sop-generator': typeof ToolsSopGeneratorRoute
+  '/tools/token-cost-calculator': typeof ToolsTokenCostCalculatorRoute
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
+  '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
@@ -924,14 +972,19 @@ export interface FileRouteTypes {
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/json-schema-studio'
     | '/tools/mcp-builder'
     | '/tools/model-playground'
     | '/tools/policy-generator'
+    | '/tools/prompt-guard-auditor'
     | '/tools/prompt-pilot'
     | '/tools/rag-chunker'
+    | '/tools/revenue-leak-calculator'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/token-cost-calculator'
     | '/tools/voice-agent-builder'
+    | '/tools/workflow-spec-builder'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -1010,14 +1063,19 @@ export interface FileRouteTypes {
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/json-schema-studio'
     | '/tools/mcp-builder'
     | '/tools/model-playground'
     | '/tools/policy-generator'
+    | '/tools/prompt-guard-auditor'
     | '/tools/prompt-pilot'
     | '/tools/rag-chunker'
+    | '/tools/revenue-leak-calculator'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/token-cost-calculator'
     | '/tools/voice-agent-builder'
+    | '/tools/workflow-spec-builder'
     | '/u/$userId'
     | '/agents'
     | '/challenges'
@@ -1105,14 +1163,19 @@ export interface FileRouteTypes {
     | '/tools/ai-playbook'
     | '/tools/eval-studio'
     | '/tools/gpt-trainer'
+    | '/tools/json-schema-studio'
     | '/tools/mcp-builder'
     | '/tools/model-playground'
     | '/tools/policy-generator'
+    | '/tools/prompt-guard-auditor'
     | '/tools/prompt-pilot'
     | '/tools/rag-chunker'
+    | '/tools/revenue-leak-calculator'
     | '/tools/roi-calculator'
     | '/tools/sop-generator'
+    | '/tools/token-cost-calculator'
     | '/tools/voice-agent-builder'
+    | '/tools/workflow-spec-builder'
     | '/u/$userId'
     | '/agents/'
     | '/challenges/'
@@ -1180,14 +1243,19 @@ export interface RootRouteChildren {
   ToolsAiPlaybookRoute: typeof ToolsAiPlaybookRoute
   ToolsEvalStudioRoute: typeof ToolsEvalStudioRoute
   ToolsGptTrainerRoute: typeof ToolsGptTrainerRoute
+  ToolsJsonSchemaStudioRoute: typeof ToolsJsonSchemaStudioRoute
   ToolsMcpBuilderRoute: typeof ToolsMcpBuilderRoute
   ToolsModelPlaygroundRoute: typeof ToolsModelPlaygroundRoute
   ToolsPolicyGeneratorRoute: typeof ToolsPolicyGeneratorRoute
+  ToolsPromptGuardAuditorRoute: typeof ToolsPromptGuardAuditorRoute
   ToolsPromptPilotRoute: typeof ToolsPromptPilotRoute
   ToolsRagChunkerRoute: typeof ToolsRagChunkerRoute
+  ToolsRevenueLeakCalculatorRoute: typeof ToolsRevenueLeakCalculatorRoute
   ToolsRoiCalculatorRoute: typeof ToolsRoiCalculatorRoute
   ToolsSopGeneratorRoute: typeof ToolsSopGeneratorRoute
+  ToolsTokenCostCalculatorRoute: typeof ToolsTokenCostCalculatorRoute
   ToolsVoiceAgentBuilderRoute: typeof ToolsVoiceAgentBuilderRoute
+  ToolsWorkflowSpecBuilderRoute: typeof ToolsWorkflowSpecBuilderRoute
   UUserIdRoute: typeof UUserIdRoute
   PodcastIndexRoute: typeof PodcastIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -1433,11 +1501,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/workflow-spec-builder': {
+      id: '/tools/workflow-spec-builder'
+      path: '/tools/workflow-spec-builder'
+      fullPath: '/tools/workflow-spec-builder'
+      preLoaderRoute: typeof ToolsWorkflowSpecBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/voice-agent-builder': {
       id: '/tools/voice-agent-builder'
       path: '/tools/voice-agent-builder'
       fullPath: '/tools/voice-agent-builder'
       preLoaderRoute: typeof ToolsVoiceAgentBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/token-cost-calculator': {
+      id: '/tools/token-cost-calculator'
+      path: '/tools/token-cost-calculator'
+      fullPath: '/tools/token-cost-calculator'
+      preLoaderRoute: typeof ToolsTokenCostCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/sop-generator': {
@@ -1454,6 +1536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tools/revenue-leak-calculator': {
+      id: '/tools/revenue-leak-calculator'
+      path: '/tools/revenue-leak-calculator'
+      fullPath: '/tools/revenue-leak-calculator'
+      preLoaderRoute: typeof ToolsRevenueLeakCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/rag-chunker': {
       id: '/tools/rag-chunker'
       path: '/tools/rag-chunker'
@@ -1466,6 +1555,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/prompt-pilot'
       fullPath: '/tools/prompt-pilot'
       preLoaderRoute: typeof ToolsPromptPilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/prompt-guard-auditor': {
+      id: '/tools/prompt-guard-auditor'
+      path: '/tools/prompt-guard-auditor'
+      fullPath: '/tools/prompt-guard-auditor'
+      preLoaderRoute: typeof ToolsPromptGuardAuditorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/policy-generator': {
@@ -1487,6 +1583,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/mcp-builder'
       fullPath: '/tools/mcp-builder'
       preLoaderRoute: typeof ToolsMcpBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/json-schema-studio': {
+      id: '/tools/json-schema-studio'
+      path: '/tools/json-schema-studio'
+      fullPath: '/tools/json-schema-studio'
+      preLoaderRoute: typeof ToolsJsonSchemaStudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/gpt-trainer': {
@@ -2066,14 +2169,19 @@ const rootRouteChildren: RootRouteChildren = {
   ToolsAiPlaybookRoute: ToolsAiPlaybookRoute,
   ToolsEvalStudioRoute: ToolsEvalStudioRoute,
   ToolsGptTrainerRoute: ToolsGptTrainerRoute,
+  ToolsJsonSchemaStudioRoute: ToolsJsonSchemaStudioRoute,
   ToolsMcpBuilderRoute: ToolsMcpBuilderRoute,
   ToolsModelPlaygroundRoute: ToolsModelPlaygroundRoute,
   ToolsPolicyGeneratorRoute: ToolsPolicyGeneratorRoute,
+  ToolsPromptGuardAuditorRoute: ToolsPromptGuardAuditorRoute,
   ToolsPromptPilotRoute: ToolsPromptPilotRoute,
   ToolsRagChunkerRoute: ToolsRagChunkerRoute,
+  ToolsRevenueLeakCalculatorRoute: ToolsRevenueLeakCalculatorRoute,
   ToolsRoiCalculatorRoute: ToolsRoiCalculatorRoute,
   ToolsSopGeneratorRoute: ToolsSopGeneratorRoute,
+  ToolsTokenCostCalculatorRoute: ToolsTokenCostCalculatorRoute,
   ToolsVoiceAgentBuilderRoute: ToolsVoiceAgentBuilderRoute,
+  ToolsWorkflowSpecBuilderRoute: ToolsWorkflowSpecBuilderRoute,
   UUserIdRoute: UUserIdRoute,
   PodcastIndexRoute: PodcastIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,

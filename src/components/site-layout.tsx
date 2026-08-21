@@ -4,14 +4,17 @@ import { SiteFooter } from "./site-footer";
 import { PaymentTestModeBanner } from "./payment-test-mode-banner";
 import { FunnelAttribution } from "./funnel-attribution";
 
+import { MobileAppDock } from "./mobile-app-dock";
+
 export function SiteLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
       <FunnelAttribution />
       <PaymentTestModeBanner />
       <SiteHeader />
       <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
       <SiteFooter />
+      <MobileAppDock />
     </div>
   );
 }

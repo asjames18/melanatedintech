@@ -114,10 +114,14 @@ export function SiteHeader() {
         <div className="hidden items-center gap-2 lg:flex">
           <Link
             to="/search"
-            className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
-            aria-label="Search"
+            className="flex items-center gap-2 rounded-xl border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-muted/60 hover:text-foreground"
+            aria-label="Search AI Tools and Knowledge Base"
           >
-            <Search className="h-4 w-4" />
+            <Search className="h-3.5 w-3.5 text-primary" />
+            <span className="hidden xl:inline">Search AI Tools...</span>
+            <kbd className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] font-mono font-bold text-muted-foreground shadow-2xs">
+              ⌘K
+            </kbd>
           </Link>
           <Link
             to="/get-a-demo"

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageSquare, Sparkles, Trophy, Bot, User } from "lucide-react";
+import { MessageSquare, Package, Trophy, Bot, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function MobileAppDock() {
@@ -16,7 +16,7 @@ export function MobileAppDock() {
 
   const navItems = [
     { label: "Feed", to: "/community", Icon: MessageSquare },
-    { label: "Showcase", to: "/community?tag=showcase", Icon: Sparkles },
+    { label: "Kits", to: "/starter-packs", Icon: Package },
     { label: "Challenges", to: "/challenges", Icon: Trophy },
     { label: "Agents", to: "/agents", Icon: Bot },
     { label: "Profile", to: profileTarget, Icon: User },
@@ -29,9 +29,7 @@ export function MobileAppDock() {
     >
       <div className="mx-auto flex max-w-md items-center justify-around">
         {navItems.map(({ label, to, Icon }) => {
-          const isActive = to.includes("?") 
-            ? currentPath === "/community" && location.search?.tag === "showcase"
-            : currentPath.startsWith(to.split("?")[0]);
+          const isActive = to === "/" ? currentPath === "/" : currentPath.startsWith(to);
 
           return (
             <Link

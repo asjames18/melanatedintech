@@ -21,6 +21,7 @@ import { Route as PathsRouteImport } from './routes/paths'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as GetADemoRouteImport } from './routes/get-a-demo'
 import { Route as FitFinderRouteImport } from './routes/fit-finder'
+import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ChallengesRouteImport } from './routes/challenges'
@@ -158,6 +159,11 @@ const GetADemoRoute = GetADemoRouteImport.update({
 const FitFinderRoute = FitFinderRouteImport.update({
   id: '/fit-finder',
   path: '/fit-finder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticRoute = DiagnosticRouteImport.update({
+  id: '/diagnostic',
+  path: '/diagnostic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -575,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
@@ -663,6 +670,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/privacy': typeof PrivacyRoute
@@ -751,6 +759,7 @@ export interface FileRoutesById {
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
@@ -844,6 +853,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/community'
     | '/contact'
+    | '/diagnostic'
     | '/fit-finder'
     | '/get-a-demo'
     | '/knowledge'
@@ -932,6 +942,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/contact'
+    | '/diagnostic'
     | '/fit-finder'
     | '/get-a-demo'
     | '/privacy'
@@ -1019,6 +1030,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/community'
     | '/contact'
+    | '/diagnostic'
     | '/fit-finder'
     | '/get-a-demo'
     | '/knowledge'
@@ -1112,6 +1124,7 @@ export interface RootRouteChildren {
   ChallengesRoute: typeof ChallengesRouteWithChildren
   CommunityRoute: typeof CommunityRouteWithChildren
   ContactRoute: typeof ContactRoute
+  DiagnosticRoute: typeof DiagnosticRoute
   FitFinderRoute: typeof FitFinderRoute
   GetADemoRoute: typeof GetADemoRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
@@ -1246,6 +1259,13 @@ declare module '@tanstack/react-router' {
       path: '/fit-finder'
       fullPath: '/fit-finder'
       preLoaderRoute: typeof FitFinderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostic': {
+      id: '/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/diagnostic'
+      preLoaderRoute: typeof DiagnosticRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -1963,6 +1983,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChallengesRoute: ChallengesRouteWithChildren,
   CommunityRoute: CommunityRouteWithChildren,
   ContactRoute: ContactRoute,
+  DiagnosticRoute: DiagnosticRoute,
   FitFinderRoute: FitFinderRoute,
   GetADemoRoute: GetADemoRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,

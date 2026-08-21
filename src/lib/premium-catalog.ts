@@ -34,6 +34,22 @@ export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> 
     },
   },
   product: {
+    "revenue-leak-diagnostic": {
+      priceId: "product_revenue_leak_diagnostic_297",
+      amountCents: 29700,
+    },
+    "agent-failover-redundancy-blueprint": {
+      priceId: "product_agent_failover_blueprint_onetime",
+      amountCents: 3900,
+    },
+    "revenue-recovery-starter-kit": {
+      priceId: "product_revenue_recovery_kit_onetime",
+      amountCents: 4900,
+    },
+    "field-service-automation-pack": {
+      priceId: "product_field_service_pack_onetime",
+      amountCents: 4900,
+    },
     "agent-skill-pack-core": {
       priceId: "product_agent_skill_pack_core_onetime",
       amountCents: 4900,

@@ -23,6 +23,7 @@ const groups = [
     label: "Systems",
     items: [
       ["All Systems", "/systems"],
+      ["Revenue Diagnostic ($297)", "/diagnostic"],
       ["Revenue Recovery", "/systems/revenue-recovery"],
       ["Estimate Recovery", "/systems/estimate-recovery"],
       ["Route & Retention", "/systems/route-retention"],

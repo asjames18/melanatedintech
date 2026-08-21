@@ -90,6 +90,23 @@ function GetDemo() {
                   ))}
                 </ul>
               </div>
+
+              <div className="rounded-3xl border border-primary/30 bg-primary/10 p-6">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-primary">Fast-Track Paid Audit</p>
+                  <span className="rounded-full bg-primary/20 px-2.5 py-0.5 text-xs font-bold text-primary">$297</span>
+                </div>
+                <h3 className="mt-2 font-display text-lg font-semibold">Revenue Leak Diagnostic</h3>
+                <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                  Want an immediate 45-min bottleneck review before applying for a pilot? 100% credited toward your pilot deposit.
+                </p>
+                <a
+                  href="/diagnostic"
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow transition hover:opacity-90"
+                >
+                  Book $297 Diagnostic
+                </a>
+              </div>
             </aside>
           ) : null}
           <div

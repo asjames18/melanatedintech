@@ -21,6 +21,7 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "demo_started",
   "deposit_paid",
   "deposit_started",
+  "diagnostic_page_viewed",
   "eval_studio_run",
   "final_payment_started",
   "fit_finder_completed",

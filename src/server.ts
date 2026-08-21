@@ -60,14 +60,13 @@ function withSecurityHeaders(request: Request, response: Response): Response {
         "base-uri 'self'",
         "object-src 'none'",
         "frame-ancestors 'none'",
-        "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://js.stripe.com https://static.cloudflareinsights.com",
+        "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://js.stripe.com https://static.cloudflareinsights.com",
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: blob: https:",
         "font-src 'self' data: https:",
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.stripe.com https://static.cloudflareinsights.com",
         "frame-src https://js.stripe.com https://hooks.stripe.com",
         "form-action 'self' https://checkout.stripe.com",
-        "upgrade-insecure-requests",
       ].join("; "),
     );
   }

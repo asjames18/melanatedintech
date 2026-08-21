@@ -75,6 +75,7 @@ import { Route as KnowledgeChoosingYourFirstAgentWorkflowRouteImport } from './r
 import { Route as KnowledgeAiAgentsForMinistryRouteImport } from './routes/knowledge.ai-agents-for-ministry'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as InvoiceNumberRouteImport } from './routes/invoice.$number'
+import { Route as DiagnosticSuccessRouteImport } from './routes/diagnostic.success'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
@@ -91,6 +92,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as ApiDiagnosticBySessionRouteImport } from './routes/api/diagnostic/by-session'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
@@ -437,6 +439,11 @@ const InvoiceNumberRoute = InvoiceNumberRouteImport.update({
   path: '/invoice/$number',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticSuccessRoute = DiagnosticSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => DiagnosticRoute,
+} as any)
 const CommunityIdRoute = CommunityIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -520,6 +527,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const ApiDiagnosticBySessionRoute = ApiDiagnosticBySessionRouteImport.update({
+  id: '/api/diagnostic/by-session',
+  path: '/api/diagnostic/by-session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSubmissionsIdRoute =
   AuthenticatedSubmissionsIdRouteImport.update({
     id: '/$id',
@@ -581,7 +593,7 @@ export interface FileRoutesByFullPath {
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
-  '/diagnostic': typeof DiagnosticRoute
+  '/diagnostic': typeof DiagnosticRouteWithChildren
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
@@ -608,6 +620,7 @@ export interface FileRoutesByFullPath {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/diagnostic/success': typeof DiagnosticSuccessRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -659,6 +672,7 @@ export interface FileRoutesByFullPath {
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -670,7 +684,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
-  '/diagnostic': typeof DiagnosticRoute
+  '/diagnostic': typeof DiagnosticRouteWithChildren
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/privacy': typeof PrivacyRoute
@@ -692,6 +706,7 @@ export interface FileRoutesByTo {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/diagnostic/success': typeof DiagnosticSuccessRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -743,6 +758,7 @@ export interface FileRoutesByTo {
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -759,7 +775,7 @@ export interface FileRoutesById {
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/contact': typeof ContactRoute
-  '/diagnostic': typeof DiagnosticRoute
+  '/diagnostic': typeof DiagnosticRouteWithChildren
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
@@ -786,6 +802,7 @@ export interface FileRoutesById {
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/diagnostic/success': typeof DiagnosticSuccessRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -837,6 +854,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
+  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -880,6 +898,7 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/diagnostic/success'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -931,6 +950,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/leads'
     | '/submissions/$id'
+    | '/api/diagnostic/by-session'
     | '/admin/'
     | '/submissions/'
     | '/api/public/agents/chat'
@@ -964,6 +984,7 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/diagnostic/success'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -1015,6 +1036,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/leads'
     | '/submissions/$id'
+    | '/api/diagnostic/by-session'
     | '/admin'
     | '/submissions'
     | '/api/public/agents/chat'
@@ -1057,6 +1079,7 @@ export interface FileRouteTypes {
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/diagnostic/success'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -1108,6 +1131,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/leads'
     | '/_authenticated/submissions/$id'
+    | '/api/diagnostic/by-session'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
     | '/api/public/agents/chat'
@@ -1124,7 +1148,7 @@ export interface RootRouteChildren {
   ChallengesRoute: typeof ChallengesRouteWithChildren
   CommunityRoute: typeof CommunityRouteWithChildren
   ContactRoute: typeof ContactRoute
-  DiagnosticRoute: typeof DiagnosticRoute
+  DiagnosticRoute: typeof DiagnosticRouteWithChildren
   FitFinderRoute: typeof FitFinderRoute
   GetADemoRoute: typeof GetADemoRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
@@ -1170,6 +1194,7 @@ export interface RootRouteChildren {
   StarterPacksIndexRoute: typeof StarterPacksIndexRoute
   SystemsIndexRoute: typeof SystemsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  ApiDiagnosticBySessionRoute: typeof ApiDiagnosticBySessionRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1639,6 +1664,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoiceNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostic/success': {
+      id: '/diagnostic/success'
+      path: '/success'
+      fullPath: '/diagnostic/success'
+      preLoaderRoute: typeof DiagnosticSuccessRouteImport
+      parentRoute: typeof DiagnosticRoute
+    }
     '/community/$id': {
       id: '/community/$id'
       path: '/$id'
@@ -1750,6 +1782,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/api/diagnostic/by-session': {
+      id: '/api/diagnostic/by-session'
+      path: '/api/diagnostic/by-session'
+      fullPath: '/api/diagnostic/by-session'
+      preLoaderRoute: typeof ApiDiagnosticBySessionRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/submissions/$id': {
       id: '/_authenticated/submissions/$id'
@@ -1920,6 +1959,18 @@ const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
   CommunityRouteChildren,
 )
 
+interface DiagnosticRouteChildren {
+  DiagnosticSuccessRoute: typeof DiagnosticSuccessRoute
+}
+
+const DiagnosticRouteChildren: DiagnosticRouteChildren = {
+  DiagnosticSuccessRoute: DiagnosticSuccessRoute,
+}
+
+const DiagnosticRouteWithChildren = DiagnosticRoute._addFileChildren(
+  DiagnosticRouteChildren,
+)
+
 interface KnowledgeRouteChildren {
   KnowledgeSlugRoute: typeof KnowledgeSlugRoute
   KnowledgeAiAgentsForMinistryRoute: typeof KnowledgeAiAgentsForMinistryRoute
@@ -1983,7 +2034,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChallengesRoute: ChallengesRouteWithChildren,
   CommunityRoute: CommunityRouteWithChildren,
   ContactRoute: ContactRoute,
-  DiagnosticRoute: DiagnosticRoute,
+  DiagnosticRoute: DiagnosticRouteWithChildren,
   FitFinderRoute: FitFinderRoute,
   GetADemoRoute: GetADemoRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
@@ -2029,6 +2080,7 @@ const rootRouteChildren: RootRouteChildren = {
   StarterPacksIndexRoute: StarterPacksIndexRoute,
   SystemsIndexRoute: SystemsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  ApiDiagnosticBySessionRoute: ApiDiagnosticBySessionRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

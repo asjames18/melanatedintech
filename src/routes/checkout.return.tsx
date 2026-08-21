@@ -57,6 +57,11 @@ function CheckoutReturn() {
             trackEvent("purchase_completed", { itemType: result.kind, itemSlug: result.slug });
             // Refresh entitlement cache so the rest of the app sees the unlock.
             router.invalidate();
+
+            if (result.slug === "revenue-leak-diagnostic") {
+              navigate({ to: "/diagnostic/success", search: { session_id } });
+              return;
+            }
             return;
           }
         } catch {

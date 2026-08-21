@@ -114,6 +114,35 @@ function Community() {
               </div>
             </div>
 
+            {/* Featured Community Agent Showcase Spotlight */}
+            <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-card p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs">
+                    <Sparkles className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
+                      Featured Agent Build Spotlight
+                    </span>
+                    <h3 className="font-display text-sm font-bold text-foreground">
+                      Lead Revenue Recovery & SMS Dispatch Agent
+                    </h3>
+                  </div>
+                </div>
+
+                <Link to="/tools/agent-sandbox">
+                  <Button size="sm" className="gap-1.5 bg-primary text-xs font-bold shadow-sm">
+                    <Bot className="h-3.5 w-3.5" /> Test in Sandbox
+                  </Button>
+                </Link>
+              </div>
+
+              <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+                Contributed by <span className="font-semibold text-foreground">@james_builder</span> — Automatically audits uncontacted CRM leads and dispatches personalized SMS calendar links via Twilio API.
+              </p>
+            </div>
+
             <StoriesBar />
 
             {tag && (

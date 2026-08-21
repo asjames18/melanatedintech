@@ -11,9 +11,9 @@ function publicClient() {
 }
 
 export const listAgents = createServerFn({ method: "GET" }).handler(async () => {
-  const sb = publicClient();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const now = new Date().toISOString();
-  const { data, error } = await sb
+  const { data, error } = await supabaseAdmin
     .from("agents")
     .select("id,slug,name,tagline,category,capabilities,tier,price_cents,image_url,featured")
     .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
@@ -77,9 +77,9 @@ export const getArticle = createServerFn({ method: "GET" })
   });
 
 export const listProducts = createServerFn({ method: "GET" }).handler(async () => {
-  const sb = publicClient();
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const now = new Date().toISOString();
-  const { data, error } = await sb
+  const { data, error } = await supabaseAdmin
     .from("products")
     .select("id,slug,name,tagline,category,tier,price_cents,image_url")
     .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
@@ -227,10 +227,10 @@ export const submitContact = createServerFn({ method: "POST" })
 export const getPublicSeller = createServerFn({ method: "GET" })
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
 
-    const { data: seller, error: sellerError } = await sb
+    const { data: seller, error: sellerError } = await supabaseAdmin
       .from("seller_profiles")
       .select("id, display_name, slug, bio, avatar_url, website_url")
       .eq("slug", data.slug)
@@ -239,7 +239,7 @@ export const getPublicSeller = createServerFn({ method: "GET" })
     if (sellerError) throw new Error(sellerError.message);
     if (!seller) return null;
 
-    const { data: agents, error: agentsError } = await sb
+    const { data: agents, error: agentsError } = await supabaseAdmin
       .from("agents")
       .select("id, slug, name, tagline, category, capabilities, tier, price_cents, image_url, featured")
       .eq("seller_id", seller.id)
@@ -248,7 +248,7 @@ export const getPublicSeller = createServerFn({ method: "GET" })
 
     if (agentsError) throw new Error(agentsError.message);
 
-    const { data: products, error: productsError } = await sb
+    const { data: products, error: productsError } = await supabaseAdmin
       .from("products")
       .select("id, slug, name, tagline, category, tier, price_cents, image_url")
       .eq("seller_id", seller.id)
@@ -257,7 +257,7 @@ export const getPublicSeller = createServerFn({ method: "GET" })
 
     if (productsError) throw new Error(productsError.message);
 
-    const { data: services, error: servicesError } = await sb
+    const { data: services, error: servicesError } = await supabaseAdmin
       .from("services")
       .select("id, slug, name, tagline, description, outcomes, starting_price_cents")
       .eq("seller_id", seller.id)
@@ -273,3 +273,4 @@ export const getPublicSeller = createServerFn({ method: "GET" })
       services: services ?? [],
     };
   });
+

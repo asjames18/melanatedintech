@@ -188,13 +188,40 @@ function ToolsIndex() {
       colorClass: "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-950/50",
     },
     {
-      title: "Prompt Guard & Security Auditor",
+      title: "AI Readiness & Maturity Assessment",
       description:
-        "Audit system prompts for prompt injection vulnerabilities, jailbreak risks, and data leaks, and export a hardened prompt.",
-      href: "/tools/prompt-guard-auditor" as const,
+        "Evaluate your business or institution across 5 core pillars (SOPs, Data, Tooling, Literacy, Governance) to determine your AI Maturity Tier.",
+      href: "/tools/ai-readiness-assessment" as const,
+      Icon: Trophy,
+      badge: "Maturity Diagnostic",
+      colorClass: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50",
+    },
+    {
+      title: "Live Agentic Loop Sandbox",
+      description:
+        "Watch how autonomous AI agents think, query tools, analyze observations, and execute multi-step ReAct workflows in real time.",
+      href: "/tools/agent-sandbox" as const,
+      Icon: GitBranch,
+      badge: "ReAct Loop Visualizer",
+      colorClass: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50",
+    },
+    {
+      title: "Multi-Agent Team Cost Calculator",
+      description:
+        "Calculate monthly labor hours saved, API infrastructure costs, and annual financial ROI when deploying a team of autonomous AI agents.",
+      href: "/tools/multi-agent-calculator" as const,
+      Icon: Calculator,
+      badge: "Multi-Agent ROI",
+      colorClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
+    },
+    {
+      title: "AI Governance & Policy Starter Kit",
+      description:
+        "Download ready-to-use policy templates, acceptable use agreements, and ethical AI deployment frameworks tailored for businesses, nonprofits, and ministries.",
+      href: "/governance" as const,
       Icon: ShieldCheck,
-      badge: "Prompt Guardrail Audit",
-      colorClass: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50",
+      badge: "Governance Framework",
+      colorClass: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50",
     },
   ];
 

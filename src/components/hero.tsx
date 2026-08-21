@@ -8,40 +8,38 @@ export function Hero() {
       <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-8 lg:py-28">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-card/70 px-3 py-1.5 text-xs font-semibold text-primary shadow-sm backdrop-blur">
-            <MapPin className="h-3.5 w-3.5" /> Sebring, Florida · Serving businesses nationwide
+            <MapPin className="h-3.5 w-3.5" /> Practical AI Education · Workbench · Marketplace · Implementation Systems
           </div>
           <h1 className="mt-6 max-w-4xl font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
-            Turn missed leads, unfinished estimates, and inactive customers into{" "}
-            <span className="text-gradient-brand">booked revenue.</span>
+            Understand, build, and deploy AI Agents — from{" "}
+            <span className="text-gradient-brand">practical learning to turnkey systems.</span>
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Melanated In Tech builds practical recovery systems for local service businesses—so your
-            team can respond faster, follow up consistently, and keep more of the demand you already
-            earned.
+            Melanated In Tech is an end-to-end AI operating platform. Learn agentic workflows, use free browser-based workbench tools, acquire pre-built marketplace agents, or deploy turnkey revenue-recovery automations for your business.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              to="/get-a-demo"
+              to="/tools"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90"
             >
-              Get a relevant demo <ArrowRight className="h-4 w-4" />
+              Try Free Interactive Tools <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
-              to="/systems"
+              to="/diagnostic"
               className="inline-flex h-12 items-center justify-center rounded-xl border border-border bg-card px-6 text-sm font-semibold hover:bg-muted"
             >
-              Explore the systems
+              $297 Revenue Leak Diagnostic
             </Link>
           </div>
           <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" /> 30-day fixed-scope pilot
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Free interactive tools & courses
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="h-4 w-4 text-primary" /> Human handoffs built in
+              <ShieldCheck className="h-4 w-4 text-primary" /> Verified agent marketplace
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <TimerReset className="h-4 w-4 text-primary" /> Starts at $1,500
+              <TimerReset className="h-4 w-4 text-primary" /> Fixed-scope 30-day pilots
             </span>
           </div>
         </div>

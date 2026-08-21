@@ -19,9 +19,9 @@ function About() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="About"
-        title="Practical automation built around real business outcomes."
-        description="We help service businesses recover missed opportunities, follow up consistently, and retain more customers—while keeping AI education and opportunity accessible."
+        eyebrow="About Melanated in Tech"
+        title="Helping people confidently understand, build, deploy, and benefit from AI Agents."
+        description="Melanated in Tech is a practical AI education platform, interactive tools workbench, operating library, agent marketplace, and bespoke implementation partner."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">

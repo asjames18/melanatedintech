@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, BookOpen, Bot, PackageOpen } from "lucide-react";
 import { Hero } from "@/components/hero";
+import { PlatformOverview } from "@/components/platform-overview";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
 import { SystemDemo } from "@/components/system-demo";
@@ -22,9 +23,9 @@ const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listPro
 export const Route = createFileRoute("/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Revenue Recovery Automation for Service Businesses | Melanated In Tech",
+      title: "Practical AI Education, Tools Workbench & Agent Systems | Melanated In Tech",
       description:
-        "Practical lead, estimate, route, and client recovery systems for local service businesses. Based in Sebring, Florida and serving qualified teams nationwide.",
+        "Understand, build, deploy, and benefit from AI agents. Free interactive tools, verified agent marketplace, and turnkey revenue recovery automations for businesses.",
       url: "/",
     }),
   }),
@@ -49,6 +50,7 @@ function Home() {
   return (
     <SiteLayout>
       <Hero />
+      <PlatformOverview />
 
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

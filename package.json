@@ -17,9 +17,13 @@
     "check": "npm run lint && npm run typecheck && npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "audit:links": "node scripts/audit-internal-links.mjs"
+    "audit:links": "node scripts/audit-internal-links.mjs",
+    "cap:sync": "npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "cap:android": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/core": "^6.0.0",
     "@fontsource/inter": "^5.2.8",
     "@fontsource/space-grotesk": "^5.2.10",
     "@hookform/resolvers": "^5.2.2",

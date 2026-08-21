@@ -207,16 +207,16 @@ export function FeedComposer({
       onFocus={() => setFocused(true)}
     >
       {/* ── Post type tabs ── */}
-      <div className="flex items-center gap-1 border-b border-border px-4 py-2">
+      <div className="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-border px-3 py-2 sm:px-4">
         {(Object.entries(POST_TYPE_CONFIG) as [PostType, typeof cfg][]).map(([pt, c]) => (
           <button
             key={pt}
             type="button"
             onClick={() => switchPostType(pt)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+              "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-colors",
               postType === pt
-                ? "bg-primary/10 text-primary"
+                ? "bg-primary/15 text-primary font-bold"
                 : "text-muted-foreground hover:text-foreground hover:bg-muted"
             )}
           >

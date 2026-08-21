@@ -147,7 +147,7 @@ export function PostCard({
         </DropdownMenu>
       </div>
 
-      <div className="px-4 pt-3 sm:px-5 sm:pl-[68px]">
+      <div className="px-3 pt-2.5 sm:px-5 sm:pl-[68px]">
         {post.title && (
           <Link to="/community/$id" params={{ id: post.id }}>
             <h3 className="font-display text-base font-semibold leading-snug text-foreground transition-colors hover:text-primary sm:text-lg">{post.title}</h3>
@@ -157,13 +157,13 @@ export function PostCard({
       </div>
 
       {post.media_urls.length > 0 && (
-        <div className="mx-4 mt-3 overflow-hidden rounded-xl sm:mx-5 sm:ml-[68px]">
+        <div className="mx-3 mt-3 overflow-hidden rounded-xl sm:mx-5 sm:ml-[68px]">
           <PostMediaGallery urls={mediaUrls} />
         </div>
       )}
 
       {post.comment_preview.length > 0 && (
-        <div className="mx-4 mt-3 min-w-0 space-y-2 rounded-xl bg-muted/50 p-3 sm:mx-5 sm:ml-[68px]">
+        <div className="mx-3 mt-3 min-w-0 space-y-2 rounded-xl bg-muted/50 p-3 sm:mx-5 sm:ml-[68px]">
           {post.comment_preview.map((comment) => (
             <Link key={comment.id} to="/community/$id" params={{ id: post.id }} className="block min-w-0 break-words text-xs leading-relaxed text-muted-foreground hover:text-foreground">
               <span className="font-semibold text-foreground">{comment.author?.display_name ?? "Someone"}: </span>
@@ -174,7 +174,7 @@ export function PostCard({
       )}
 
       {(totalReactions > 0 || post.reply_count > 0 || post.share_count > 0) && (
-        <div className="mx-4 mt-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2 text-xs text-muted-foreground sm:mx-5 sm:pl-[68px]">
+        <div className="mx-3 mt-3 flex flex-wrap items-center justify-between gap-2 border-b border-border pb-2 text-xs text-muted-foreground sm:mx-5 sm:pl-[68px]">
           <div className="flex items-center gap-1.5">
             {totalReactions > 0 && <span className="font-semibold text-foreground/80">{totalReactions} reactions</span>}
           </div>
@@ -189,9 +189,9 @@ export function PostCard({
         <ReactionBar counts={post.reaction_count} mine={post.reactions_by_me} onToggle={(k) => { if (canReact) onToggleReaction?.(post.id, k); }} disabled={!canReact} compact />
 
         {!hideReplyLink && (
-          <Link to="/community/$id" params={{ id: post.id }} className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+          <Link to="/community/$id" params={{ id: post.id }} className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
             <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Comment</span>
+            <span className="text-xs">Comment</span>
           </Link>
         )}
 
@@ -199,10 +199,10 @@ export function PostCard({
           type="button"
           disabled={!canUseSocialActions}
           onClick={() => canUseSocialActions ? onToggleSave?.(post.id, post.is_saved) : toast.info("Sign in to save posts.")}
-          className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
         >
           <Bookmark className={cn("h-4 w-4", post.is_saved && "fill-current text-primary")} />
-          <span className="hidden sm:inline">Save</span>
+          <span className="hidden xs:inline text-xs">Save</span>
         </button>
 
         <div className="ml-auto shrink-0">

@@ -433,7 +433,7 @@ export function TokenCostCalculator() {
                   <Sparkles className="h-4 w-4" /> OpenRouter Routing Optimization
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  By using OpenRouter model routing, you can route routine tasks to low-cost fast models like <strong>Gemini 2.0 Flash (${MODELS["google/gemini-2.0-flash-001"]?.inputPer1M ?? "0.10"}/1M)</strong> and complex reasoning to <strong>DeepSeek R1 (${MODELS["deepseek/deepseek-r1"]?.inputPer1M ?? "0.55"}/1M)</strong> to save up to 80% on monthly LLM budgets.
+                  By using OpenRouter model routing, you can route routine tasks to low-cost fast models like <strong>Gemini 2.0 Flash ($0.10/1M)</strong> and complex reasoning to <strong>DeepSeek R1 ($0.55/1M)</strong> to save up to 80% on monthly LLM budgets.
                 </p>
               </div>
             </div>

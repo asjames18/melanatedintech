@@ -64,7 +64,7 @@ function withSecurityHeaders(request: Request, response: Response): Response {
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
         "img-src 'self' data: blob: https:",
         "font-src 'self' data: https:",
-        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.stripe.com https://static.cloudflareinsights.com",
+        "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.stripe.com https://static.cloudflareinsights.com https://openrouter.ai",
         "frame-src https://js.stripe.com https://hooks.stripe.com",
         "form-action 'self' https://checkout.stripe.com",
       ].join("; "),

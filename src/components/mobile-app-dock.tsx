@@ -6,11 +6,11 @@ export function MobileAppDock() {
   const currentPath = location.pathname;
 
   const navItems = [
-    { label: "Home", to: "/", Icon: Home },
+    { label: "Feed", to: "/community", Icon: MessageSquare },
     { label: "Tools", to: "/tools", Icon: Wrench },
     { label: "Agents", to: "/agents", Icon: Bot },
-    { label: "Community", to: "/community", Icon: MessageSquare },
     { label: "Governance", to: "/governance", Icon: ShieldCheck },
+    { label: "Home", to: "/", Icon: Home },
   ];
 
   return (

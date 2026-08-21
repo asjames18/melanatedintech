@@ -2,7 +2,7 @@
   "name": "Melanated In Tech — AI Agent Operating Platform",
   "short_name": "MelanatedTech",
   "description": "Practical AI agent playbooks, interactive workbenches, community showcase, and enterprise governance.",
-  "start_url": "/",
+  "start_url": "/community",
   "display": "standalone",
   "background_color": "#090d16",
   "theme_color": "#0f172a",

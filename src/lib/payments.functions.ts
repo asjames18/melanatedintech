@@ -89,11 +89,19 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
       let lineItems;
       let paymentIntentDescription = "";
 
+      let stripePrice = null;
       if (entry.priceId) {
-        const prices = await stripe.prices.list({ lookup_keys: [entry.priceId] });
-        if (!prices.data.length) throw new Error("Price not found");
-        const stripePrice = prices.data[0];
+        try {
+          const prices = await stripe.prices.list({ lookup_keys: [entry.priceId], limit: 1 });
+          if (prices.data.length) {
+            stripePrice = prices.data[0];
+          }
+        } catch (err) {
+          console.warn("Stripe price lookup key error, falling back to inline price:", err);
+        }
+      }
 
+      if (stripePrice) {
         const productId =
           typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
         const product = await stripe.products.retrieve(productId);
@@ -101,15 +109,19 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
 
         lineItems = [{ price: stripePrice.id, quantity: 1 }];
       } else {
-        // Fallback to database dynamic/inline price creation for Stripe checkout
+        // Fallback to database/catalog inline price creation for Stripe checkout
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const table = data.kind === "agent" ? "agents" : "products";
-        const { data: itemData } = await supabase
+        const { data: itemData } = await supabaseAdmin
           .from(table)
           .select("name")
           .eq("slug", data.slug)
           .maybeSingle();
 
-        const name = itemData?.name || `${data.kind}: ${data.slug}`;
+        const name =
+          data.slug === "revenue-leak-diagnostic"
+            ? "Revenue Leak Diagnostic ($297)"
+            : (itemData?.name || `${data.kind}: ${data.slug}`);
         paymentIntentDescription = name;
 
         lineItems = [

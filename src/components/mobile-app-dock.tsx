@@ -1,32 +1,43 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Wrench, Bot, MessageSquare, ShieldCheck, Search } from "lucide-react";
+import { MessageSquare, Sparkles, Trophy, Bot, User } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function MobileAppDock() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const [me, setMe] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
+  }, []);
+
+  const profileTarget = me ? `/u/${me}` : "/auth";
 
   const navItems = [
     { label: "Feed", to: "/community", Icon: MessageSquare },
-    { label: "Tools", to: "/tools", Icon: Wrench },
+    { label: "Showcase", to: "/community?tag=showcase", Icon: Sparkles },
+    { label: "Challenges", to: "/challenges", Icon: Trophy },
     { label: "Agents", to: "/agents", Icon: Bot },
-    { label: "Governance", to: "/governance", Icon: ShieldCheck },
-    { label: "Home", to: "/", Icon: Home },
+    { label: "Profile", to: profileTarget, Icon: User },
   ];
 
   return (
     <nav
-      aria-label="Mobile App Navigation Bar"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/90 px-3 py-2.5 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 md:hidden select-none pb-safe"
+      aria-label="Mobile Social Community App Dock"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/90 px-2 py-2.5 backdrop-blur-xl supports-[backdrop-filter]:bg-background/80 md:hidden select-none pb-safe"
     >
       <div className="mx-auto flex max-w-md items-center justify-around">
         {navItems.map(({ label, to, Icon }) => {
-          const isActive = to === "/" ? currentPath === "/" : currentPath.startsWith(to);
+          const isActive = to.includes("?") 
+            ? currentPath === "/community" && location.search?.tag === "showcase"
+            : currentPath.startsWith(to.split("?")[0]);
 
           return (
             <Link
-              key={to}
+              key={label}
               to={to}
-              className={`group flex flex-col items-center gap-1 rounded-2xl px-3 py-1.5 transition-all duration-200 ${
+              className={`group flex flex-col items-center gap-1 rounded-2xl px-2.5 py-1.5 transition-all duration-200 ${
                 isActive
                   ? "bg-primary/15 text-primary scale-105"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/30"

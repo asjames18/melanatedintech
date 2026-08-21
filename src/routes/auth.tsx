@@ -59,7 +59,7 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/account", replace: true });
+      if (data.session) navigate({ to: "/community", replace: true });
     });
   }, [navigate]);
 
@@ -79,7 +79,7 @@ function AuthPage() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/account" });
+        navigate({ to: "/community" });
       }
     } catch (err) {
       toast.error(friendlyAuthError(err instanceof Error ? err.message : "", mode));

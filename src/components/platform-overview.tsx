@@ -15,13 +15,13 @@ export function PlatformOverview() {
   const useCases = [
     {
       icon: GraduationCap,
-      title: "Learn & Master AI Agents",
-      eyebrow: "Practical Education",
+      title: "Practical AI Education & Playbooks",
+      eyebrow: "Learning & Guidance",
       description:
-        "No fluff or hype. Master practical AI agent workflows, prompt engineering, and operational automation through interactive playbooks, guides, and the Melanated in Tech podcast.",
+        "We provide practical AI agent education, step-by-step playbooks, prompt engineering guides, and podcast episodes so individuals and teams can understand and leverage AI.",
       ctaText: "Explore Knowledge Hub",
       ctaHref: "/knowledge",
-      badge: "Free Education",
+      badge: "Free Resources",
       color: "from-amber-500/10 to-orange-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     },
     {

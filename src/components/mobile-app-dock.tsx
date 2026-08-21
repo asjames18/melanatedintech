@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageSquare, Package, Trophy, Bot, User } from "lucide-react";
+import { MessageSquare, Wrench, Trophy, Bot, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function MobileAppDock() {
@@ -16,7 +16,7 @@ export function MobileAppDock() {
 
   const navItems = [
     { label: "Feed", to: "/community", Icon: MessageSquare },
-    { label: "Kits", to: "/starter-packs", Icon: Package },
+    { label: "Tools", to: "/tools", Icon: Wrench },
     { label: "Challenges", to: "/challenges", Icon: Trophy },
     { label: "Agents", to: "/agents", Icon: Bot },
     { label: "Profile", to: profileTarget, Icon: User },

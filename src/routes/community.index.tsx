@@ -82,48 +82,48 @@ function Community() {
           <div className="min-w-0 space-y-4">
             <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
               <div className="bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_32%)] p-4 sm:p-6">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-border sm:px-3 sm:py-1 sm:text-[11px]">
                       <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> AI Builder Network
                     </p>
-                    <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl">Community</h1>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:mt-2 sm:text-sm">
+                    <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl">Community</h1>
+                    <p className="mt-1 hidden text-xs leading-relaxed text-muted-foreground sm:block sm:text-sm">
                       Share builds, showcase agents, ask for help, find collaborators, and follow people building with AI.
                     </p>
                   </div>
                   <NotificationButton viewerId={me} />
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <div className="rounded-xl border border-border bg-background/75 p-2.5 text-center sm:p-3 sm:text-left">
-                    <Bot className="mx-auto h-4 w-4 text-cyan-600 sm:mx-0" />
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground sm:mt-2 sm:text-[10px]">Agents</p>
-                    <p className="text-xs font-semibold text-foreground sm:text-sm">Showcase</p>
+                <div className="mt-4 hidden grid-cols-3 gap-2 sm:grid">
+                  <div className="rounded-xl border border-border bg-background/75 p-3">
+                    <Bot className="h-4 w-4 text-cyan-600" />
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Agents</p>
+                    <p className="text-sm font-semibold text-foreground">Showcase</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/75 p-2.5 text-center sm:p-3 sm:text-left">
-                    <Users className="mx-auto h-4 w-4 text-emerald-600 sm:mx-0" />
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground sm:mt-2 sm:text-[10px]">Network</p>
-                    <p className="text-xs font-semibold text-foreground sm:text-sm">Builders</p>
+                  <div className="rounded-xl border border-border bg-background/75 p-3">
+                    <Users className="h-4 w-4 text-emerald-600" />
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Network</p>
+                    <p className="text-sm font-semibold text-foreground">Builders</p>
                   </div>
-                  <div className="rounded-xl border border-border bg-background/75 p-2.5 text-center sm:p-3 sm:text-left">
-                    <Zap className="mx-auto h-4 w-4 text-amber-600 sm:mx-0" />
-                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wider text-muted-foreground sm:mt-2 sm:text-[10px]">Momentum</p>
-                    <p className="text-xs font-semibold text-foreground sm:text-sm">Updates</p>
+                  <div className="rounded-xl border border-border bg-background/75 p-3">
+                    <Zap className="h-4 w-4 text-amber-600" />
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Momentum</p>
+                    <p className="text-sm font-semibold text-foreground">Updates</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Featured Community Agent Showcase Spotlight */}
-            <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-card p-4 shadow-sm sm:p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-card p-3.5 shadow-sm sm:p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold text-xs">
                     <Sparkles className="h-3.5 w-3.5" />
                   </span>
                   <div>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                      Featured Agent Build Spotlight
+                      Spotlight
                     </span>
                     <h3 className="font-display text-xs font-bold text-foreground sm:text-sm">
                       Lead Revenue Recovery & SMS Dispatch Agent
@@ -137,18 +137,14 @@ function Community() {
                   </Button>
                 </Link>
               </div>
-
-              <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
-                Contributed by <span className="font-semibold text-foreground">@james_builder</span> — Automatically audits uncontacted CRM leads and dispatches personalized SMS calendar links via Twilio API.
-              </p>
             </div>
 
             <StoriesBar />
 
             {tag && (
-              <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-3.5 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between rounded-2xl border border-primary/20 bg-primary/5 p-3 animate-in fade-in duration-200">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground">Active Filter:</span>
+                  <span className="text-xs font-semibold text-muted-foreground">Filter:</span>
                   <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-bold text-primary">#{tag}</span>
                 </div>
                 <Button asChild size="sm" variant="ghost" className="h-7 rounded-lg text-xs hover:bg-primary/10 hover:text-primary">

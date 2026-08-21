@@ -44,6 +44,11 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm", com
             <>
               <span className="text-sm leading-none select-none">{buttonEmoji}</span>
               <span>{buttonLabel}</span>
+              {total > 0 && (
+                <span className="ml-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-primary/20 px-1 text-[10px] font-bold text-primary">
+                  {total}
+                </span>
+              )}
             </>
           ) : (
             <>

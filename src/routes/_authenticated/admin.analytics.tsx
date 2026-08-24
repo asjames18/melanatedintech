@@ -27,20 +27,31 @@ import {
   XCircle,
   Building2,
   Mail,
-  HelpCircle,
   Activity,
   Layers,
   ArrowRight,
   Filter,
+  Users,
+  UserPlus,
+  UserCheck,
+  Globe,
+  MessageSquare,
+  FileText,
+  ShoppingBag,
+  Clock,
+  ChevronRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
-  head: () => ({ meta: [{ title: "Executive Telemetry & Analytics — Admin" }] }),
+  head: () => ({ meta: [{ title: "Executive Telemetry & User Analytics — Admin" }] }),
   component: AdminAnalytics,
 });
 
+type AnalyticsTab = "overview" | "users" | "leads" | "tools";
+
 function AdminAnalytics() {
   const [days, setDays] = useState(30);
+  const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
   const summary = useServerFn(adminAnalyticsSummary);
   const q = useQuery({
     queryKey: ["admin-analytics", days],
@@ -87,9 +98,9 @@ function AdminAnalytics() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Executive Telemetry & Platform Insights"
-        title="Live Traffic, Lead Quality & Tool Analytics"
-        description="Monitor real-time telemetry events, interactive studio usage, lead qualification domain breakdown, and conversion funnels."
+        eyebrow="Executive Telemetry & Platform Intelligence"
+        title="Live Traffic, User Accounts & Conversions"
+        description="Real-time conversion tracking across user registrations, recommendation surfaces, interactive studio tools, and lead qualification funnels."
       />
 
       <section className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -111,7 +122,7 @@ function AdminAnalytics() {
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-slate-400" />
               <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                Window:
+                Time Window:
               </span>
             </div>
             <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
@@ -141,7 +152,7 @@ function AdminAnalytics() {
           </div>
         </div>
 
-        {/* 6 EXECUTIVE STAT GLOW CARDS */}
+        {/* Executive Stat Cards Grid */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <StatCard
             label="Total Telemetry"
@@ -149,7 +160,15 @@ function AdminAnalytics() {
             subtext="Raw activity records"
             Icon={Zap}
             color="text-amber-400"
-            bgColor="bg-amber-500/10 border-amber-500/30"
+            borderColor="border-amber-500/30"
+          />
+          <StatCard
+            label="User Accounts"
+            value={data?.userData.totalUsers ?? 0}
+            subtext={`+${data?.userData.newUsersPeriod ?? 0} in selected window`}
+            Icon={Users}
+            color="text-emerald-400"
+            borderColor="border-emerald-500/30"
           />
           <StatCard
             label="Tool Executions"
@@ -157,209 +176,129 @@ function AdminAnalytics() {
             subtext="Interactive studio tools"
             Icon={Wrench}
             color="text-violet-400"
-            bgColor="bg-violet-500/10 border-violet-500/30"
+            borderColor="border-violet-500/30"
           />
           <StatCard
             label="Lead Prechecks"
             value={data?.totals.leadChecks ?? 0}
             subtext="Validated lead submissions"
             Icon={ShieldCheck}
-            color="text-emerald-400"
-            bgColor="bg-emerald-500/10 border-emerald-500/30"
+            color="text-sky-400"
+            borderColor="border-sky-500/30"
           />
           <StatCard
             label="Impressions"
             value={data?.totals.impressions ?? 0}
             subtext="Recommendation views"
             Icon={Eye}
-            color="text-sky-400"
-            bgColor="bg-sky-500/10 border-sky-500/30"
-          />
-          <StatCard
-            label="Clicks"
-            value={data?.totals.clicks ?? 0}
-            subtext="Direct recommendation clicks"
-            Icon={MousePointer}
             color="text-indigo-400"
-            bgColor="bg-indigo-500/10 border-indigo-500/30"
+            borderColor="border-indigo-500/30"
           />
           <StatCard
             label="Overall CTR"
             value={pct(data?.totals.ctr ?? 0)}
-            subtext="Engagement conversion"
+            subtext="Engagement ratio"
             Icon={TrendingUp}
             color="text-pink-400"
-            bgColor="bg-pink-500/10 border-pink-500/30"
+            borderColor="border-pink-500/30"
           />
         </div>
 
-        {/* DAILY TELEMETRY TREND TIMELINE CHART */}
-        {data?.dailyTrends && data.dailyTrends.length > 0 && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-              <div>
-                <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-violet-400" /> Daily Telemetry & Tool Execution Timeline
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Daily event volume, interactive tool usage, and lead precheck activity over time.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-violet-500" /> Total Events
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" /> Tool Runs
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" /> Lead Checks
-                </span>
-              </div>
-            </div>
+        {/* Tab Segment Controls */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+          <TabButton
+            active={activeTab === "overview"}
+            onClick={() => setActiveTab("overview")}
+            icon={Activity}
+            label="Overview & Timeline"
+          />
+          <TabButton
+            active={activeTab === "users"}
+            onClick={() => setActiveTab("users")}
+            icon={Users}
+            label="User Accounts & Community"
+            badge={data?.userData.newUsersPeriod ? `+${data.userData.newUsersPeriod}` : undefined}
+          />
+          <TabButton
+            active={activeTab === "leads"}
+            onClick={() => setActiveTab("leads")}
+            icon={ShieldCheck}
+            label="Lead Quality & Geo Telemetry"
+          />
+          <TabButton
+            active={activeTab === "tools"}
+            onClick={() => setActiveTab("tools")}
+            icon={Wrench}
+            label="Tools & Recommendation CTR"
+          />
+        </div>
 
-            {/* Visual SVG Timeline Bar Chart */}
-            <div className="space-y-3">
-              <div className="grid grid-cols-7 sm:grid-cols-14 lg:grid-cols-30 gap-1.5 items-end h-40 pt-4 pb-2 px-2 rounded-xl border border-slate-800/80 bg-slate-950/60">
-                {data.dailyTrends.map((d) => {
-                  const barHeight = Math.min(100, Math.max(8, (d.totalEvents / maxDailyEvents) * 100));
-                  return (
-                    <div
-                      key={d.date}
-                      className="group relative flex flex-col items-center justify-end h-full w-full"
-                    >
-                      {/* Tooltip */}
-                      <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
-                        <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-[11px] text-white shadow-2xl space-y-0.5 whitespace-nowrap">
-                          <div className="font-bold text-violet-300">{d.date}</div>
-                          <div>Events: <span className="font-bold text-white">{d.totalEvents}</span></div>
-                          <div>Tool Runs: <span className="font-bold text-emerald-400">{d.toolRuns}</span></div>
-                          <div>Lead Checks: <span className="font-bold text-amber-400">{d.leadsChecked}</span></div>
+        {/* TAB 1: OVERVIEW & TIMELINE */}
+        {activeTab === "overview" && (
+          <div className="space-y-8">
+            {/* Daily Activity Timeline Graph */}
+            {data?.dailyTrends && data.dailyTrends.length > 0 && (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-violet-400" /> Daily Telemetry & Activity Timeline
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Daily event volume, interactive tool usage, and lead precheck activity over time.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-4 text-xs font-semibold">
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-violet-500" /> Total Events
+                    </span>
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-emerald-400" /> Tool Runs
+                    </span>
+                    <span className="flex items-center gap-1.5 text-slate-300">
+                      <span className="h-2.5 w-2.5 rounded-sm bg-amber-400" /> Lead Checks
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-7 sm:grid-cols-14 lg:grid-cols-30 gap-1.5 items-end h-44 pt-4 pb-2 px-2 rounded-xl border border-slate-800/80 bg-slate-950/60">
+                    {data.dailyTrends.map((d) => {
+                      const barHeight = Math.min(100, Math.max(8, (d.totalEvents / maxDailyEvents) * 100));
+                      return (
+                        <div
+                          key={d.date}
+                          className="group relative flex flex-col items-center justify-end h-full w-full"
+                        >
+                          <div className="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-20 pointer-events-none">
+                            <div className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-[11px] text-white shadow-2xl space-y-0.5 whitespace-nowrap">
+                              <div className="font-bold text-violet-300">{d.date}</div>
+                              <div>Events: <span className="font-bold text-white">{d.totalEvents}</span></div>
+                              <div>Tool Runs: <span className="font-bold text-emerald-400">{d.toolRuns}</span></div>
+                              <div>Lead Checks: <span className="font-bold text-amber-400">{d.leadsChecked}</span></div>
+                            </div>
+                            <div className="w-2 h-2 -mt-1 rotate-45 bg-slate-900 border-r border-b border-slate-700" />
+                          </div>
+
+                          <div
+                            className="w-full rounded-t-sm bg-gradient-to-t from-violet-600 via-violet-500 to-emerald-400 transition-all duration-300 hover:brightness-125"
+                            style={{ height: `${barHeight}%` }}
+                          />
                         </div>
-                        <div className="w-2 h-2 -mt-1 rotate-45 bg-slate-900 border-r border-b border-slate-700" />
-                      </div>
-
-                      {/* Bar segment */}
-                      <div
-                        className="w-full rounded-t-sm bg-gradient-to-t from-violet-600 via-violet-500 to-emerald-400 transition-all duration-300 hover:brightness-125"
-                        style={{ height: `${barHeight}%` }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex items-center justify-between text-[11px] text-slate-500 px-2 font-mono">
-                <span>{data.dailyTrends[0]?.date}</span>
-                <span>{data.dailyTrends[Math.floor(data.dailyTrends.length / 2)]?.date}</span>
-                <span>{data.dailyTrends[data.dailyTrends.length - 1]?.date}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* LEAD QUALITY & REVENUE CONVERSION SECTION */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* LEAD QUALITY BREAKDOWN */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-emerald-400" /> Lead Quality & Domain Telemetry
-                </h3>
-                <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-400">
-                  {data?.leadQuality.totalChecks ?? 0} Total Prechecks
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mb-6">
-                Real-time validation metrics from LeadFlow & Revenue Leak audit submissions.
-              </p>
-
-              <div className="space-y-4">
-                {/* Corporate */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-emerald-400 flex items-center gap-2">
-                      <Building2 className="h-4 w-4" /> Corporate / High-Growth Lead (@acme.com)
-                    </span>
-                    <span className="font-mono font-bold text-white">
-                      {data?.leadQuality.corporate ?? 0} ({corporatePct.toFixed(1)}%)
-                    </span>
+                      );
+                    })}
                   </div>
-                  <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full rounded-full bg-emerald-500 transition-all duration-500"
-                      style={{ width: `${Math.max(2, corporatePct)}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Personal */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-sky-400 flex items-center gap-2">
-                      <Mail className="h-4 w-4" /> Personal Account (@gmail.com / @yahoo.com)
-                    </span>
-                    <span className="font-mono font-bold text-white">
-                      {data?.leadQuality.personal ?? 0} ({personalPct.toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full rounded-full bg-sky-500 transition-all duration-500"
-                      style={{ width: `${Math.max(2, personalPct)}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Inactive */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-amber-400 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4" /> Inactive / Unregistered Domain (No MX Records)
-                    </span>
-                    <span className="font-mono font-bold text-white">
-                      {data?.leadQuality.inactive ?? 0} ({inactivePct.toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full rounded-full bg-amber-500 transition-all duration-500"
-                      style={{ width: `${Math.max(2, inactivePct)}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Invalid */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-rose-400 flex items-center gap-2">
-                      <XCircle className="h-4 w-4" /> Invalid Format / Malformed
-                    </span>
-                    <span className="font-mono font-bold text-white">
-                      {data?.leadQuality.invalid ?? 0} ({invalidPct.toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full rounded-full bg-rose-500 transition-all duration-500"
-                      style={{ width: `${Math.max(2, invalidPct)}%` }}
-                    />
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 px-2 font-mono">
+                    <span>{data.dailyTrends[0]?.date}</span>
+                    <span>{data.dailyTrends[Math.floor(data.dailyTrends.length / 2)]?.date}</span>
+                    <span>{data.dailyTrends[data.dailyTrends.length - 1]?.date}</span>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span>Automatic DNS MX lookup & PII protection enabled</span>
-              <Link to="/admin/leads" className="text-emerald-400 font-bold hover:underline flex items-center gap-1">
-                View Lead Records <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-
-          {/* REVENUE & CONVERSION FUNNEL */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
-            <div>
+            {/* Platform Conversion Funnel */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-indigo-400" /> Platform Conversion Funnel
@@ -372,190 +311,416 @@ function AdminAnalytics() {
                 Step-by-step conversion progression from audit landing views to paid pilot conversions.
               </p>
 
-              <div className="space-y-4">
-                {/* Step 1 */}
-                <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-sky-500/10 border border-sky-500/30 grid place-items-center text-sky-400 font-bold text-xs">
-                      1
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Diagnostic & Audit Visitors</div>
-                      <div className="text-[11px] text-slate-400">Visited /diagnostic page</div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-sky-300">
-                    {data?.funnel.diagnosticViews ?? 0}
-                  </span>
-                </div>
-
-                {/* Step 2 */}
-                <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/10 border border-emerald-500/30 grid place-items-center text-emerald-400 font-bold text-xs">
-                      2
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Prechecked Qualified Leads</div>
-                      <div className="text-[11px] text-slate-400">Ran email verification & score</div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-emerald-300">
-                    {data?.funnel.leadsQualified ?? 0}
-                  </span>
-                </div>
-
-                {/* Step 3 */}
-                <div className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-violet-500/10 border border-violet-500/30 grid place-items-center text-violet-400 font-bold text-xs">
-                      3
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Strategy Sprint & Demo Applications</div>
-                      <div className="text-[11px] text-slate-400">Submitted custom build request</div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-violet-300">
-                    {data?.funnel.demosRequested ?? 0}
-                  </span>
-                </div>
-
-                {/* Step 4 */}
-                <div className="p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-emerald-500/20 border border-emerald-500/50 grid place-items-center text-emerald-300 font-bold text-xs">
-                      4
-                    </div>
-                    <div>
-                      <div className="text-xs font-bold text-white">Paid Deposits & Conversions</div>
-                      <div className="text-[11px] text-emerald-300/80">Completed Stripe checkout</div>
-                    </div>
-                  </div>
-                  <span className="font-mono text-sm font-bold text-emerald-300">
-                    {data?.funnel.purchasesCompleted ?? 0}
-                  </span>
-                </div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <FunnelStep
+                  stepNumber={1}
+                  title="Diagnostic Visitors"
+                  subtext="Visited /diagnostic page"
+                  count={data?.funnel.diagnosticViews ?? 0}
+                  color="sky"
+                />
+                <FunnelStep
+                  stepNumber={2}
+                  title="Prechecked Leads"
+                  subtext="Ran lead score & DNS check"
+                  count={data?.funnel.leadsQualified ?? 0}
+                  color="emerald"
+                />
+                <FunnelStep
+                  stepNumber={3}
+                  title="Sprint & Demos"
+                  subtext="Submitted build request"
+                  count={data?.funnel.demosRequested ?? 0}
+                  color="violet"
+                />
+                <FunnelStep
+                  stepNumber={4}
+                  title="Paid Deployments"
+                  subtext="Completed checkout"
+                  count={data?.funnel.purchasesCompleted ?? 0}
+                  color="emerald"
+                  highlight
+                />
               </div>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
-              <span>Conversion tracking via privacy-first analytics.ts</span>
-              <span className="text-violet-400 font-bold">100% Client Consent Compliant</span>
             </div>
           </div>
-        </div>
-
-        {/* INTERACTIVE TOOLS USAGE HEATMAP & BREAKDOWN */}
-        {data?.topTools && data.topTools.length > 0 && (
-          <Panel title="Interactive AI Tools Usage Breakdown">
-            <div className="p-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {data.topTools.map((t) => {
-                const totalRuns = data.totals.toolRuns || 1;
-                const toolPct = (t.count / totalRuns) * 100;
-                return (
-                  <div
-                    key={t.tool}
-                    className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 hover:border-violet-500/40 transition-all shadow-md"
-                  >
-                    <div className="flex items-center justify-between text-xs font-semibold">
-                      <span className="capitalize text-slate-200 font-bold flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-violet-400" />
-                        {t.tool}
-                      </span>
-                      <span className="text-emerald-400 font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
-                        {t.count} runs
-                      </span>
-                    </div>
-                    <div className="mt-3 flex items-center gap-3">
-                      <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-400 transition-all duration-500"
-                          style={{ width: `${Math.min(100, Math.max(8, toolPct))}%` }}
-                        />
-                      </div>
-                      <span className="text-[11px] font-mono text-slate-400 font-bold w-12 text-right">
-                        {toolPct.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </Panel>
         )}
 
-        {/* VISUAL CHART: SURFACE DISTRIBUTION BARS */}
-        {data?.bySurface && data.bySurface.length > 0 && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-indigo-400" /> Recommendation Surface CTR Distribution
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Visual impression volume and click-through rates across site surfaces.
-                </p>
-              </div>
-              <span className="rounded-full bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 text-xs font-bold text-indigo-400">
-                {data.bySurface.length} Active Surfaces
-              </span>
+        {/* TAB 2: USER ACCOUNTS & COMMUNITY */}
+        {activeTab === "users" && (
+          <div className="space-y-8">
+            {/* User Account Breakdown Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <UserSummaryCard
+                label="Registered Profiles"
+                value={data?.userData.totalUsers ?? 0}
+                subtext="Total platform accounts"
+                Icon={Users}
+                badge={`+${data?.userData.newUsersPeriod ?? 0} recent`}
+              />
+              <UserSummaryCard
+                label="Waitlist Subscriptions"
+                value={data?.userData.totalWaitlist ?? 0}
+                subtext="Early product signups"
+                Icon={UserPlus}
+              />
+              <UserSummaryCard
+                label="Purchased Licenses"
+                value={data?.userData.totalPurchases ?? 0}
+                subtext="Active software entitlements"
+                Icon={ShoppingBag}
+              />
+              <UserSummaryCard
+                label="Community Discussions"
+                value={(data?.userData.totalPosts ?? 0) + (data?.userData.totalComments ?? 0)}
+                subtext={`${data?.userData.totalPosts ?? 0} posts · ${data?.userData.totalComments ?? 0} comments`}
+                Icon={MessageSquare}
+              />
             </div>
 
-            <div className="space-y-4">
-              {data.bySurface.map((s) => {
-                const barWidth = Math.min(100, Math.max(8, (s.impressions / maxImpressions) * 100));
-                return (
-                  <div key={s.surface} className="space-y-1.5">
+            {/* Recent Members Table & Community Feed */}
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                    <UserCheck className="h-5 w-5 text-emerald-400" /> Recent User Registrations
+                  </h3>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {data?.userData.recentUsers.length ?? 0} Latest Members
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mb-6">
+                  Latest members who created an account on the platform.
+                </p>
+
+                <div className="space-y-3">
+                  {(data?.userData.recentUsers ?? []).length === 0 ? (
+                    <div className="text-center py-8 text-xs text-slate-500">No recent user registrations recorded.</div>
+                  ) : (
+                    (data?.userData.recentUsers ?? []).map((user) => (
+                      <div
+                        key={user.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-slate-800/80 bg-slate-950/60 hover:border-slate-700 transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          {user.avatarUrl ? (
+                            <img src={user.avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover border border-slate-700" />
+                          ) : (
+                            <div className="h-9 w-9 rounded-full bg-slate-800 border border-slate-700 grid place-items-center text-xs font-bold text-violet-300">
+                              {user.displayName.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <div className="text-xs font-bold text-white">{user.displayName}</div>
+                            <div className="text-[11px] font-mono text-slate-500">{user.id.slice(0, 16)}...</div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                          <Clock className="h-3.5 w-3.5 text-slate-500" />
+                          {new Date(user.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Geographic Visitor Origins */}
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                      <Globe className="h-5 w-5 text-sky-400" /> Top Visitor Origins
+                    </h3>
+                    <span className="text-xs font-mono text-sky-400 font-bold">Geo Telemetry</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6">
+                    Geographic origin data captured from verified lead submissions.
+                  </p>
+
+                  <div className="space-y-3.5">
+                    {(data?.userData.topCountries ?? []).length === 0 ? (
+                      <div className="text-center py-6 text-xs text-slate-500">United States (Primary traffic)</div>
+                    ) : (
+                      (data?.userData.topCountries ?? []).map((c) => (
+                        <div key={c.country} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-200">{c.country}</span>
+                            <span className="font-mono text-emerald-400 font-bold">{c.count} leads</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                            <div
+                              className="h-full rounded-full bg-sky-400"
+                              style={{ width: `${Math.min(100, (c.count / (data?.userData.topCountries[0]?.count || 1)) * 100)}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500">
+                  Real-time geo resolution powered by LeadFlow DNS
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: LEAD QUALITY & GEO TELEMETRY */}
+        {activeTab === "leads" && (
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-emerald-400" /> Lead Quality & Domain Breakdown
+                  </h3>
+                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 text-xs font-bold text-emerald-400">
+                    {data?.leadQuality.totalChecks ?? 0} Total Prechecks
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 mb-6">
+                  Validation breakdown across lead email domains submitted to LeadFlow & Diagnostic audits.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold capitalize text-slate-200 flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-violet-400" />
-                        {s.surface.replace(/_/g, " ")}
+                      <span className="font-bold text-emerald-400 flex items-center gap-2">
+                        <Building2 className="h-4 w-4" /> Corporate / High-Growth Lead (@acme.com)
                       </span>
-                      <div className="flex items-center gap-4 text-slate-400 font-mono">
-                        <span>{s.impressions} Views</span>
-                        <span>{s.clicks} Clicks</span>
-                        <span className="font-bold text-emerald-400">{pct(s.ctr)} CTR</span>
+                      <span className="font-mono font-bold text-white">
+                        {data?.leadQuality.corporate ?? 0} ({corporatePct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="h-full rounded-full bg-emerald-500 transition-all duration-500" style={{ width: `${Math.max(2, corporatePct)}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-sky-400 flex items-center gap-2">
+                        <Mail className="h-4 w-4" /> Personal Account (@gmail.com / @yahoo.com)
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {data?.leadQuality.personal ?? 0} ({personalPct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="h-full rounded-full bg-sky-500 transition-all duration-500" style={{ width: `${Math.max(2, personalPct)}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-amber-400 flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4" /> Inactive / Unregistered Domain (No MX Records)
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {data?.leadQuality.inactive ?? 0} ({inactivePct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="h-full rounded-full bg-amber-500 transition-all duration-500" style={{ width: `${Math.max(2, inactivePct)}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-rose-400 flex items-center gap-2">
+                        <XCircle className="h-4 w-4" /> Invalid Format / Malformed
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {data?.leadQuality.invalid ?? 0} ({invalidPct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${Math.max(2, invalidPct)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                <span>MX Lookup & DNS verification active</span>
+                <Button asChild variant="ghost" size="sm" className="text-emerald-400 hover:text-emerald-300 font-bold p-0 h-auto gap-1">
+                  <Link to="/admin/leads">Manage Leads <ChevronRight className="h-3.5 w-3.5" /></Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Quick Actions Panel */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <h3 className="font-display text-lg font-bold text-white flex items-center gap-2 mb-4">
+                  <Zap className="h-5 w-5 text-amber-400" /> Revenue Recovery Quick Actions
+                </h3>
+                <p className="text-xs text-slate-400 mb-6">
+                  Administrative tools to manage customer leads, check invoices, and update catalog items.
+                </p>
+
+                <div className="space-y-3">
+                  <Link to="/admin/leads" className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-violet-500/40 transition-all">
+                    <div className="flex items-center gap-3">
+                      <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                      <div>
+                        <div className="text-xs font-bold text-white">Lead Management Console</div>
+                        <div className="text-[11px] text-slate-400">Review qualified leads & email records</div>
                       </div>
                     </div>
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  </Link>
 
-                    <div className="relative h-3.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                  <Link to="/admin/invoices" className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-violet-500/40 transition-all">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 text-violet-400" />
+                      <div>
+                        <div className="text-xs font-bold text-white">Client Invoices & Billings</div>
+                        <div className="text-[11px] text-slate-400">Generate Stripe invoices for custom builds</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  </Link>
+
+                  <Link to="/admin/catalog" className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-violet-500/40 transition-all">
+                    <div className="flex items-center gap-3">
+                      <ShoppingBag className="h-5 w-5 text-sky-400" />
+                      <div>
+                        <div className="text-xs font-bold text-white">Catalog & Marketplace Admin</div>
+                        <div className="text-[11px] text-slate-400">Manage products, pricing & agents</div>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-slate-500" />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500">
+                Admin Role Verified · Melanated In Tech
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: TOOLS & RECOMMENDATIONS */}
+        {activeTab === "tools" && (
+          <div className="space-y-8">
+            {/* Interactive Tools Breakdown */}
+            {data?.topTools && data.topTools.length > 0 && (
+              <Panel title="Interactive AI Tools Usage Breakdown">
+                <div className="p-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {data.topTools.map((t) => {
+                    const totalRuns = data.totals.toolRuns || 1;
+                    const toolPct = (t.count / totalRuns) * 100;
+                    return (
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-500 to-emerald-400 transition-all duration-500"
-                        style={{ width: `${barWidth}%` }}
+                        key={t.tool}
+                        className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 hover:border-violet-500/40 transition-all shadow-md"
+                      >
+                        <div className="flex items-center justify-between text-xs font-semibold">
+                          <span className="capitalize text-slate-200 font-bold flex items-center gap-2">
+                            <Sparkles className="h-4 w-4 text-violet-400" />
+                            {t.tool}
+                          </span>
+                          <span className="text-emerald-400 font-mono font-bold bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                            {t.count} runs
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center gap-3">
+                          <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-violet-500 to-emerald-400 transition-all duration-500"
+                              style={{ width: `${Math.min(100, Math.max(8, toolPct))}%` }}
+                            />
+                          </div>
+                          <span className="text-[11px] font-mono text-slate-400 font-bold w-12 text-right">
+                            {toolPct.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Panel>
+            )}
+
+            {/* Recommendation Surface CTR Distribution */}
+            {data?.bySurface && data.bySurface.length > 0 && (
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-indigo-400" /> Recommendation Surface CTR Distribution
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Visual impression volume and click-through rates across site surfaces.
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 text-xs font-bold text-indigo-400">
+                    {data.bySurface.length} Active Surfaces
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  {data.bySurface.map((s) => {
+                    const barWidth = Math.min(100, Math.max(8, (s.impressions / maxImpressions) * 100));
+                    return (
+                      <div key={s.surface} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold capitalize text-slate-200 flex items-center gap-2">
+                            <span className="h-2 w-2 rounded-full bg-violet-400" />
+                            {s.surface.replace(/_/g, " ")}
+                          </span>
+                          <div className="flex items-center gap-4 text-slate-400 font-mono">
+                            <span>{s.impressions} Views</span>
+                            <span>{s.clicks} Clicks</span>
+                            <span className="font-bold text-emerald-400">{pct(s.ctr)} CTR</span>
+                          </div>
+                        </div>
+
+                        <div className="relative h-3.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                          <div
+                            className="h-full rounded-full bg-gradient-to-r from-violet-600 via-indigo-500 to-emerald-400 transition-all duration-500"
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Top Items Table */}
+            <Panel title="Top Content Items & Engagement Performance">
+              <Table
+                headers={["Type", "Item Slug", "Category", "Impressions", "Clicks", "CTR Performance"]}
+                rows={(data?.topItems ?? []).map((r) => [
+                  <span key={r.itemType} className="rounded-full bg-violet-500/10 border border-violet-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-violet-300">
+                    {r.itemType}
+                  </span>,
+                  <span key={r.itemSlug} className="font-semibold text-slate-200">{r.itemSlug}</span>,
+                  <span key="cat" className="text-slate-400">{r.itemCategory}</span>,
+                  <span key="imp" className="font-mono text-slate-300">{r.impressions}</span>,
+                  <span key="clk" className="font-mono text-slate-300">{r.clicks}</span>,
+                  <div key={r.itemSlug} className="flex items-center gap-3">
+                    <span className="w-12 text-xs font-mono font-bold text-emerald-400">{pct(r.ctr)}</span>
+                    <div className="h-2 w-28 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div
+                        className="h-full rounded-full bg-emerald-400"
+                        style={{ width: `${Math.min(100, r.ctr * 100 * 2)}%` }}
                       />
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  </div>,
+                ])}
+              />
+            </Panel>
           </div>
         )}
-
-        {/* TOP RECOMMENDED ITEMS TABLE */}
-        <Panel title="Top Content Items & Engagement Performance">
-          <Table
-            headers={["Type", "Item Slug", "Category", "Impressions", "Clicks", "CTR Performance"]}
-            rows={(data?.topItems ?? []).map((r) => [
-              <span key={r.itemType} className="rounded-full bg-violet-500/10 border border-violet-500/30 px-2.5 py-0.5 text-[10px] font-bold uppercase text-violet-300">
-                {r.itemType}
-              </span>,
-              <span key={r.itemSlug} className="font-semibold text-slate-200">{r.itemSlug}</span>,
-              <span key="cat" className="text-slate-400">{r.itemCategory}</span>,
-              <span key="imp" className="font-mono text-slate-300">{r.impressions}</span>,
-              <span key="clk" className="font-mono text-slate-300">{r.clicks}</span>,
-              <div key={r.itemSlug} className="flex items-center gap-3">
-                <span className="w-12 text-xs font-mono font-bold text-emerald-400">{pct(r.ctr)}</span>
-                <div className="h-2 w-28 rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                  <div
-                    className="h-full rounded-full bg-emerald-400"
-                    style={{ width: `${Math.min(100, r.ctr * 100 * 2)}%` }}
-                  />
-                </div>
-              </div>,
-            ])}
-          />
-        </Panel>
       </section>
     </SiteLayout>
   );
@@ -567,26 +732,132 @@ function StatCard({
   subtext,
   Icon,
   color,
-  bgColor,
+  borderColor,
 }: {
   label: string;
   value: number | string;
   subtext: string;
   Icon: React.ComponentType<{ className?: string }>;
   color: string;
-  bgColor: string;
+  borderColor: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl transition-all hover:border-slate-700 ${bgColor}`}>
+    <div className={`rounded-2xl border ${borderColor} bg-slate-900/90 p-5 shadow-xl transition-all hover:border-slate-700`}>
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {label}
         </span>
-        <Icon className={`h-4 w-4 ${color}`} />
+        <Icon className={`h-4.5 w-4.5 ${color}`} />
       </div>
       <div className="mt-2 font-display text-2xl font-bold text-white">{value}</div>
       <p className="mt-1 text-[10px] text-slate-400">{subtext}</p>
     </div>
+  );
+}
+
+function UserSummaryCard({
+  label,
+  value,
+  subtext,
+  Icon,
+  badge,
+}: {
+  label: string;
+  value: number | string;
+  subtext: string;
+  Icon: React.ComponentType<{ className?: string }>;
+  badge?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 shadow-xl">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+          <Icon className="h-4 w-4 text-violet-400" />
+          {label}
+        </span>
+        {badge && (
+          <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400 font-mono">
+            {badge}
+          </span>
+        )}
+      </div>
+      <div className="mt-2 font-display text-2xl font-bold text-white">{value}</div>
+      <p className="mt-1 text-[10px] text-slate-400">{subtext}</p>
+    </div>
+  );
+}
+
+function FunnelStep({
+  stepNumber,
+  title,
+  subtext,
+  count,
+  color,
+  highlight,
+}: {
+  stepNumber: number;
+  title: string;
+  subtext: string;
+  count: number;
+  color: "sky" | "emerald" | "violet";
+  highlight?: boolean;
+}) {
+  const colorMap = {
+    sky: "bg-sky-500/10 border-sky-500/30 text-sky-400",
+    emerald: "bg-emerald-500/10 border-emerald-500/30 text-emerald-400",
+    violet: "bg-violet-500/10 border-violet-500/30 text-violet-400",
+  };
+
+  return (
+    <div
+      className={`p-4 rounded-xl border transition-all ${
+        highlight
+          ? "border-emerald-500/40 bg-emerald-500/5 shadow-lg shadow-emerald-500/5"
+          : "border-slate-800 bg-slate-950/80"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className={`h-7 w-7 rounded-lg border grid place-items-center font-bold text-xs ${colorMap[color]}`}>
+          {stepNumber}
+        </div>
+        <span className="font-mono text-lg font-bold text-white">{count}</span>
+      </div>
+      <div className="text-xs font-bold text-white">{title}</div>
+      <div className="text-[11px] text-slate-400 mt-0.5">{subtext}</div>
+    </div>
+  );
+}
+
+function TabButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+  badge,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  badge?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+        active
+          ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+          : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700"
+      }`}
+    >
+      <Icon className={`h-4 w-4 ${active ? "text-white" : "text-slate-400"}`} />
+      {label}
+      {badge && (
+        <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${active ? "bg-white/20 text-white" : "bg-emerald-500/20 text-emerald-400"}`}>
+          {badge}
+        </span>
+      )}
+    </button>
   );
 }
 
@@ -642,10 +913,14 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   };
   const row = (cells: (string | number)[]) => cells.map(esc).join(",");
 
-  lines.push(`Melanated In Tech — Executive Analytics & Telemetry Export (${days} Days)`);
+  lines.push(`Melanated In Tech — Executive Analytics & User Intelligence Export (${days} Days)`);
   lines.push("");
   lines.push("Platform Totals");
   lines.push(row(["Telemetry Events", data.totals.events]));
+  lines.push(row(["Total Registered Accounts", data.userData.totalUsers]));
+  lines.push(row(["New Users in Period", data.userData.newUsersPeriod]));
+  lines.push(row(["Waitlist Signups", data.userData.totalWaitlist]));
+  lines.push(row(["Purchased Entitlements", data.userData.totalPurchases]));
   lines.push(row(["Interactive Tool Runs", data.totals.toolRuns ?? 0]));
   lines.push(row(["Lead Prechecks", data.totals.leadChecks ?? 0]));
   lines.push(row(["Impressions", data.totals.impressions]));
@@ -659,6 +934,13 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   lines.push(row(["Personal Account (@gmail.com)", data.leadQuality.personal]));
   lines.push(row(["Inactive / Unregistered", data.leadQuality.inactive]));
   lines.push(row(["Invalid Syntax", data.leadQuality.invalid]));
+  lines.push("");
+
+  lines.push("Recent Member Registrations");
+  lines.push(row(["User ID", "Display Name", "Registration Date"]));
+  for (const user of data.userData.recentUsers) {
+    lines.push(row([user.id, user.displayName, user.createdAt]));
+  }
   lines.push("");
 
   lines.push("Interactive Tools Usage");

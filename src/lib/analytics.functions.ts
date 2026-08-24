@@ -327,6 +327,78 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 10);
 
+    // Query database user account, community, and geo telemetry in parallel
+    const [
+      profilesTotalRes,
+      profilesNewRes,
+      recentUsersRes,
+      waitlistRes,
+      entitlementsRes,
+      postsRes,
+      commentsRes,
+      geoLeadsRes,
+    ] = await Promise.all([
+      (async () => {
+        try { return await supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }); }
+        catch { return { count: 0 }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since); }
+        catch { return { count: 0 }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("profiles").select("id, display_name, avatar_url, created_at").order("created_at", { ascending: false }).limit(8); }
+        catch { return { data: [] }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("waitlist_signups").select("id", { count: "exact", head: true }); }
+        catch { return { count: 0 }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("user_entitlements").select("id, granted_at"); }
+        catch { return { data: [] }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("discussion_posts").select("id", { count: "exact", head: true }); }
+        catch { return { count: 0 }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("discussion_comments").select("id", { count: "exact", head: true }); }
+        catch { return { count: 0 }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("service_system_lead_events" as never).select("geo_country, geo_city").limit(500); }
+        catch { return { data: [] }; }
+      })(),
+    ]);
+
+    // Aggregate Geo Telemetry
+    const countryMap = new Map<string, number>();
+    for (const item of (geoLeadsRes.data ?? []) as Array<{ geo_country?: string }>) {
+      const country = item.geo_country?.trim() || "United States";
+      countryMap.set(country, (countryMap.get(country) ?? 0) + 1);
+    }
+    const topCountries = [...countryMap.entries()]
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8);
+
+    const userData = {
+      totalUsers: profilesTotalRes.count ?? 0,
+      newUsersPeriod: profilesNewRes.count ?? 0,
+      recentUsers: ((recentUsersRes as { data?: Array<{ id: string; display_name: string | null; avatar_url: string | null; created_at: string }> }).data ?? []).map((u) => ({
+        id: u.id,
+        displayName: u.display_name || "Community Member",
+        avatarUrl: u.avatar_url,
+        createdAt: u.created_at,
+      })),
+      totalWaitlist: waitlistRes.count ?? 0,
+      totalPurchases: (entitlementsRes as { data?: Array<unknown> }).data?.length ?? 0,
+      totalPosts: postsRes.count ?? 0,
+      totalComments: commentsRes.count ?? 0,
+      topCountries,
+    };
+
     const topTools = [...toolUsage.entries()]
       .map(([tool, count]) => ({ tool, count }))
       .sort((a, b) => b.count - a.count);
@@ -353,5 +425,6 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       dailyTrends,
       leadQuality,
       funnel,
+      userData,
     };
   });

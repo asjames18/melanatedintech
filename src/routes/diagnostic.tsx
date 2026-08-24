@@ -13,6 +13,8 @@ import {
   Workflow,
   Search,
   Building2,
+  XCircle,
+  Info,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
@@ -149,8 +151,22 @@ function RevenueLeakDiagnostic() {
                       const val = e.target.value;
                       setLeadEmail(val);
                       const parts = val.trim().split("@");
-                      if (parts.length === 2 && parts[1].includes(".") && parts[1].split(".")[1]?.length >= 2) {
+                      const domain = parts[1] || "";
+                      const domainParts = domain.split(".");
+                      const tld = domainParts.length > 1 ? domainParts[domainParts.length - 1] : "";
+
+                      if (parts.length === 2 && domain.includes(".") && tld.length >= 2) {
                         validateLeadContact({ data: { email: val } }).then((res) => setValidationResult(res as any));
+                      } else if (val.trim().length > 0 && val.includes("@")) {
+                        setValidationResult({
+                          valid: false,
+                          reason: "Invalid email syntax or top-level domain",
+                          email: val,
+                          domain: domain,
+                          status: "invalid",
+                          isCorporateDomain: false,
+                          suggestedTier: "Invalid Format",
+                        });
                       } else {
                         setValidationResult(null);
                       }
@@ -160,32 +176,47 @@ function RevenueLeakDiagnostic() {
                 </div>
                 {validationResult && (
                   <div className="text-xs pt-1.5 flex flex-wrap items-center justify-between gap-2 font-medium">
+                    {/* CORPORATE: Emerald CheckCircle2 */}
                     {validationResult.status === "corporate" && (
-                      <span className="text-emerald-600 dark:text-emerald-400">
-                        ✓ Active Corporate Domain: <strong>{validationResult.domain}</strong> (DNS MX Verified)
+                      <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold">
+                        <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                        <span>Active Corporate Domain: <strong>{validationResult.domain}</strong> (DNS MX Verified)</span>
                       </span>
                     )}
+
+                    {/* PERSONAL: Blue Info Icon */}
                     {validationResult.status === "personal" && (
-                      <span className="text-amber-600 dark:text-amber-400">
-                        ℹ️ Personal Provider (<strong>{validationResult.domain}</strong>) — Business Domain Recommended
+                      <span className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold">
+                        <Info className="h-4 w-4 shrink-0 text-blue-500" />
+                        <span>Personal Provider (<strong>{validationResult.domain}</strong>) — Business Domain Recommended</span>
                       </span>
                     )}
+
+                    {/* INACTIVE: Dark Yellow / Amber Warning Triangle */}
                     {validationResult.status === "unregistered" && (
-                      <span className="text-rose-600 dark:text-rose-400">
-                        ⚠️ Inactive or Unregistered Domain (<strong>{validationResult.domain}</strong>) — No MX/A records found
+                      <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-semibold">
+                        <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                        <span>Inactive or Non-Existent Domain (<strong>{validationResult.domain}</strong>) — No MX/A Records</span>
                       </span>
                     )}
+
+                    {/* INVALID: Red X Circle */}
                     {validationResult.status === "invalid" && (
-                      <span className="text-muted-foreground">
-                        Please enter a complete email address
+                      <span className="flex items-center gap-1.5 text-rose-600 dark:text-rose-400 font-semibold">
+                        <XCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                        <span>Invalid Email Format (<strong>{validationResult.domain || "syntax error"}</strong>)</span>
                       </span>
                     )}
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+
+                    {/* BADGE */}
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
                       validationResult.status === "corporate"
-                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
                         : validationResult.status === "personal"
-                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                        ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                        : validationResult.status === "unregistered"
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
                     }`}>
                       {validationResult.suggestedTier}
                     </span>

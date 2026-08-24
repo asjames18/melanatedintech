@@ -286,15 +286,18 @@ export const validateLeadContact = createServerFn({ method: "POST" })
     }
 
     const domain = parts[1];
-    if (!domain || !domain.includes(".") || domain.endsWith(".") || domain.length < 4) {
+    const domainParts = domain ? domain.split(".") : [];
+    const tld = domainParts.length > 1 ? domainParts[domainParts.length - 1] : "";
+
+    if (!domain || !domain.includes(".") || domain.endsWith(".") || domain.length < 4 || !tld || tld.length < 2) {
       return {
         valid: false,
-        reason: "Incomplete domain name",
+        reason: "Invalid top-level domain extension",
         email,
-        domain,
+        domain: domain || parts[1] || "",
         status: "invalid",
         isCorporateDomain: false,
-        suggestedTier: "Invalid Input",
+        suggestedTier: "Invalid Format",
       };
     }
 

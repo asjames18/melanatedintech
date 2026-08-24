@@ -93,11 +93,26 @@ function AdminAnalytics() {
     }
   }, []);
 
-  const handleSaveCustomEmbedUrl = (url: string) => {
-    setCustomEmbedUrl(url);
+function normalizeLookerEmbedUrl(rawUrl: string): string {
+  if (!rawUrl) return "";
+  const trimmed = rawUrl.trim();
+  const shortMatch = trimmed.match(/(?:datastudio|lookerstudio)\.google\.com\/s\/([a-zA-Z0-9_-]+)/i);
+  if (shortMatch && shortMatch[1]) {
+    return `https://lookerstudio.google.com/embed/reporting/${shortMatch[1]}`;
+  }
+  const reportMatch = trimmed.match(/(?:datastudio|lookerstudio)\.google\.com\/reporting\/([a-zA-Z0-9_-]+)/i);
+  if (reportMatch && reportMatch[1] && !trimmed.includes("/embed/")) {
+    return `https://lookerstudio.google.com/embed/reporting/${reportMatch[1]}`;
+  }
+  return trimmed;
+}
+
+  const handleSaveCustomEmbedUrl = (raw: string) => {
+    const normalized = normalizeLookerEmbedUrl(raw);
+    setCustomEmbedUrl(normalized);
     try {
-      localStorage.setItem(DEFAULT_CUSTOM_EMBED_KEY, url);
-      toast.success("Custom GA4 Report URL saved successfully!");
+      localStorage.setItem(DEFAULT_CUSTOM_EMBED_KEY, normalized);
+      toast.success("Custom GA4 Report URL formatted & saved!");
     } catch {
       /* ignore */
     }
@@ -555,7 +570,7 @@ function AdminAnalytics() {
                 <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl h-[650px]">
                   <iframe
                     key={iframeKey}
-                    src={customEmbedUrl}
+                    src={normalizeLookerEmbedUrl(customEmbedUrl)}
                     title="Custom Google Looker Studio GA4 Report"
                     className="w-full h-full border-0 bg-slate-950"
                     allowFullScreen

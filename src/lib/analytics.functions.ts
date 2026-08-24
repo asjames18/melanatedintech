@@ -191,23 +191,91 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
     const toolUsage = new Map<string, number>();
     let totalToolRuns = 0;
 
+    // Daily trend buckets
+    const dailyMap = new Map<string, { totalEvents: number; toolRuns: number; leadsChecked: number; conversions: number }>();
+
+    // Lead quality breakdown
+    const leadQuality = {
+      totalChecks: 0,
+      corporate: 0,
+      personal: 0,
+      inactive: 0,
+      invalid: 0,
+    };
+
+    // Funnel metrics
+    const funnel = {
+      diagnosticViews: 0,
+      leadsQualified: 0,
+      demosRequested: 0,
+      purchasesCompleted: 0,
+    };
+
+    const TOOL_EVENT_NAMES = new Set([
+      "tool_used",
+      "fit_finder_completed",
+      "sop_generator_action",
+      "sop_generated",
+      "eval_studio_run",
+      "agent_architect_run",
+      "agent_architect_action",
+      "prompt_pilot_run",
+      "prompt_pilot_action",
+      "mcp_builder_action",
+      "model_playground_run",
+      "gpt_trainer_action",
+      "policy_generator_action",
+      "ab_tester_run",
+      "rag_chunker_export",
+      "roi_calculator_share",
+      "ai_playbook_generated",
+      "voice_agent_builder",
+    ]);
+
     for (const e of events) {
-      if (
-        e.name === "tool_used" ||
-        e.name === "fit_finder_completed" ||
-        e.name === "sop_generated" ||
-        e.name === "eval_studio_run" ||
-        e.name === "agent_architect_run" ||
-        e.name === "prompt_pilot_run"
-      ) {
+      const dateStr = e.occurred_at.slice(0, 10);
+      const dayBucket = dailyMap.get(dateStr) ?? { totalEvents: 0, toolRuns: 0, leadsChecked: 0, conversions: 0 };
+      dayBucket.totalEvents++;
+
+      if (TOOL_EVENT_NAMES.has(e.name)) {
         totalToolRuns++;
-        const toolName = String(e.props?.tool ?? e.name).replace(/_/g, " ");
+        dayBucket.toolRuns++;
+        const rawName = String(e.props?.tool ?? e.name).replace(/_(run|action|generated|export|completed|share)$/, "").replace(/_/g, " ");
+        const toolName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
         toolUsage.set(toolName, (toolUsage.get(toolName) ?? 0) + 1);
+      }
+
+      if (e.name === "diagnostic_page_viewed") {
+        funnel.diagnosticViews++;
+      }
+
+      if (e.name === "lead_qualified") {
+        leadQuality.totalChecks++;
+        dayBucket.leadsChecked++;
+        funnel.leadsQualified++;
+        const status = String(e.props?.status ?? "");
+        if (status === "corporate") leadQuality.corporate++;
+        else if (status === "personal") leadQuality.personal++;
+        else if (status === "unregistered" || status === "inactive") leadQuality.inactive++;
+        else if (status === "invalid") leadQuality.invalid++;
+      }
+
+      if (e.name === "demo_requested" || e.name === "strategy_sprint_application_submitted" || e.name === "contact_submission_completed") {
+        funnel.demosRequested++;
+        dayBucket.conversions++;
+      }
+
+      if (e.name === "purchase_completed" || e.name === "deposit_paid") {
+        funnel.purchasesCompleted++;
+        dayBucket.conversions++;
       }
 
       const isImp = e.name === "recommendation_impression";
       const isClk = e.name === "recommendation_click";
-      if (!isImp && !isClk) continue;
+      if (!isImp && !isClk) {
+        dailyMap.set(dateStr, dayBucket);
+        continue;
+      }
       const p = e.props ?? {};
       const surface = String(p.surface ?? "unknown");
       const itemType = String(p.itemType ?? "unknown");
@@ -239,6 +307,8 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       if (isImp) rBucket.impressions++;
       else rBucket.clicks++;
       reasons.set(reason, rBucket);
+
+      dailyMap.set(dateStr, dayBucket);
     }
 
     const toCtr = (b: Bucket) => (b.impressions ? b.clicks / b.impressions : 0);
@@ -261,6 +331,11 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       .map(([tool, count]) => ({ tool, count }))
       .sort((a, b) => b.count - a.count);
 
+    // Format daily timeline trend array sorted chronologically
+    const dailyTrends = [...dailyMap.entries()]
+      .map(([date, metrics]) => ({ date, ...metrics }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
     return {
       days: data.days,
       totals: {
@@ -269,10 +344,14 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         clicks: totalClicks,
         ctr: totalImpressions ? totalClicks / totalImpressions : 0,
         toolRuns: totalToolRuns,
+        leadChecks: leadQuality.totalChecks,
       },
       bySurface,
       topItems,
       topReasons,
       topTools,
+      dailyTrends,
+      leadQuality,
+      funnel,
     };
   });

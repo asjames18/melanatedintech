@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Cpu, Copy, Download, Sparkles, Server, Plus, Folder, HelpCircle, Terminal, Trash2, Github, Star, GitFork, ExternalLink } from "lucide-react";
+import { Cpu, Copy, Download, Sparkles, Server, Plus, Folder, HelpCircle, Terminal, Trash2, Github, Star, GitFork, ExternalLink, Search, Check } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
@@ -170,21 +170,39 @@ function McpBuilderPage() {
   });
 
   const [activeTab, setActiveTab] = useState<"claude" | "cursor" | "vscode" | "python" | "typescript">("claude");
+  const [repoSearch, setRepoSearch] = useState("");
   const [trendingRepos, setTrendingRepos] = useState<GitHubMcpRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
 
   useEffect(() => {
-    setIsLoadingRepos(true);
-    fetchTrendingMcpServers({ data: { limit: 6 } })
-      .then((repos) => setTrendingRepos(repos as GitHubMcpRepo[]))
-      .catch((err) => console.warn("Failed loading trending repos:", err))
-      .finally(() => setIsLoadingRepos(false));
-  }, []);
+    const timer = setTimeout(() => {
+      setIsLoadingRepos(true);
+      fetchTrendingMcpServers({ data: { limit: 12, query: repoSearch } })
+        .then((repos) => setTrendingRepos(repos as GitHubMcpRepo[]))
+        .catch((err) => console.warn("Failed loading trending repos:", err))
+        .finally(() => setIsLoadingRepos(false));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [repoSearch]);
+
+  // Exclude repos that are already added/imported into active servers list
+  const availableDirectoryRepos = useMemo(() => {
+    return trendingRepos.filter((repo) => {
+      const ghId = `gh-${repo.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+      return !servers.some(
+        (s) =>
+          s.id === ghId ||
+          s.id.toLowerCase() === repo.name.toLowerCase() ||
+          s.name.toLowerCase() === repo.name.toLowerCase()
+      );
+    });
+  }, [trendingRepos, servers]);
 
   const handleImportGithubRepo = (repo: GitHubMcpRepo) => {
     const id = `gh-${repo.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
     if (servers.some((s) => s.id === id)) {
-      toast.info(`Server "${repo.name}" is already in your list.`);
+      toast.info(`Server "${repo.name}" is already in your active server list.`);
       if (!selectedServers.includes(id)) {
         setSelectedServers((prev) => [...prev, id]);
       }
@@ -203,7 +221,7 @@ function McpBuilderPage() {
 
     setServers((prev) => [newServer, ...prev]);
     setSelectedServers((prev) => [...prev, id]);
-    toast.success(`Imported "${repo.name}" from GitHub!`);
+    toast.success(`Imported "${repo.name}" to your config!`);
   };
 
   // Custom server modal / form state
@@ -488,7 +506,7 @@ function McpBuilderPage() {
               </CardContent>
             </Card>
 
-            {/* Live Trending MCP Servers from GitHub API */}
+            {/* Live GitHub MCP Directory Card */}
             <Card className="border border-border bg-card shadow-sm">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
@@ -500,14 +518,55 @@ function McpBuilderPage() {
                   </span>
                 </div>
                 <CardDescription className="text-xs">
-                  Discover and 1-click import popular community MCP servers.
+                  Discover, search, and 1-click import verified open-source MCP tools.
                 </CardDescription>
+
+                {/* Search Bar */}
+                <div className="pt-2">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search MCP tools (e.g. notion, database, slack, puppeteer)..."
+                      value={repoSearch}
+                      onChange={(e) => setRepoSearch(e.target.value)}
+                      className="pl-8 text-xs font-mono h-8 bg-background"
+                    />
+                  </div>
+
+                  {/* Quick Tag Pills */}
+                  <div className="flex flex-wrap items-center gap-1 pt-2">
+                    {["Popular", "Database", "Search", "Automation", "Notion", "Slack"].map((tag) => (
+                      <button
+                        key={tag}
+                        onClick={() => setRepoSearch(tag === "Popular" ? "" : tag.toLowerCase())}
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded-full border transition-all ${
+                          (tag === "Popular" && !repoSearch) || repoSearch.toLowerCase() === tag.toLowerCase()
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/40 text-muted-foreground border-border hover:border-foreground/30 hover:text-foreground"
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </CardHeader>
+
               <CardContent className="space-y-2 text-xs">
                 {isLoadingRepos ? (
-                  <p className="text-muted-foreground animate-pulse py-2">Loading GitHub repositories...</p>
+                  <p className="text-muted-foreground animate-pulse py-2 text-center">
+                    Searching GitHub repositories...
+                  </p>
+                ) : availableDirectoryRepos.length === 0 ? (
+                  <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20 text-center space-y-1">
+                    <Check className="h-5 w-5 text-emerald-500 mx-auto" />
+                    <p className="font-semibold text-foreground text-xs">All matching MCP tools are in your active list!</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Deleting any imported server from your configuration above will return it here.
+                    </p>
+                  </div>
                 ) : (
-                  trendingRepos.map((repo) => (
+                  availableDirectoryRepos.map((repo) => (
                     <div
                       key={repo.id}
                       className="p-2.5 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-all flex items-start justify-between gap-2"
@@ -520,6 +579,7 @@ function McpBuilderPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-muted-foreground hover:text-foreground shrink-0"
+                            title="View on GitHub"
                           >
                             <ExternalLink className="h-3 w-3" />
                           </a>
@@ -539,7 +599,7 @@ function McpBuilderPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 px-2 text-[11px] shrink-0 font-medium"
+                        className="h-7 px-2 text-[11px] shrink-0 font-medium hover:bg-primary hover:text-primary-foreground transition-colors"
                         onClick={() => handleImportGithubRepo(repo)}
                       >
                         <Plus className="h-3 w-3 mr-1" /> Import

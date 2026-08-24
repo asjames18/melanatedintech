@@ -106,21 +106,23 @@ export const fetchTrendingMcpServers = createServerFn({ method: "GET" })
   .validator((d: unknown) =>
     z
       .object({
-        limit: z.number().min(1).max(20).default(6),
+        limit: z.number().min(1).max(30).default(12),
+        query: z.string().optional(),
       })
       .parse(d ?? {}),
   )
   .handler(async ({ data }) => {
     try {
-      const res = await fetch(
-        `https://api.github.com/search/repositories?q=topic:mcp-server+sort:stars-desc&per_page=${data.limit}`,
-        {
-          headers: {
-            Accept: "application/vnd.github.v3+json",
-            "User-Agent": "MelanatedInTech-Platform",
-          },
+      const q = data.query?.trim();
+      const searchTopic = q ? `${encodeURIComponent(q)}+topic:mcp-server` : "topic:mcp-server";
+      const url = `https://api.github.com/search/repositories?q=${searchTopic}&sort=stars&order=desc&per_page=${data.limit}`;
+
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "MelanatedInTech-Platform",
         },
-      );
+      });
 
       if (!res.ok) {
         console.warn(`GitHub API returned status ${res.status}, using fallbacks.`);

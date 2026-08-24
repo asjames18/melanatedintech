@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Cpu, Copy, Download, Sparkles, Server, Plus, Folder, HelpCircle, Terminal, Trash2 } from "lucide-react";
+import { Cpu, Copy, Download, Sparkles, Server, Plus, Folder, HelpCircle, Terminal, Trash2, Github, Star, GitFork, ExternalLink } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
+import { fetchTrendingMcpServers, GitHubMcpRepo } from "@/lib/public-apis.functions";
 
 const GUIDE_DATA = {
   whatItIs: "A visual Model Context Protocol (MCP) server environment builder for connecting AI agents to external tools and databases.",
@@ -169,6 +170,41 @@ function McpBuilderPage() {
   });
 
   const [activeTab, setActiveTab] = useState<"claude" | "cursor" | "vscode" | "python" | "typescript">("claude");
+  const [trendingRepos, setTrendingRepos] = useState<GitHubMcpRepo[]>([]);
+  const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+
+  useEffect(() => {
+    setIsLoadingRepos(true);
+    fetchTrendingMcpServers({ data: { limit: 6 } })
+      .then((repos) => setTrendingRepos(repos as GitHubMcpRepo[]))
+      .catch((err) => console.warn("Failed loading trending repos:", err))
+      .finally(() => setIsLoadingRepos(false));
+  }, []);
+
+  const handleImportGithubRepo = (repo: GitHubMcpRepo) => {
+    const id = `gh-${repo.name.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+    if (servers.some((s) => s.id === id)) {
+      toast.info(`Server "${repo.name}" is already in your list.`);
+      if (!selectedServers.includes(id)) {
+        setSelectedServers((prev) => [...prev, id]);
+      }
+      return;
+    }
+
+    const newServer: McpServerOption = {
+      id,
+      name: repo.name,
+      command: "npx",
+      args: ["-y", repo.full_name],
+      envKeys: [],
+      description: repo.description || `Community MCP server from GitHub (${repo.stargazers_count} stars)`,
+      isCustom: true,
+    };
+
+    setServers((prev) => [newServer, ...prev]);
+    setSelectedServers((prev) => [...prev, id]);
+    toast.success(`Imported "${repo.name}" from GitHub!`);
+  };
 
   // Custom server modal / form state
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -449,6 +485,68 @@ function McpBuilderPage() {
                     />
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Live Trending MCP Servers from GitHub API */}
+            <Card className="border border-border bg-card shadow-sm">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-1.5">
+                    <Github className="h-4 w-4 text-emerald-500" /> Live GitHub MCP Directory
+                  </CardTitle>
+                  <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full">
+                    GitHub REST API
+                  </span>
+                </div>
+                <CardDescription className="text-xs">
+                  Discover and 1-click import popular community MCP servers.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 text-xs">
+                {isLoadingRepos ? (
+                  <p className="text-muted-foreground animate-pulse py-2">Loading GitHub repositories...</p>
+                ) : (
+                  trendingRepos.map((repo) => (
+                    <div
+                      key={repo.id}
+                      className="p-2.5 rounded-lg border border-border bg-muted/20 hover:bg-muted/40 transition-all flex items-start justify-between gap-2"
+                    >
+                      <div className="space-y-0.5 min-w-0">
+                        <div className="flex items-center gap-1.5 font-semibold text-foreground truncate">
+                          <span className="truncate">{repo.name}</span>
+                          <a
+                            href={repo.html_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-foreground shrink-0"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-1">
+                          {repo.description || "Open source Model Context Protocol server."}
+                        </p>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono pt-1">
+                          <span className="flex items-center gap-0.5">
+                            <Star className="h-3 w-3 text-amber-500 fill-amber-500" /> {repo.stargazers_count}
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <GitFork className="h-3 w-3" /> {repo.forks_count}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 px-2 text-[11px] shrink-0 font-medium"
+                        onClick={() => handleImportGithubRepo(repo)}
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Import
+                      </Button>
+                    </div>
+                  ))
+                )}
               </CardContent>
             </Card>
 

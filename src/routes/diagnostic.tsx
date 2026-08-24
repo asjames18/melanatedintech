@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -11,13 +11,18 @@ import {
   ShieldCheck,
   Sparkles,
   Workflow,
+  Search,
+  Building2,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { UnlockButton } from "@/components/unlock-button";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
+import { validateLeadContact } from "@/lib/public-apis.functions";
 
 export const Route = createFileRoute("/diagnostic")({
   head: () => ({
@@ -82,6 +87,15 @@ const FAQS = [
 ];
 
 function RevenueLeakDiagnostic() {
+  const [leadEmail, setLeadEmail] = useState("");
+  const [validationResult, setValidationResult] = useState<{
+    valid: boolean;
+    email: string;
+    domain: string;
+    isCorporateDomain: boolean;
+    suggestedTier: string;
+  } | null>(null);
+
   useEffect(() => {
     trackEvent("diagnostic_page_viewed", { ...funnelAttribution() });
   }, []);
@@ -114,6 +128,42 @@ function RevenueLeakDiagnostic() {
                 <span className="inline-flex items-center gap-2 font-medium text-foreground">
                   <ShieldCheck className="h-4 w-4 text-primary" /> Actionable 30-day blueprint
                 </span>
+              </div>
+
+              {/* Instant Domain & Corporate Qualification Check */}
+              <div className="mt-8 rounded-2xl border border-border bg-card/80 backdrop-blur p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="audit-email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Building2 className="h-3.5 w-3.5 text-primary" /> Instant Lead Qualification Pre-Check
+                  </Label>
+                  <span className="text-[10px] font-mono text-muted-foreground">Validation API</span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    id="audit-email"
+                    placeholder="Enter business email (e.g. alex@yourcompany.com)..."
+                    value={leadEmail}
+                    onChange={(e) => {
+                      setLeadEmail(e.target.value);
+                      if (e.target.value.includes("@") && e.target.value.includes(".")) {
+                        validateLeadContact({ data: { email: e.target.value } }).then(setValidationResult);
+                      } else {
+                        setValidationResult(null);
+                      }
+                    }}
+                    className="text-xs font-mono"
+                  />
+                </div>
+                {validationResult && (
+                  <div className="text-xs pt-1 flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-medium">
+                    <span>
+                      ✓ Recognized Domain: <strong>{validationResult.domain}</strong> ({validationResult.isCorporateDomain ? "Corporate Business" : "Standard Domain"})
+                    </span>
+                    <span className="text-[10px] font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+                      {validationResult.suggestedTier}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 

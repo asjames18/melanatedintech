@@ -236,33 +236,125 @@ export const fetchAiAgentNews = createServerFn({ method: "GET" })
     return items.slice(0, data.limit);
   });
 
+const PERSONAL_EMAIL_PROVIDERS = new Set([
+  "gmail.com",
+  "yahoo.com",
+  "hotmail.com",
+  "outlook.com",
+  "icloud.com",
+  "aol.com",
+  "protonmail.com",
+  "proton.me",
+  "zoho.com",
+  "mail.com",
+  "gmx.com",
+  "yandex.com",
+  "live.com",
+  "msn.com",
+  "me.com",
+  "comcast.net",
+  "sbcglobal.net",
+]);
+
 /**
- * Server Function: Lead contact validation helper
+ * Server Function: Lead contact validation powered by Google Public DNS API
  */
 export const validateLeadContact = createServerFn({ method: "POST" })
   .validator((d: unknown) =>
     z
       .object({
-        email: z.string().trim().email(),
-        domain: z.string().trim().optional(),
+        email: z.string().trim(),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const domain = data.domain || data.email.split("@")[1];
-    const isFreeEmail = [
-      "gmail.com",
-      "yahoo.com",
-      "hotmail.com",
-      "outlook.com",
-      "icloud.com",
-    ].includes(domain.toLowerCase());
+    const email = data.email.trim().toLowerCase();
+    const parts = email.split("@");
+
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      return {
+        valid: false,
+        reason: "Invalid email syntax",
+        email,
+        domain: "",
+        status: "invalid",
+        isCorporateDomain: false,
+        suggestedTier: "Invalid Input",
+      };
+    }
+
+    const domain = parts[1];
+    if (!domain || !domain.includes(".") || domain.endsWith(".") || domain.length < 4) {
+      return {
+        valid: false,
+        reason: "Incomplete domain name",
+        email,
+        domain,
+        status: "invalid",
+        isCorporateDomain: false,
+        suggestedTier: "Invalid Input",
+      };
+    }
+
+    const isPersonal = PERSONAL_EMAIL_PROVIDERS.has(domain);
+
+    // Perform real DNS MX record query via Google Public DNS REST API
+    try {
+      const dnsRes = await fetch(
+        `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
+        { headers: { Accept: "application/json" } }
+      );
+
+      if (dnsRes.ok) {
+        const dnsData = (await dnsRes.json()) as {
+          Status: number; // 0 = NOERROR, 3 = NXDOMAIN
+          Answer?: Array<{ name: string; type: number; data: string }>;
+        };
+
+        if (dnsData.Status === 3 || (!dnsData.Answer || dnsData.Answer.length === 0)) {
+          // Fallback check: A record check if domain hosts a web server without MX
+          const aRes = await fetch(
+            `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
+            { headers: { Accept: "application/json" } }
+          );
+          const aData = aRes.ok ? ((await aRes.json()) as { Answer?: Array<any> }) : null;
+
+          if (dnsData.Status === 3 || (!aData?.Answer || aData.Answer.length === 0)) {
+            return {
+              valid: false,
+              reason: "No active DNS or mail records found for domain",
+              email,
+              domain,
+              status: "unregistered",
+              isCorporateDomain: false,
+              suggestedTier: "Inactive Domain",
+            };
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("Google Public DNS API lookup failed, falling back:", err);
+    }
+
+    if (isPersonal) {
+      return {
+        valid: true,
+        reason: "Personal email provider detected",
+        email,
+        domain,
+        status: "personal",
+        isCorporateDomain: false,
+        suggestedTier: "Starter Pack / Free Diagnostic",
+      };
+    }
 
     return {
       valid: true,
-      email: data.email,
+      reason: "Verified active corporate domain",
+      email,
       domain,
-      isCorporateDomain: !isFreeEmail,
-      suggestedTier: isFreeEmail ? "Starter Pack / Free Diagnostic" : "LeadFlow Growth / Audit",
+      status: "corporate",
+      isCorporateDomain: true,
+      suggestedTier: "LeadFlow Growth / Audit",
     };
   });

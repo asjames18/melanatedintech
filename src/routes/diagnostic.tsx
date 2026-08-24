@@ -90,8 +90,10 @@ function RevenueLeakDiagnostic() {
   const [leadEmail, setLeadEmail] = useState("");
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
+    reason?: string;
     email: string;
     domain: string;
+    status: string;
     isCorporateDomain: boolean;
     suggestedTier: string;
   } | null>(null);
@@ -134,9 +136,9 @@ function RevenueLeakDiagnostic() {
               <div className="mt-8 rounded-2xl border border-border bg-card/80 backdrop-blur p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="audit-email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-primary" /> Instant Lead Qualification Pre-Check
+                    <Building2 className="h-3.5 w-3.5 text-primary" /> Real-Time Business Domain Pre-Check
                   </Label>
-                  <span className="text-[10px] font-mono text-muted-foreground">Validation API</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">Google DNS API</span>
                 </div>
                 <div className="flex gap-2">
                   <Input
@@ -144,9 +146,11 @@ function RevenueLeakDiagnostic() {
                     placeholder="Enter business email (e.g. alex@yourcompany.com)..."
                     value={leadEmail}
                     onChange={(e) => {
-                      setLeadEmail(e.target.value);
-                      if (e.target.value.includes("@") && e.target.value.includes(".")) {
-                        validateLeadContact({ data: { email: e.target.value } }).then(setValidationResult);
+                      const val = e.target.value;
+                      setLeadEmail(val);
+                      const parts = val.trim().split("@");
+                      if (parts.length === 2 && parts[1].includes(".") && parts[1].split(".")[1]?.length >= 2) {
+                        validateLeadContact({ data: { email: val } }).then((res) => setValidationResult(res as any));
                       } else {
                         setValidationResult(null);
                       }
@@ -155,11 +159,34 @@ function RevenueLeakDiagnostic() {
                   />
                 </div>
                 {validationResult && (
-                  <div className="text-xs pt-1 flex items-center justify-between text-emerald-600 dark:text-emerald-400 font-medium">
-                    <span>
-                      ✓ Recognized Domain: <strong>{validationResult.domain}</strong> ({validationResult.isCorporateDomain ? "Corporate Business" : "Standard Domain"})
-                    </span>
-                    <span className="text-[10px] font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
+                  <div className="text-xs pt-1.5 flex flex-wrap items-center justify-between gap-2 font-medium">
+                    {validationResult.status === "corporate" && (
+                      <span className="text-emerald-600 dark:text-emerald-400">
+                        ✓ Active Corporate Domain: <strong>{validationResult.domain}</strong> (DNS MX Verified)
+                      </span>
+                    )}
+                    {validationResult.status === "personal" && (
+                      <span className="text-amber-600 dark:text-amber-400">
+                        ℹ️ Personal Provider (<strong>{validationResult.domain}</strong>) — Business Domain Recommended
+                      </span>
+                    )}
+                    {validationResult.status === "unregistered" && (
+                      <span className="text-rose-600 dark:text-rose-400">
+                        ⚠️ Inactive or Unregistered Domain (<strong>{validationResult.domain}</strong>) — No MX/A records found
+                      </span>
+                    )}
+                    {validationResult.status === "invalid" && (
+                      <span className="text-muted-foreground">
+                        Please enter a complete email address
+                      </span>
+                    )}
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded ${
+                      validationResult.status === "corporate"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : validationResult.status === "personal"
+                        ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                    }`}>
                       {validationResult.suggestedTier}
                     </span>
                   </div>

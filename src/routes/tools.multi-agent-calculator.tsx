@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   Calculator,
@@ -18,14 +18,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/multi-agent-calculator")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Multi-Agent Team Cost & Labor Savings Estimator — Melanated In Tech",
       description:
         "Calculate financial ROI, labor hours saved per month, and API infrastructure costs when deploying a multi-agent AI team.",
       url: "/tools/multi-agent-calculator",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Multi-Agent Cost Calculator", path: "/tools/multi-agent-calculator" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: MultiAgentCalculator,
 });
 

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd, collectionLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   ArrowRight,
@@ -21,14 +21,33 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/")({
-  head: () => ({
-    ...buildSeoMeta({
-      title: "Interactive AI Tools — Melanated In Tech",
+  head: () => {
+    const seo = buildSeoMeta({
+      title: "Interactive AI Tools Workbench & Generators — Melanated In Tech",
       description:
-        "Interactive tools to help you craft perfect prompts and compile instructions for custom AI agents.",
+        "Free interactive AI tools for builders and teams: Prompt Pilot, MCP Server Builder, Model Playground, Agent Architect, Token Cost Estimator, and SOP Generator.",
       url: "/tools",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "Home", path: "/" },
+            { name: "Interactive AI Tools", path: "/tools" },
+          ]),
+        ),
+        ldScript(
+          collectionLd({
+            name: "Interactive AI Tools Workbench",
+            url: "/tools",
+            description: "Free interactive AI tools, prompt generators, token cost estimators, and agent builders.",
+          }),
+        ),
+      ],
+    };
+  },
   component: ToolsIndex,
 });
 

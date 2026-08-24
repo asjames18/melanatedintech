@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   Play,
@@ -21,14 +21,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/agent-sandbox")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Live Agentic Loop Sandbox & Execution Visualizer — Melanated In Tech",
       description:
         "Watch how AI agents think, query tools, analyze observations, and execute multi-step workflows in real time (Thought ➔ Action ➔ Observation loop).",
       url: "/tools/agent-sandbox",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Agent Sandbox", path: "/tools/agent-sandbox" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: AgentSandbox,
 });
 

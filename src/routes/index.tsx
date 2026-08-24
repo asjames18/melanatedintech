@@ -14,21 +14,29 @@ import {
 } from "@/components/system-sections";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { SOLUTIONS } from "@/lib/service-systems";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, organizationLd, websiteLd, ldScript } from "@/lib/seo";
 
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
 const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() });
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Practical AI Education, Tools Workbench & Agent Systems | Melanated In Tech",
       description:
         "Understand, build, deploy, and benefit from AI agents. Free interactive tools, verified agent marketplace, and turnkey revenue recovery automations for businesses.",
       url: "/",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(organizationLd()),
+        ldScript(websiteLd()),
+      ],
+    };
+  },
   loader: async ({ context }) => {
     await Promise.all([
       context.queryClient.ensureQueryData(agentsQO),

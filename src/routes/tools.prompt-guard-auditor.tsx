@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   ShieldAlert,
@@ -22,14 +22,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/prompt-guard-auditor")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "AI Prompt Guard & Security Auditor — Melanated In Tech",
       description:
         "Audit system prompts for prompt injection vulnerabilities, jailbreak risks, system prompt leaks, and missing guardrails with live attack simulations.",
       url: "/tools/prompt-guard-auditor",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Prompt Guard Auditor", path: "/tools/prompt-guard-auditor" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: PromptGuardAuditor,
 });
 

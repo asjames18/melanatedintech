@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   Workflow,
@@ -20,14 +20,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/workflow-spec-builder")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "AI Automation Workflow Spec Builder — Melanated In Tech",
       description:
         "Visually build AI automation workflows and export ready-to-import blueprints for Zapier, Make.com, n8n, and webhooks.",
       url: "/tools/workflow-spec-builder",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Workflow Spec Builder", path: "/tools/workflow-spec-builder" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: WorkflowSpecBuilder,
 });
 

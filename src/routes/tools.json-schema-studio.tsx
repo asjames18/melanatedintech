@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   Code2,
@@ -17,14 +17,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/json-schema-studio")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Structured Output & JSON Schema Studio — Melanated In Tech",
       description:
         "Visually build and export JSON Schema, Zod TypeScript, and Pydantic Python schemas for OpenAI Function Calling & Structured AI Outputs.",
       url: "/tools/json-schema-studio",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "JSON Schema Studio", path: "/tools/json-schema-studio" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: JsonSchemaStudio,
 });
 

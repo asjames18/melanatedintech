@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
-import { buildSeoMeta } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
   Calculator,
@@ -18,14 +18,26 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/revenue-leak-calculator")({
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Lead Revenue Leak & Follow-Up Calculator — Melanated In Tech",
       description:
         "Calculate how much revenue your service business loses every year to missed calls, slow response times, and un-followed up estimates.",
       url: "/tools/revenue-leak-calculator",
-    }),
-  }),
+    });
+    return {
+      meta: seo.meta,
+      links: seo.links,
+      scripts: [
+        ldScript(
+          breadcrumbLd([
+            { name: "AI Tools", path: "/tools" },
+            { name: "Revenue Leak Calculator", path: "/tools/revenue-leak-calculator" },
+          ]),
+        ),
+      ],
+    };
+  },
   component: RevenueLeakCalculator,
 });
 

@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -41,29 +42,84 @@ import {
   ChevronRight,
   ExternalLink,
   Radio,
-  CheckCircle2,
+  Copy,
   AlertTriangle,
   XCircle,
-  Copy,
+  Maximize2,
+  Minimize2,
+  RefreshCw,
+  Settings,
+  LayoutDashboard,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
-  head: () => ({ meta: [{ title: "Executive Telemetry & GA4 Analytics — Admin" }] }),
+  head: () => ({ meta: [{ title: "Executive Telemetry & Embedded GA4 Reports — Admin" }] }),
   component: AdminAnalytics,
 });
 
 type AnalyticsTab = "overview" | "users" | "leads" | "ga4" | "tools";
+type ReportCategory = "realtime" | "acquisition" | "events" | "tech";
+
+const PRESET_LOOKER_REPORTS: Record<ReportCategory, { title: string; description: string; url: string }> = {
+  realtime: {
+    title: "GA4 Realtime & Active Visitors",
+    description: "Live real-time user stream, current page locations, and event triggers.",
+    url: "https://lookerstudio.google.com/embed/reporting/0B_U5RNpwhE56OHV0T21RVTZkWFk/page/6zB",
+  },
+  acquisition: {
+    title: "Traffic Acquisition & User Sources",
+    description: "Organic search, direct visits, referral domains, and social campaign traffic.",
+    url: "https://lookerstudio.google.com/embed/reporting/171542f7-080c-4bc4-b778-953b1b9d46e3/page/p_3004j3q81c",
+  },
+  events: {
+    title: "Tool Runs & Conversions Explorer",
+    description: "Deep dive into interactive tool executions, diagnostic leads, and checkout conversions.",
+    url: "https://lookerstudio.google.com/embed/reporting/171542f7-080c-4bc4-b778-953b1b9d46e3/page/p_events",
+  },
+  tech: {
+    title: "User Devices & Browser Technology",
+    description: "Desktop vs mobile distribution, screen resolutions, and OS breakdown.",
+    url: "https://lookerstudio.google.com/embed/reporting/171542f7-080c-4bc4-b778-953b1b9d46e3/page/p_tech",
+  },
+};
+
+const DEFAULT_CUSTOM_EMBED_KEY = "mit:ga4:custom_embed_url";
 
 function AdminAnalytics() {
   const [days, setDays] = useState(30);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
   const [testingGa, setTestingGa] = useState(false);
+  const [selectedReportView, setSelectedReportView] = useState<ReportCategory>("realtime");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
+  const [customEmbedUrl, setCustomEmbedUrl] = useState("");
+  const [showEmbedSettings, setShowEmbedSettings] = useState(false);
+
   const summary = useServerFn(adminAnalyticsSummary);
   const q = useQuery({
     queryKey: ["admin-analytics", days],
     queryFn: () => summary({ data: { days } }),
     retry: false,
   });
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DEFAULT_CUSTOM_EMBED_KEY);
+      if (saved) setCustomEmbedUrl(saved);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const handleSaveCustomEmbedUrl = (url: string) => {
+    setCustomEmbedUrl(url);
+    try {
+      localStorage.setItem(DEFAULT_CUSTOM_EMBED_KEY, url);
+      toast.success("Custom GA4 Report URL saved successfully!");
+    } catch {
+      /* ignore */
+    }
+  };
 
   if (q.error) {
     return (
@@ -111,6 +167,7 @@ function AdminAnalytics() {
       toast.success("Diagnostic event dispatched to GA4 stream & server buffer!", {
         description: "Event 'admin_analytics_ga4_test_ping' sent via gtag.js.",
       });
+      setIframeKey((prev) => prev + 1);
     } catch {
       toast.error("Failed to dispatch GA4 event.");
     } finally {
@@ -118,12 +175,14 @@ function AdminAnalytics() {
     }
   };
 
+  const currentReportUrl = customEmbedUrl.trim() || PRESET_LOOKER_REPORTS[selectedReportView].url;
+
   return (
     <SiteLayout>
       <PageHeader
         eyebrow="Executive Telemetry & Platform Intelligence"
-        title="Live Traffic, User Accounts & GA4 Analytics"
-        description="Real-time conversion tracking across user registrations, recommendation surfaces, Google Analytics 4 (GA4) stream, and lead qualification funnels."
+        title="Live Traffic, User Accounts & On-Site GA4 Reports"
+        description="Real-time conversion tracking across user registrations, recommendation surfaces, embedded Google Analytics 4 reports, and lead qualification funnels."
       />
 
       <section className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -236,18 +295,18 @@ function AdminAnalytics() {
             label="Overview & Timeline"
           />
           <TabButton
+            active={activeTab === "ga4"}
+            onClick={() => setActiveTab("ga4")}
+            icon={Radio}
+            label="Embedded GA4 Reports"
+            badge="On-Site View"
+          />
+          <TabButton
             active={activeTab === "users"}
             onClick={() => setActiveTab("users")}
             icon={Users}
             label="User Accounts & Community"
             badge={data?.userData.newUsersPeriod ? `+${data.userData.newUsersPeriod}` : undefined}
-          />
-          <TabButton
-            active={activeTab === "ga4"}
-            onClick={() => setActiveTab("ga4")}
-            icon={Radio}
-            label="Google Analytics 4 (GA4)"
-            badge="G-5YKK7V75YL"
           />
           <TabButton
             active={activeTab === "leads"}
@@ -376,7 +435,176 @@ function AdminAnalytics() {
           </div>
         )}
 
-        {/* TAB 2: USER ACCOUNTS & COMMUNITY */}
+        {/* TAB 2: EMBEDDED GOOGLE ANALYTICS 4 (GA4) ON-SITE REPORTS */}
+        {activeTab === "ga4" && (
+          <div className="space-y-8">
+            {/* Header Control Bar */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                    </span>
+                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                      <LayoutDashboard className="h-5 w-5 text-emerald-400" /> Embedded Google Analytics 4 Report Viewer
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Live Google Analytics 4 stream property <code className="font-mono text-violet-300 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">G-5YKK7V75YL</code> embedded directly on your site.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    onClick={handleTestGa4Stream}
+                    disabled={testingGa}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-violet-500/40 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20 font-bold gap-1.5 text-xs"
+                  >
+                    <Zap className="h-3.5 w-3.5" />
+                    {testingGa ? "Pinging..." : "Test GA4 Event"}
+                  </Button>
+
+                  <Button
+                    onClick={() => setIframeKey((prev) => prev + 1)}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 gap-1.5 text-xs"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" /> Reload Frame
+                  </Button>
+
+                  <Button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 gap-1.5 text-xs"
+                  >
+                    {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+                    {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  </Button>
+
+                  <Button
+                    onClick={() => setShowEmbedSettings(!showEmbedSettings)}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 gap-1.5 text-xs"
+                  >
+                    <Settings className="h-3.5 w-3.5" /> Custom URL
+                  </Button>
+                </div>
+              </div>
+
+              {/* Custom Embed URL Accordion */}
+              {showEmbedSettings && (
+                <div className="p-4 rounded-xl border border-violet-500/30 bg-slate-950/80 space-y-3 animate-in fade-in duration-200">
+                  <div className="text-xs font-bold text-white flex items-center justify-between">
+                    <span>Set Custom Google Looker Studio / GA4 Report Embed URL</span>
+                    <span className="text-[11px] text-slate-400">Saved to Local Storage</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      value={customEmbedUrl}
+                      onChange={(e) => setCustomEmbedUrl(e.target.value)}
+                      placeholder="Paste Looker Studio embed link: https://lookerstudio.google.com/embed/reporting/..."
+                      className="rounded-xl border-slate-700 bg-slate-900 text-xs text-white"
+                    />
+                    <Button
+                      onClick={() => handleSaveCustomEmbedUrl(customEmbedUrl)}
+                      size="sm"
+                      className="rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-xs"
+                    >
+                      Save URL
+                    </Button>
+                    {customEmbedUrl && (
+                      <Button
+                        onClick={() => handleSaveCustomEmbedUrl("")}
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-xl text-rose-400 hover:bg-rose-500/10 text-xs"
+                      >
+                        Reset Default
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    To embed your exact GA4 Google Looker Studio report, open Looker Studio ➔ Share ➔ Embed Report ➔ Enable Embed ➔ Copy Embed URL.
+                  </p>
+                </div>
+              )}
+
+              {/* Preset Report View Selector */}
+              <div className="flex flex-wrap items-center gap-2 border-t border-slate-800 pt-4">
+                {(["realtime", "acquisition", "events", "tech"] as const).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSelectedReportView(cat);
+                      setIframeKey((prev) => prev + 1);
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                      selectedReportView === cat && !customEmbedUrl
+                        ? "bg-emerald-500 text-slate-950 font-bold shadow-md shadow-emerald-500/20"
+                        : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+                    }`}
+                  >
+                    {PRESET_LOOKER_REPORTS[cat].title}
+                  </button>
+                ))}
+              </div>
+
+              {/* LIVE EMBEDDED IFRAME CONTAINER */}
+              <div
+                className={`relative rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl transition-all ${
+                  isFullscreen
+                    ? "fixed inset-4 z-50 h-[calc(100vh-2rem)] border-violet-500"
+                    : "h-[680px]"
+                }`}
+              >
+                {/* Embed Overlay Banner */}
+                <div className="absolute top-0 left-0 right-0 h-10 border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-md px-4 flex items-center justify-between text-xs z-10">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="font-bold text-white font-mono text-[11px]">
+                      {PRESET_LOOKER_REPORTS[selectedReportView].title}
+                    </span>
+                    <span className="text-slate-500 hidden sm:inline">|</span>
+                    <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      {PRESET_LOOKER_REPORTS[selectedReportView].description}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 font-mono text-[11px]">
+                    <span className="text-violet-300 font-bold">Property: G-5YKK7V75YL</span>
+                    <a
+                      href="https://analytics.google.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-slate-400 hover:text-white flex items-center gap-1"
+                    >
+                      Open External GA <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Live Embedded Report Frame */}
+                <iframe
+                  key={iframeKey}
+                  src={currentReportUrl}
+                  title="Google Analytics On-Site Report Console"
+                  className="w-full h-full pt-10 border-0 bg-slate-950"
+                  allowFullScreen
+                  sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-forms"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: USER ACCOUNTS & COMMUNITY */}
         {activeTab === "users" && (
           <div className="space-y-8">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -490,144 +718,6 @@ function AdminAnalytics() {
 
                 <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500">
                   Real-time geo resolution powered by LeadFlow DNS
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 3: GOOGLE ANALYTICS 4 (GA4) INTEGRATION */}
-        {activeTab === "ga4" && (
-          <div className="space-y-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
-              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-                    </span>
-                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
-                      <Radio className="h-5 w-5 text-emerald-400" /> Google Analytics 4 (GA4) Dual-Stream Active
-                    </h3>
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Live client-side events are automatically forwarded to Google Analytics 4 measurement property <code className="font-mono text-violet-300 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">G-5YKK7V75YL</code>.
-                  </p>
-                </div>
-
-                <Button
-                  onClick={handleTestGa4Stream}
-                  disabled={testingGa}
-                  className="rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold gap-2 shadow-lg shadow-violet-600/30"
-                >
-                  <Zap className="h-4 w-4" />
-                  {testingGa ? "Dispatching Ping..." : "Send GA4 Test Ping"}
-                </Button>
-              </div>
-
-              {/* GA4 Property Specs Card */}
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">GA4 Measurement ID</div>
-                  <div className="mt-1.5 text-base font-mono font-bold text-emerald-400 flex items-center gap-2">
-                    G-5YKK7V75YL
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText("G-5YKK7V75YL");
-                        toast.success("Measurement ID copied to clipboard!");
-                      }}
-                      className="text-slate-400 hover:text-white"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <div className="mt-1 text-[11px] text-slate-400">Stream Status: Active</div>
-                </div>
-
-                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Client Protocol</div>
-                  <div className="mt-1.5 text-base font-mono font-bold text-violet-300">
-                    gtag.js (v4)
-                  </div>
-                  <div className="mt-1 text-[11px] text-slate-400">Async defer mode</div>
-                </div>
-
-                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Telemetry Pipe</div>
-                  <div className="mt-1.5 text-base font-mono font-bold text-sky-400">
-                    Dual Stream
-                  </div>
-                  <div className="mt-1 text-[11px] text-slate-400">Supabase DB + GA4</div>
-                </div>
-
-                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
-                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">PII Compliance</div>
-                  <div className="mt-1.5 text-base font-mono font-bold text-amber-400">
-                    Strict Scrubbing
-                  </div>
-                  <div className="mt-1 text-[11px] text-slate-400">Emails & phones removed</div>
-                </div>
-              </div>
-
-              {/* Direct GA4 Reports Deep Links */}
-              <div className="border-t border-slate-800 pt-6">
-                <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
-                  <ExternalLink className="h-4 w-4 text-violet-400" /> Launch Google Analytics 4 Dashboard Reports
-                </h4>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <a
-                    href="https://analytics.google.com/analytics/web/#/p/realtime"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-emerald-500/50 hover:bg-slate-900 transition-all group"
-                  >
-                    <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
-                      <span>Realtime Overview</span>
-                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Live active visitors & current pages</div>
-                  </a>
-
-                  <a
-                    href="https://analytics.google.com/analytics/web/#/reports/acquisition"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500/50 hover:bg-slate-900 transition-all group"
-                  >
-                    <div className="flex items-center justify-between text-xs font-bold text-sky-400">
-                      <span>Traffic Acquisition</span>
-                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Organic, referral, & direct sources</div>
-                  </a>
-
-                  <a
-                    href="https://analytics.google.com/analytics/web/#/reports/events"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-violet-500/50 hover:bg-slate-900 transition-all group"
-                  >
-                    <div className="flex items-center justify-between text-xs font-bold text-violet-400">
-                      <span>Event Explorer</span>
-                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Tool runs, clicks & custom triggers</div>
-                  </a>
-
-                  <a
-                    href="https://analytics.google.com/analytics/web/#/reports/tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-indigo-500/50 hover:bg-slate-900 transition-all group"
-                  >
-                    <div className="flex items-center justify-between text-xs font-bold text-indigo-400">
-                      <span>Audience Tech</span>
-                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
-                    </div>
-                    <div className="text-[11px] text-slate-400 mt-1">Browsers, devices, & OS resolution</div>
-                  </a>
                 </div>
               </div>
             </div>

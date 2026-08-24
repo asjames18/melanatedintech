@@ -397,7 +397,7 @@ export interface UserGeoLocation {
  */
 export const fetchLiveLlmPricing = createServerFn({ method: "GET" })
   .validator((d: unknown) =>
-    z.object({ limit: z.number().default(10) }).parse(d ?? {}),
+    z.object({ limit: z.number().default(150), query: z.string().optional() }).parse(d ?? {}),
   )
   .handler(async ({ data }) => {
     try {
@@ -415,8 +415,8 @@ export const fetchLiveLlmPricing = createServerFn({ method: "GET" })
         };
 
         if (json.data && Array.isArray(json.data)) {
-          const models: LlmModelPricing[] = json.data
-            .filter((m) => m.pricing?.prompt && m.pricing?.completion)
+          let models: LlmModelPricing[] = json.data
+            .filter((m) => m.pricing?.prompt !== undefined && m.pricing?.completion !== undefined)
             .map((m) => {
               const provider = m.id.split("/")[0] || "AI Provider";
               const promptPerM = parseFloat(m.pricing?.prompt || "0") * 1000000;
@@ -429,9 +429,19 @@ export const fetchLiveLlmPricing = createServerFn({ method: "GET" })
                 completionPricePerM: parseFloat(completionPerM.toFixed(4)),
                 contextLength: m.context_length || 128000,
               };
-            })
-            .slice(0, data.limit);
+            });
 
+          if (data.query?.trim()) {
+            const q = data.query.trim().toLowerCase();
+            models = models.filter(
+              (m) =>
+                m.name.toLowerCase().includes(q) ||
+                m.id.toLowerCase().includes(q) ||
+                m.provider.toLowerCase().includes(q)
+            );
+          }
+
+          models = models.slice(0, data.limit);
           if (models.length > 0) return models;
         }
       }

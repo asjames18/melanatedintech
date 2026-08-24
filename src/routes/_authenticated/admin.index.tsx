@@ -1,4 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  isTestPurchase,
+  isTestEmail,
+  isTestInvoice,
+  isTestStripeSession,
+} from "@/lib/test-data";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import React, { useState, useMemo, forwardRef } from "react";
@@ -59,6 +65,7 @@ import {
   Download,
   Menu,
   FileText,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Markdown } from "@/components/markdown";
@@ -197,7 +204,9 @@ function AdminPage() {
   const pendingSubmissions = (submissionsQuery.data ?? []).filter(
     (s) => s.status === "pending",
   ).length;
-  const waitlistCount = waitlistQuery.data?.length ?? 0;
+  const waitlistCount = (waitlistQuery.data ?? []).filter(
+    (w: any) => !isTestEmail(w.email),
+  ).length;
   const activeListings = (agentsQuery.data?.length ?? 0) + (productsQuery.data?.length ?? 0);
   const ctrPercent = analyticsQuery.data
     ? `${(analyticsQuery.data.totals.ctr * 100).toFixed(1)}%`
@@ -205,24 +214,26 @@ function AdminPage() {
   const totalImpressions = analyticsQuery.data?.totals.impressions ?? 0;
   const unreadMessages = (messagesQuery.data ?? []).length;
   const purchases = purchasesQuery.data ?? [];
-  const grossSalesCents = purchases.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
-  const sellerSalesCount = purchases.filter((row) => row.seller_id).length;
+  const livePurchases = purchases.filter((row) => !isTestPurchase(row));
+  const grossSalesCents = livePurchases.reduce((sum, row) => sum + (row.amount_cents ?? 0), 0);
+  const sellerSalesCount = livePurchases.filter((row) => row.seller_id).length;
 
   // Client Invoice Analytics
   const invoices = invoicesQuery.data ?? [];
-  const paidInvoiceRevenueCents = invoices.reduce((sum, inv) => {
+  const liveInvoices = invoices.filter((inv) => !isTestInvoice(inv));
+  const paidInvoiceRevenueCents = liveInvoices.reduce((sum, inv) => {
     if (inv.status === "fully_paid") return sum + inv.total_cents;
     if (inv.status === "deposit_paid") return sum + inv.deposit_cents;
     return sum;
   }, 0);
 
-  const pendingInvoiceCents = invoices.reduce((sum, inv) => {
+  const pendingInvoiceCents = liveInvoices.reduce((sum, inv) => {
     if (inv.status === "deposit_pending") return sum + inv.total_cents;
     if (inv.status === "deposit_paid") return sum + inv.final_cents;
     return sum;
   }, 0);
 
-  const monthlyRetainerMRRCents = invoices.reduce((sum, inv) => {
+  const monthlyRetainerMRRCents = liveInvoices.reduce((sum, inv) => {
     if (!inv.selected_add_ons || inv.selected_add_ons.length === 0) return sum;
     let invSum = 0;
     for (const addon of inv.selected_add_ons) {
@@ -295,7 +306,7 @@ function AdminPage() {
                 })}
               </div>
               <p className="text-[11px] text-muted-foreground mt-1">
-                Digital sales + paid client deposits/invoices
+                Live-mode transactions only (digital sales + paid invoices).
               </p>
             </div>
 
@@ -586,8 +597,9 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl animate-none"
                     >
-                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)}>
-                        Catalog verification â†’
+                      <Link to="/admin/catalog" onClick={() => setSheetOpen(false)} className="flex items-center justify-between w-full">
+                        <span>Catalog verification</span>
+                        <ArrowRight className="h-3.5 w-3.5 text-primary" />
                       </Link>
                     </Button>
                     <Button
@@ -596,8 +608,9 @@ function AdminPage() {
                       size="sm"
                       className="w-full justify-start rounded-xl mt-1.5 animate-none"
                     >
-                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)}>
-                        View full analytics â†’
+                      <Link to="/admin/analytics" onClick={() => setSheetOpen(false)} className="flex items-center justify-between w-full">
+                        <span>View full analytics</span>
+                        <ArrowRight className="h-3.5 w-3.5 text-primary" />
                       </Link>
                     </Button>
                   </div>
@@ -731,7 +744,10 @@ function AdminPage() {
                   size="sm"
                   className="w-full justify-start rounded-xl"
                 >
-                  <Link to="/admin/catalog">Catalog verification â†’</Link>
+                  <Link to="/admin/catalog" className="flex items-center justify-between w-full">
+                    <span>Catalog verification</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                  </Link>
                 </Button>
                 <Button
                   asChild
@@ -739,7 +755,10 @@ function AdminPage() {
                   size="sm"
                   className="w-full justify-start rounded-xl"
                 >
-                  <Link to="/admin/analytics">View full analytics â†’</Link>
+                  <Link to="/admin/analytics" className="flex items-center justify-between w-full">
+                    <span>View full analytics</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -1628,9 +1647,15 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
 type PurchaseRow = Awaited<ReturnType<typeof adminListPurchases>>[number];
 
 function PurchasesPanel() {
+  const [showTest, setShowTest] = useState(false);
   const list = useServerFn(adminListPurchases);
   const q = useQuery({ queryKey: ["admin-purchases"], queryFn: () => list() });
-  const rows = q.data ?? [];
+  const allRows = q.data ?? [];
+  const rows = useMemo(() => {
+    if (showTest) return allRows;
+    return allRows.filter((r) => !isTestPurchase(r));
+  }, [allRows, showTest]);
+
   const grossCents = rows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
   const sellerGrossCents = rows
     .filter((r) => r.seller_id)
@@ -1647,46 +1672,56 @@ function PurchasesPanel() {
         count={rows.length}
         icon={<CreditCard className="h-4 w-4" />}
         action={
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={rows.length === 0}
-            onClick={() =>
-              downloadCsv(
-                "admin-purchases-sales",
-                [
-                  "Granted At",
-                  "Environment",
-                  "Kind",
-                  "Slug",
-                  "Item",
-                  "Buyer",
-                  "Gross",
-                  "Seller",
-                  "Seller Earnings",
-                  "Platform Fee",
-                  "Seller Paid",
-                  "Stripe Session",
-                ],
-                rows.map((r) => [
-                  new Date(r.granted_at).toISOString(),
-                  r.environment,
-                  r.kind,
-                  r.slug,
-                  r.item_name,
-                  r.buyer_name ?? r.user_id,
-                  formatCents(r.amount_cents),
-                  r.seller_name ?? "",
-                  formatCents(r.seller_earnings_cents),
-                  formatCents(r.platform_fee_cents),
-                  r.seller_paid ? "yes" : "no",
-                  r.stripe_session_id ?? "",
-                ]),
-              )
-            }
-          >
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant={showTest ? "secondary" : "outline"}
+              onClick={() => setShowTest(!showTest)}
+              className="text-xs font-medium"
+            >
+              {showTest ? "Showing All (Incl. Test)" : "Live Mode Only"}
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={rows.length === 0}
+              onClick={() =>
+                downloadCsv(
+                  "admin-purchases-sales",
+                  [
+                    "Granted At",
+                    "Environment",
+                    "Kind",
+                    "Slug",
+                    "Item",
+                    "Buyer",
+                    "Gross",
+                    "Seller",
+                    "Seller Earnings",
+                    "Platform Fee",
+                    "Seller Paid",
+                    "Stripe Session",
+                  ],
+                  rows.map((r) => [
+                    new Date(r.granted_at).toISOString(),
+                    r.environment,
+                    r.kind,
+                    r.slug,
+                    r.item_name,
+                    r.buyer_name ?? r.user_id,
+                    formatCents(r.amount_cents),
+                    r.seller_name ?? "",
+                    formatCents(r.seller_earnings_cents),
+                    formatCents(r.platform_fee_cents),
+                    r.seller_paid ? "yes" : "no",
+                    r.stripe_session_id ?? "",
+                  ]),
+                )
+              }
+            >
+              Export CSV
+            </Button>
+          </div>
         }
       />
 
@@ -1718,6 +1753,21 @@ function PurchasesPanel() {
                 {new Date(r.granted_at).toLocaleDateString()}
               </span>
             ),
+          },
+          {
+            header: "Mode",
+            cell: (r) => {
+              const isTest = isTestPurchase(r);
+              return isTest ? (
+                <span className="rounded-md bg-amber-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                  TEST
+                </span>
+              ) : (
+                <span className="rounded-md bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  LIVE
+                </span>
+              );
+            },
           },
           {
             header: "Item",

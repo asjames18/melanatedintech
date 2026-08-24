@@ -1,4 +1,4 @@
-﻿import { createServerFn } from "@tanstack/react-start";
+import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
@@ -12,7 +12,12 @@ async function assertAdmin(userId: string) {
     .eq("role", "admin")
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden: admin role required.");
+  if (!data) {
+    throw new Response(JSON.stringify({ error: "Forbidden: admin role required.", status: 403 }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 }
 
 // ---------- Bootstrap ----------

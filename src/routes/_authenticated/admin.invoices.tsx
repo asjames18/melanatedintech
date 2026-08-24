@@ -48,7 +48,10 @@ import {
 import { SITE_URL } from "@/lib/site";
 import { InvoiceEmailDialog } from "@/components/invoice-email-dialog";
 
+import { isTestInvoice } from "@/lib/test-data";
+
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
+  head: () => ({ meta: [{ title: "Invoice & Revenue Manager — Admin" }] }),
   component: AdminInvoices,
 });
 
@@ -131,10 +134,15 @@ function AdminInvoices() {
     },
   ]);
 
-  const { data: invoices = [], isLoading } = useQuery({
+  const [showTest, setShowTest] = useState(false);
+
+  const { data: rawInvoices = [], isLoading } = useQuery({
     queryKey: ["admin_client_invoices"],
     queryFn: () => getInvoicesFn(),
   });
+
+  const liveInvoices = rawInvoices.filter((inv) => !isTestInvoice(inv));
+  const invoices = showTest ? rawInvoices : liveInvoices;
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -598,8 +606,18 @@ function AdminInvoices() {
         {/* Invoices List Table */}
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-border/60 flex items-center justify-between">
-            <h2 className="font-serif font-semibold text-lg text-foreground">All Invoices</h2>
-            <span className="text-xs text-muted-foreground font-mono">{invoices.length} Total</span>
+            <div className="flex items-center gap-3">
+              <h2 className="font-serif font-semibold text-lg text-foreground">All Invoices</h2>
+              <span className="text-xs text-muted-foreground font-mono">{invoices.length} Total</span>
+            </div>
+            <Button
+              size="sm"
+              variant={showTest ? "secondary" : "outline"}
+              onClick={() => setShowTest(!showTest)}
+              className="text-xs font-medium"
+            >
+              {showTest ? "Showing All (Incl. Test)" : "Live Mode Only"}
+            </Button>
           </div>
 
           {isLoading ? (

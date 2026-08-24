@@ -49,27 +49,34 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
 
     const request = getRequest();
 
+    function throw401(message: string): never {
+      throw new Response(JSON.stringify({ error: message, status: 401 }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (!request?.headers) {
-      throw new Error("Unauthorized: No request headers available");
+      throw401("Unauthorized: No request headers available");
     }
 
     const authHeader = request.headers.get("authorization");
 
     if (!authHeader) {
-      throw new Error("Unauthorized: No authorization header provided");
+      throw401("Unauthorized: No authorization header provided");
     }
 
     if (!authHeader.startsWith("Bearer ")) {
-      throw new Error("Unauthorized: Only Bearer tokens are supported");
+      throw401("Unauthorized: Only Bearer tokens are supported");
     }
 
     const token = authHeader.replace("Bearer ", "");
     if (!token) {
-      throw new Error("Unauthorized: No token provided");
+      throw401("Unauthorized: No token provided");
     }
 
     if (token.split(".").length !== 3) {
-      throw new Error("Unauthorized: Invalid token");
+      throw401("Unauthorized: Invalid token");
     }
 
     const supabase = createClient<Database>(SUPABASE_URL!, SUPABASE_PUBLISHABLE_KEY!, {
@@ -88,11 +95,11 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
 
     const { data, error } = await supabase.auth.getClaims(token);
     if (error || !data?.claims) {
-      throw new Error("Unauthorized: Invalid token");
+      throw401("Unauthorized: Invalid token");
     }
 
     if (!data.claims.sub) {
-      throw new Error("Unauthorized: No user ID found in token");
+      throw401("Unauthorized: No user ID found in token");
     }
 
     return next({

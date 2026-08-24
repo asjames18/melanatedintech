@@ -26,6 +26,8 @@ import { trackEvent } from "@/lib/analytics";
 import { createClientInvoice } from "@/lib/invoices.functions";
 import { InvoiceEmailDialog } from "@/components/invoice-email-dialog";
 
+import { isTestLead } from "@/lib/test-data";
+
 const statuses: ServiceLeadStatus[] = [
   "new",
   "reviewing",
@@ -50,6 +52,11 @@ function AdminLeads() {
     queryFn: () => list(),
     retry: false,
   });
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showTest, setShowTest] = useState(false);
+
   if (query.error)
     return (
       <SiteLayout>
@@ -63,14 +70,34 @@ function AdminLeads() {
         </div>
       </SiteLayout>
     );
-  const leads = query.data ?? [];
-  const active = leads.filter((lead) => !["won", "lost"].includes(lead.status)).length;
+
+  const rawLeads = query.data ?? [];
+  const liveLeads = rawLeads.filter((l) => !isTestLead(l));
+  const leadsToFilter = showTest ? rawLeads : liveLeads;
+
+  const filteredLeads = leadsToFilter.filter((l) => {
+    if (statusFilter !== "all" && l.status !== statusFilter) return false;
+    if (search.trim()) {
+      const q = search.toLowerCase().trim();
+      const match =
+        l.contact_name?.toLowerCase().includes(q) ||
+        l.email?.toLowerCase().includes(q) ||
+        l.business_name?.toLowerCase().includes(q) ||
+        l.industry?.toLowerCase().includes(q) ||
+        l.admin_notes?.toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  const active = liveLeads.filter((lead) => !["won", "lost"].includes(lead.status)).length;
+
   return (
     <SiteLayout>
       <PageHeader
         eyebrow="Commercial pipeline"
         title="Recovery system leads"
-        description={`${active} active opportunities · ${leads.length} total qualified-form submissions`}
+        description={`${active} active opportunities · ${liveLeads.length} total live qualified submissions`}
         actions={
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline">
@@ -87,32 +114,87 @@ function AdminLeads() {
         }
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Customer contact details stay in this authenticated view and are never sent to
-            analytics.
-          </p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => query.refetch()}
-            disabled={query.isFetching}
-          >
-            <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} /> Refresh
-          </Button>
+        <div className="mb-6 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Customer contact details stay in this authenticated view and are never sent to
+              analytics.
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showTest ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setShowTest(!showTest)}
+              >
+                {showTest ? "Showing All (Incl. Test)" : "Live Mode Only"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => query.refetch()}
+                disabled={query.isFetching}
+              >
+                <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} /> Refresh
+              </Button>
+            </div>
+          </div>
+
+          {/* Search and Status Filters */}
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between rounded-2xl border border-border bg-card p-4 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
+                  statusFilter === "all"
+                    ? "bg-primary text-primary-foreground shadow-2xs"
+                    : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                All ({leadsToFilter.length})
+              </button>
+              {statuses.map((st) => {
+                const count = leadsToFilter.filter((l) => l.status === st).length;
+                return (
+                  <button
+                    key={st}
+                    onClick={() => setStatusFilter(st)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-all ${
+                      statusFilter === st
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    {st.replace(/_/g, " ")} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="w-full md:w-72">
+              <Input
+                placeholder="Search leads by name, email, company..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="h-9 text-xs"
+              />
+            </div>
+          </div>
         </div>
+
         {query.isLoading ? (
           <p className="py-16 text-center text-sm text-muted-foreground">Loading leads…</p>
-        ) : leads.length === 0 ? (
+        ) : filteredLeads.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-border p-12 text-center">
-            <h2 className="font-display text-xl font-semibold">No recovery leads yet</h2>
+            <h2 className="font-display text-xl font-semibold">No matching recovery leads</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              Qualified submissions from the demo form will appear here.
+              {search || statusFilter !== "all"
+                ? "Try adjusting your search query or status filter."
+                : "Qualified submissions from the demo form will appear here."}
             </p>
           </div>
         ) : (
           <div className="space-y-5">
-            {leads.map((lead) => (
+            {filteredLeads.map((lead) => (
               <LeadCard key={lead.id} lead={lead} />
             ))}
           </div>
@@ -240,8 +322,8 @@ function LeadCard({ lead }: { lead: ServiceLeadRecord }) {
             )}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Submitted {new Date(lead.created_at).toLocaleString()}
+        <p className="text-xs text-muted-foreground font-mono">
+          Submitted {new Date(lead.created_at).toLocaleString()} ({Intl.DateTimeFormat().resolvedOptions().timeZone || "local"})
         </p>
       </div>
       <div className="mt-5 grid gap-4 rounded-2xl bg-muted/35 p-5 lg:grid-cols-3">

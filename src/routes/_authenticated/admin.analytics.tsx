@@ -56,7 +56,7 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
-  head: () => ({ meta: [{ title: "Executive Telemetry & Embedded GA4 Reports — Admin" }] }),
+  head: () => ({ meta: [{ title: "Executive Telemetry & Live GA4 Console — Admin" }] }),
   component: AdminAnalytics,
 });
 

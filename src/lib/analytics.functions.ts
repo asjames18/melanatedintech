@@ -265,13 +265,13 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         dayBucket.conversions++;
       }
 
-      if (e.name === "purchase_completed" || e.name === "deposit_paid") {
+      if (e.name === "purchase_completed" || e.name === "deposit_paid" || e.name === "checkout_completed" || e.name === "product_unlocked") {
         funnel.purchasesCompleted++;
         dayBucket.conversions++;
       }
 
       const isImp = e.name === "recommendation_impression";
-      const isClk = e.name === "recommendation_click";
+      const isClk = e.name === "recommendation_click" || e.name === "recommendation_clicked";
       if (!isImp && !isClk) {
         dailyMap.set(dateStr, dayBucket);
         continue;
@@ -310,7 +310,6 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
 
       dailyMap.set(dateStr, dayBucket);
     }
-
     const toCtr = (b: Bucket) => (b.impressions ? b.clicks / b.impressions : 0);
 
     const bySurface = [...surfaces.entries()]
@@ -327,8 +326,10 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 10);
 
-    // Query database user account, community, and geo telemetry in parallel
+    // Query database user account, community, and exact event counts in parallel
     const [
+      exactEventsRes,
+      leadPrechecksCountRes,
       profilesTotalRes,
       profilesNewRes,
       recentUsersRes,
@@ -338,6 +339,14 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       commentsRes,
       geoLeadsRes,
     ] = await Promise.all([
+      (async () => {
+        try { return await supabaseAdmin.from("analytics_events").select("id", { count: "exact", head: true }).gte("occurred_at", since); }
+        catch { return { count: null }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("service_system_lead_events" as never).select("id", { count: "exact", head: true }).gte("created_at", since); }
+        catch { return { count: null }; }
+      })(),
       (async () => {
         try { return await supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }); }
         catch { return { count: 0 }; }
@@ -351,11 +360,11 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         catch { return { data: [] }; }
       })(),
       (async () => {
-        try { return await supabaseAdmin.from("waitlist_signups").select("id", { count: "exact", head: true }); }
+        try { return await supabaseAdmin.from("waitlist_signups" as never).select("id", { count: "exact", head: true }); }
         catch { return { count: 0 }; }
       })(),
       (async () => {
-        try { return await supabaseAdmin.from("user_entitlements").select("id, granted_at"); }
+        try { return await supabaseAdmin.from("user_entitlements").select("id"); }
         catch { return { data: [] }; }
       })(),
       (async () => {
@@ -367,36 +376,37 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         catch { return { count: 0 }; }
       })(),
       (async () => {
-        try { return await supabaseAdmin.from("service_system_lead_events" as never).select("geo_country, geo_city").limit(500); }
+        try { return await supabaseAdmin.from("service_system_leads" as never).select("state, city").not("state", "is", null); }
         catch { return { data: [] }; }
       })(),
     ]);
 
-    // Aggregate Geo Telemetry
-    const countryMap = new Map<string, number>();
-    for (const item of (geoLeadsRes.data ?? []) as Array<{ geo_country?: string }>) {
-      const country = item.geo_country?.trim() || "United States";
-      countryMap.set(country, (countryMap.get(country) ?? 0) + 1);
+    const totalPurchasesCount = (entitlementsRes as { data?: Array<unknown> }).data?.length ?? 0;
+    const dbLeadPrechecksCount = leadPrechecksCountRes.count ?? 0;
+
+    if (funnel.purchasesCompleted === 0 && totalPurchasesCount > 0) {
+      funnel.purchasesCompleted = totalPurchasesCount;
     }
-    const topCountries = [...countryMap.entries()]
-      .map(([country, count]) => ({ country, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
+    if (funnel.leadsQualified === 0 && dbLeadPrechecksCount > 0) {
+      funnel.leadsQualified = dbLeadPrechecksCount;
+      leadQuality.totalChecks = dbLeadPrechecksCount;
+    }
 
     const userData = {
       totalUsers: profilesTotalRes.count ?? 0,
+      newUsers: profilesNewRes.count ?? 0,
       newUsersPeriod: profilesNewRes.count ?? 0,
-      recentUsers: ((recentUsersRes as { data?: Array<{ id: string; display_name: string | null; avatar_url: string | null; created_at: string }> }).data ?? []).map((u) => ({
+      recentUsers: ((recentUsersRes as { data?: Array<any> }).data ?? []).map((u) => ({
         id: u.id,
         displayName: u.display_name || "Community Member",
         avatarUrl: u.avatar_url,
         createdAt: u.created_at,
       })),
       totalWaitlist: waitlistRes.count ?? 0,
-      totalPurchases: (entitlementsRes as { data?: Array<unknown> }).data?.length ?? 0,
+      totalPurchases: totalPurchasesCount,
       totalPosts: postsRes.count ?? 0,
       totalComments: commentsRes.count ?? 0,
-      topCountries,
+      topCountries: [] as Array<{ country: string; count: number }>,
     };
 
     const topTools = [...toolUsage.entries()]
@@ -411,12 +421,12 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
     return {
       days: data.days,
       totals: {
-        events: events.length,
+        events: exactEventsRes.count ?? events.length,
         impressions: totalImpressions,
         clicks: totalClicks,
         ctr: totalImpressions ? totalClicks / totalImpressions : 0,
         toolRuns: totalToolRuns,
-        leadChecks: leadQuality.totalChecks,
+        leadChecks: leadQuality.totalChecks || dbLeadPrechecksCount,
       },
       bySurface,
       topItems,

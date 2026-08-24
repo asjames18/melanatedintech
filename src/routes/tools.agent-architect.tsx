@@ -1315,7 +1315,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="p-8 bg-black/35 min-h-[300px] flex flex-col justify-center">
+              <CardContent className="p-8 bg-slate-950 border-t border-slate-800 min-h-[320px] rounded-b-xl flex flex-col justify-center">
                 {/* Visual rendering of architecture based on active selection */}
                 <div className="flex flex-col items-center justify-center gap-6 w-full max-w-xl mx-auto">
                   {presetKey === "sequential" && (
@@ -1325,37 +1325,36 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                           {/* Node Card */}
                           <div
                             onClick={() => setSelectedNodeId(node.id)}
-                            className={`w-full max-w-sm rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                            className={`w-full max-w-sm rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                               selectedNodeId === node.id
-                                ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)] translate-x-1"
-                                : "border-border bg-card hover:border-foreground/20"
-                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                                ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20 translate-y-[-2px]"
+                                : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                           >
                             <div className="flex items-center justify-between">
-                              <span className="text-xs uppercase font-bold text-primary tracking-wider">
+                              <span className="text-xs uppercase font-bold text-violet-400 tracking-wider">
                                 Agent #{index + 1}
                               </span>
                               <div className="flex gap-1.5">
                                 {node.tools.map((t) => (
                                   <Badge
                                     key={t}
-                                    variant="secondary"
-                                    className="text-[10px] px-1.5 py-0"
+                                    className="text-[10px] px-1.5 py-0 bg-violet-500/20 text-violet-300 border border-violet-500/40"
                                   >
                                     {t}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
-                            <h3 className="font-display text-base font-bold mt-1.5">{node.name}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            <h3 className="font-display text-base font-bold text-white mt-1.5">{node.name}</h3>
+                            <p className="text-xs text-slate-300 mt-0.5 line-clamp-1">
                               {node.role}
                             </p>
                           </div>
                           {/* Connection Arrow */}
                           {index < nodes.length - 1 && (
                             <div className="flex flex-col items-center my-1">
-                              <ArrowRight className="h-5 w-5 text-muted-foreground/60 rotate-90" />
+                              <ArrowRight className="h-5 w-5 text-slate-500 rotate-90" />
                             </div>
                           )}
                         </div>
@@ -1368,28 +1367,28 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                       {/* Top: Router Node */}
                       <div
                         onClick={() => setSelectedNodeId(nodes[0].id)}
-                        className={`w-full max-w-xs rounded-xl border p-4 cursor-pointer transition-all duration-300 text-center ${
+                        className={`w-full max-w-xs rounded-xl border p-4 cursor-pointer transition-all duration-200 text-center ${
                           selectedNodeId === nodes[0].id
-                            ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                            : "border-border bg-card hover:border-foreground/20"
-                        } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                            ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                            : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                        } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                       >
                         <Badge
                           variant="outline"
-                          className="text-[10px] border-amber-500/50 text-amber-500 bg-amber-500/5"
+                          className="text-[10px] border-amber-400/60 text-amber-300 bg-amber-500/10 font-bold"
                         >
                           Query Router
                         </Badge>
-                        <h3 className="font-display text-base font-bold mt-1.5">{nodes[0].name}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">{nodes[0].role}</p>
+                        <h3 className="font-display text-base font-bold text-white mt-1.5">{nodes[0].name}</h3>
+                        <p className="text-xs text-slate-300 mt-0.5">{nodes[0].role}</p>
                       </div>
 
                       {/* Connection Arrows (Split) */}
                       <div className="relative w-full flex items-center justify-around h-6">
-                        <div className="absolute top-0 bottom-0 left-[25%] right-[25%] border-t-2 border-dashed border-border/80"></div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground/60 rotate-90" />
+                        <div className="absolute top-0 bottom-0 left-[25%] right-[25%] border-t-2 border-dashed border-slate-700"></div>
+                        <ArrowRight className="h-5 w-5 text-slate-500 rotate-90" />
                         {nodes.length > 2 && (
-                          <ArrowRight className="h-5 w-5 text-muted-foreground/60 rotate-90" />
+                          <ArrowRight className="h-5 w-5 text-slate-500 rotate-90" />
                         )}
                       </div>
 
@@ -1399,30 +1398,29 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                           <div
                             key={node.id}
                             onClick={() => setSelectedNodeId(node.id)}
-                            className={`rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                            className={`rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                               selectedNodeId === node.id
-                                ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                                : "border-border bg-card hover:border-foreground/20"
-                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                                ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                                : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                           >
                             <div className="flex items-center justify-between">
-                              <Badge className="text-[9px] px-1 py-0 bg-pink-500/10 text-pink-500 border-none">
+                              <Badge className="text-[9px] px-1.5 py-0 bg-pink-500/20 text-pink-300 border border-pink-500/40">
                                 Specialist
                               </Badge>
                               <div className="flex gap-1">
                                 {node.tools.map((t) => (
                                   <Badge
                                     key={t}
-                                    variant="secondary"
-                                    className="text-[9px] px-1 py-0"
+                                    className="text-[9px] px-1 py-0 bg-violet-500/20 text-violet-300 border border-violet-500/40"
                                   >
                                     {t}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
-                            <h3 className="font-display text-sm font-bold mt-2">{node.name}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            <h3 className="font-display text-sm font-bold text-white mt-2">{node.name}</h3>
+                            <p className="text-xs text-slate-300 mt-0.5 line-clamp-1">
                               {node.role}
                             </p>
                           </div>
@@ -1436,28 +1434,28 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                       {/* Top: Orchestrator Manager Node */}
                       <div
                         onClick={() => setSelectedNodeId(nodes[0].id)}
-                        className={`w-full max-w-xs rounded-xl border p-4 cursor-pointer transition-all duration-300 text-center ${
+                        className={`w-full max-w-xs rounded-xl border p-4 cursor-pointer transition-all duration-200 text-center ${
                           selectedNodeId === nodes[0].id
-                            ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                            : "border-border bg-card hover:border-foreground/20"
-                        } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                            ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                            : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                        } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                       >
                         <Badge
                           variant="outline"
-                          className="text-[10px] border-indigo-500/50 text-indigo-500 bg-indigo-500/5"
+                          className="text-[10px] border-indigo-400/60 text-indigo-300 bg-indigo-500/10 font-bold"
                         >
                           Manager Node
                         </Badge>
-                        <h3 className="font-display text-base font-bold mt-1.5">{nodes[0].name}</h3>
-                        <p className="text-xs text-muted-foreground mt-0.5">{nodes[0].role}</p>
+                        <h3 className="font-display text-base font-bold text-white mt-1.5">{nodes[0].name}</h3>
+                        <p className="text-xs text-slate-300 mt-0.5">{nodes[0].role}</p>
                       </div>
 
                       {/* Connections split downwards */}
                       <div className="relative w-full flex items-center justify-around h-6">
-                        <div className="absolute top-0 bottom-0 left-[25%] right-[25%] border-t-2 border-dashed border-border/80"></div>
-                        <ArrowRight className="h-5 w-5 text-muted-foreground/60 rotate-90" />
+                        <div className="absolute top-0 bottom-0 left-[25%] right-[25%] border-t-2 border-dashed border-slate-700"></div>
+                        <ArrowRight className="h-5 w-5 text-slate-500 rotate-90" />
                         {nodes.length > 2 && (
-                          <ArrowRight className="h-5 w-5 text-muted-foreground/60 rotate-90" />
+                          <ArrowRight className="h-5 w-5 text-slate-500 rotate-90" />
                         )}
                       </div>
 
@@ -1467,30 +1465,29 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                           <div
                             key={node.id}
                             onClick={() => setSelectedNodeId(node.id)}
-                            className={`rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                            className={`rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                               selectedNodeId === node.id
-                                ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                                : "border-border bg-card hover:border-foreground/20"
-                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                                ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                                : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                            } ${simActive && selectedNodeId === node.id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                           >
                             <div className="flex items-center justify-between">
-                              <Badge className="text-[9px] px-1 py-0 bg-emerald-500/10 text-emerald-500 border-none">
+                              <Badge className="text-[9px] px-1.5 py-0 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
                                 Worker Agent
                               </Badge>
                               <div className="flex gap-1">
                                 {node.tools.map((t) => (
                                   <Badge
                                     key={t}
-                                    variant="secondary"
-                                    className="text-[9px] px-1 py-0"
+                                    className="text-[9px] px-1 py-0 bg-violet-500/20 text-violet-300 border border-violet-500/40"
                                   >
                                     {t}
                                   </Badge>
                                 ))}
                               </div>
                             </div>
-                            <h3 className="font-display text-sm font-bold mt-2">{node.name}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            <h3 className="font-display text-sm font-bold text-white mt-2">{node.name}</h3>
+                            <p className="text-xs text-slate-300 mt-0.5 line-clamp-1">
                               {node.role}
                             </p>
                           </div>
@@ -1506,17 +1503,17 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                         <div className="flex flex-col items-center gap-3">
                           <div
                             onClick={() => setSelectedNodeId(nodes[0].id)}
-                            className={`w-full rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                            className={`w-full rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                               selectedNodeId === nodes[0].id
-                                ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                                : "border-border bg-card hover:border-foreground/20"
-                            } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                                ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                                : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                            } ${simActive && selectedNodeId === nodes[0].id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                           >
-                            <Badge className="bg-violet-500/10 text-violet-500 border-none text-[9px] px-1 py-0">
+                            <Badge className="bg-violet-500/20 text-violet-300 border border-violet-500/40 text-[9px] px-1.5 py-0">
                               Content Optimizer
                             </Badge>
-                            <h3 className="font-display text-sm font-bold mt-2">{nodes[0].name}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">{nodes[0].role}</p>
+                            <h3 className="font-display text-sm font-bold text-white mt-2">{nodes[0].name}</h3>
+                            <p className="text-xs text-slate-300 mt-0.5">{nodes[0].role}</p>
                           </div>
                         </div>
 
@@ -1524,28 +1521,28 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                         <div className="flex flex-col items-center gap-3">
                           <div
                             onClick={() => setSelectedNodeId(nodes[1].id)}
-                            className={`w-full rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                            className={`w-full rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                               selectedNodeId === nodes[1].id
-                                ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                                : "border-border bg-card hover:border-foreground/20"
-                            } ${simActive && selectedNodeId === nodes[1].id ? "animate-pulse border-violet-500 shadow-[0_0_20px_rgba(139,92,246,0.6)]" : ""}`}
+                                ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                                : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
+                            } ${simActive && selectedNodeId === nodes[1].id ? "animate-pulse border-violet-400 shadow-[0_0_25px_rgba(139,92,246,0.6)]" : ""}`}
                           >
-                            <Badge className="bg-amber-500/10 text-amber-500 border-none text-[9px] px-1 py-0">
+                            <Badge className="bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[9px] px-1.5 py-0">
                               Quality Auditor
                             </Badge>
-                            <h3 className="font-display text-sm font-bold mt-2">{nodes[1].name}</h3>
-                            <p className="text-xs text-muted-foreground mt-0.5">{nodes[1].role}</p>
+                            <h3 className="font-display text-sm font-bold text-white mt-2">{nodes[1].name}</h3>
+                            <p className="text-xs text-slate-300 mt-0.5">{nodes[1].role}</p>
                           </div>
                         </div>
                       </div>
 
                       {/* Loop Arrows Overlay */}
-                      <div className="flex items-center justify-center gap-12 w-full text-xs text-muted-foreground font-semibold py-2">
-                        <span className="flex items-center gap-1">
-                          Draft Submit <ArrowRight className="h-3.5 w-3.5 text-primary" />
+                      <div className="flex items-center justify-center gap-12 w-full text-xs text-slate-400 font-semibold py-2">
+                        <span className="flex items-center gap-1 text-violet-400 font-bold">
+                          Draft Submit <ArrowRight className="h-3.5 w-3.5 text-violet-400" />
                         </span>
-                        <span className="flex items-center gap-1">
-                          <ArrowRight className="h-3.5 w-3.5 text-amber-500 rotate-180" /> Feedback
+                        <span className="flex items-center gap-1 text-amber-400 font-bold">
+                          <ArrowRight className="h-3.5 w-3.5 text-amber-400 rotate-180" /> Feedback
                           Loop
                         </span>
                       </div>
@@ -1559,26 +1556,26 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                         <div
                           key={node.id}
                           onClick={() => setSelectedNodeId(node.id)}
-                          className={`w-[220px] rounded-xl border p-4 cursor-pointer transition-all duration-300 ${
+                          className={`w-[220px] rounded-xl border p-4 cursor-pointer transition-all duration-200 ${
                             selectedNodeId === node.id
-                              ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(139,92,246,0.25)]"
-                              : "border-border bg-card hover:border-foreground/20"
+                              ? "border-violet-500 bg-slate-900 ring-2 ring-violet-500/50 shadow-lg shadow-violet-500/20"
+                              : "border-slate-800 bg-slate-900/90 text-slate-200 hover:border-slate-700 shadow-md"
                           }`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-muted-foreground">
+                            <span className="text-[10px] font-bold text-slate-400">
                               Node {index + 1}
                             </span>
                             <div className="flex gap-0.5">
                               {node.tools.map((t) => (
-                                <Badge key={t} variant="secondary" className="text-[8px] px-1 py-0">
+                                <Badge key={t} className="text-[8px] px-1 py-0 bg-violet-500/20 text-violet-300 border border-violet-500/40">
                                   {t}
                                 </Badge>
                               ))}
                             </div>
                           </div>
-                          <h3 className="font-display text-sm font-bold mt-2">{node.name}</h3>
-                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                          <h3 className="font-display text-sm font-bold text-white mt-2">{node.name}</h3>
+                          <p className="text-[11px] text-slate-300 mt-0.5 line-clamp-1">
                             {node.role}
                           </p>
                         </div>
@@ -1607,91 +1604,91 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
               </TabsList>
 
               <TabsContent value="langgraph" className="mt-4">
-                <Card className="border border-border bg-card shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-6 py-3 bg-muted/30 border-b border-border/80">
-                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                      <FileCode className="h-4 w-4 text-primary" /> Python implementation using
+                <Card className="border border-slate-800 bg-slate-950 shadow-md overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <FileCode className="h-4 w-4 text-emerald-400" /> Python implementation using
                       LangGraph
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className="h-7 text-xs gap-1.5 text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => handleCopyText(generatedLangGraph, "LangGraph template")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy Code
                     </Button>
                   </div>
-                  <pre className="p-4 max-h-[380px] overflow-y-auto text-xs font-mono bg-black/60 text-emerald-400/90 leading-relaxed rounded-b-xl select-all">
+                  <pre className="p-4 max-h-[420px] overflow-x-auto overflow-y-auto text-xs font-mono bg-slate-950 text-emerald-300 leading-relaxed rounded-b-xl select-all">
                     {generatedLangGraph}
                   </pre>
                 </Card>
               </TabsContent>
 
               <TabsContent value="crewai" className="mt-4">
-                <Card className="border border-border bg-card shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-6 py-3 bg-muted/30 border-b border-border/80">
-                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                      <FileCode className="h-4 w-4 text-primary" /> Python implementation using
+                <Card className="border border-slate-800 bg-slate-950 shadow-md overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <FileCode className="h-4 w-4 text-pink-400" /> Python implementation using
                       CrewAI
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className="h-7 text-xs gap-1.5 text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => handleCopyText(generatedCrewAI, "CrewAI template")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy Code
                     </Button>
                   </div>
-                  <pre className="p-4 max-h-[380px] overflow-y-auto text-xs font-mono bg-black/60 text-pink-400/90 leading-relaxed rounded-b-xl select-all">
+                  <pre className="p-4 max-h-[420px] overflow-x-auto overflow-y-auto text-xs font-mono bg-slate-950 text-pink-300 leading-relaxed rounded-b-xl select-all">
                     {generatedCrewAI}
                   </pre>
                 </Card>
               </TabsContent>
 
               <TabsContent value="typescript" className="mt-4">
-                <Card className="border border-border bg-card shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-6 py-3 bg-muted/30 border-b border-border/80">
-                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                      <FileCode className="h-4 w-4 text-primary" /> TypeScript implementation using
+                <Card className="border border-slate-800 bg-slate-950 shadow-md overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <FileCode className="h-4 w-4 text-sky-400" /> TypeScript implementation using
                       OpenAI SDK
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className="h-7 text-xs gap-1.5 text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => handleCopyText(generatedTypeScript, "TypeScript template")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy Code
                     </Button>
                   </div>
-                  <pre className="p-4 max-h-[380px] overflow-y-auto text-xs font-mono bg-black/60 text-indigo-400/90 leading-relaxed rounded-b-xl select-all">
+                  <pre className="p-4 max-h-[420px] overflow-x-auto overflow-y-auto text-xs font-mono bg-slate-950 text-sky-300 leading-relaxed rounded-b-xl select-all">
                     {generatedTypeScript}
                   </pre>
                 </Card>
               </TabsContent>
 
               <TabsContent value="instructions" className="mt-4">
-                <Card className="border border-border bg-card shadow-sm overflow-hidden">
-                  <div className="flex items-center justify-between px-6 py-3 bg-muted/30 border-b border-border/80">
-                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                      <GitBranch className="h-4 w-4 text-primary" /> Mermaid Flowchart Markdown
+                <Card className="border border-slate-800 bg-slate-950 shadow-md overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800">
+                    <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                      <GitBranch className="h-4 w-4 text-amber-400" /> Mermaid Flowchart Markdown
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 gap-1.5"
+                      className="h-7 text-xs gap-1.5 text-slate-300 hover:bg-slate-800 hover:text-white"
                       onClick={() => handleCopyText(mermaidGraph, "Mermaid Markdown")}
                     >
                       <Copy className="h-3.5 w-3.5" />
                       Copy Markdown
                     </Button>
                   </div>
-                  <pre className="p-4 max-h-[380px] overflow-y-auto text-xs font-mono bg-black/60 text-slate-300 leading-relaxed rounded-b-xl select-all">
+                  <pre className="p-4 max-h-[420px] overflow-x-auto overflow-y-auto text-xs font-mono bg-slate-950 text-amber-300 leading-relaxed rounded-b-xl select-all">
                     {mermaidGraph}
                   </pre>
                 </Card>
@@ -1743,18 +1740,18 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                 </div>
 
                 {/* Simulation Console Screen */}
-                <div className="rounded-xl bg-black/70 border border-border/80 p-4 font-mono text-xs text-slate-300 min-h-[180px] max-h-[280px] overflow-y-auto space-y-2.5">
-                  <div className="text-muted-foreground/60 border-b border-border/30 pb-2 flex justify-between items-center">
+                <div className="rounded-xl bg-slate-950 border border-slate-800 p-4 font-mono text-xs text-slate-200 min-h-[180px] max-h-[280px] overflow-y-auto space-y-2.5 shadow-inner">
+                  <div className="text-slate-400 font-bold border-b border-slate-800 pb-2 flex justify-between items-center tracking-wider">
                     <span>STATION OPERATIONAL CONSOLE TRACE</span>
                     {simActive && (
-                      <span className="text-[10px] text-amber-500 animate-pulse font-semibold">
+                      <span className="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/30 animate-pulse font-bold">
                         STEP {simStep + 1} OF {currentPresetSteps.length} ACTIVE
                       </span>
                     )}
                   </div>
 
                   {simLog.length === 0 ? (
-                    <div className="h-[120px] flex items-center justify-center text-muted-foreground/45 text-center">
+                    <div className="h-[120px] flex items-center justify-center text-slate-500 text-center">
                       <p>
                         No active session logs.
                         <br />
@@ -1767,12 +1764,12 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                         key={idx}
                         className={`whitespace-pre-wrap ${
                           logLine.startsWith("---")
-                            ? "text-primary font-bold mt-4"
+                            ? "text-violet-400 font-bold mt-4 border-t border-slate-800/80 pt-2"
                             : logLine.startsWith("[Transfer]")
-                              ? "text-amber-400 font-semibold"
+                              ? "text-amber-300 font-semibold"
                               : logLine.startsWith("[System]")
                                 ? "text-slate-400"
-                                : "text-emerald-400"
+                                : "text-emerald-400 font-medium"
                         }`}
                       >
                         {logLine}

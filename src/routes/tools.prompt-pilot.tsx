@@ -306,13 +306,13 @@ function PromptPilotPage() {
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
 
     // Load local prompts
-    const local = localStorage.getItem("mit_prompt_pilot_personal");
-    if (local) {
-      try {
+    try {
+      const local = localStorage.getItem("mit_prompt_pilot_personal");
+      if (local) {
         setLocalPrompts(JSON.parse(local));
-      } catch (e) {
-        console.error("Error loading local prompts", e);
       }
+    } catch (e) {
+      console.error("Error loading local prompts", e);
     }
 
     return () => sub.subscription.unsubscribe();
@@ -515,7 +515,11 @@ function PromptPilotPage() {
       };
       const updated = [newItem, ...localPrompts];
       setLocalPrompts(updated);
-      localStorage.setItem("mit_prompt_pilot_personal", JSON.stringify(updated));
+      try {
+        localStorage.setItem("mit_prompt_pilot_personal", JSON.stringify(updated));
+      } catch {
+        /* ignore */
+      }
       trackEvent("prompt_pilot_action", { action: "save_local" });
       toast.success("Prompt saved locally. Sign in to sync to cloud.");
       handleClear();
@@ -541,7 +545,11 @@ function PromptPilotPage() {
   const handleDeleteLocal = (id: string) => {
     const updated = localPrompts.filter((p) => p.id !== id);
     setLocalPrompts(updated);
-    localStorage.setItem("mit_prompt_pilot_personal", JSON.stringify(updated));
+    try {
+      localStorage.setItem("mit_prompt_pilot_personal", JSON.stringify(updated));
+    } catch {
+      /* ignore */
+    }
     toast.success("Local prompt deleted.");
   };
 

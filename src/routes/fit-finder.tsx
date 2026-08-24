@@ -108,15 +108,15 @@ function FitFinder() {
   const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      try {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
         const parsed = JSON.parse(raw) as { answers?: Answers; submitted?: boolean };
         if (parsed.answers) setAnswers(parsed.answers);
         if (parsed.submitted) setSubmitted(true);
-      } catch {
-        window.localStorage.removeItem(STORAGE_KEY);
       }
+    } catch {
+      /* ignore storage restriction */
     }
     supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
     trackEvent("fit_finder_viewed", { ...funnelAttribution() });
@@ -152,7 +152,11 @@ function FitFinder() {
   }
 
   function submit() {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, submitted: true }));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers, submitted: true }));
+    } catch {
+      /* ignore */
+    }
     setSubmitted(true);
     trackEvent("fit_finder_completed", {
       answeredCount: Object.values(answers).filter(Boolean).length,
@@ -167,7 +171,11 @@ function FitFinder() {
     const blank = { role: "", goal: "", risk: "", tools: "", timeline: "" };
     setAnswers(blank);
     setSubmitted(false);
-    window.localStorage.removeItem(STORAGE_KEY);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      /* ignore */
+    }
   }
 
   const answeredCount = Object.values(answers).filter(Boolean).length;

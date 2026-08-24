@@ -196,38 +196,55 @@ function GoogleAnalytics() {
   // Load gtag.js immediately on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const win = window as typeof window & {
-      dataLayer?: unknown[];
-      gtag?: (...args: unknown[]) => void;
-    };
-    win.dataLayer = win.dataLayer || [];
-    win.gtag = win.gtag || ((...args: unknown[]) => win.dataLayer?.push(args));
-    win.gtag("js", new Date());
-    win.gtag("config", "G-5YKK7V75YL", {
-      send_page_view: true,
-    });
+    try {
+      const win = window as typeof window & {
+        dataLayer?: unknown[];
+        gtag?: (...args: unknown[]) => void;
+      };
+      win.dataLayer = win.dataLayer || [];
+      win.gtag = win.gtag || function (...args: unknown[]) {
+        try {
+          win.dataLayer?.push(args);
+        } catch {
+          /* ignore */
+        }
+      };
+      win.gtag("js", new Date().toISOString());
+      win.gtag("config", "G-5YKK7V75YL", {
+        send_page_view: true,
+      });
 
-    const existingScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src = "https://www.googletagmanager.com/gtag/js?id=G-5YKK7V75YL";
-      script.async = true;
-      document.head.appendChild(script);
+      const existingScript = document.querySelector('script[src*="googletagmanager.com/gtag/js"]');
+      if (!existingScript) {
+        const script = document.createElement("script");
+        script.src = "https://www.googletagmanager.com/gtag/js?id=G-5YKK7V75YL";
+        script.async = true;
+        script.onerror = () => {
+          /* script blocked by client/adblocker - ignore silently */
+        };
+        document.head.appendChild(script);
+      }
+    } catch {
+      /* ignore analytics initialization errors */
     }
   }, []);
 
   // Track SPA pageview on location path change
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const win = window as typeof window & {
-      gtag?: (...args: unknown[]) => void;
-    };
-    if (typeof win.gtag === "function") {
-      win.gtag("event", "page_view", {
-        page_path: location.pathname + location.search,
-        page_location: window.location.href,
-        page_title: document.title,
-      });
+    try {
+      const win = window as typeof window & {
+        gtag?: (...args: unknown[]) => void;
+      };
+      if (typeof win.gtag === "function") {
+        win.gtag("event", "page_view", {
+          page_path: String(location.pathname || "") + String(location.search || ""),
+          page_location: String(window.location?.href || ""),
+          page_title: String(document.title || ""),
+        });
+      }
+    } catch {
+      /* ignore tracking errors */
     }
   }, [location.pathname, location.search]);
 

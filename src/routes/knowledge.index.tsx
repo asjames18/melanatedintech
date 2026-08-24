@@ -18,7 +18,7 @@ import {
   ExternalLink,
   Rss,
 } from "lucide-react";
-import { fetchAiAgentNews, NewsItem } from "@/lib/public-apis.functions";
+import { fetchAiAgentNews, fetchAcademicAiPapers, NewsItem, AcademicPaper } from "@/lib/public-apis.functions";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -561,30 +561,59 @@ function ContinueReading({
 
 function LiveAiAgentNewsFeed() {
   const [news, setNews] = useState<NewsItem[]>([]);
+  const [papers, setPapers] = useState<AcademicPaper[]>([]);
+  const [feedTab, setFeedTab] = useState<"dev" | "academic">("dev");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAiAgentNews({ data: { limit: 5 } })
-      .then((res) => setNews(res as NewsItem[]))
-      .catch((e) => console.warn("Live news fetch failed:", e))
+    Promise.all([
+      fetchAiAgentNews({ data: { limit: 6 } }),
+      fetchAcademicAiPapers({ data: { limit: 6 } }),
+    ])
+      .then(([newsRes, papersRes]) => {
+        setNews(newsRes as NewsItem[]);
+        setPapers(papersRes as AcademicPaper[]);
+      })
+      .catch((e) => console.warn("Live feed fetch failed:", e))
       .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="mt-16 border-t pt-10">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <Rss className="h-5 w-5 text-amber-500" />
             <h2 className="font-display text-xl font-semibold">Live AI Agent Dev & Research Feed</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Automated real-time trends surfaced via HackerNews, Dev.to, and ArXiv APIs.
+            Automated real-time trends surfaced via HackerNews, Dev.to, ArXiv, and OpenAlex Academic Graph APIs.
           </p>
         </div>
-        <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-mono font-medium text-amber-600 dark:text-amber-400">
-          <Globe className="h-3.5 w-3.5" /> Live Public APIs
-        </span>
+
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border border-border bg-muted/30 p-1 text-xs">
+            <button
+              onClick={() => setFeedTab("dev")}
+              className={`px-3 py-1 font-medium rounded-md transition-all ${
+                feedTab === "dev" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Dev Trends
+            </button>
+            <button
+              onClick={() => setFeedTab("academic")}
+              className={`px-3 py-1 font-medium rounded-md transition-all ${
+                feedTab === "academic" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Academic Papers (OpenAlex)
+            </button>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-mono font-medium text-amber-600 dark:text-amber-400">
+            <Globe className="h-3.5 w-3.5" /> Live REST APIs
+          </span>
+        </div>
       </div>
 
       {loading ? (
@@ -593,7 +622,7 @@ function LiveAiAgentNewsFeed() {
             <div key={i} className="h-28 rounded-xl border bg-card p-4 animate-pulse" />
           ))}
         </div>
-      ) : (
+      ) : feedTab === "dev" ? (
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {news.map((item) => (
             <a
@@ -615,6 +644,35 @@ function LiveAiAgentNewsFeed() {
               <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border">
                 <span>{item.author ? `By ${item.author}` : "Open Web"}</span>
                 <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {papers.map((paper) => (
+            <a
+              key={paper.id}
+              href={paper.pdfUrl || paper.doi}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col justify-between rounded-xl border bg-card p-4 transition hover:border-emerald-500/40 hover:shadow-md"
+            >
+              <div>
+                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">OpenAlex Paper ({paper.publicationYear})</span>
+                  <span>{paper.citedByCount} citations</span>
+                </div>
+                <h3 className="mt-2 text-sm font-semibold text-foreground group-hover:text-emerald-600 line-clamp-2">
+                  {paper.title}
+                </h3>
+                <p className="mt-1 text-[11px] text-muted-foreground line-clamp-1">
+                  {paper.authors.join(", ")}
+                </p>
+              </div>
+              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border">
+                <span className="truncate max-w-[180px]">{paper.venue}</span>
+                <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform text-emerald-500" />
               </div>
             </a>
           ))}

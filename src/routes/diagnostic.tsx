@@ -15,6 +15,7 @@ import {
   Building2,
   XCircle,
   Info,
+  MapPin,
 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ import { UnlockButton } from "@/components/unlock-button";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
-import { validateLeadContact } from "@/lib/public-apis.functions";
+import { validateLeadContact, fetchUserLocationGeo, UserGeoLocation } from "@/lib/public-apis.functions";
 
 export const Route = createFileRoute("/diagnostic")({
   head: () => ({
@@ -90,6 +91,7 @@ const FAQS = [
 
 function RevenueLeakDiagnostic() {
   const [leadEmail, setLeadEmail] = useState("");
+  const [userGeo, setUserGeo] = useState<UserGeoLocation | null>(null);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
     reason?: string;
@@ -102,6 +104,9 @@ function RevenueLeakDiagnostic() {
 
   useEffect(() => {
     trackEvent("diagnostic_page_viewed", { ...funnelAttribution() });
+    fetchUserLocationGeo()
+      .then((geo) => setUserGeo(geo as UserGeoLocation))
+      .catch((err) => console.warn("Failed fetching user geo:", err));
   }, []);
 
   return (
@@ -112,9 +117,16 @@ function RevenueLeakDiagnostic() {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
             <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-                <Sparkles className="h-3.5 w-3.5" /> High-Value Diagnostic
-              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <Sparkles className="h-3.5 w-3.5" /> High-Value Diagnostic
+                </span>
+                {userGeo && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-mono font-medium text-emerald-600 dark:text-emerald-400">
+                    <MapPin className="h-3 w-3 text-emerald-500" /> {userGeo.city}, {userGeo.country_name} ({userGeo.timezone})
+                  </span>
+                )}
+              </div>
               <h1 className="mt-5 font-display text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
                 Find out exactly where your business is losing leads & revenue.
               </h1>

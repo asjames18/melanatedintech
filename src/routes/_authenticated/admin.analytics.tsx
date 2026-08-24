@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { adminAnalyticsSummary } from "@/lib/analytics.functions";
+import { trackEvent } from "@/lib/analytics";
+import { toast } from "sonner";
 import {
   BarChart3,
   Download,
@@ -22,9 +24,6 @@ import {
   TrendingUp,
   Wrench,
   Zap,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
   Building2,
   Mail,
   Activity,
@@ -40,18 +39,25 @@ import {
   ShoppingBag,
   Clock,
   ChevronRight,
+  ExternalLink,
+  Radio,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Copy,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
-  head: () => ({ meta: [{ title: "Executive Telemetry & User Analytics — Admin" }] }),
+  head: () => ({ meta: [{ title: "Executive Telemetry & GA4 Analytics — Admin" }] }),
   component: AdminAnalytics,
 });
 
-type AnalyticsTab = "overview" | "users" | "leads" | "tools";
+type AnalyticsTab = "overview" | "users" | "leads" | "ga4" | "tools";
 
 function AdminAnalytics() {
   const [days, setDays] = useState(30);
   const [activeTab, setActiveTab] = useState<AnalyticsTab>("overview");
+  const [testingGa, setTestingGa] = useState(false);
   const summary = useServerFn(adminAnalyticsSummary);
   const q = useQuery({
     queryKey: ["admin-analytics", days],
@@ -95,12 +101,29 @@ function AdminAnalytics() {
   const inactivePct = ((data?.leadQuality.inactive ?? 0) / leadTotals) * 100;
   const invalidPct = ((data?.leadQuality.invalid ?? 0) / leadTotals) * 100;
 
+  const handleTestGa4Stream = () => {
+    setTestingGa(true);
+    try {
+      trackEvent("admin_analytics_ga4_test_ping", {
+        timestamp: new Date().toISOString(),
+        test_source: "admin_analytics_dashboard",
+      });
+      toast.success("Diagnostic event dispatched to GA4 stream & server buffer!", {
+        description: "Event 'admin_analytics_ga4_test_ping' sent via gtag.js.",
+      });
+    } catch {
+      toast.error("Failed to dispatch GA4 event.");
+    } finally {
+      setTimeout(() => setTestingGa(false), 800);
+    }
+  };
+
   return (
     <SiteLayout>
       <PageHeader
         eyebrow="Executive Telemetry & Platform Intelligence"
-        title="Live Traffic, User Accounts & Conversions"
-        description="Real-time conversion tracking across user registrations, recommendation surfaces, interactive studio tools, and lead qualification funnels."
+        title="Live Traffic, User Accounts & GA4 Analytics"
+        description="Real-time conversion tracking across user registrations, recommendation surfaces, Google Analytics 4 (GA4) stream, and lead qualification funnels."
       />
 
       <section className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
@@ -218,6 +241,13 @@ function AdminAnalytics() {
             icon={Users}
             label="User Accounts & Community"
             badge={data?.userData.newUsersPeriod ? `+${data.userData.newUsersPeriod}` : undefined}
+          />
+          <TabButton
+            active={activeTab === "ga4"}
+            onClick={() => setActiveTab("ga4")}
+            icon={Radio}
+            label="Google Analytics 4 (GA4)"
+            badge="G-5YKK7V75YL"
           />
           <TabButton
             active={activeTab === "leads"}
@@ -349,7 +379,6 @@ function AdminAnalytics() {
         {/* TAB 2: USER ACCOUNTS & COMMUNITY */}
         {activeTab === "users" && (
           <div className="space-y-8">
-            {/* User Account Breakdown Grid */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <UserSummaryCard
                 label="Registered Profiles"
@@ -378,7 +407,6 @@ function AdminAnalytics() {
               />
             </div>
 
-            {/* Recent Members Table & Community Feed */}
             <div className="grid gap-6 lg:grid-cols-3">
               <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-4">
@@ -426,7 +454,6 @@ function AdminAnalytics() {
                 </div>
               </div>
 
-              {/* Geographic Visitor Origins */}
               <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -469,7 +496,145 @@ function AdminAnalytics() {
           </div>
         )}
 
-        {/* TAB 3: LEAD QUALITY & GEO TELEMETRY */}
+        {/* TAB 3: GOOGLE ANALYTICS 4 (GA4) INTEGRATION */}
+        {activeTab === "ga4" && (
+          <div className="space-y-8">
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+                    </span>
+                    <h3 className="font-display text-lg font-bold text-white flex items-center gap-2">
+                      <Radio className="h-5 w-5 text-emerald-400" /> Google Analytics 4 (GA4) Dual-Stream Active
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Live client-side events are automatically forwarded to Google Analytics 4 measurement property <code className="font-mono text-violet-300 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">G-5YKK7V75YL</code>.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={handleTestGa4Stream}
+                  disabled={testingGa}
+                  className="rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold gap-2 shadow-lg shadow-violet-600/30"
+                >
+                  <Zap className="h-4 w-4" />
+                  {testingGa ? "Dispatching Ping..." : "Send GA4 Test Ping"}
+                </Button>
+              </div>
+
+              {/* GA4 Property Specs Card */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">GA4 Measurement ID</div>
+                  <div className="mt-1.5 text-base font-mono font-bold text-emerald-400 flex items-center gap-2">
+                    G-5YKK7V75YL
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText("G-5YKK7V75YL");
+                        toast.success("Measurement ID copied to clipboard!");
+                      }}
+                      className="text-slate-400 hover:text-white"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">Stream Status: Active</div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Client Protocol</div>
+                  <div className="mt-1.5 text-base font-mono font-bold text-violet-300">
+                    gtag.js (v4)
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">Async defer mode</div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Telemetry Pipe</div>
+                  <div className="mt-1.5 text-base font-mono font-bold text-sky-400">
+                    Dual Stream
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">Supabase DB + GA4</div>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/80">
+                  <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">PII Compliance</div>
+                  <div className="mt-1.5 text-base font-mono font-bold text-amber-400">
+                    Strict Scrubbing
+                  </div>
+                  <div className="mt-1 text-[11px] text-slate-400">Emails & phones removed</div>
+                </div>
+              </div>
+
+              {/* Direct GA4 Reports Deep Links */}
+              <div className="border-t border-slate-800 pt-6">
+                <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                  <ExternalLink className="h-4 w-4 text-violet-400" /> Launch Google Analytics 4 Dashboard Reports
+                </h4>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <a
+                    href="https://analytics.google.com/analytics/web/#/p/realtime"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-emerald-500/50 hover:bg-slate-900 transition-all group"
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
+                      <span>Realtime Overview</span>
+                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">Live active visitors & current pages</div>
+                  </a>
+
+                  <a
+                    href="https://analytics.google.com/analytics/web/#/reports/acquisition"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-sky-500/50 hover:bg-slate-900 transition-all group"
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold text-sky-400">
+                      <span>Traffic Acquisition</span>
+                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">Organic, referral, & direct sources</div>
+                  </a>
+
+                  <a
+                    href="https://analytics.google.com/analytics/web/#/reports/events"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-violet-500/50 hover:bg-slate-900 transition-all group"
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold text-violet-400">
+                      <span>Event Explorer</span>
+                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">Tool runs, clicks & custom triggers</div>
+                  </a>
+
+                  <a
+                    href="https://analytics.google.com/analytics/web/#/reports/tech"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-4 rounded-xl border border-slate-800 bg-slate-950 hover:border-indigo-500/50 hover:bg-slate-900 transition-all group"
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold text-indigo-400">
+                      <span>Audience Tech</span>
+                      <ExternalLink className="h-3.5 w-3.5 opacity-60 group-hover:opacity-100" />
+                    </div>
+                    <div className="text-[11px] text-slate-400 mt-1">Browsers, devices, & OS resolution</div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: LEAD QUALITY & GEO TELEMETRY */}
         {activeTab === "leads" && (
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
@@ -553,7 +718,6 @@ function AdminAnalytics() {
               </div>
             </div>
 
-            {/* Quick Actions Panel */}
             <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl flex flex-col justify-between">
               <div>
                 <h3 className="font-display text-lg font-bold text-white flex items-center gap-2 mb-4">
@@ -606,10 +770,9 @@ function AdminAnalytics() {
           </div>
         )}
 
-        {/* TAB 4: TOOLS & RECOMMENDATIONS */}
+        {/* TAB 5: TOOLS & RECOMMENDATIONS */}
         {activeTab === "tools" && (
           <div className="space-y-8">
-            {/* Interactive Tools Breakdown */}
             {data?.topTools && data.topTools.length > 0 && (
               <Panel title="Interactive AI Tools Usage Breakdown">
                 <div className="p-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -648,7 +811,6 @@ function AdminAnalytics() {
               </Panel>
             )}
 
-            {/* Recommendation Surface CTR Distribution */}
             {data?.bySurface && data.bySurface.length > 0 && (
               <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
@@ -695,7 +857,6 @@ function AdminAnalytics() {
               </div>
             )}
 
-            {/* Top Items Table */}
             <Panel title="Top Content Items & Engagement Performance">
               <Table
                 headers={["Type", "Item Slug", "Category", "Impressions", "Clicks", "CTR Performance"]}

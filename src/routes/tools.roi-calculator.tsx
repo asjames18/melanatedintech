@@ -359,6 +359,9 @@ Calculated via Melanated In Tech ROI Tool.`;
                       <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">${metrics.monthlyLaborSavingsDollars.toLocaleString()}/mo</span>
                     </div>
                   </div>
+                  <p className="text-[11px] text-muted-foreground italic text-right pt-1">
+                    * Figures rounded for display; calculations use high-precision token and labor constants.
+                  </p>
                 </div>
               </CardContent>
             </Card>

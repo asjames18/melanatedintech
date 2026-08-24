@@ -84,7 +84,12 @@ const STATIC_PATHS = [
   { path: "/services/custom-agent-build", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/services/ministry-ai-implementation", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/services/ai-workshop", changefreq: "monthly" as const, priority: "0.8" },
-  // Trust, community & legal
+  // Trust, community, tools & public assets
+  { path: "/prompts", changefreq: "weekly" as const, priority: "0.8" },
+  { path: "/mcp", changefreq: "weekly" as const, priority: "0.8" },
+  { path: "/seller", changefreq: "monthly" as const, priority: "0.6" },
+  { path: "/submit-agent", changefreq: "monthly" as const, priority: "0.6" },
+  { path: "/interests", changefreq: "monthly" as const, priority: "0.5" },
   { path: "/proof", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/community", changefreq: "monthly" as const, priority: "0.6" },
   { path: "/about", changefreq: "monthly" as const, priority: "0.5" },

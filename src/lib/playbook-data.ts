@@ -566,6 +566,106 @@ export const NICHES: NicheEntry[] = [
   },
 ];
 
+export const CHURCH_PLAYBOOK: PlaybookCategory[] = [
+  {
+    category: "Outreach & Community Communication",
+    Icon: Megaphone,
+    colorClass: "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50",
+    prompts: [
+      {
+        title: "30 Days of Ministry Posts",
+        body: `Act as a communications director for a church. Create a 30-day ministry content calendar with one post idea per day. Mix devotional thoughts, behind-the-scenes community moments, volunteer spotlights, and upcoming event invitations. My congregation/community is [describe your community]. Format as a table: Day, Post Type, Hook, Caption Outline.`,
+      },
+      {
+        title: "Visitor Feedback Reply Writer",
+        body: `You write visitor responses for a church. I'll paste a message or review from a guest or visitor, and you reply in a warm, welcoming, and pastorally sensitive voice — thank them, address any specific detail mentioned, and invite them to connect with our welcome team. Keep it under 60 words. Never sound corporate. Here is the message: [paste message]`,
+      },
+      {
+        title: "Church Homepage Copy Rewrite",
+        body: `Act as a ministry communications specialist. Rewrite our homepage copy for our church. Audience: first-time visitors and local families. What makes our ministry community unique: [your mission & culture]. Provide: a welcoming headline (under 10 words), a warm subheadline, 3 core ministry focus bullets (e.g., kids ministry, community outreach, small groups), and a Sunday service call-to-action button.`,
+      },
+      {
+        title: "Local Community Outreach Ideas",
+        body: `Act as a local community outreach specialist for a church in [city/neighborhood]. List 10 blog post, bulletin, or social content topics that families in our local area search for or care about (e.g., local service opportunities, parenting support, marriage enrichment). Provide target topics and working titles that demonstrate genuine community care.`,
+      },
+    ],
+  },
+  {
+    category: "Visitors & Congregation",
+    Icon: Handshake,
+    colorClass: "text-pink-600 dark:text-pink-400 bg-pink-50 dark:bg-pink-950/50",
+    prompts: [
+      {
+        title: "First-Time Visitor Follow-up",
+        body: `You are a pastor/welcome team coordinator for a church. A first-time guest shared their contact card: [paste notes or interest]. Write a warm, personal email that: thanks them for visiting, offers a quiet next step (e.g. coffee with a team member or joining a Sunday class), and provides service times. Keep it under 100 words, sincere and zero pressure.`,
+      },
+      {
+        title: "Follow-up with Absent Members",
+        body: `Write a gentle pastoral check-in message from a church ministry team to members who haven't attended services in 3+ months. Lead with care for their well-being, share a short update on community prayer or upcoming gatherings, and invite them to reach out if they need support. Subject line + 80-word email. Warm, caring, zero guilt or obligation.`,
+      },
+      {
+        title: "Handle a Giving & Stewardship Conversation",
+        body: `I pastor a local church. A member or leader asked about how financial contributions are managed and budgeted for community ministry. Write 3 thoughtful response approaches: one explaining budget transparency and impact, one explaining how giving supports local benevolence and outreach, and one offering to meet in person to review ministry stewardship. Keep each under 85 words.`,
+      },
+      {
+        title: "Thank You & Volunteer Story Request",
+        body: `Write a short, personal message from a church leader thanking a faithful volunteer for their service in [specific ministry area]. Invite them to share a brief 2-sentence testimony about what serving has meant to them for our community newsletter or welcome wall.`,
+      },
+    ],
+  },
+  {
+    category: "Ministry Operations & Coordination",
+    Icon: Timer,
+    colorClass: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50",
+    prompts: [
+      {
+        title: "Turn a Ministry Process Into a Volunteer Checklist",
+        body: `I coordinate ministry at a local church. Here is how we run [a recurring event like Sunday tech setup, greeting, or communion prep]: [describe process]. Turn this into a clean step-by-step checklist to hand to new volunteers, including arrival times, setup steps, and contact points if issues arise.`,
+      },
+      {
+        title: "Visitor & Ministry FAQ Page",
+        body: `Act as a first-time guest attending a church. List 12 questions visitors most frequently ask (e.g., dress code, kids ministry security, parking, service length), then draft a clear, friendly 2-3 sentence answer for each. Highlight placeholder slots like [KIDS CHECK-IN LOCATION] where local details belong.`,
+      },
+      {
+        title: "Weekly Announcement & Bulletin Plan",
+        body: `I lead church communications. Design a streamlined weekly 1-hour admin routine for taking Sunday's message and turning it into: Sunday bulletin notes, an email announcement recap, social media devotionals, and small group discussion prompts. Give a minute-by-minute breakdown.`,
+      },
+    ],
+  },
+  {
+    category: "Growth & Community Strategy",
+    Icon: TrendingUp,
+    colorClass: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-950/50",
+    prompts: [
+      {
+        title: "Evaluate Ministry & Volunteer Capacity",
+        body: `Act as a church leadership consultant. Here are our current active ministries and team sizes: [list programs and volunteer counts]. Help us evaluate volunteer capacity, identify which programs have high community impact versus high burnout risk, and suggest how to focus our team's energy for sustainable ministry growth.`,
+      },
+      {
+        title: "Community Needs & Neighborhood Scan",
+        body: `Act as a community researcher for a church in [city/neighborhood]. Identify 5 common unaddressed needs in our local area (e.g. food insecurity, youth mentorship, senior companionship, family support) and suggest one practical way our church can serve that need directly in partnership with existing local organizations.`,
+      },
+      {
+        title: "90-Day Ministry Outreach Plan",
+        body: `Act as a ministry strategist for a church with approximately [congregation size] attendees. Build a 90-day seasonal outreach and discipleship plan with one primary goal per month, weekly milestones, and key prayer/volunteer metrics. Assume our team has 4 hours per week dedicated to outreach coordination.`,
+      },
+    ],
+  },
+];
+
+export function getPromptsForNiche(entry: NicheEntry): PlaybookCategory[] {
+  if (entry.slug === "churches") {
+    return CHURCH_PLAYBOOK;
+  }
+  return PLAYBOOK.map((cat) => ({
+    ...cat,
+    prompts: cat.prompts.map((p) => ({
+      title: p.title,
+      body: personalize(p.body, entry.nicheNoun),
+    })),
+  }));
+}
+
 export function getNiche(slug: string): NicheEntry | undefined {
   return NICHES.find((n) => n.slug === slug);
 }

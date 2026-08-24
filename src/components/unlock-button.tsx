@@ -42,7 +42,16 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
   const checkoutFn = useServerFn(createUnlockCheckout);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setAuthed(!!data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      const isUser = !!data.user;
+      setAuthed(isUser);
+      if (isUser && typeof window !== "undefined" && window.location.search.includes("checkout=true")) {
+        // Auto-open checkout if user just returned from auth
+        setTimeout(() => {
+          void startCheckout(true);
+        }, 300);
+      }
+    });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setAuthed(!!s?.user));
     return () => sub.subscription.unsubscribe();
   }, []);
@@ -69,14 +78,16 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
 
   const price = `$${(entry.amountCents / 100).toFixed(0)}`;
 
-  async function start() {
-    trackEvent("unlock_clicked", { itemType: kind, itemSlug: slug, surface: "detail" });
+  async function startCheckout(isAuto = false) {
+    trackEvent("unlock_clicked", { itemType: kind, itemSlug: slug, surface: "detail", auto: isAuto });
     if (!hasPaymentsClientToken()) {
       toast.error("Payments aren't configured for this build yet.");
       return;
     }
     if (authed === false) {
-      navigate({ to: "/auth" });
+      const currentPath = window.location.pathname;
+      const redirect = `${currentPath}?checkout=true`;
+      navigate({ to: "/auth", search: { redirect } });
       return;
     }
     setLoading(true);
@@ -104,7 +115,7 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
 
   return (
     <>
-      <Button onClick={start} disabled={loading || authed === null} className="w-full">
+      <Button onClick={() => startCheckout()} disabled={loading || authed === null} className="w-full">
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
         Unlock for {price}
       </Button>

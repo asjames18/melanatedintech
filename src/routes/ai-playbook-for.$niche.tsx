@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductWaitlist } from "@/components/product-waitlist";
 import { buildSeoMeta, ldScript, breadcrumbLd, faqLd } from "@/lib/seo";
-import { PLAYBOOK, NICHES, getNiche, personalize } from "@/lib/playbook-data";
+import { PLAYBOOK, NICHES, getNiche, getPromptsForNiche } from "@/lib/playbook-data";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import { ArrowRight, CheckCircle2, Copy, Sparkles } from "lucide-react";
@@ -112,7 +112,7 @@ function NichePlaybookPage() {
       {/* The playbook, fully rendered for this niche */}
       <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="space-y-12">
-          {PLAYBOOK.map(({ category, Icon, colorClass, prompts }) => (
+          {getPromptsForNiche(entry).map(({ category, Icon, colorClass, prompts }) => (
             <div key={category}>
               <div className="mb-4 flex items-center gap-3">
                 <div className={`rounded-xl p-2.5 ${colorClass}`}>
@@ -121,33 +121,30 @@ function NichePlaybookPage() {
                 <h2 className="font-display text-xl font-bold text-foreground">{category}</h2>
               </div>
               <div className="grid gap-4 lg:grid-cols-2">
-                {prompts.map(({ title, body }) => {
-                  const personalized = personalize(body, entry.nicheNoun);
-                  return (
-                    <Card
-                      key={title}
-                      className="border border-border bg-card shadow-sm transition-all hover:border-foreground/15"
-                    >
-                      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                        <CardTitle className="text-base font-semibold">{title}</CardTitle>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1.5 shrink-0"
-                          onClick={() => handleCopy(personalized, title)}
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                          Copy
-                        </Button>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                          {personalized}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {prompts.map(({ title, body }) => (
+                  <Card
+                    key={title}
+                    className="border border-border bg-card shadow-sm transition-all hover:border-foreground/15"
+                  >
+                    <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                      <CardTitle className="text-base font-semibold">{title}</CardTitle>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5 shrink-0"
+                        onClick={() => handleCopy(body, title)}
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                        Copy
+                      </Button>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                        {body}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
           ))}

@@ -16,27 +16,72 @@ import interLatin500Woff2 from "@fontsource/inter/files/inter-latin-500-normal.w
 import spaceGroteskLatin600Woff2 from "@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { SiteLayout } from "@/components/site-layout";
 import { organizationLd, websiteLd, ldScript } from "@/lib/seo";
+import { Search, ArrowRight } from "lucide-react";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
+    <SiteLayout>
+      <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 text-center sm:px-6 lg:px-8">
+        <div className="max-w-xl">
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">HTTP 404 Error</p>
+          <h1 className="mt-2 font-display text-5xl font-extrabold text-foreground sm:text-6xl">
+            Page not found
+          </h1>
+          <p className="mt-4 text-base text-muted-foreground">
+            The link you followed may be expired or mistyped. Search our collection of AI tools, guides, and systems below:
+          </p>
+
+          <div className="mt-8 flex justify-center">
+            <Link
+              to="/search"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-medium text-foreground shadow-xs transition-all hover:border-primary/50 hover:bg-muted"
+            >
+              <Search className="h-4 w-4 text-primary" />
+              <span>Search AI Tools & Knowledge Base</span>
+              <kbd className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs font-mono">⌘K</kbd>
+            </Link>
+          </div>
+
+          <div className="mt-10 border-t border-border pt-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Popular Destinations</p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2 text-sm">
+              <Link
+                to="/systems"
+                className="rounded-lg border border-border bg-card px-3.5 py-2 font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                Systems
+              </Link>
+              <Link
+                to="/agents"
+                className="rounded-lg border border-border bg-card px-3.5 py-2 font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                Marketplace
+              </Link>
+              <Link
+                to="/knowledge"
+                className="rounded-lg border border-border bg-card px-3.5 py-2 font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                Knowledge Hub
+              </Link>
+              <Link
+                to="/tools"
+                className="rounded-lg border border-border bg-card px-3.5 py-2 font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                AI Tools
+              </Link>
+              <Link
+                to="/products"
+                className="rounded-lg border border-border bg-card px-3.5 py-2 font-medium text-foreground hover:border-primary/40 hover:text-primary transition-colors"
+              >
+                Products
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </SiteLayout>
   );
 }
 

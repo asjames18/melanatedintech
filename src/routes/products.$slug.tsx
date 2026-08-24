@@ -319,9 +319,7 @@ function ProductDetail() {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {owned
                         ? "Your pack is unlocked below — read it here or download it any time."
-                        : getPremiumEntry("product", product.slug)
-                          ? "One-time purchase. Instant access after checkout."
-                          : "Available through a quick conversation — tell us what you need and we'll get you set up."}
+                        : "One-time purchase. Instant self-serve access right after checkout."}
                     </p>
                     <div className="mt-4">
                       <UnlockButton

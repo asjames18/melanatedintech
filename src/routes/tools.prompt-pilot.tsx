@@ -687,7 +687,7 @@ function PromptPilotPage() {
                   </Button>
                   <Button
                     onClick={handleEnhancePrompt}
-                    disabled={enhancing || !promptContent.trim()}
+                    disabled={enhancing}
                     size="sm"
                     className="gap-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white hover:from-indigo-700 hover:to-violet-700 shadow-sm"
                   >

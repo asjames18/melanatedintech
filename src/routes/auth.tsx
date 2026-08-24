@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ShoppingCart, ArrowLeft } from "lucide-react";
+import { buildSeoMeta } from "@/lib/seo";
 
 /** Map raw Supabase/OAuth error text to something a person can act on. */
 function friendlyAuthError(raw: string, mode: "signin" | "signup"): string {
@@ -29,9 +31,12 @@ function friendlyAuthError(raw: string, mode: "signin" | "signup"): string {
   return raw || (mode === "signup" ? "Could not create your account." : "Authentication failed.");
 }
 
-import { buildSeoMeta } from "@/lib/seo";
+const authSearchSchema = z.object({
+  redirect: z.string().optional(),
+});
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search) => authSearchSchema.parse(search),
   head: () => {
     const seo = buildSeoMeta({
       title: "Sign in — Melanated In Tech",
@@ -51,35 +56,54 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
+  const redirectTarget = search.redirect && search.redirect.startsWith("/") ? search.redirect : null;
+
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [signedUp, setSignedUp] = useState(false);
+  const [signedUpUnconfirmed, setSignedUpUnconfirmed] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/community", replace: true });
+      if (data.session) {
+        const dest = redirectTarget ?? "/community";
+        navigate({ to: dest, replace: true });
+      }
     });
-  }, [navigate]);
+  }, [navigate, redirectTarget]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        setSignedUp(true);
-        toast.success("Account created — welcome to Melanated In Tech.");
+
+        // P0 FIX: If auto-confirm is enabled or session is returned immediately,
+        // do NOT show "Check your email". Treat user as signed in & navigate directly!
+        if (data.session || data.user?.email_confirmed_at) {
+          toast.success("Account created — welcome to Melanated In Tech.");
+          const dest = redirectTarget ?? "/account";
+          navigate({ to: dest, replace: true });
+          return;
+        }
+
+        // Only show confirmation screen if email confirmation is actually required
+        setSignedUpUnconfirmed(true);
+        toast.success("Account created — please check your email to activate.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/community" });
+        toast.success("Signed in successfully.");
+        const dest = redirectTarget ?? "/community";
+        navigate({ to: dest, replace: true });
       }
     } catch (err) {
       toast.error(friendlyAuthError(err instanceof Error ? err.message : "", mode));
@@ -91,11 +115,14 @@ function AuthPage() {
   async function onGoogle() {
     try {
       setLoading(true);
-      const redirectTo = new URL("/auth", window.location.origin).toString();
+      const redirectUrl = redirectTarget
+        ? new URL(`/auth?redirect=${encodeURIComponent(redirectTarget)}`, window.location.origin).toString()
+        : new URL("/auth", window.location.origin).toString();
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo,
+          redirectTo: redirectUrl,
           skipBrowserRedirect: true,
         },
       });
@@ -112,7 +139,7 @@ function AuthPage() {
   return (
     <SiteLayout>
       <section className="mx-auto flex max-w-md flex-col items-stretch px-4 py-20 sm:px-6">
-        {signedUp ? (
+        {signedUpUnconfirmed ? (
           <div className="text-center">
             <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-foreground text-background">
               <Sparkles className="h-5 w-5" />
@@ -125,7 +152,7 @@ function AuthPage() {
               Already confirmed?{" "}
               <button
                 type="button"
-                onClick={() => { setSignedUp(false); setMode("signin"); }}
+                onClick={() => { setSignedUpUnconfirmed(false); setMode("signin"); }}
                 className="font-medium text-primary hover:underline"
               >
                 Sign in
@@ -134,6 +161,18 @@ function AuthPage() {
           </div>
         ) : (
           <>
+            {redirectTarget && (
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4 text-left text-sm text-primary">
+                <ShoppingCart className="h-5 w-5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-medium">Complete your purchase</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sign in or create an account to unlock instant access.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="text-center">
               <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-foreground text-background">
                 <Sparkles className="h-5 w-5" />
@@ -142,9 +181,11 @@ function AuthPage() {
                 {mode === "signin" ? "Welcome back" : "Create your account"}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                {mode === "signin"
-                  ? "Sign in to save agents and access your account."
-                  : "Save agents, get early access, and join the builder community."}
+                {redirectTarget
+                  ? "Sign in or create an account to proceed with your order."
+                  : mode === "signin"
+                    ? "Sign in to save agents and access your account."
+                    : "Save agents, get early access, and join the builder community."}
               </p>
             </div>
 
@@ -194,8 +235,8 @@ function AuthPage() {
               </button>
             </p>
             <p className="mt-2 text-center text-xs text-muted-foreground">
-              <Link to="/" className="hover:text-foreground">
-                Back home
+              <Link to={redirectTarget ?? "/"} className="inline-flex items-center gap-1 hover:text-foreground">
+                <ArrowLeft className="h-3 w-3" /> {redirectTarget ? "Back to item" : "Back home"}
               </Link>
             </p>
           </>

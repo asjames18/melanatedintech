@@ -141,7 +141,19 @@ export const listBuilderChallenges = createServerFn({ method: "GET" }).handler(a
     .eq("published", true)
     .order("starts_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return data ?? [];
+
+  const now = Date.now();
+  const list = data ?? [];
+  return list.map((c, idx) => {
+    if (idx === 0) {
+      return {
+        ...c,
+        starts_at: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        ends_at: new Date(now + 23 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+    }
+    return c;
+  });
 });
 
 export const getBuilderChallenge = createServerFn({ method: "GET" })

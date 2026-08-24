@@ -894,8 +894,18 @@ export const listSuggestedBuilders = createServerFn({ method: "GET" })
     const followingSet = new Set((following.data ?? []).map((f: any) => f.followee_id));
     const followerCountMap = new Map<string, number>();
     for (const row of followerRows.data ?? []) followerCountMap.set(row.followee_id, (followerCountMap.get(row.followee_id) ?? 0) + 1);
-    return (profiles ?? [])
-      .filter((p: any) => p.id !== viewerId)
+
+    const seenNames = new Set<string>();
+    const filteredProfiles = (profiles ?? []).filter((p: any) => {
+      if (p.id === viewerId) return false;
+      const name = (p.display_name ?? "").trim().toLowerCase();
+      if (!name || name.includes("firsttimer") || name.includes("battletest") || name.includes("audit") || name.includes("qa.")) return false;
+      if (seenNames.has(name)) return false;
+      seenNames.add(name);
+      return true;
+    });
+
+    return filteredProfiles
       .slice(0, data.limit)
       .map((p: any): SuggestedBuilder => ({
         id: p.id,

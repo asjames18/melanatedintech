@@ -84,23 +84,81 @@ export const Route = createRootRouteWithContext<{
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
+      { name: "theme-color", content: "#0f172a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { title: "Melanated In Tech — AI Education, Agents & Workflows" },
       {
         name: "description",
         content:
           "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
       },
+      { name: "author", content: "Melanated In Tech" },
+      { property: "og:title", content: "Melanated In Tech — AI Education, Agents & Workflows" },
+      {
+        property: "og:description",
+        content: "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Melanated In Tech — AI Education, Agents & Workflows" },
+      {
+        name: "twitter:description",
+        content: "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
+      },
+      {
+        property: "og:image",
+        content: "https://melanatedintech.com/og-default.png",
+      },
+      {
+        name: "twitter:image",
+        content: "https://melanatedintech.com/og-default.png",
+      },
     ],
     links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "preload", href: interLatin400Woff2, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-      { rel: "preload", href: interLatin500Woff2, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-      { rel: "preload", href: spaceGroteskLatin600Woff2, as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      { rel: "manifest", href: "/manifest.json" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "icon", href: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
+      {
+        rel: "preload",
+        as: "font",
+        href: interLatin400Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "font",
+        href: interLatin500Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "font",
+        href: spaceGroteskLatin600Woff2,
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        as: "image",
+        href: "/brand/mit-logo-horizontal-276.webp",
+        type: "image/webp",
+        fetchPriority: "high",
+      },
+      {
+        rel: "stylesheet",
+        href: appCss,
+      },
     ],
     scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
   }),
 
+  shellComponent: RootDocument,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -135,7 +193,7 @@ function RootComponent() {
 function GoogleAnalytics() {
   const location = useLocation();
 
-  // 1. Load gtag.js immediately on mount (NO 5-second delay)
+  // Load gtag.js immediately on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
     const win = window as typeof window & {
@@ -158,7 +216,7 @@ function GoogleAnalytics() {
     }
   }, []);
 
-  // 2. Track SPA pageview on every location path change
+  // Track SPA pageview on location path change
   useEffect(() => {
     if (typeof window === "undefined") return;
     const win = window as typeof window & {

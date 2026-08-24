@@ -536,6 +536,24 @@ function AdminAnalytics() {
                 </div>
               )}
 
+              {/* Account Permission Guidance Banner */}
+              <div className="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-200 text-xs flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>
+                    <strong>Required Google Account:</strong> <code className="font-mono bg-slate-950 px-1.5 py-0.5 rounded text-amber-300">asjames18@gmail.com</code> (or click "Switch Account" in the report below if signed into another Gmail).
+                  </span>
+                </div>
+                <a
+                  href="https://lookerstudio.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-amber-300 hover:text-white underline text-[11px] shrink-0"
+                >
+                  Looker Studio Settings ↗
+                </a>
+              </div>
+
               {/* Preset Report View Selector */}
               <div className="flex flex-wrap items-center gap-2 border-t border-slate-800 pt-4">
                 {(["realtime", "acquisition", "events", "tech"] as const).map((cat) => (

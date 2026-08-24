@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/diagnostic/by-session")({
         try {
 
           // Check diagnostic_leads table
-          const { data: lead, error } = await supabaseAdmin
+          const { data: lead, error } = await (supabaseAdmin as any)
             .from("diagnostic_leads")
             .select("payment_status, confirmation_sent_at, sales_disposition")
             .eq("stripe_session_id", sessionId)
@@ -51,9 +51,9 @@ export const Route = createFileRoute("/api/diagnostic/by-session")({
 
           return new Response(
             JSON.stringify({
-              paymentStatus: lead.payment_status,
-              confirmationSent: Boolean(lead.confirmation_sent_at),
-              salesDisposition: lead.sales_disposition,
+              paymentStatus: (lead as any).payment_status,
+              confirmationSent: Boolean((lead as any).confirmation_sent_at),
+              salesDisposition: (lead as any).sales_disposition,
             }),
             { status: 200, headers: { "Content-Type": "application/json" } }
           );

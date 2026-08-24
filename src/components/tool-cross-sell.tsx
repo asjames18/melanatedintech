@@ -24,7 +24,8 @@ const PATHS = [
 ];
 
 /** Conversion band for tool pages: routes engaged tool users toward the catalog. */
-export function ToolCrossSell({ tool }: { tool: string }) {
+export function ToolCrossSell({ tool, currentToolSlug }: { tool?: string; currentToolSlug?: string }) {
+  const toolName = tool || currentToolSlug || "unknown";
   return (
     <div className="mt-12 rounded-2xl border border-border bg-muted/30 p-6 sm:p-8">
       <p className="text-xs font-medium uppercase tracking-wider text-primary">Next step</p>
@@ -36,7 +37,7 @@ export function ToolCrossSell({ tool }: { tool: string }) {
           <Link
             key={to}
             to={to}
-            onClick={() => trackEvent("tool_cross_sell_clicked", { tool, target: to })}
+            onClick={() => trackEvent("tool_cross_sell_clicked", { tool: toolName, target: to })}
             className="group flex flex-col rounded-2xl border border-border bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-lg"
           >
             <Icon className="h-5 w-5 text-primary" />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
@@ -24,6 +24,7 @@ type Status = "confirming" | "unlocked" | "pending";
 function CheckoutReturn() {
   const { session_id } = Route.useSearch();
   const router = useRouter();
+  const navigate = useNavigate();
   const confirmFn = useServerFn(confirmCheckoutSession);
 
   const [status, setStatus] = useState<Status>(session_id ? "confirming" : "pending");

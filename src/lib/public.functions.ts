@@ -24,7 +24,7 @@ export const listAgents = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const getAgent = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
@@ -62,7 +62,7 @@ export const listArticles = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getArticle = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const now = new Date().toISOString();
@@ -89,7 +89,7 @@ export const listProducts = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getProduct = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
@@ -144,7 +144,7 @@ const waitlistSchema = z.object({
   hp: z.string().trim().max(200).optional(),
 });
 export const joinWaitlist = createServerFn({ method: "POST" })
-  .validator((d: unknown) => waitlistSchema.parse(d))
+  .inputValidator((d: unknown) => waitlistSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };
@@ -188,7 +188,7 @@ const contactSchema = z.object({
   hp: z.string().trim().max(200).optional(),
 });
 export const submitContact = createServerFn({ method: "POST" })
-  .validator((d: unknown) => contactSchema.parse(d))
+  .inputValidator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };
@@ -229,7 +229,7 @@ export const submitContact = createServerFn({ method: "POST" })
   });
 
 export const getPublicSeller = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();

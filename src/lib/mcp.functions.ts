@@ -43,7 +43,7 @@ export type McpServerRow = Database["public"]["Tables"]["mcp_servers"]["Row"];
 
 // Public, unauthenticated listing (only approved + public servers).
 export const listPublicMcpServers = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         provider: providerEnum.optional(),
@@ -89,7 +89,7 @@ export const listMyMcpServers = createServerFn({ method: "GET" })
 
 export const upsertMcpServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => {
+  .inputValidator((d: unknown) => {
     const schema = z.object({
       id: z.string().uuid().optional(),
       ...mcpSchema.shape,
@@ -133,7 +133,7 @@ export const upsertMcpServer = createServerFn({ method: "POST" })
 
 export const deleteMcpServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin();
     const { data: existing } = await sb
@@ -151,7 +151,7 @@ export const deleteMcpServer = createServerFn({ method: "POST" })
 
 export const adminApproveMcpServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const sb = supabaseAdmin();

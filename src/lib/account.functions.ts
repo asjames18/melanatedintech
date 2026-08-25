@@ -22,7 +22,7 @@ const profileSchema = z.object({
 
 export const updateMyProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => profileSchema.parse(d))
+  .inputValidator((d: unknown) => profileSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("profiles")
@@ -57,7 +57,7 @@ export const listMySavedAgentIds = createServerFn({ method: "GET" })
 
 export const toggleSavedAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ agentId: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ agentId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const existing = await context.supabase
       .from("saved_agents")
@@ -101,7 +101,7 @@ export const listMySavedArticleIds = createServerFn({ method: "GET" })
 
 export const toggleSavedArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ articleId: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ articleId: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const existing = await context.supabase
       .from("saved_articles")

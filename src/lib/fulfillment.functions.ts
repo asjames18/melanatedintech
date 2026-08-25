@@ -99,7 +99,7 @@ export const FREE_ENVIRONMENT = "free";
  */
 export const claimFreePack = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ slug: z.string().min(1).max(160) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1).max(160) }).parse(d))
   .handler(async ({ data, context }): Promise<{ claimed: boolean; reason?: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -138,7 +138,7 @@ export const claimFreePack = createServerFn({ method: "POST" })
 
 export const getProductFulfillment = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(
     ({ data, context }): Promise<Fulfillment> =>
       resolveFulfillment("product", data.slug, context.userId),
@@ -146,7 +146,7 @@ export const getProductFulfillment = createServerFn({ method: "GET" })
 
 export const getAgentFulfillment = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(
     ({ data, context }): Promise<Fulfillment> =>
       resolveFulfillment("agent", data.slug, context.userId),

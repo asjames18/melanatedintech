@@ -109,7 +109,7 @@ const recordEventsSchema = z.object({
  * RLS enforces caller can only attribute events to themselves.
  */
 export const recordEvents = createServerFn({ method: "POST" })
-  .validator((d: unknown) => recordEventsSchema.parse(d))
+  .inputValidator((d: unknown) => recordEventsSchema.parse(d))
   .handler(async ({ data }) => {
     // Dampen metric pollution: cap how fast one IP can pump events in.
     const { getRequest } = await import("@tanstack/react-start/server");
@@ -194,7 +194,7 @@ type EventRow = {
 
 export const adminAnalyticsSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => summarySchema.parse(d ?? {}))
+  .inputValidator((d: unknown) => summarySchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

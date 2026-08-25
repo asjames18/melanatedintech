@@ -131,7 +131,7 @@ function generateInvoiceNumber(attempt: number): string {
 
 export const createClientInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => createInvoiceSchema.parse(d))
+  .inputValidator((d: unknown) => createInvoiceSchema.parse(d))
   .handler(async ({ data, context }) => {
     // Ensure admin user
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -201,7 +201,7 @@ export const createClientInvoice = createServerFn({ method: "POST" })
   });
 
 export const getPublicClientInvoice = createServerFn({ method: "GET" })
-  .validator((d: unknown) => publicInvoiceAccessSchema.parse(d))
+  .inputValidator((d: unknown) => publicInvoiceAccessSchema.parse(d))
   .handler(async ({ data }) => {
     await enforcePublicInvoiceRateLimit("read", data.invoiceNumber, 60, 60_000);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -251,7 +251,7 @@ export const listClientInvoices = createServerFn({ method: "GET" })
 
 export const updateInvoiceStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         invoiceNumber: z.string(),
@@ -295,7 +295,7 @@ export const updateInvoiceStatus = createServerFn({ method: "POST" })
 
 export const sendClientInvoiceEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         invoiceNumber: z.string().trim().min(1).max(80),
@@ -369,7 +369,7 @@ export const sendClientInvoiceEmail = createServerFn({ method: "POST" })
 
 export const updateClientInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     createInvoiceSchema
       .extend({
         invoiceNumber: z.string().trim().min(1),
@@ -431,7 +431,7 @@ export const updateClientInvoice = createServerFn({ method: "POST" })
 
 export const deleteClientInvoice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ invoiceNumber: z.string().trim().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ invoiceNumber: z.string().trim().min(1) }).parse(d))
   .handler(async ({ data, context }) => {
     const userId = context.userId;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -461,7 +461,7 @@ export const deleteClientInvoice = createServerFn({ method: "POST" })
   });
 
 export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         invoiceNumber: z.string().trim().min(1),
@@ -554,7 +554,7 @@ export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
   });
 
 export const toggleInvoiceAddOnFn = createServerFn({ method: "POST" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         invoiceNumber: z.string().trim().min(1),

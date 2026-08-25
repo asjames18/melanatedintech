@@ -32,7 +32,7 @@ export const getMyInterests = createServerFn({ method: "GET" })
 
 export const saveMyInterests = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => saveSchema.parse(d))
+  .inputValidator((d: unknown) => saveSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("user_interests").upsert(
       {

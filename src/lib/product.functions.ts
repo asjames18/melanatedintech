@@ -70,7 +70,7 @@ export const adminListProducts = createServerFn({ method: "GET" })
   });
 
 export const adminGetProduct = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
@@ -87,7 +87,7 @@ export const adminGetProduct = createServerFn({ method: "GET" })
 
 export const adminUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => {
+  .inputValidator((d: unknown) => {
     const schema = z.object({
       id: z.string().uuid().optional(),
       ...productSchema.shape,
@@ -130,7 +130,7 @@ export const adminUpsertProduct = createServerFn({ method: "POST" })
   });
 
 export const adminDeleteProduct = createServerFn({ method: "POST" })
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
@@ -165,7 +165,7 @@ export const sellerListProducts = createServerFn({ method: "GET" })
   });
 
 export const sellerGetProduct = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin();
@@ -189,7 +189,7 @@ export const sellerGetProduct = createServerFn({ method: "GET" })
 
 export const sellerUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => {
+  .inputValidator((d: unknown) => {
     const schema = z.object({
       id: z.string().uuid().optional(),
       ...productSchema.shape,
@@ -250,7 +250,7 @@ export const sellerUpsertProduct = createServerFn({ method: "POST" })
   });
 
 export const sellerDeleteProduct = createServerFn({ method: "POST" })
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const sb = supabaseAdmin();

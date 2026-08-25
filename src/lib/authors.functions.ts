@@ -11,7 +11,7 @@ function publicClient() {
 }
 
 export const getAuthor = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const [{ data: author, error }, { data: articles }] = await Promise.all([
@@ -28,7 +28,7 @@ export const getAuthor = createServerFn({ method: "GET" })
   });
 
 export const getArticleAuthor = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ author_id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ author_id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: author, error } = await sb

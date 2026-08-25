@@ -76,7 +76,7 @@ const sellerProfileSchema = z.object({
 
 export const updateSellerProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => sellerProfileSchema.parse(d))
+  .inputValidator((d: unknown) => sellerProfileSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
@@ -154,7 +154,7 @@ const sellerAgentSchema = z.object({
 
 export const sellerUpsertAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => sellerAgentSchema.parse(d))
+  .inputValidator((d: unknown) => sellerAgentSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
@@ -190,7 +190,7 @@ const sellerServiceSchema = z.object({
 
 export const sellerUpsertService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => sellerServiceSchema.parse(d))
+  .inputValidator((d: unknown) => sellerServiceSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
@@ -221,7 +221,7 @@ const sellerDeleteSchema = z.object({
 
 export const sellerDeleteListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => sellerDeleteSchema.parse(d))
+  .inputValidator((d: unknown) => sellerDeleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
@@ -279,7 +279,7 @@ export const sellerListProducts = createServerFn({ method: "GET" })
 
 export const sellerUpsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => sellerProductSchema.parse(d))
+  .inputValidator((d: unknown) => sellerProductSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);

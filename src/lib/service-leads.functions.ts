@@ -70,7 +70,7 @@ async function assertAdmin(userId: string) {
 }
 
 export const submitServiceLead = createServerFn({ method: "POST" })
-  .validator((value: unknown) => serviceLeadSchema.parse(value))
+  .inputValidator((value: unknown) => serviceLeadSchema.parse(value))
   .handler(async ({ data }) => {
     if (data.hp) return { ok: true, serviceModel: data.service_model };
     const { getClientIpHash, tooManyRecent } = await import("@/lib/rate-limit.server");
@@ -164,7 +164,7 @@ const diagnosticIntakeSchema = z.object({
  */
 export const submitDiagnosticIntake = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((value: unknown) => diagnosticIntakeSchema.parse(value))
+  .inputValidator((value: unknown) => diagnosticIntakeSchema.parse(value))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -285,7 +285,7 @@ const updateLeadSchema = z.object({
 
 export const adminUpdateServiceLead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((value: unknown) => updateLeadSchema.parse(value))
+  .inputValidator((value: unknown) => updateLeadSchema.parse(value))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

@@ -42,3 +42,7 @@ supabase/.temp/
 
 # Temporary workspace scratch scripts
 scratch/
+
+# Single lockfile: bun.lock. package-lock.json drifted out of sync with
+# package.json and broke CI for four days without anyone noticing.
+package-lock.json

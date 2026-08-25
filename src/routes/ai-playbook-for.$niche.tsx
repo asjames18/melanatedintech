@@ -24,8 +24,16 @@ export const Route = createFileRoute("/ai-playbook-for/$niche")({
       description: `${PLAYBOOK.reduce((n, c) => n + c.prompts.length, 0)} free copy-paste AI prompts written for ${entry.plural.toLowerCase()} — marketing, customer replies, reviews, operations, and growth. No signup required.`,
       url: path,
     });
+    // Uniqueness gate. A niche page with no niche-specific FAQs is the shared
+    // prompt list with a swapped noun, and 26 of those cross-linked to each other
+    // is the shape Google's doorway-page policy describes. sitemap.xml applies the
+    // same filter, but omission from a sitemap is not a directive — these pages are
+    // linked from every sibling, so only a robots tag actually keeps them out.
+    const isUnique = (entry.faqs?.length ?? 0) > 0;
     return {
-      meta: seo.meta,
+      meta: isUnique
+        ? seo.meta
+        : [...seo.meta, { name: "robots", content: "noindex, follow" }],
       links: seo.links,
       scripts: [
         ldScript(

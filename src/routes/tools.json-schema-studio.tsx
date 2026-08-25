@@ -284,7 +284,7 @@ export function JsonSchemaStudio() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="json-schema-studio" />
+        <ToolCrossSell tool="json-schema-studio" />
       </section>
     </SiteLayout>
   );

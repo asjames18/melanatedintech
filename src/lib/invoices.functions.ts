@@ -106,11 +106,27 @@ async function enforcePublicInvoiceRateLimit(
   }
 }
 
-// Generate unique invoice number: MIT-YYYY-XXX
-function generateInvoiceNumber(): string {
-  const year = new Date().getFullYear();
-  const randomSuffix = Math.floor(100 + Math.random() * 900);
-  return `MIT-${year}-${randomSuffix}`;
+/** How many invoice numbers to try before giving up. */
+const INVOICE_NUMBER_ATTEMPTS = 6;
+
+/**
+ * Invoice number: MIT-YYYY-MMDD-NN.
+ *
+ * Date-scoped, so the random part only has to be unique within one day instead
+ * of one year. The previous scheme drew from 900 values per calendar year: at
+ * ~40 invoices a year the odds of at least one collision are better than even,
+ * and it guarded against that with a single retry. This matches the date-based
+ * format already present in the data (MIT-2026-0803-01).
+ *
+ * Later attempts widen the suffix so repeated collisions always terminate.
+ */
+function generateInvoiceNumber(attempt: number): string {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const digits = attempt < 3 ? 2 : 4;
+  const seq = String(Math.floor(Math.random() * 10 ** digits)).padStart(digits, "0");
+  return `MIT-${now.getFullYear()}-${month}${day}-${seq}`;
 }
 
 export const createClientInvoice = createServerFn({ method: "POST" })
@@ -138,20 +154,7 @@ export const createClientInvoice = createServerFn({ method: "POST" })
     const depositCents = Math.round(totalCents / 2);
     const finalCents = totalCents - depositCents;
 
-    let invoiceNumber = generateInvoiceNumber();
-    // Check collision
-    const { data: existing } = await supabaseAdmin
-      .from("client_invoices" as never)
-      .select("id")
-      .eq("invoice_number" as never, invoiceNumber)
-      .maybeSingle();
-
-    if (existing) {
-      invoiceNumber = `${generateInvoiceNumber()}-${Math.floor(Math.random() * 90 + 10)}`;
-    }
-
     const newInvoice = {
-      invoice_number: invoiceNumber,
       client_name: data.client_name,
       client_email: data.client_email.toLowerCase(),
       client_organization: data.client_organization || null,
@@ -170,18 +173,31 @@ export const createClientInvoice = createServerFn({ method: "POST" })
       notes: data.notes || null,
     };
 
-    const { data: inserted, error } = await supabaseAdmin
-      .from("client_invoices" as never)
-      .insert(newInvoice as never)
-      .select("*")
-      .single();
+    // Let the unique index on invoice_number decide, and retry on conflict.
+    // Checking for a collision first and then inserting is a race: two admins
+    // creating an invoice in the same moment can both read "free" and one insert
+    // then fails. The database is the only authority that cannot be raced.
+    for (let attempt = 0; attempt < INVOICE_NUMBER_ATTEMPTS; attempt++) {
+      const { data: inserted, error } = await supabaseAdmin
+        .from("client_invoices" as never)
+        .insert({ ...newInvoice, invoice_number: generateInvoiceNumber(attempt) } as never)
+        .select("*")
+        .single();
 
-    if (error) {
-      console.error("Failed to create invoice", error);
-      throw new Error("Database error while creating invoice.");
+      if (!error) return inserted as unknown as ClientInvoiceRecord;
+
+      // 23505 = unique_violation. Only a number clash is worth retrying; any
+      // other error is a real failure and must surface immediately.
+      if (error.code !== "23505") {
+        console.error("Failed to create invoice", error);
+        throw new Error("Database error while creating invoice.");
+      }
     }
 
-    return inserted as unknown as ClientInvoiceRecord;
+    console.error("Failed to allocate an invoice number", {
+      attempts: INVOICE_NUMBER_ATTEMPTS,
+    });
+    throw new Error("Could not allocate an invoice number. Please try again.");
   });
 
 export const getPublicClientInvoice = createServerFn({ method: "GET" })
@@ -451,7 +467,11 @@ export const createInvoiceCheckoutSession = createServerFn({ method: "POST" })
         invoiceNumber: z.string().trim().min(1),
         accessToken: z.string().uuid(),
         paymentType: z.enum(["deposit", "final"]),
-        environment: z.enum(["sandbox", "live"]).optional().default("sandbox"),
+        // Required on purpose. A default of "sandbox" here meant any caller that
+        // omitted it would hand a paying client a test-mode checkout — they enter
+        // a card, nothing settles, and the invoice sits unpaid with no error.
+        // Better to reject the call than to guess which mode collects real money.
+        environment: z.enum(["sandbox", "live"]),
       })
       .parse(d),
   )

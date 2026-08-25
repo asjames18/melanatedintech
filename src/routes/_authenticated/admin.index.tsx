@@ -1632,13 +1632,7 @@ function PurchasesPanel() {
   const q = useQuery({ queryKey: ["admin-purchases"], queryFn: () => list() });
   const rows = q.data ?? [];
   const grossCents = rows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
-  const sellerGrossCents = rows
-    .filter((r) => r.seller_id)
-    .reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
-  const sellerEarningsCents = rows.reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
-  const unpaidSellerCents = rows
-    .filter((r) => r.seller_id && !r.seller_paid)
-    .reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
+  const contributorRows = rows.filter((r) => r.seller_id).length;
 
   return (
     <div className="space-y-5">
@@ -1662,10 +1656,7 @@ function PurchasesPanel() {
                   "Item",
                   "Buyer",
                   "Gross",
-                  "Seller",
-                  "Seller Earnings",
-                  "Platform Fee",
-                  "Seller Paid",
+                  "Contributor",
                   "Stripe Session",
                 ],
                 rows.map((r) => [
@@ -1677,9 +1668,6 @@ function PurchasesPanel() {
                   r.buyer_name ?? r.user_id,
                   formatCents(r.amount_cents),
                   r.seller_name ?? "",
-                  formatCents(r.seller_earnings_cents),
-                  formatCents(r.platform_fee_cents),
-                  r.seller_paid ? "yes" : "no",
                   r.stripe_session_id ?? "",
                 ]),
               )
@@ -1690,11 +1678,10 @@ function PurchasesPanel() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SalesStat label="Gross sales" value={formatCents(grossCents)} />
-        <SalesStat label="Seller sales" value={formatCents(sellerGrossCents)} />
-        <SalesStat label="Seller earnings" value={formatCents(sellerEarningsCents)} />
-        <SalesStat label="Unpaid seller earnings" value={formatCents(unpaidSellerCents)} />
+        <SalesStat label="Transactions" value={String(rows.length)} />
+        <SalesStat label="Contributor listings" value={String(contributorRows)} />
       </div>
 
       <SearchableDataTable
@@ -1746,28 +1733,12 @@ function PurchasesPanel() {
             cell: (r) => <span className="font-medium">{formatCents(r.amount_cents)}</span>,
           },
           {
-            header: "Seller",
+            header: "Contributor",
             cell: (r) =>
               r.seller_id ? (
-                <div>
-                  <div className="font-medium">{r.seller_name ?? "Unknown seller"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    earns {formatCents(r.seller_earnings_cents)}
-                  </div>
-                </div>
+                <div className="font-medium">{r.seller_name ?? "Unknown contributor"}</div>
               ) : (
                 <span className="text-muted-foreground">Platform</span>
-              ),
-          },
-          {
-            header: "Payout",
-            cell: (r) =>
-              r.seller_id ? (
-                <Badge variant={r.seller_paid ? "secondary" : "outline"}>
-                  {r.seller_paid ? "Paid" : "Unpaid"}
-                </Badge>
-              ) : (
-                <span className="text-muted-foreground">—</span>
               ),
           },
           {

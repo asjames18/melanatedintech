@@ -393,7 +393,7 @@ export function GovernanceKit() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="governance" />
+        <ToolCrossSell tool="governance" />
       </section>
     </SiteLayout>
   );

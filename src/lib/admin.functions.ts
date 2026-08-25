@@ -139,9 +139,6 @@ type AdminPurchaseItem = {
   seller_id: string | null;
   seller_name: string | null;
   seller_slug: string | null;
-  seller_earnings_cents: number | null;
-  platform_fee_cents: number | null;
-  seller_paid: boolean;
   price_id: string | null;
   stripe_session_id: string | null;
   environment: string;
@@ -158,7 +155,7 @@ export const adminListPurchases = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("user_entitlements")
       .select(
-        "id,user_id,kind,slug,price_id,stripe_session_id,environment,granted_at,created_at,seller_id,commission_cents,seller_paid",
+        "id,user_id,kind,slug,price_id,stripe_session_id,environment,granted_at,created_at,seller_id",
       )
       .order("granted_at", { ascending: false })
       .limit(250);
@@ -179,7 +176,7 @@ export const adminListPurchases = createServerFn({ method: "GET" })
       sellerIds.length
         ? supabaseAdmin
             .from("seller_profiles")
-            .select("id,display_name,slug,commission_rate,payout_enabled")
+            .select("id,display_name,slug")
             .in("id", sellerIds)
         : Promise.resolve({ data: [], error: null }),
       agentSlugs.length
@@ -205,13 +202,6 @@ export const adminListPurchases = createServerFn({ method: "GET" })
       const staticEntry = kind === "agent" || kind === "product" ? getPremiumEntry(kind, row.slug) : null;
       const seller = row.seller_id ? sellerById.get(row.seller_id) : null;
       const amountCents = staticEntry?.amountCents ?? item?.price_cents ?? null;
-      const inferredSellerEarnings =
-        row.seller_id && amountCents != null
-          ? Math.round(amountCents * (1 - Number(seller?.commission_rate ?? 10) / 100))
-          : null;
-      const sellerEarningsCents = row.commission_cents ?? inferredSellerEarnings;
-      const platformFeeCents =
-        amountCents != null && sellerEarningsCents != null ? amountCents - sellerEarningsCents : null;
 
       return {
         id: row.id,
@@ -224,9 +214,6 @@ export const adminListPurchases = createServerFn({ method: "GET" })
         seller_id: row.seller_id,
         seller_name: seller?.display_name ?? null,
         seller_slug: seller?.slug ?? null,
-        seller_earnings_cents: sellerEarningsCents,
-        platform_fee_cents: platformFeeCents,
-        seller_paid: row.seller_paid,
         price_id: row.price_id,
         stripe_session_id: row.stripe_session_id,
         environment: row.environment,

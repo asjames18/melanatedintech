@@ -346,7 +346,7 @@ export function AgentSandbox() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="agent-sandbox" />
+        <ToolCrossSell tool="agent-sandbox" />
       </section>
     </SiteLayout>
   );

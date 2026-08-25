@@ -78,6 +78,64 @@ async function resolveFulfillment(
   };
 }
 
+/**
+ * Environment recorded on a free claim.
+ *
+ * Paid entitlements are tagged "sandbox" or "live" so a test purchase cannot
+ * grant real access. A free claim has no such split, and tagging it with the
+ * build's Stripe mode would make the same pack look unclaimed after switching
+ * modes. The unique key is (user_id, kind, slug, environment), so a distinct
+ * value here also means a free claim can never collide with a real purchase.
+ */
+export const FREE_ENVIRONMENT = "free";
+
+/**
+ * Claim a free pack. This is the library's front door: every product pack is
+ * free, but taking one requires an account, so each claim produces a named
+ * person who told us which problem they have by which pack they took.
+ *
+ * Idempotent — re-claiming is a no-op upsert, so the button is safe to
+ * double-click and safe to hit again from another device.
+ */
+export const claimFreePack = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d: unknown) => z.object({ slug: z.string().min(1).max(160) }).parse(d))
+  .handler(async ({ data, context }): Promise<{ claimed: boolean; reason?: string }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Never trust the client for what is free: re-resolve the product and confirm
+    // it is both publicly visible and actually free before granting anything.
+    const now = new Date().toISOString();
+    const { data: product, error } = await supabaseAdmin
+      .from("products")
+      .select("slug, tier")
+      .eq("slug", data.slug)
+      .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!product) return { claimed: false, reason: "not-found" };
+    if (product.tier !== "free") return { claimed: false, reason: "not-free" };
+
+    const { error: upsertError } = await supabaseAdmin.from("user_entitlements").upsert(
+      {
+        user_id: context.userId,
+        kind: "product",
+        slug: product.slug,
+        price_id: "free",
+        stripe_session_id: null,
+        environment: FREE_ENVIRONMENT,
+        granted_at: now,
+      } as never,
+      { onConflict: "user_id,kind,slug,environment" },
+    );
+    if (upsertError) {
+      console.error("[claim-free-pack] upsert failed", upsertError);
+      throw new Error("We could not add that pack to your library. Please try again.");
+    }
+
+    return { claimed: true };
+  });
+
 export const getProductFulfillment = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))

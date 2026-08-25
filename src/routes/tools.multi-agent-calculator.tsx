@@ -177,7 +177,7 @@ export function MultiAgentCalculator() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="multi-agent-calculator" />
+        <ToolCrossSell tool="multi-agent-calculator" />
       </section>
     </SiteLayout>
   );

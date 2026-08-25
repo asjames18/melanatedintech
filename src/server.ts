@@ -53,6 +53,13 @@ function withSecurityHeaders(request: Request, response: Response): Response {
 
   const contentType = headers.get("content-type") ?? "";
   if (contentType.includes("text/html")) {
+    // Where violations go. Chromium reads Reporting-Endpoints + `report-to`;
+    // Firefox and Safari still only honor the deprecated `report-uri`, so both
+    // are sent. Without a destination the report-only policy below is inert —
+    // it blocks nothing and records nothing.
+    const reportPath = "/api/public/csp-report";
+    headers.set("Reporting-Endpoints", `csp-endpoint="${new URL(reportPath, request.url).href}"`);
+
     headers.set(
       "Content-Security-Policy-Report-Only",
       [
@@ -67,6 +74,8 @@ function withSecurityHeaders(request: Request, response: Response): Response {
         "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://api.stripe.com https://static.cloudflareinsights.com https://openrouter.ai",
         "frame-src https://js.stripe.com https://hooks.stripe.com",
         "form-action 'self' https://checkout.stripe.com",
+        `report-uri ${reportPath}`,
+        "report-to csp-endpoint",
       ].join("; "),
     );
   }

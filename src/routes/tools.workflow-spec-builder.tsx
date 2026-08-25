@@ -331,7 +331,7 @@ export function WorkflowSpecBuilder() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="workflow-spec-builder" />
+        <ToolCrossSell tool="workflow-spec-builder" />
       </section>
     </SiteLayout>
   );

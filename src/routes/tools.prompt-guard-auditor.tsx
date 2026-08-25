@@ -494,7 +494,7 @@ export function PromptGuardAuditor() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="prompt-guard-auditor" />
+        <ToolCrossSell tool="prompt-guard-auditor" />
       </section>
     </SiteLayout>
   );

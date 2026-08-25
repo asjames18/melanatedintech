@@ -4,6 +4,44 @@ import type { ReactNode } from "react";
 // three can't overlap-collide. Anything unmatched is emitted as plain text.
 const INLINE = /(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\))/g;
 
+/** URL schemes a link in pack, article, prompt, or model-authored text may use. */
+const ALLOWED_SCHEMES = new Set(["http", "https", "mailto"]);
+
+type SafeLink = { href: string; newTab: boolean };
+
+/**
+ * Resolve a markdown link target to something safe to put in `href`.
+ *
+ * Markdown reaching this renderer is not all first-party: seller-authored agent
+ * and product descriptions, user-authored public prompts, and raw model output
+ * in the chat widget all flow through it. Returning null means "render the link
+ * text as plain text" — the words survive, the navigation does not.
+ */
+function safeHref(raw: string): SafeLink | null {
+  // Browsers ignore control characters when parsing a scheme: a NUL or TAB
+  // inside "java<ctrl>script:" is dropped by the parser and the URL still runs.
+  // Strip them before deciding anything.
+  // eslint-disable-next-line no-control-regex -- matching them is the point
+  const cleaned = raw.replace(/[\u0000-\u001F\u007F]/g, "").trim();
+  if (!cleaned) return null;
+
+  // Protocol-relative (`//evil.com`) starts with "/" but leaves the site, so it
+  // must not be waved through as an internal path.
+  if (cleaned.startsWith("//")) return null;
+  if (cleaned.startsWith("/") || cleaned.startsWith("#")) {
+    return { href: cleaned, newTab: false };
+  }
+
+  const scheme = /^([a-zA-Z][a-zA-Z0-9+.-]*):/.exec(cleaned);
+  // No scheme at all is a relative path — same-origin, safe.
+  if (!scheme) return { href: cleaned, newTab: false };
+
+  const name = scheme[1].toLowerCase();
+  if (!ALLOWED_SCHEMES.has(name)) return null;
+  // mailto hands off to a mail client; only real navigation gets a new tab.
+  return { href: cleaned, newTab: name !== "mailto" };
+}
+
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   let last = 0;
@@ -28,19 +66,24 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
         </code>,
       );
     } else if (m[4] !== undefined) {
-      // Internal links (site paths) navigate in the same tab; external links
-      // open a new tab so the visitor never loses the site.
-      const isInternal = m[5].startsWith("/");
-      nodes.push(
-        <a
-          key={`${keyPrefix}-a${i}`}
-          href={m[5]}
-          {...(isInternal ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-          className="font-medium text-primary underline underline-offset-2 hover:opacity-80"
-        >
-          {m[4]}
-        </a>,
-      );
+      // Site paths navigate in the same tab; external links open a new tab so the
+      // visitor never loses the site. A target we can't vouch for renders as
+      // plain text rather than a link — see safeHref.
+      const link = safeHref(m[5]);
+      if (link) {
+        nodes.push(
+          <a
+            key={`${keyPrefix}-a${i}`}
+            href={link.href}
+            {...(link.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            className="font-medium text-primary underline underline-offset-2 hover:opacity-80"
+          >
+            {m[4]}
+          </a>,
+        );
+      } else {
+        nodes.push(m[4]);
+      }
     }
     last = m.index + m[0].length;
     i++;
@@ -64,7 +107,10 @@ function splitTableRow(line: string): string[] {
 }
 
 export function Markdown({ md }: { md: string }) {
-  const lines = md.split("\n");
+  // Some stored content uses CRLF. Splitting on "\n" alone leaves a trailing
+  // "\r" on every line, which defeats the closing-fence and table-separator
+  // checks below (they test the end of the line) and renders a stray character.
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
   const out: ReactNode[] = [];
   let ul: string[] | null = null;
   let ol: { value: number; text: string }[] | null = null;

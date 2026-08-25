@@ -326,6 +326,7 @@ export const sellerUpsertProduct = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Seller payout info lives in payouts.functions.ts (getSellerPayoutInfo) —
-// that version is environment-aware. A duplicate previously lived here and
-// caused seller.tsx to report sandbox + live earnings mixed together.
+// Payouts were removed along with paid packs: with the library free there is no
+// revenue to share, and the Connect/earnings machinery never moved money (it was
+// wired to a recordSellerEarnings that nothing ever called). Contributors are
+// credited by seller_profiles + /sellers/$slug instead.

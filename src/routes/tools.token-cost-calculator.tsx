@@ -440,7 +440,7 @@ export function TokenCostCalculator() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="token-cost-calculator" />
+        <ToolCrossSell tool="token-cost-calculator" />
       </section>
     </SiteLayout>
   );

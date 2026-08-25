@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
 import { SITE_URL } from "@/lib/site";
+import { escapeXml } from "@/lib/xml";
 import { NICHES } from "@/lib/playbook-data";
 
 const BASE_URL = SITE_URL;
@@ -57,6 +58,14 @@ const STATIC_PATHS = [
   { path: "/tools/ab-tester", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/rag-chunker", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/voice-agent-builder", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/agent-sandbox", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/ai-readiness-assessment", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/json-schema-studio", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/multi-agent-calculator", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/prompt-guard-auditor", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/revenue-leak-calculator", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/token-cost-calculator", changefreq: "monthly" as const, priority: "0.7" },
+  { path: "/tools/workflow-spec-builder", changefreq: "monthly" as const, priority: "0.7" },
   // Free starter packs
   { path: "/starter-packs", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/starter-packs/service-recovery-pack", changefreq: "monthly" as const, priority: "0.7" },
@@ -75,6 +84,10 @@ const STATIC_PATHS = [
   { path: "/services/custom-agent-build", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/services/ministry-ai-implementation", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/services/ai-workshop", changefreq: "monthly" as const, priority: "0.8" },
+  // The $297 diagnostic is the primary commercial entry point and was missing.
+  { path: "/diagnostic", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/podcast", changefreq: "weekly" as const, priority: "0.6" },
+  { path: "/governance", changefreq: "monthly" as const, priority: "0.5" },
   // Trust, community & legal
   { path: "/proof", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/community", changefreq: "monthly" as const, priority: "0.6" },
@@ -186,7 +199,9 @@ export const Route = createFileRoute("/sitemap.xml")({
         const urls = entries.map((e) =>
           [
             `  <url>`,
-            `    <loc>${BASE_URL}${e.path}</loc>`,
+            // Slugs are user/admin-authored. One "&" in a slug would make the
+            // whole sitemap invalid XML and silently drop every URL in it.
+            `    <loc>${escapeXml(`${BASE_URL}${e.path}`)}</loc>`,
             e.lastmod ? `    <lastmod>${new Date(e.lastmod).toISOString()}</lastmod>` : null,
             e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
             e.priority ? `    <priority>${e.priority}</priority>` : null,

@@ -110,13 +110,17 @@ export const getProduct = createServerFn({ method: "GET" })
     if (!row) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { unlock_content, asset_path, ...rest } = row as any;
-    // Free packs are public — return their content. Premium content stays gated
-    // and is only served by getProductFulfillment to a verified owner.
-    const isFree = rest.tier === "free";
+    // The full pack is never returned from this public endpoint. Claiming one
+    // requires an account (claimFreePack) so the library produces a named lead,
+    // and delivery is getProductFulfillment's job — it checks the entitlement.
+    // A public excerpt still ships, so the page has real content to index.
+    const { buildPackPreview } = await import("@/lib/pack-preview");
+    const { preview, truncated } = buildPackPreview(unlock_content);
     return {
       ...rest,
       has_fulfillment: !!unlock_content || !!asset_path,
-      unlock_content: isFree ? (unlock_content ?? null) : undefined,
+      unlock_preview: preview || null,
+      unlock_preview_truncated: truncated,
     };
   });
 

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { createFileRoute, Link, useSearch } from "@tanstack/react-router";
 import {
   CalendarCheck,
@@ -6,7 +5,6 @@ import {
   Clock,
   FileSpreadsheet,
   HelpCircle,
-  Loader2,
   ShieldCheck,
   Sparkles,
   ArrowRight,
@@ -15,74 +13,47 @@ import {
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
+import { useEntitlements } from "@/hooks/use-entitlement";
+import { DiagnosticIntakeForm } from "@/components/diagnostic-intake-form";
+
+/** Matches the PREMIUM_CATALOG product slug the diagnostic is sold under. */
+const DIAGNOSTIC_SLUG = "revenue-leak-diagnostic";
 
 export const Route = createFileRoute("/diagnostic/success")({
   validateSearch: (search: Record<string, unknown>) => ({
     session_id: (search.session_id as string) || "",
   }),
-  head: () => ({
-    ...buildSeoMeta({
+  head: () => {
+    const seo = buildSeoMeta({
       title: "Diagnostic Payment Received | Melanated In Tech",
-      description: "Your $297 Revenue Leak Diagnostic payment is confirmed. Schedule your 45-minute audit session.",
+      description:
+        "Your $297 Revenue Leak Diagnostic payment is confirmed. Schedule your 45-minute audit session.",
       url: "/diagnostic/success",
-    }),
-    robots: "noindex, nofollow",
-  }),
+    });
+    return {
+      // robots must be a meta entry. A bare `robots:` key on this object is
+      // silently dropped — TanStack Start only reads meta/links/scripts — which
+      // left this receipt page indexable despite intending otherwise.
+      meta: [...seo.meta, { name: "robots", content: "noindex, nofollow" }],
+      links: seo.links,
+    };
+  },
   component: DiagnosticSuccessPage,
 });
 
-type ConfirmationState = "loading" | "paid" | "processing" | "error";
-
 function DiagnosticSuccessPage() {
-  const { session_id: sessionId } = useSearch({ from: "/diagnostic/success" });
-  const [state, setState] = useState<ConfirmationState>(sessionId ? "loading" : "paid");
-  const [message, setMessage] = useState<string>("");
-
-  useEffect(() => {
-    if (!sessionId) return;
-
-    let active = true;
-    let attempts = 0;
-    const maxAttempts = 8;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-
-    const checkStatus = async () => {
-      try {
-        const response = await fetch(`/api/diagnostic/by-session?session_id=${encodeURIComponent(sessionId)}`, {
-          cache: "no-store",
-        });
-        const data = await response.json();
-        if (!active) return;
-
-        if (!response.ok) {
-          setState("paid"); // Graceful fallback
-          return;
-        }
-
-        if (data.paymentStatus === "paid") {
-          setState("paid");
-          return;
-        }
-
-        attempts += 1;
-        if (attempts >= maxAttempts) {
-          setState("paid"); // Graceful fallback after max retries
-          return;
-        }
-
-        timer = setTimeout(checkStatus, 2500);
-      } catch {
-        if (!active) return;
-        setState("paid"); // Graceful fallback on network error
-      }
-    };
-
-    void checkStatus();
-    return () => {
-      active = false;
-      if (timer) clearTimeout(timer);
-    };
-  }, [sessionId]);
+  // Payment is confirmed authoritatively by confirmCheckoutSession on
+  // /checkout/return, which writes the entitlement before redirecting here. This
+  // page therefore never verifies payment itself — the previous version polled
+  // diagnostic_leads, a table nothing ever wrote to, so the spinner always ran
+  // its full retry budget and then declared success anyway.
+  //
+  // Nothing here is gated on a lookup: the booking link is the thing the buyer
+  // paid for and must render even if Supabase is unreachable.
+  const { data: entitlements } = useEntitlements();
+  const owned = (entitlements ?? []).some(
+    (e: { kind: string; slug: string }) => e.kind === "product" && e.slug === DIAGNOSTIC_SLUG,
+  );
 
   const bookingUrl =
     import.meta.env.VITE_DIAGNOSTIC_BOOKING_URL ||
@@ -102,16 +73,7 @@ function DiagnosticSuccessPage() {
               </span>
             </div>
 
-            {state === "loading" ? (
-              <div className="mt-8 text-center py-12">
-                <Loader2 className="mx-auto h-10 w-10 animate-spin text-primary" />
-                <h1 className="mt-4 font-display text-2xl font-semibold">Confirming your payment…</h1>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Please keep this page open while we verify your checkout session.
-                </p>
-              </div>
-            ) : (
-              <div>
+            <div>
                 <div className="mt-6 flex items-start gap-4">
                   <div className="rounded-2xl bg-primary/10 p-3 text-primary shrink-0">
                     <CheckCircle2 className="h-8 w-8 text-emerald-500" />
@@ -173,8 +135,16 @@ function DiagnosticSuccessPage() {
                     <Link to="/contact">Need Support / Questions?</Link>
                   </Button>
                 </div>
-              </div>
-            )}
+
+                {/* Post-payment qualification. Shown only to a confirmed buyer —
+                    the server function rejects anyone without the entitlement, so
+                    rendering it to a non-owner would only produce a dead end. */}
+                {owned ? (
+                  <div className="mt-10 border-t border-border pt-8">
+                    <DiagnosticIntakeForm />
+                  </div>
+                ) : null}
+            </div>
           </div>
         </div>
       </section>

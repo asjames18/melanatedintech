@@ -10,7 +10,7 @@ import { UnlockButton } from "@/components/unlock-button";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
-import { ProductDelivery, ProductFreePack } from "@/components/product-delivery";
+import { PackPreview, ProductDelivery, ProductFreePack } from "@/components/product-delivery";
 import { useHasEntitlement } from "@/hooks/use-entitlement";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { getProduct, listProducts, listAgents } from "@/lib/public.functions";
@@ -260,8 +260,18 @@ function ProductDetail() {
                 </div>
               </div>
             )}
-            {product.tier === "free" && product.unlock_content && (
-              <ProductFreePack slug={product.slug} content={product.unlock_content} />
+            {/* Public excerpt: the packs are this site's real content, so a crawler
+                and an undecided visitor both need to see some of it. The claim card
+                below opens the rest. Both hide once the pack is in the library —
+                ProductDelivery renders the full thing then. */}
+            {product.has_fulfillment && !owned && product.unlock_preview && (
+              <PackPreview
+                md={product.unlock_preview}
+                truncated={product.unlock_preview_truncated}
+              />
+            )}
+            {product.tier === "free" && product.has_fulfillment && !owned && (
+              <ProductFreePack slug={product.slug} name={product.name} />
             )}
             {owned && <ProductDelivery slug={product.slug} />}
           </div>
@@ -273,11 +283,15 @@ function ProductDetail() {
                     <CheckCircle2 className="h-4 w-4" />
                     Free Resource
                   </div>
-                  <p className="mt-2 text-sm font-semibold">Instant Access Unlocked</p>
+                  <p className="mt-2 text-sm font-semibold">
+                    {owned ? "In your library" : "Free with an account"}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {product.unlock_content
-                      ? "This developer resource is free. Scroll down to read, download, or copy the content below!"
-                      : "This developer resource is free. Access the tools and registry directly using the console links on this page!"}
+                    {!product.has_fulfillment
+                      ? "This resource is free. Access the tools and registry directly using the console links on this page."
+                      : owned
+                        ? "Scroll down to read, download, or copy the full pack."
+                        : "Sign in and add it to your library to read and download the full pack."}
                   </p>
                 </div>
               )}

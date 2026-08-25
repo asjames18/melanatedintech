@@ -6,7 +6,37 @@ type CheckoutSessionLike = {
   metadata?: Record<string, string> | null;
   payment_status?: string | null;
   amount_total?: number | null;
+  currency?: string | null;
+  /**
+   * Present when Stripe Adaptive Pricing charged the buyer in their local
+   * currency. `amount_total` is then denominated in that currency, and this
+   * object carries the original settlement amount.
+   */
+  currency_conversion?: { amount_total?: number | null } | null;
 };
+
+/**
+ * The amount actually settled in our own currency (USD), or null when the
+ * session does not state one.
+ *
+ * Adaptive Pricing is enabled on the account, so a non-US buyer's
+ * `amount_total` arrives in their presentment currency (e.g. 40100 CAD cents
+ * for a $297 item). Comparing that raw figure against a USD catalog price
+ * fails for every international sale — the card is charged and the entitlement
+ * is refused. `currency_conversion.amount_total` is the USD figure to check.
+ */
+function settledUsdCents(session: CheckoutSessionLike): number | null {
+  const converted = session.currency_conversion?.amount_total;
+  if (typeof converted === "number") return converted;
+
+  const total = session.amount_total;
+  if (typeof total !== "number") return null;
+
+  // No conversion block: trust the total only if it is genuinely USD.
+  const currency = session.currency?.toLowerCase();
+  if (currency && currency !== "usd") return null;
+  return total;
+}
 
 async function getAdmin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -71,12 +101,17 @@ export async function grantFromSession(
     console.warn("[fulfillment-grant] skipping: unknown catalog item", { sessionId, kind, slug });
     return { granted: false, reason: "unknown-item" };
   }
-  const amountPaid = sessionObj?.amount_total;
+  const amountPaid = settledUsdCents(sessionObj);
   if (typeof amountPaid === "number" && amountPaid !== entry.amountCents) {
-    console.warn("[fulfillment-grant] skipping: amount mismatch", {
+    // A paid session whose amount we cannot reconcile is money in with nothing
+    // out — the single worst failure mode here. Log it at error level so it is
+    // findable in Workers logs rather than buried among warnings.
+    console.error("[fulfillment-grant] REFUSED: amount mismatch on a paid session", {
       sessionId,
       expected: entry.amountCents,
       got: amountPaid,
+      currency: sessionObj?.currency,
+      adaptivePricing: sessionObj?.currency_conversion != null,
     });
     return { granted: false, reason: "amount-mismatch" };
   }
@@ -138,6 +173,12 @@ export async function handleInvoicePaymentFromSession(
     return { processed: false, error: "not-paid" };
   }
 
+  // Amount actually settled, in USD. Adaptive Pricing is enabled on the account,
+  // so a non-US client's amount_total arrives in their own currency — reconciled
+  // the same way entitlement grants are, or an international client's deposit
+  // would look like a mismatch.
+  const settled = settledUsdCents(sessionObj);
+
   const admin = await getAdmin();
   const { data: invoice } = await admin
     .from("client_invoices" as never)
@@ -161,6 +202,23 @@ export async function handleInvoicePaymentFromSession(
     status: "deposit_pending" | "deposit_paid" | "fully_paid" | "cancelled" | "draft";
   };
   const now = new Date().toISOString();
+
+  // Reconcile against what the invoice says is owed for this stage. The amount is
+  // set server-side and the webhook payload is Stripe-signed, so this should never
+  // fire — which is exactly why it is worth asserting: this path carries the
+  // largest transactions on the platform and was the only one advancing a payment
+  // stage purely on payment_status, with no check on how much was actually paid.
+  const expectedCents = paymentType === "deposit" ? inv.deposit_cents : inv.final_cents;
+  if (settled != null && expectedCents != null && settled !== expectedCents) {
+    console.error("[invoice-grant] REFUSED: amount does not match the invoice", {
+      invoiceNumber,
+      paymentType,
+      expected: expectedCents,
+      got: settled,
+      currency: sessionObj?.currency,
+    });
+    return { processed: false, error: "amount-mismatch" };
+  }
 
   if (paymentType === "deposit" && inv.status === "deposit_pending") {
     await admin

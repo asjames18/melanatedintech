@@ -101,7 +101,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as ApiDiagnosticBySessionRouteImport } from './routes/api/diagnostic/by-session'
+import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
@@ -586,9 +586,9 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const ApiDiagnosticBySessionRoute = ApiDiagnosticBySessionRouteImport.update({
-  id: '/api/diagnostic/by-session',
-  path: '/api/diagnostic/by-session',
+const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
+  id: '/api/public/csp-report',
+  path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSubmissionsIdRoute =
@@ -740,7 +740,7 @@ export interface FileRoutesByFullPath {
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
-  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -835,7 +835,7 @@ export interface FileRoutesByTo {
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
-  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -940,7 +940,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
-  '/api/diagnostic/by-session': typeof ApiDiagnosticBySessionRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -1045,7 +1045,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/leads'
     | '/submissions/$id'
-    | '/api/diagnostic/by-session'
+    | '/api/public/csp-report'
     | '/admin/'
     | '/submissions/'
     | '/api/public/agents/chat'
@@ -1140,7 +1140,7 @@ export interface FileRouteTypes {
     | '/admin/invoices'
     | '/admin/leads'
     | '/submissions/$id'
-    | '/api/diagnostic/by-session'
+    | '/api/public/csp-report'
     | '/admin'
     | '/submissions'
     | '/api/public/agents/chat'
@@ -1244,7 +1244,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/leads'
     | '/_authenticated/submissions/$id'
-    | '/api/diagnostic/by-session'
+    | '/api/public/csp-report'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
     | '/api/public/agents/chat'
@@ -1316,7 +1316,7 @@ export interface RootRouteChildren {
   StarterPacksIndexRoute: typeof StarterPacksIndexRoute
   SystemsIndexRoute: typeof SystemsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
-  ApiDiagnosticBySessionRoute: typeof ApiDiagnosticBySessionRoute
+  ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -1968,11 +1968,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/diagnostic/by-session': {
-      id: '/api/diagnostic/by-session'
-      path: '/api/diagnostic/by-session'
-      fullPath: '/api/diagnostic/by-session'
-      preLoaderRoute: typeof ApiDiagnosticBySessionRouteImport
+    '/api/public/csp-report': {
+      id: '/api/public/csp-report'
+      path: '/api/public/csp-report'
+      fullPath: '/api/public/csp-report'
+      preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/submissions/$id': {
@@ -2274,7 +2274,7 @@ const rootRouteChildren: RootRouteChildren = {
   StarterPacksIndexRoute: StarterPacksIndexRoute,
   SystemsIndexRoute: SystemsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
-  ApiDiagnosticBySessionRoute: ApiDiagnosticBySessionRoute,
+  ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,

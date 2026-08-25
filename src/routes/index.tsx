@@ -23,9 +23,9 @@ const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listPro
 export const Route = createFileRoute("/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Practical AI Education, Tools Workbench & Agent Systems | Melanated In Tech",
+      title: "Revenue Recovery Systems for Service Businesses | Melanated In Tech",
       description:
-        "Understand, build, deploy, and benefit from AI agents. Free interactive tools, verified agent marketplace, and turnkey revenue recovery automations for businesses.",
+        "Your advertising creates demand — recovery systems help your team act on it. We find and fix the revenue leaking through missed calls, stale estimates, and lapsed clients. Start with a $297 Revenue Leak Diagnostic.",
       url: "/",
     }),
   }),

@@ -7,6 +7,17 @@ type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
 };
 
+// Cloudflare runtime global. Declared locally so this file does not need the full
+// @cloudflare/workers-types, which conflicts with the DOM lib the app relies on.
+declare const HTMLRewriter: {
+  new (): {
+    on(
+      selector: string,
+      handlers: { element(element: { prepend(html: string, opts?: { html?: boolean }): void }): void },
+    ): { transform(response: Response): Response };
+  };
+};
+
 let serverEntryPromise: Promise<ServerEntry> | undefined;
 
 async function getServerEntry(): Promise<ServerEntry> {
@@ -35,6 +46,72 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
     status: 500,
     headers: { "content-type": "text/html; charset=utf-8" },
   });
+}
+
+/**
+ * Public configuration the browser needs, read from the Worker's own environment.
+ *
+ * These are all publishable values — a Supabase project URL, a Supabase
+ * publishable key, and a Stripe publishable key — and every one of them is
+ * already visible in the client bundle when the build has them. Nothing secret
+ * is exposed here; the service-role key and Stripe secret keys are deliberately
+ * absent and must never be added.
+ */
+const PUBLIC_ENV_KEYS = [
+  ["VITE_SUPABASE_URL", ["VITE_SUPABASE_URL", "SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"]],
+  [
+    "VITE_SUPABASE_PUBLISHABLE_KEY",
+    ["VITE_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY"],
+  ],
+  [
+    "VITE_PAYMENTS_CLIENT_TOKEN",
+    ["VITE_PAYMENTS_CLIENT_TOKEN", "STRIPE_PUBLISHABLE_KEY"],
+  ],
+  ["VITE_DIAGNOSTIC_BOOKING_URL", ["VITE_DIAGNOSTIC_BOOKING_URL"]],
+] as const;
+
+function collectPublicEnv(): Record<string, string> {
+  const env = typeof process !== "undefined" ? process.env : {};
+  const out: Record<string, string> = {};
+  for (const [target, candidates] of PUBLIC_ENV_KEYS) {
+    for (const name of candidates) {
+      const value = env[name];
+      if (typeof value === "string" && value.trim()) {
+        out[target] = value;
+        break;
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * Write the public config into <head> so the client can read it at runtime.
+ *
+ * Vite inlines `import.meta.env` at BUILD time, so a bundle built without these
+ * variables present can never recover them — the browser has no process.env, and
+ * every Supabase and Stripe call fails. That made a working deploy depend on
+ * whoever ran the build having the right shell environment, and it broke auth and
+ * checkout in production when it was missing. The Worker holds these as secrets,
+ * so it supplies them per request instead.
+ *
+ * HTMLRewriter streams, so this does not buffer the SSR response.
+ */
+function injectPublicEnv(response: Response): Response {
+  const publicEnv = collectPublicEnv();
+  if (Object.keys(publicEnv).length === 0) return response;
+
+  // JSON.stringify then escape "<" so the payload can never terminate the
+  // script element early, whatever a value contains.
+  const payload = JSON.stringify(publicEnv).replace(/</g, "\\u003c");
+
+  return new HTMLRewriter()
+    .on("head", {
+      element(element) {
+        element.prepend(`<script>window.__PUBLIC_ENV__=${payload}</script>`, { html: true });
+      },
+    })
+    .transform(response);
 }
 
 function withSecurityHeaders(request: Request, response: Response): Response {
@@ -92,7 +169,12 @@ export default {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return withSecurityHeaders(request, await normalizeCatastrophicSsrResponse(response));
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      const contentType = normalized.headers.get("content-type") ?? "";
+      const withEnv = contentType.includes("text/html")
+        ? injectPublicEnv(normalized)
+        : normalized;
+      return withSecurityHeaders(request, withEnv);
     } catch (error) {
       console.error(error);
       return withSecurityHeaders(request, new Response(renderErrorPage(), {

@@ -18,6 +18,7 @@ import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PathsRouteImport } from './routes/paths'
+import { Route as OpenCommonsRouteImport } from './routes/open-commons'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as GetADemoRouteImport } from './routes/get-a-demo'
@@ -155,6 +156,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PathsRoute = PathsRouteImport.update({
   id: '/paths',
   path: '/paths',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpenCommonsRoute = OpenCommonsRouteImport.update({
+  id: '/open-commons',
+  path: '/open-commons',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KnowledgeRoute = KnowledgeRouteImport.update({
@@ -657,6 +663,7 @@ export interface FileRoutesByFullPath {
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/open-commons': typeof OpenCommonsRoute
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -756,6 +763,7 @@ export interface FileRoutesByTo {
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
+  '/open-commons': typeof OpenCommonsRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
   '/search': typeof SearchRoute
@@ -857,6 +865,7 @@ export interface FileRoutesById {
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/open-commons': typeof OpenCommonsRoute
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
@@ -962,6 +971,7 @@ export interface FileRouteTypes {
     | '/get-a-demo'
     | '/governance'
     | '/knowledge'
+    | '/open-commons'
     | '/paths'
     | '/privacy'
     | '/products'
@@ -1061,6 +1071,7 @@ export interface FileRouteTypes {
     | '/fit-finder'
     | '/get-a-demo'
     | '/governance'
+    | '/open-commons'
     | '/privacy'
     | '/proof'
     | '/search'
@@ -1161,6 +1172,7 @@ export interface FileRouteTypes {
     | '/get-a-demo'
     | '/governance'
     | '/knowledge'
+    | '/open-commons'
     | '/paths'
     | '/privacy'
     | '/products'
@@ -1266,6 +1278,7 @@ export interface RootRouteChildren {
   GetADemoRoute: typeof GetADemoRoute
   GovernanceRoute: typeof GovernanceRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
+  OpenCommonsRoute: typeof OpenCommonsRoute
   PathsRoute: typeof PathsRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
@@ -1385,6 +1398,13 @@ declare module '@tanstack/react-router' {
       path: '/paths'
       fullPath: '/paths'
       preLoaderRoute: typeof PathsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/open-commons': {
+      id: '/open-commons'
+      path: '/open-commons'
+      fullPath: '/open-commons'
+      preLoaderRoute: typeof OpenCommonsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/knowledge': {
@@ -2224,6 +2244,7 @@ const rootRouteChildren: RootRouteChildren = {
   GetADemoRoute: GetADemoRoute,
   GovernanceRoute: GovernanceRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
+  OpenCommonsRoute: OpenCommonsRoute,
   PathsRoute: PathsRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,

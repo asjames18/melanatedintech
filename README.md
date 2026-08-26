@@ -98,12 +98,12 @@ npm run deploy:cloudflare
 
 Production secrets are configured outside this repository. Do not add secret values to `wrangler.jsonc`, tracked environment files, documentation, or Git history.
 
-## Contributing
+## Contributing and community
 
 This repository is public for transparency and collaboration around the Melanated In Tech application. Before proposing a change, open or comment on an issue with the problem, the intended scope, and any user-facing or data-handling implications. Keep changes focused, add or update validation where practical, and run `npm run check` before requesting review.
 
-The standalone [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance) is the recommended place for contributions to reusable policy contracts, synthetic fixtures, verification tools, and public governance materials.
+All participants are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). The standalone [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance) is the recommended place for contributions to reusable policy contracts, synthetic fixtures, verification tools, and public governance materials.
 
-## License and reuse
+## License
 
-This repository is publicly viewable, but **no open-source reuse license has been selected for the application source, design assets, or operational materials**. Do not assume permission to copy, redistribute, or use this repository in another product until a license is added. The Agent Tool Assurance Kit is separately released under the MIT License.
+This repository is released under the [MIT License](LICENSE). The Agent Tool Assurance Kit is separately released under the MIT License.

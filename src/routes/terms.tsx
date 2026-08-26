@@ -20,7 +20,7 @@ function TermsOfService() {
       <PageHeader
         eyebrow="Legal"
         title="Terms of Service."
-        description="Last updated: August 11, 2026. Please read these terms carefully before using our website, products, tools, or professional services."
+        description="Last updated: August 26, 2026. Please read these terms carefully before using our website, products, tools, or professional services."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
@@ -146,9 +146,19 @@ function TermsOfService() {
           <h2>8. Intellectual Property Rights</h2>
           <ul>
             <li>
-              <strong>Our Content:</strong> The design, layout, assets, software, logos, and
-              materials on the platform are owned by Melanated In Tech and protected by copyright
-              laws.
+              <strong>Our Content:</strong> Except for software source code expressly released
+              under the MIT License in our public repository, the design, layout, assets, logos,
+              Marks, and materials on the platform are owned by Melanated In Tech and protected by
+              applicable intellectual-property laws.
+            </li>
+            <li>
+              <strong>Melanated In Tech Marks and Forks:</strong> The MIT License for the public
+              source code does not grant permission to use the Melanated In Tech name, logos,
+              domains, favicons, visual identity, or official accounts as the identity of another
+              product, service, deployment, organization, or fork. Any public fork or derivative
+              must use a distinct name, replace official branding and contact information, use its
+              own domains and credentials, and not imply affiliation with or endorsement by
+              Melanated In Tech. The full policy is available in our public repository.
             </li>
             <li>
               <strong>Your Contributions:</strong> You retain ownership of the prompts, text, files,

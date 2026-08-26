@@ -104,6 +104,12 @@ This repository is public for transparency and collaboration around the Melanate
 
 All participants are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). The standalone [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance) is the recommended place for contributions to reusable policy contracts, synthetic fixtures, verification tools, and public governance materials.
 
+## Branding, trademarks, and forks
+
+The [MIT License](LICENSE) applies to the repository's software code. It does **not** grant permission to present a fork or derivative as Melanated In Tech, use the Melanated In Tech name or logos as your own identity, use official domains or accounts, or imply endorsement or affiliation.
+
+Before publicly deploying or marketing a fork, adopt a distinct name and replace all Melanated In Tech logos, favicons, social-preview artwork, site metadata, contact information, and official links. See [TRADEMARKS.md](TRADEMARKS.md), [BRAND_ASSETS.md](BRAND_ASSETS.md), and [NOTICE](NOTICE) for the full policy and a practical rebranding checklist.
+
 ## License
 
 This repository is released under the [MIT License](LICENSE). The Agent Tool Assurance Kit is separately released under the MIT License.

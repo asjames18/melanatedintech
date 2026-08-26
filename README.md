@@ -86,7 +86,7 @@ scripts/                    Build, smoke-test, and maintenance scripts
 
 The application uses a public Supabase client for browser-safe data and a server-only administrative client for privileged operations. Authorization checks belong in server functions; client-side route guards are not a security boundary.
 
-Do not post security vulnerabilities, customer records, credentials, private prompts, payment data, or internal operational logs in public issues. Report a potential vulnerability privately to the repository owner through GitHub instead.
+Do not post security vulnerabilities, customer records, credentials, private prompts, payment data, or internal operational logs in public issues. Follow [SECURITY.md](SECURITY.md) to report a potential vulnerability privately.
 
 ## Deployment
 

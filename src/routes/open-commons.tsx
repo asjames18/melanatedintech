@@ -4,6 +4,7 @@ import {
   Braces,
   CheckCircle2,
   GitPullRequest,
+  Github,
   HandHeart,
   ShieldCheck,
   UsersRound,
@@ -73,6 +74,14 @@ function OpenCommons() {
             >
               Explore practical tools <ArrowRight className="h-4 w-4" />
             </Link>
+            <a
+              href="https://github.com/asjames18/agent-tool-assurance"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
+            >
+              <Github className="h-4 w-4" /> View the public kit
+            </a>
             <Link
               to="/governance"
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
@@ -126,6 +135,14 @@ function OpenCommons() {
                 examples, and contribution materials. It will not host customer data or execute real
                 payments.
               </p>
+              <a
+                href="https://github.com/asjames18/agent-tool-assurance"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
+              >
+                Explore the source and contribution guide <ArrowRight className="h-4 w-4" />
+              </a>
             </div>
           </div>
         </div>

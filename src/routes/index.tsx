@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, BookOpen, Bot, PackageOpen } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, HandHeart, PackageOpen, ShieldCheck } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { PlatformOverview } from "@/components/platform-overview";
 import { SiteLayout } from "@/components/site-layout";
@@ -51,6 +51,57 @@ function Home() {
     <SiteLayout>
       <Hero />
       <PlatformOverview />
+
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Build practical economic power with AI
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              Start with a useful workflow—or help improve the shared tools behind it.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Melanated In Tech combines practical learning, accountable business systems, and open
+              infrastructure. Choose the path that fits where you are today.
+            </p>
+          </div>
+          <div className="mt-9 grid gap-5 lg:grid-cols-2">
+            <Link
+              to="/start-small"
+              className="group rounded-3xl border border-border bg-card p-7 transition-colors hover:border-primary/45 hover:shadow-sm"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+              <h3 className="mt-5 font-display text-2xl font-semibold">Start with one bounded workflow.</h3>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Find an AI use case with clear inputs, human approval, and a measurable outcome before
+                you automate more of your work.
+              </p>
+              <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                Choose your first step <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+            <Link
+              to="/open-commons"
+              className="group rounded-3xl border border-primary/25 bg-primary/5 p-7 transition-colors hover:border-primary/55 hover:shadow-sm"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
+                <HandHeart className="h-5 w-5" />
+              </div>
+              <h3 className="mt-5 font-display text-2xl font-semibold">Build the open commons with us.</h3>
+              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Help shape public AI tools, policy patterns, examples, and test fixtures that make
+                useful technology more understandable and accountable.
+              </p>
+              <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                Explore Open Commons <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

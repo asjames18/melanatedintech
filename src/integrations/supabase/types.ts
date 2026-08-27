@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -443,37 +443,64 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          admin_notes: string | null
+          assigned_owner: string | null
           created_at: string
           email: string
+          follow_up_at: string | null
           handled: boolean
           id: string
+          inquiry_type: string
           ip_hash: string | null
+          lead_status: string
           message: string
           name: string
           organization: string | null
           topic: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          assigned_owner?: string | null
           created_at?: string
           email: string
+          follow_up_at?: string | null
           handled?: boolean
           id?: string
+          inquiry_type?: string
           ip_hash?: string | null
+          lead_status?: string
           message: string
           name: string
           organization?: string | null
           topic?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          assigned_owner?: string | null
           created_at?: string
           email?: string
+          follow_up_at?: string | null
           handled?: boolean
           id?: string
+          inquiry_type?: string
           ip_hash?: string | null
+          lead_status?: string
           message?: string
           name?: string
           organization?: string | null
           topic?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }

@@ -50,6 +50,7 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "recommendation_impression",
   "recommendation_reason_click",
   "roi_calculator_share",
+  "service_inquiry_submitted",
   "service_model_selected",
   "service_page_viewed",
   "sop_generator_action",

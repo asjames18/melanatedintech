@@ -223,19 +223,57 @@ export const adminListPurchases = createServerFn({ method: "GET" })
     });
   });
 
-// ---------- Contact message triage ----------
+// ---------- Contact message / services pipeline triage ----------
+
+export const CONTACT_PIPELINE_STATUSES = [
+  "new",
+  "reviewing",
+  "qualified",
+  "proposal_sent",
+  "in_progress",
+  "won",
+  "lost",
+] as const;
+
+export type ContactPipelineStatus = (typeof CONTACT_PIPELINE_STATUSES)[number];
+
+const contactPipelineUpdateSchema = z
+  .object({
+    id: z.string().uuid(),
+    lead_status: z.enum(CONTACT_PIPELINE_STATUSES).optional(),
+    assigned_owner: z.string().trim().min(1).max(120).nullable().optional(),
+    admin_notes: z.string().trim().min(1).max(4_000).nullable().optional(),
+    follow_up_at: z.string().datetime().nullable().optional(),
+    // Kept for compatibility with the original inbox action. The pipeline UI
+    // uses lead_status; terminal statuses automatically mark a message handled.
+    handled: z.boolean().optional(),
+  })
+  .refine(
+    (value) =>
+      value.lead_status !== undefined ||
+      value.assigned_owner !== undefined ||
+      value.admin_notes !== undefined ||
+      value.follow_up_at !== undefined ||
+      value.handled !== undefined,
+    "Choose at least one pipeline field to update.",
+  );
 
 export const adminUpdateMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid(), handled: z.boolean() }).parse(d))
+  .inputValidator((d: unknown) => contactPipelineUpdateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // handled isn't in the generated Database types yet â€” cast past the typed Update.
-    const { error } = await supabaseAdmin
-      .from("contact_messages")
-      .update({ handled: data.handled } as never)
-      .eq("id", data.id);
+    const terminal = data.lead_status === "won" || data.lead_status === "lost";
+    const update = {
+      ...(data.lead_status !== undefined ? { lead_status: data.lead_status, handled: terminal } : {}),
+      ...(data.assigned_owner !== undefined ? { assigned_owner: data.assigned_owner } : {}),
+      ...(data.admin_notes !== undefined ? { admin_notes: data.admin_notes } : {}),
+      ...(data.follow_up_at !== undefined ? { follow_up_at: data.follow_up_at } : {}),
+      ...(data.handled !== undefined && data.lead_status === undefined ? { handled: data.handled } : {}),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabaseAdmin.from("contact_messages").update(update).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

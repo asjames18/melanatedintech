@@ -8,7 +8,19 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 
-export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
+type CampaignAttribution = {
+  source?: string;
+  medium?: string;
+  campaign?: string;
+};
+
+export function ContactForm({
+  defaultTopic = "",
+  campaign,
+}: {
+  defaultTopic?: string;
+  campaign?: CampaignAttribution;
+}) {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -29,23 +41,31 @@ export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
     e.preventDefault();
     setLoading(true);
     try {
-      await send({
+      const result = await send({
         data: {
           name: form.name,
           email: form.email,
           organization: form.organization || undefined,
           topic: form.topic || undefined,
           message: form.message,
+          utm_source: campaign?.source,
+          utm_medium: campaign?.medium,
+          utm_campaign: campaign?.campaign,
           hp: hp || undefined,
         },
       });
       setDone(true);
-      trackEvent(
-        form.topic === "Strategy Sprint application"
-          ? "strategy_sprint_application_submitted"
-          : "contact_submission_completed",
-        { surface: form.topic === "Strategy Sprint application" ? "strategy_sprint" : "contact" },
-      );
+      if (form.topic === "Strategy Sprint application") {
+        trackEvent("strategy_sprint_application_submitted", { surface: "strategy_sprint" });
+      } else {
+        trackEvent("contact_submission_completed", { surface: "contact" });
+        if (result.inquiryType !== "general") {
+          trackEvent("service_inquiry_submitted", {
+            inquiry_type: result.inquiryType,
+            surface: "contact",
+          });
+        }
+      }
       toast.success("Message sent — we'll be in touch.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");

@@ -178,15 +178,56 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const campaignValue = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .regex(/^[a-zA-Z0-9._-]+$/, "Campaign values may use letters, numbers, dots, underscores, and hyphens.")
+  .optional();
+
 const contactSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
   organization: z.string().trim().max(120).optional(),
   topic: z.string().trim().max(80).optional(),
   message: z.string().trim().min(10).max(2000),
+  // Store only short allowlisted campaign labels—not raw URLs or customer data.
+  utm_source: campaignValue,
+  utm_medium: campaignValue,
+  utm_campaign: campaignValue,
   // Honeypot: real users never fill this hidden field; bots do.
   hp: z.string().trim().max(200).optional(),
 });
+
+export type ServiceInquiryType =
+  | "general"
+  | "ai_training"
+  | "workflow_diagnostic"
+  | "website_launch_sprint"
+  | "custom_ai_system"
+  | "custom_website_application"
+  | "presentation_support";
+
+export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
+  switch (topic) {
+    case "AI Clarity Session inquiry":
+      return "ai_training";
+    case "AI Workflow Diagnostic inquiry":
+      return "workflow_diagnostic";
+    case "Website Launch Sprint inquiry":
+      return "website_launch_sprint";
+    case "Custom AI system inquiry":
+      return "custom_ai_system";
+    case "Custom website or application inquiry":
+      return "custom_website_application";
+    case "Presentation support inquiry":
+      return "presentation_support";
+    default:
+      return "general";
+  }
+}
+
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
@@ -206,11 +247,13 @@ export const submitContact = createServerFn({ method: "POST" })
       organization: data.organization ?? null,
       topic: data.topic ?? null,
       message: data.message,
+      inquiry_type: classifyServiceInquiry(data.topic),
+      utm_source: data.utm_source ?? null,
+      utm_medium: data.utm_medium ?? null,
+      utm_campaign: data.utm_campaign ?? null,
     };
     // Try with ip_hash; degrade to the bare row if the column isn't there yet.
-    let { error } = await supabaseAdmin
-      .from("contact_messages")
-      .insert({ ...base, ip_hash: ipHash } as never);
+    let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
     if (error && /ip_hash|column/i.test(error.message)) {
       ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
     }
@@ -225,7 +268,7 @@ export const submitContact = createServerFn({ method: "POST" })
       message: data.message,
     });
 
-    return { ok: true };
+    return { ok: true, inquiryType: classifyServiceInquiry(data.topic) };
   });
 
 export const getPublicSeller = createServerFn({ method: "GET" })

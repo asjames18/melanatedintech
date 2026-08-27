@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   ArrowRight,
   Bot,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
+import { funnelAttribution } from "@/components/funnel-attribution";
 
 const primaryOffers = [
   {
@@ -25,6 +28,7 @@ const primaryOffers = [
       "A starter prompt pack and one-page next-step summary; no custom build is included",
     ],
     topic: "AI Clarity Session inquiry",
+    offer: "ai_training",
     cta: "Ask about AI training",
   },
   {
@@ -40,6 +44,7 @@ const primaryOffers = [
       "Tool-fit guidance and a one-page implementation roadmap; no implementation is included",
     ],
     topic: "AI Workflow Diagnostic inquiry",
+    offer: "workflow_diagnostic",
     cta: "Discuss a workflow",
   },
   {
@@ -55,6 +60,7 @@ const primaryOffers = [
       "Inquiry form, basic metadata, one consolidated revision, and publish-ready handoff; third-party fees are not included",
     ],
     topic: "Website Launch Sprint inquiry",
+    offer: "website_launch_sprint",
     cta: "Ask about a launch sprint",
   },
 ] as const;
@@ -66,6 +72,7 @@ const scopedServices = [
     description:
       "For teams that need implementation, integrations, documented boundaries, testing, and staff handoff after a defined discovery process.",
     topic: "Custom AI system inquiry",
+    offer: "custom_ai_system",
   },
   {
     Icon: MonitorSmartphone,
@@ -73,6 +80,7 @@ const scopedServices = [
     description:
       "For projects involving multiple pages, brand systems, booking, payments, client portals, databases, or tailored integrations.",
     topic: "Custom website or application inquiry",
+    offer: "custom_website_application",
   },
   {
     Icon: Presentation,
@@ -80,6 +88,7 @@ const scopedServices = [
     description:
       "For training, sales, grant, and stakeholder decks where the scope depends on the story, source material, and delivery context.",
     topic: "Presentation support inquiry",
+    offer: "presentation_support",
   },
 ] as const;
 
@@ -104,6 +113,10 @@ export const Route = createFileRoute("/work-with-us")({
 });
 
 function WorkWithUs() {
+  useEffect(() => {
+    trackEvent("work_with_us_viewed", { surface: "work_with_us", ...funnelAttribution() });
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader
@@ -126,7 +139,7 @@ function WorkWithUs() {
             </p>
           </div>
           <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {primaryOffers.map(({ Icon, eyebrow, title, price, description, includes, topic, cta }) => (
+            {primaryOffers.map(({ Icon, eyebrow, title, price, description, includes, topic, offer, cta }) => (
               <article key={title} className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
@@ -149,6 +162,13 @@ function WorkWithUs() {
                   to="/contact"
                   search={{ topic }}
                   className="mt-7 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                  onClick={() =>
+                    trackEvent("service_offer_cta_clicked", {
+                      offer,
+                      surface: "work_with_us_fixed_offer",
+                      ...funnelAttribution(),
+                    })
+                  }
                 >
                   {cta} <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -169,7 +189,7 @@ function WorkWithUs() {
             </p>
           </div>
           <div className="mt-9 grid gap-4 md:grid-cols-3">
-            {scopedServices.map(({ Icon, title, description, topic }) => (
+            {scopedServices.map(({ Icon, title, description, topic, offer }) => (
               <article key={title} className="rounded-2xl border border-border bg-muted/20 p-5">
                 <Icon className="h-5 w-5 text-primary" />
                 <h3 className="mt-4 font-display text-xl font-semibold">{title}</h3>
@@ -178,6 +198,13 @@ function WorkWithUs() {
                   to="/contact"
                   search={{ topic }}
                   className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+                  onClick={() =>
+                    trackEvent("service_offer_cta_clicked", {
+                      offer,
+                      surface: "work_with_us_custom_offer",
+                      ...funnelAttribution(),
+                    })
+                  }
                 >
                   Request a scope <ArrowRight className="h-4 w-4" />
                 </Link>

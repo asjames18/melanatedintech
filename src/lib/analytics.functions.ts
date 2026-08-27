@@ -50,8 +50,10 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "recommendation_impression",
   "recommendation_reason_click",
   "roi_calculator_share",
+  "service_inquiry_started",
   "service_inquiry_submitted",
   "service_model_selected",
+  "service_offer_cta_clicked",
   "service_page_viewed",
   "sop_generator_action",
   "start_small_viewed",
@@ -68,6 +70,7 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "tool_cross_sell_clicked",
   "unlock_clicked",
   "waitlist_joined",
+  "work_with_us_viewed",
 ]);
 
 const SENSITIVE_PROP_KEYS = /(^|_)(email|phone|name|message|content|address)($|_)/i;

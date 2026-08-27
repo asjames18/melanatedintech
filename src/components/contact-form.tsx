@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { submitContact } from "@/lib/public.functions";
+import { classifyServiceInquiry, submitContact } from "@/lib/public.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -31,10 +31,25 @@ export function ContactForm({
   const [hp, setHp] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [started, setStarted] = useState(false);
   const send = useServerFn(submitContact);
 
   function update<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
+  }
+
+  function markServiceInquiryStarted() {
+    if (started) return;
+    const inquiryType = classifyServiceInquiry(defaultTopic);
+    if (inquiryType === "general") return;
+
+    setStarted(true);
+    trackEvent("service_inquiry_started", {
+      inquiry_type: inquiryType,
+      surface: "contact",
+      source: campaign?.source ?? "direct_or_other",
+      campaign: campaign?.campaign,
+    });
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -88,7 +103,7 @@ export function ContactForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} onFocus={markServiceInquiryStarted} className="space-y-4">
       {/* Honeypot — hidden from real users; bots fill it and get silently dropped. */}
       <input
         type="text"

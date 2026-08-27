@@ -41,6 +41,7 @@ const groups = [
   },
 ] as const;
 const directLinks = [
+  ["Work With Us", "/work-with-us"],
   ["Marketplace", "/agents"],
   ["Open Commons", "/open-commons"],
   ["About", "/about"],
@@ -124,10 +125,10 @@ export function SiteHeader() {
             </kbd>
           </Link>
           <Link
-            to="/get-a-demo"
+            to="/work-with-us"
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
-            Get a Demo
+            Work With Us
           </Link>
           {loadAuth ? (
             <Suspense fallback={<HeaderAuthFallback />}>
@@ -185,11 +186,11 @@ export function SiteHeader() {
               ))}
             </div>
             <Link
-              to="/get-a-demo"
+              to="/work-with-us"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
             >
-              Get a Demo
+              Work With Us
             </Link>
             <Link
               to="/search"

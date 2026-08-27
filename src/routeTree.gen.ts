@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkWithUsRouteImport } from './routes/work-with-us'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
@@ -113,6 +114,11 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
 
+const WorkWithUsRoute = WorkWithUsRouteImport.update({
+  id: '/work-with-us',
+  path: '/work-with-us',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -673,6 +679,7 @@ export interface FileRoutesByFullPath {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/interests': typeof AuthenticatedInterestsRoute
@@ -771,6 +778,7 @@ export interface FileRoutesByTo {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/interests': typeof AuthenticatedInterestsRoute
   '/mcp': typeof AuthenticatedMcpRoute
@@ -875,6 +883,7 @@ export interface FileRoutesById {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/work-with-us': typeof WorkWithUsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/interests': typeof AuthenticatedInterestsRoute
@@ -981,6 +990,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/work-with-us'
     | '/account'
     | '/admin'
     | '/interests'
@@ -1079,6 +1089,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/work-with-us'
     | '/account'
     | '/interests'
     | '/mcp'
@@ -1182,6 +1193,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/work-with-us'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/interests'
@@ -1288,6 +1300,7 @@ export interface RootRouteChildren {
   StartSmallRoute: typeof StartSmallRoute
   StrategySprintRoute: typeof StrategySprintRoute
   TermsRoute: typeof TermsRoute
+  WorkWithUsRoute: typeof WorkWithUsRoute
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
@@ -1337,6 +1350,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/work-with-us': {
+      id: '/work-with-us'
+      path: '/work-with-us'
+      fullPath: '/work-with-us'
+      preLoaderRoute: typeof WorkWithUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -2254,6 +2274,7 @@ const rootRouteChildren: RootRouteChildren = {
   StartSmallRoute: StartSmallRoute,
   StrategySprintRoute: StrategySprintRoute,
   TermsRoute: TermsRoute,
+  WorkWithUsRoute: WorkWithUsRoute,
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,

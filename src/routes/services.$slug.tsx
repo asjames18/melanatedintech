@@ -126,7 +126,7 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
     [
       Cpu,
       "Custom System Prompt Architecture",
-      "Zero-hallucination system prompts engineered specifically for your domain terminology, logic, and compliance rules.",
+      "Domain-aware prompt architecture, documented boundaries, and review steps designed to reduce avoidable errors and escalation risk.",
     ],
     [
       Database,
@@ -145,8 +145,8 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
     ],
     [
       Layers,
-      "100% Code & IP Ownership",
-      "Complete handover of all source code, prompt configurations, MCP server code, and vector database scripts.",
+      "Clear Code & IP Handoff",
+      "A documented handoff of the agreed source code, prompt configurations, integration code, and operational materials.",
     ],
     [
       Users,
@@ -158,11 +158,11 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
   const faqs = service.faqs && service.faqs.length > 0 ? service.faqs : [
     {
       q: "How is pricing structured?",
-      a: "Pricing is completely custom based on workflow complexity, number of tool integrations (MCP servers), database scale, and security requirements. We provide a clear scope quote upfront with zero surprise fees.",
+      a: "Pricing is completely custom based on workflow complexity, number of tool integrations (MCP servers), database scale, and security requirements. We provide a written scope, dependencies, exclusions, and fixed-price proposal before implementation begins.",
     },
     {
       q: "Who owns the code and IP?",
-      a: "Your organization receives 100% ownership of all source code, prompt templates, vector indexes, and custom MCP server scripts. There is zero vendor lock-in.",
+      a: "Ownership and reuse rights for custom deliverables are defined in the written proposal. We provide a documented handoff of the agreed code, configurations, and operating materials.",
     },
     {
       q: "How long does a custom build take?",
@@ -200,13 +200,13 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
                 <CheckCircle2 className="h-4 w-4 text-primary" /> Custom scope pricing
               </span>
               <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" /> 100% Code & IP Ownership
+                <ShieldCheck className="h-4 w-4 text-primary" /> Clear code and IP handoff
               </span>
               <span className="inline-flex items-center gap-2">
                 <Database className="h-4 w-4 text-primary" /> Custom MCP Server Integration
               </span>
               <span className="inline-flex items-center gap-2">
-                <Lock className="h-4 w-4 text-primary" /> Zero Data Retention Setup
+                <Lock className="h-4 w-4 text-primary" /> Defined data and retention boundaries
               </span>
             </div>
           </div>
@@ -242,7 +242,7 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
               {[
                 ["Phase 1", "Scope & Architecture", "Define workflow boundaries, API connections, model selection, and security rules."],
                 ["Phase 2", "MCP & Tool Engineering", "Build custom system prompts, vector indexes, and database MCP server adapters."],
-                ["Phase 3", "Stress Testing & Guardrails", "Execute automated prompt injection attack drills in Eval Studio to verify 100% safety."],
+                ["Phase 3", "Stress Testing & Guardrails", "Run prompt-injection and boundary test drills, document findings, and refine safeguards before launch."],
                 ["Phase 4", "Deployment & Training", "Deploy agent to production infrastructure, hand over complete codebase, and train your staff."],
               ].map(([time, title, body]) => (
                 <li
@@ -271,8 +271,8 @@ function CustomAgentBuildView({ service }: { service: ServiceItem }) {
                 "You need an autonomous agent connected directly to private databases or internal APIs.",
                 "Off-the-shelf wrappers lack the security, custom logic, or data privacy your business demands.",
                 "Your workflow requires complex tool calling, multi-step reasoning, or human approval gates.",
-                "You want 100% ownership of your codebase with zero vendor lock-in.",
-                "Data privacy and zero model retention policies are non-negotiable.",
+                "You need clear ownership, reuse, and handoff terms for custom deliverables.",
+                "Data boundaries, retention expectations, and access controls need to be defined before implementation.",
               ].map((item) => (
                 <li
                   key={item}
@@ -881,7 +881,7 @@ function GenericServiceView({ service }: { service: ServiceItem }) {
                 <CheckCircle2 className="h-4 w-4 text-primary" /> Custom scope pricing
               </span>
               <span className="inline-flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" /> 100% Code Ownership
+                <ShieldCheck className="h-4 w-4 text-primary" /> Defined code and IP handoff
               </span>
             </div>
           </div>

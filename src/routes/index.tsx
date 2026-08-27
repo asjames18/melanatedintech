@@ -1,6 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { ArrowRight, BookOpen, Bot, HandHeart, PackageOpen, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  Bot,
+  GraduationCap,
+  HandHeart,
+  MonitorSmartphone,
+  PackageOpen,
+  Presentation,
+  ShieldCheck,
+  Workflow,
+} from "lucide-react";
 import { Hero } from "@/components/hero";
 import { PlatformOverview } from "@/components/platform-overview";
 import { SiteLayout } from "@/components/site-layout";
@@ -23,9 +34,9 @@ const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listPro
 export const Route = createFileRoute("/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Revenue Recovery Systems for Service Businesses | Melanated In Tech",
+      title: "Practical AI Training, Websites & Business Systems | Melanated In Tech",
       description:
-        "Your advertising creates demand — recovery systems help your team act on it. We find and fix the revenue leaking through missed calls, stale estimates, and lapsed clients. Start with a $297 Revenue Leak Diagnostic.",
+        "Learn AI, improve a business workflow, launch a credible website, or build a more tailored system with clear human boundaries.",
       url: "/",
     }),
   }),
@@ -52,6 +63,57 @@ function Home() {
       <Hero />
       <PlatformOverview />
 
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Work with us</p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              Choose the practical next step for your team.
+            </h2>
+            <p className="mt-4 text-muted-foreground">
+              Start with a clear outcome. We offer focused support for the work in front of you, then scope more complex projects before implementation begins.
+            </p>
+          </div>
+          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                Icon: GraduationCap,
+                title: "Learn AI",
+                body: "Build confidence with practical, beginner-friendly AI training for owners and small teams.",
+              },
+              {
+                Icon: Workflow,
+                title: "Improve a workflow",
+                body: "Identify one repeated task or customer journey and choose a safer, more useful next step.",
+              },
+              {
+                Icon: MonitorSmartphone,
+                title: "Launch a website",
+                body: "Create a focused, mobile-first digital presence built to help the right people get in touch.",
+              },
+              {
+                Icon: Presentation,
+                title: "Make the case clearly",
+                body: "Scope presentation support for training, sales, grant, or stakeholder conversations.",
+              },
+            ].map(({ Icon, title, body }) => (
+              <Link
+                key={title}
+                to="/work-with-us"
+                className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:shadow-md"
+              >
+                <Icon className="h-5 w-5 text-primary" />
+                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  Find your starting point <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
@@ -59,7 +121,7 @@ function Home() {
               Build practical economic power with AI
             </p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Start with a useful workflow—or help improve the shared tools behind it.
+              Start with a useful next step—or help improve the shared tools behind it.
             </h2>
             <p className="mt-4 text-muted-foreground">
               Melanated In Tech combines practical learning, accountable business systems, and open
@@ -68,19 +130,18 @@ function Home() {
           </div>
           <div className="mt-9 grid gap-5 lg:grid-cols-2">
             <Link
-              to="/start-small"
+              to="/work-with-us"
               className="group rounded-3xl border border-border bg-card p-7 transition-colors hover:border-primary/45 hover:shadow-sm"
             >
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 font-display text-2xl font-semibold">Start with one bounded workflow.</h3>
+              <h3 className="mt-5 font-display text-2xl font-semibold">Work with our team.</h3>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Find an AI use case with clear inputs, human approval, and a measurable outcome before
-                you automate more of your work.
+                Choose practical AI training, a workflow diagnostic, a focused website, or a more tailored project scope that fits where you are today.
               </p>
               <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Choose your first step <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Explore services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
             <Link
@@ -106,8 +167,11 @@ function Home() {
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Choose your service model
+            Specialized revenue recovery
           </p>
+          <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
+            Recovery systems for service businesses with a measurable follow-up problem.
+          </h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {SOLUTIONS.map((solution) => (
               <Link
@@ -284,18 +348,17 @@ function Home() {
                   One clear next step
                 </p>
                 <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
-                  Show us where revenue gets stuck.
+                  Tell us what you are trying to make better.
                 </h2>
                 <p className="mt-3 max-w-2xl text-background/70">
-                  Complete the short qualification form and see the demonstration that matches your
-                  service model.
+                  Start with practical AI training, a business workflow, a focused website, or a scoped implementation conversation.
                 </p>
               </div>
               <Link
-                to="/get-a-demo"
+                to="/work-with-us"
                 className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground"
               >
-                Get a relevant demo <ArrowRight className="h-4 w-4" />
+                Find your starting point <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>

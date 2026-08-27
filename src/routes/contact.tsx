@@ -13,9 +13,9 @@ export const Route = createFileRoute("/contact")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Contact — Melanated In Tech",
+      title: "Work With Melanated In Tech | Training, AI & Websites",
       description:
-        "Tell us about your AI agent project — strategy, custom build, ministry implementation, or workshop.",
+        "Tell us about your AI training, workflow, website, presentation, or custom implementation needs.",
       url: "/contact",
     }),
   }),
@@ -27,9 +27,9 @@ function Contact() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Contact"
-        title="Tell us about your agent."
-        description="Whether you're scoping a custom build, planning a ministry rollout, or just exploring — we'd love to hear what you're working on."
+        eyebrow="Work with us"
+        title="Tell us what you are trying to make better."
+        description="Whether you want practical AI training, a clearer workflow, a website launch, a presentation, or a custom build, we would love to hear what you are working on."
       />
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         <ContactForm defaultTopic={topic} />

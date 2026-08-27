@@ -62,6 +62,11 @@ export function getSupabaseServiceRoleKey() {
   return readEnv(["SUPABASE_SERVICE_ROLE_KEY", "MIT_SUPABASE_SERVICE_ROLE_KEY"]);
 }
 
+/** A private shared secret used only by the scheduled Website Launch nurture producer. */
+export function getNurtureProcessorSecret() {
+  return readEnv(["NURTURE_PROCESSOR_SECRET"]);
+}
+
 export function missingSupabaseMessage(missing: string[]) {
   return `Missing Supabase environment variable(s): ${missing.join(", ")}. Configure them in Cloudflare.`;
 }

@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/integrations/supabase/env";
+import { getNurtureProcessorSecret, getSupabaseServiceRoleKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import {
   buildNurturePayload,
   ensureUnsubscribeToken,
@@ -121,10 +121,11 @@ export const Route = createFileRoute("/lovable/email/nurture/process")({
     handlers: {
       POST: async ({ request }) => {
         const serviceKey = getSupabaseServiceRoleKey();
+        const processorSecret = getNurtureProcessorSecret();
         const supabaseUrl = getSupabaseUrl();
-        if (!serviceKey || !supabaseUrl) return Response.json({ error: "Server configuration error" }, { status: 500 });
+        if (!serviceKey || !processorSecret || !supabaseUrl) return Response.json({ error: "Server configuration error" }, { status: 500 });
         const authorization = request.headers.get("Authorization");
-        if (authorization !== `Bearer ${serviceKey}`) return Response.json({ error: "Unauthorized" }, { status: 401 });
+        if (authorization !== `Bearer ${processorSecret}`) return Response.json({ error: "Unauthorized" }, { status: 401 });
         const supabase = createClient(supabaseUrl, serviceKey);
         try {
           return Response.json(await processDue(supabase));

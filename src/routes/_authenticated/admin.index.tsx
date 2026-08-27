@@ -275,6 +275,12 @@ function AdminPage() {
                   <span>Recovery Leads</span>
                 </Button>
               </Link>
+              <Link to="/admin/website-launch-nurture">
+                <Button variant="outline" className="gap-2 font-semibold shadow-sm">
+                  <Mail className="h-4 w-4" />
+                  <span>Website Launch Nurture</span>
+                </Button>
+              </Link>
               <Link to="/admin/invoices">
                 <Button className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm">
                   <FileText className="h-4 w-4" />

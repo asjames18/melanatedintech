@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkWithUsRouteImport } from './routes/work-with-us'
 import { Route as WebsiteLaunchChecklistRouteImport } from './routes/website-launch-checklist'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
@@ -106,12 +107,14 @@ import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminWebsiteLaunchNurtureRouteImport } from './routes/_authenticated/admin.website-launch-nurture'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
 import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailNurtureProcessRouteImport } from './routes/lovable/email/nurture/process'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
 
@@ -123,6 +126,11 @@ const WorkWithUsRoute = WorkWithUsRouteImport.update({
 const WebsiteLaunchChecklistRoute = WebsiteLaunchChecklistRouteImport.update({
   id: '/website-launch-checklist',
   path: '/website-launch-checklist',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -615,6 +623,12 @@ const AuthenticatedSubmissionsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedSubmissionsRoute,
   } as any)
+const AuthenticatedAdminWebsiteLaunchNurtureRoute =
+  AuthenticatedAdminWebsiteLaunchNurtureRouteImport.update({
+    id: '/website-launch-nurture',
+    path: '/website-launch-nurture',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -648,6 +662,12 @@ const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
     id: '/lovable/email/queue/process',
     path: '/lovable/email/queue/process',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const LovableEmailNurtureProcessRoute =
+  LovableEmailNurtureProcessRouteImport.update({
+    id: '/lovable/email/nurture/process',
+    path: '/lovable/email/nurture/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPaymentsWebhookRoute =
@@ -685,6 +705,7 @@ export interface FileRoutesByFullPath {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -760,12 +781,14 @@ export interface FileRoutesByFullPath {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/nurture/process': typeof LovableEmailNurtureProcessRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
@@ -785,6 +808,7 @@ export interface FileRoutesByTo {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
@@ -858,12 +882,14 @@ export interface FileRoutesByTo {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/nurture/process': typeof LovableEmailNurtureProcessRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
@@ -891,6 +917,7 @@ export interface FileRoutesById {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/unsubscribe': typeof UnsubscribeRoute
   '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
@@ -966,12 +993,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
+  '/lovable/email/nurture/process': typeof LovableEmailNurtureProcessRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
@@ -999,6 +1028,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/unsubscribe'
     | '/website-launch-checklist'
     | '/work-with-us'
     | '/account'
@@ -1074,12 +1104,14 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
     | '/admin/'
     | '/submissions/'
     | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
+    | '/lovable/email/nurture/process'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1099,6 +1131,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/unsubscribe'
     | '/website-launch-checklist'
     | '/work-with-us'
     | '/account'
@@ -1172,12 +1205,14 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
     | '/admin'
     | '/submissions'
     | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
+    | '/lovable/email/nurture/process'
     | '/lovable/email/queue/process'
   id:
     | '__root__'
@@ -1204,6 +1239,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/unsubscribe'
     | '/website-launch-checklist'
     | '/work-with-us'
     | '/_authenticated/account'
@@ -1279,12 +1315,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content-agent'
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/website-launch-nurture'
     | '/_authenticated/submissions/$id'
     | '/api/public/csp-report'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
     | '/api/public/agents/chat'
     | '/api/public/payments/webhook'
+    | '/lovable/email/nurture/process'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
@@ -1312,6 +1350,7 @@ export interface RootRouteChildren {
   StartSmallRoute: typeof StartSmallRoute
   StrategySprintRoute: typeof StrategySprintRoute
   TermsRoute: typeof TermsRoute
+  UnsubscribeRoute: typeof UnsubscribeRoute
   WebsiteLaunchChecklistRoute: typeof WebsiteLaunchChecklistRoute
   WorkWithUsRoute: typeof WorkWithUsRoute
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
@@ -1358,6 +1397,7 @@ export interface RootRouteChildren {
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
+  LovableEmailNurtureProcessRoute: typeof LovableEmailNurtureProcessRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -1375,6 +1415,13 @@ declare module '@tanstack/react-router' {
       path: '/website-launch-checklist'
       fullPath: '/website-launch-checklist'
       preLoaderRoute: typeof WebsiteLaunchChecklistRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -2042,6 +2089,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
       parentRoute: typeof AuthenticatedSubmissionsRoute
     }
+    '/_authenticated/admin/website-launch-nurture': {
+      id: '/_authenticated/admin/website-launch-nurture'
+      path: '/website-launch-nurture'
+      fullPath: '/admin/website-launch-nurture'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/leads'
@@ -2084,6 +2138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/nurture/process': {
+      id: '/lovable/email/nurture/process'
+      path: '/lovable/email/nurture/process'
+      fullPath: '/lovable/email/nurture/process'
+      preLoaderRoute: typeof LovableEmailNurtureProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/payments/webhook': {
       id: '/api/public/payments/webhook'
       path: '/api/public/payments/webhook'
@@ -2107,6 +2168,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminContentAgentRoute: typeof AuthenticatedAdminContentAgentRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminWebsiteLaunchNurtureRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
 
@@ -2116,6 +2178,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminContentAgentRoute: AuthenticatedAdminContentAgentRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminWebsiteLaunchNurtureRoute:
+    AuthenticatedAdminWebsiteLaunchNurtureRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
 
@@ -2294,6 +2358,7 @@ const rootRouteChildren: RootRouteChildren = {
   StartSmallRoute: StartSmallRoute,
   StrategySprintRoute: StrategySprintRoute,
   TermsRoute: TermsRoute,
+  UnsubscribeRoute: UnsubscribeRoute,
   WebsiteLaunchChecklistRoute: WebsiteLaunchChecklistRoute,
   WorkWithUsRoute: WorkWithUsRoute,
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
@@ -2340,6 +2405,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
+  LovableEmailNurtureProcessRoute: LovableEmailNurtureProcessRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport

@@ -24,6 +24,7 @@ type EmailPayload = Record<string, unknown> & {
   text?: string;
   to?: string;
   unsubscribe_token?: string;
+  nurture_enrollment_id?: string;
 };
 
 type EmailQueueMessage = {
@@ -321,6 +322,38 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
             }
 
             try {
+              if (payload.purpose === "marketing" && payload.to) {
+                const { data: suppression } = await supabase
+                  .from("suppressed_emails")
+                  .select("id")
+                  .eq("email", payload.to.trim().toLowerCase())
+                  .maybeSingle();
+                if (suppression) {
+                  await supabase.from("email_send_log").insert({
+                    message_id: payload.message_id,
+                    template_name: payload.label || queue,
+                    recipient_email: payload.to,
+                    status: "suppressed",
+                    error_message: "Recipient is present in the suppression table",
+                  });
+                  if (payload.nurture_enrollment_id) {
+                    await supabase
+                      .from("website_launch_nurture_enrollments")
+                      .update({
+                        status: "suppressed",
+                        last_error: "Suppressed before send",
+                        updated_at: new Date().toISOString(),
+                      })
+                      .eq("id", payload.nurture_enrollment_id);
+                  }
+                  await supabase.rpc("delete_email", {
+                    queue_name: queue,
+                    message_id: msg.msg_id,
+                  });
+                  continue;
+                }
+              }
+
               await sendResendEmail(payload, apiKey);
 
               // Log success

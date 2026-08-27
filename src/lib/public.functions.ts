@@ -211,10 +211,64 @@ export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       marketing_consent_version: "v1",
     };
 
-    const { error } = await supabaseAdmin
+    const { data: signup, error } = await supabaseAdmin
       .from("waitlist_signups")
-      .upsert(row, { onConflict: "email,source" });
-    if (error) throw new Error("Could not save your checklist request. Please try again.");
+      .upsert(row, { onConflict: "email,source" })
+      .select("id")
+      .single();
+    if (error || !signup?.id) throw new Error("Could not save your checklist request. Please try again.");
+
+    const { enrollWebsiteLaunchNurture } = await import("@/lib/website-launch-nurture.server");
+    await enrollWebsiteLaunchNurture(signup.id);
+
+    return { ok: true };
+  });
+
+const unsubscribeSchema = z.object({ token: z.string().trim().min(24).max(120) });
+
+export const unsubscribeFromMarketing = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => unsubscribeSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: tokenRow, error: tokenError } = await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .select("email,used_at")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (tokenError || !tokenRow?.email) throw new Error("This unsubscribe link is invalid or expired.");
+
+    const email = tokenRow.email.toLowerCase();
+    const { error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .upsert(
+        { email, reason: "unsubscribe", metadata: { source: "website_launch_nurture" } },
+        { onConflict: "email", ignoreDuplicates: true },
+      );
+    if (suppressionError) throw new Error("Could not complete unsubscribe. Please try again.");
+
+    await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .update({ used_at: new Date().toISOString() })
+      .eq("token", data.token)
+      .is("used_at", null);
+
+    const { data: signups } = await supabaseAdmin
+      .from("waitlist_signups")
+      .select("id")
+      .eq("email", email)
+      .limit(20);
+    const signupIds = (signups ?? []).map((signup) => signup.id);
+    if (signupIds.length) {
+      await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({
+          status: "unsubscribed",
+          unsubscribed_at: new Date().toISOString(),
+          next_send_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .in("waitlist_signup_id", signupIds);
+    }
 
     return { ok: true };
   });

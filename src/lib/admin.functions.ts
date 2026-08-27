@@ -417,3 +417,85 @@ export const adminDelete = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+
+// ---------- Website Launch nurture controls ----------
+
+const websiteLaunchNurtureToggleSchema = z.object({ enabled: z.boolean() });
+
+export const adminGetWebsiteLaunchNurture = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: settings, error: settingsError }, { data: enrollments, error: enrollmentError }] = await Promise.all([
+      supabaseAdmin
+        .from("website_launch_nurture_settings")
+        .select("id,sequence_key,enabled,updated_at")
+        .eq("id", 1)
+        .single(),
+      supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .select("status,current_step,next_send_at,last_sent_at,created_at")
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .order("created_at", { ascending: false })
+        .limit(250),
+    ]);
+    if (settingsError) throw new Error(settingsError.message);
+    if (enrollmentError) throw new Error(enrollmentError.message);
+    return { settings, enrollments: enrollments ?? [] };
+  });
+
+export const adminSetWebsiteLaunchNurture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => websiteLaunchNurtureToggleSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+
+    const { error: settingsError } = await supabaseAdmin
+      .from("website_launch_nurture_settings")
+      .update({ enabled: data.enabled, updated_at: now })
+      .eq("id", 1);
+    if (settingsError) throw new Error(settingsError.message);
+
+    if (data.enabled) {
+      const { data: signups, error: signupsError } = await supabaseAdmin
+        .from("waitlist_signups")
+        .select("id")
+        .eq("source", "website_launch_checklist")
+        .eq("marketing_consent", true)
+        .limit(5000);
+      if (signupsError) throw new Error(signupsError.message);
+      const rows = (signups ?? []).map((signup) => ({
+        waitlist_signup_id: signup.id,
+        sequence_key: "website_launch_sprint_v1",
+        status: "paused",
+        current_step: 0,
+        next_send_at: null,
+        updated_at: now,
+      }));
+      if (rows.length) {
+        const { error: enrollmentError } = await supabaseAdmin
+          .from("website_launch_nurture_enrollments")
+          .upsert(rows, { onConflict: "waitlist_signup_id,sequence_key", ignoreDuplicates: true });
+        if (enrollmentError) throw new Error(enrollmentError.message);
+      }
+      const { error: activateError } = await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "active", next_send_at: now, updated_at: now })
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .in("status", ["paused", "pending_confirmation"]);
+      if (activateError) throw new Error(activateError.message);
+    } else {
+      const { error: pauseError } = await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "paused", updated_at: now })
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .eq("status", "active");
+      if (pauseError) throw new Error(pauseError.message);
+    }
+
+    return { ok: true, enabled: data.enabled };
+  });

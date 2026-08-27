@@ -2009,6 +2009,121 @@ export type Database = {
         }
         Relationships: []
       }
+      website_launch_confirmation_tokens: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          waitlist_signup_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          waitlist_signup_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          waitlist_signup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_launch_confirmation_tokens_waitlist_signup_id_fkey"
+            columns: ["waitlist_signup_id"]
+            isOneToOne: true
+            referencedRelation: "waitlist_signups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_launch_nurture_enrollments: {
+        Row: {
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          last_error: string | null
+          last_sent_at: string | null
+          lease_until: string | null
+          next_send_at: string | null
+          sequence_key: string
+          status: string
+          unsubscribed_at: string | null
+          updated_at: string
+          waitlist_signup_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          last_error?: string | null
+          last_sent_at?: string | null
+          lease_until?: string | null
+          next_send_at?: string | null
+          sequence_key?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          waitlist_signup_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          last_error?: string | null
+          last_sent_at?: string | null
+          lease_until?: string | null
+          next_send_at?: string | null
+          sequence_key?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          waitlist_signup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_launch_nurture_enrollments_waitlist_signup_id_fkey"
+            columns: ["waitlist_signup_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_signups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_launch_nurture_settings: {
+        Row: {
+          enabled: boolean
+          id: number
+          sequence_key: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: number
+          sequence_key?: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: number
+          sequence_key?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

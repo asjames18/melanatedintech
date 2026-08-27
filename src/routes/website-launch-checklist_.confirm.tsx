@@ -3,7 +3,7 @@ import { useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { confirmWebsiteLaunchChecklist } from "@/lib/public.functions";
 
-export const Route = createFileRoute("/website-launch-checklist/confirm")({
+export const Route = createFileRoute("/website-launch-checklist_/confirm")({
   validateSearch: (search: Record<string, unknown>) => ({
     token: typeof search.token === "string" ? search.token : "",
   }),
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/website-launch-checklist/confirm")({
 });
 
 function WebsiteLaunchChecklistConfirmationPage() {
-  const { token } = useSearch({ from: "/website-launch-checklist/confirm" });
+  const { token } = useSearch({ from: "/website-launch-checklist_/confirm" });
   const [state, setState] = useState<"idle" | "working" | "done" | "error">("idle");
 
   async function confirmRequest() {

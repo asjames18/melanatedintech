@@ -1,6 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createFileRoute } from "@tanstack/react-router";
-import { getSupabaseServiceRoleKey, getSupabaseUrl } from "@/integrations/supabase/env";
+import { getEmailQueueProcessorSecret, getSupabaseServiceRoleKey, getSupabaseUrl } from "@/integrations/supabase/env";
 
 const MAX_RETRIES = 5;
 const DEFAULT_BATCH_SIZE = 10;
@@ -152,21 +152,21 @@ export const Route = createFileRoute("/lovable/email/queue/process")({
         const apiKey = process.env.RESEND_API_KEY;
         const supabaseUrl = getSupabaseUrl();
         const supabaseServiceKey = getSupabaseServiceRoleKey();
+        const queueProcessorSecret = getEmailQueueProcessorSecret();
 
-        if (!apiKey || !supabaseUrl || !supabaseServiceKey) {
+        if (!apiKey || !supabaseUrl || !supabaseServiceKey || !queueProcessorSecret) {
           console.error("Missing required environment variables");
           return Response.json({ error: "Server configuration error" }, { status: 500 });
         }
 
-        // Verify the caller is authorized with the service role key.
-        // In the TanStack stack, the pg_cron job sends the service role key as a Bearer token.
+        // Verify the caller with a dedicated scheduler secret. The service-role key stays private to database access.
         const authHeader = request.headers.get("Authorization");
         if (!authHeader?.startsWith("Bearer ")) {
           return Response.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const token = authHeader.slice("Bearer ".length).trim();
-        if (token !== supabaseServiceKey) {
+        if (token !== queueProcessorSecret) {
           return Response.json({ error: "Forbidden" }, { status: 403 });
         }
 

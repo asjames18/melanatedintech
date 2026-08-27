@@ -67,6 +67,11 @@ export function getNurtureProcessorSecret() {
   return readEnv(["NURTURE_PROCESSOR_SECRET"]);
 }
 
+/** A private shared secret used only by the scheduled transactional-email queue processor. */
+export function getEmailQueueProcessorSecret() {
+  return readEnv(["EMAIL_QUEUE_PROCESSOR_SECRET"]);
+}
+
 export function missingSupabaseMessage(missing: string[]) {
   return `Missing Supabase environment variable(s): ${missing.join(", ")}. Configure them in Cloudflare.`;
 }

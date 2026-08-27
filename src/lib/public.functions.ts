@@ -178,6 +178,47 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const websiteChecklistSchema = z.object({
+  email: z.string().trim().email().max(255),
+  consent: z.literal(true),
+  source: z.string().trim().max(80).optional(),
+  // Honeypot: real users never fill this hidden field; bots do.
+  hp: z.string().trim().max(200).optional(),
+});
+
+export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => websiteChecklistSchema.parse(d))
+  .handler(async ({ data }) => {
+    if (data.hp) return { ok: true };
+
+    const { getClientIpHash, tooManyRecent } = await import("@/lib/rate-limit.server");
+    const ipHash = await getClientIpHash();
+    if (ipHash && (await tooManyRecent("waitlist_signups", ipHash, 60, 10))) {
+      throw new Error("Too many signups from this network. Please try again later.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const normalizedEmail = data.email.toLowerCase();
+    const source = "website_launch_checklist";
+    const row = {
+      email: normalizedEmail,
+      source,
+      interest: "Website Launch Readiness Checklist",
+      ip_hash: ipHash,
+      marketing_consent: true,
+      marketing_consent_at: new Date().toISOString(),
+      marketing_consent_source: source,
+      marketing_consent_version: "v1",
+    };
+
+    const { error } = await supabaseAdmin
+      .from("waitlist_signups")
+      .upsert(row, { onConflict: "email,source" });
+    if (error) throw new Error("Could not save your checklist request. Please try again.");
+
+    return { ok: true };
+  });
+
 const campaignValue = z
   .string()
   .trim()

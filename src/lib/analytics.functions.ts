@@ -70,6 +70,7 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "tool_cross_sell_clicked",
   "unlock_clicked",
   "waitlist_joined",
+  "website_launch_checklist_opted_in",
   "work_with_us_viewed",
 ]);
 

@@ -1974,6 +1974,10 @@ export type Database = {
           id: string
           interest: string | null
           ip_hash: string | null
+          marketing_consent: boolean
+          marketing_consent_at: string | null
+          marketing_consent_source: string | null
+          marketing_consent_version: string | null
           product_slug: string | null
           source: string | null
         }
@@ -1983,6 +1987,10 @@ export type Database = {
           id?: string
           interest?: string | null
           ip_hash?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
+          marketing_consent_version?: string | null
           product_slug?: string | null
           source?: string | null
         }
@@ -1992,6 +2000,10 @@ export type Database = {
           id?: string
           interest?: string | null
           ip_hash?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
+          marketing_consent_version?: string | null
           product_slug?: string | null
           source?: string | null
         }

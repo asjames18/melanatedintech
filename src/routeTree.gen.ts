@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkWithUsRouteImport } from './routes/work-with-us'
+import { Route as WebsiteLaunchChecklistRouteImport } from './routes/website-launch-checklist'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
@@ -117,6 +118,11 @@ import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/age
 const WorkWithUsRoute = WorkWithUsRouteImport.update({
   id: '/work-with-us',
   path: '/work-with-us',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WebsiteLaunchChecklistRoute = WebsiteLaunchChecklistRouteImport.update({
+  id: '/website-launch-checklist',
+  path: '/website-launch-checklist',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -679,6 +685,7 @@ export interface FileRoutesByFullPath {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -778,6 +785,7 @@ export interface FileRoutesByTo {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/interests': typeof AuthenticatedInterestsRoute
@@ -883,6 +891,7 @@ export interface FileRoutesById {
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
   '/work-with-us': typeof WorkWithUsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -990,6 +999,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/website-launch-checklist'
     | '/work-with-us'
     | '/account'
     | '/admin'
@@ -1089,6 +1099,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/website-launch-checklist'
     | '/work-with-us'
     | '/account'
     | '/interests'
@@ -1193,6 +1204,7 @@ export interface FileRouteTypes {
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
+    | '/website-launch-checklist'
     | '/work-with-us'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -1300,6 +1312,7 @@ export interface RootRouteChildren {
   StartSmallRoute: typeof StartSmallRoute
   StrategySprintRoute: typeof StrategySprintRoute
   TermsRoute: typeof TermsRoute
+  WebsiteLaunchChecklistRoute: typeof WebsiteLaunchChecklistRoute
   WorkWithUsRoute: typeof WorkWithUsRoute
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
@@ -1355,6 +1368,13 @@ declare module '@tanstack/react-router' {
       path: '/work-with-us'
       fullPath: '/work-with-us'
       preLoaderRoute: typeof WorkWithUsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/website-launch-checklist': {
+      id: '/website-launch-checklist'
+      path: '/website-launch-checklist'
+      fullPath: '/website-launch-checklist'
+      preLoaderRoute: typeof WebsiteLaunchChecklistRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -2274,6 +2294,7 @@ const rootRouteChildren: RootRouteChildren = {
   StartSmallRoute: StartSmallRoute,
   StrategySprintRoute: StrategySprintRoute,
   TermsRoute: TermsRoute,
+  WebsiteLaunchChecklistRoute: WebsiteLaunchChecklistRoute,
   WorkWithUsRoute: WorkWithUsRoute,
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,

@@ -28,7 +28,7 @@ export function Hero() {
               to="/diagnostic"
               className="inline-flex h-12 items-center justify-center rounded-xl border border-border bg-card px-6 text-sm font-semibold hover:bg-muted"
             >
-              $297 Revenue Leak Diagnostic
+              $297 Revenue-Recovery Diagnostic
             </Link>
           </div>
           <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">

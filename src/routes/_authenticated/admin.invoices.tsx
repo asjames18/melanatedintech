@@ -53,11 +53,13 @@ export const Route = createFileRoute("/_authenticated/admin/invoices")({
 });
 
 const SERVICE_TYPES = [
-  "Web Design",
-  "AI Agent Development",
-  "Marketing & SEO",
-  "Automation & Workflow",
-  "Custom Strategy",
+  "AI Clarity Session",
+  "AI Workflow Diagnostic",
+  "Website Launch Sprint",
+  "Custom AI System",
+  "Custom Website or Application",
+  "Custom Training or Presentation",
+  "Revenue Recovery",
 ];
 
 function formatCurrency(cents: number) {
@@ -97,7 +99,7 @@ function AdminInvoices() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientOrg, setClientOrg] = useState("");
-  const [serviceType, setServiceType] = useState("Web Design");
+  const [serviceType, setServiceType] = useState("Website Launch Sprint");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [originalTotal, setOriginalTotal] = useState("");
@@ -105,8 +107,8 @@ function AdminInvoices() {
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [lineItems, setLineItems] = useState<{ description: string; amount: string }[]>([
-    { description: "50% Initial Deposit (Web Design / AI Agent / Automation)", amount: "150" },
-    { description: "50% Final Balance Upon Completion", amount: "150" },
+    { description: "Website Launch Sprint — project kickoff", amount: "498.50" },
+    { description: "Website Launch Sprint — final delivery and handoff", amount: "498.50" },
   ]);
   const [addOns, setAddOns] = useState<
     { name: string; standard_price: string; community_price: string; description?: string }[]
@@ -226,7 +228,7 @@ function AdminInvoices() {
     setClientName("");
     setClientEmail("");
     setClientOrg("");
-    setServiceType("Web Design");
+    setServiceType("Website Launch Sprint");
     setTitle("");
     setDescription("");
     setOriginalTotal("");
@@ -234,8 +236,8 @@ function AdminInvoices() {
     setDueDate("");
     setNotes("");
     setLineItems([
-      { description: "Project Kickoff & Deposit", amount: "150" },
-      { description: "Final Delivery & Handoff", amount: "150" },
+      { description: "Website Launch Sprint — project kickoff", amount: "498.50" },
+      { description: "Website Launch Sprint — final delivery and handoff", amount: "498.50" },
     ]);
     setAddOns([
       {
@@ -317,7 +319,7 @@ function AdminInvoices() {
       <PageHeader
         eyebrow="Admin Invoicing"
         title="Client Invoice Manager"
-        description="Create, send, and manage custom 50/50 deposit invoices for Web Design, AI Agents, Marketing, SEO, and Automations."
+        description="Create, send, and manage 50/50 deposit invoices for fixed-scope services and approved custom project scopes."
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">

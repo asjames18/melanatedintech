@@ -16,7 +16,7 @@ const groups = [
       ["Project & Estimate Businesses", "/solutions/project-estimate-businesses"],
       ["Recurring Property Services", "/solutions/recurring-property-services"],
       ["Beauty & Personal Care", "/solutions/beauty-personal-care"],
-      ["Ministry & Nonprofit", "/services/ministry-ai-implementation"],
+      ["Nonprofit & Community Organizations", "/work-with-us"],
     ],
   },
   {

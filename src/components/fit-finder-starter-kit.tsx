@@ -118,8 +118,8 @@ export function FitFinderStarterKit({ answers, agentNames, productName, highInte
       {highIntent && (
         <div className="mt-6 border-t border-primary/20 pt-5">
           <p className="flex items-center gap-2 font-medium">
-            <Zap className="h-4 w-4 text-accent2" /> This workflow may benefit from a Strategy
-            Sprint.
+            <Zap className="h-4 w-4 text-accent2" /> This workflow may benefit from a focused
+            diagnostic.
           </p>
           <p className="mt-2 text-sm text-muted-foreground">
             Your timeline, role, or risk level suggests that scoping approvals and implementation
@@ -127,15 +127,15 @@ export function FitFinderStarterKit({ answers, agentNames, productName, highInte
           </p>
           <Button asChild variant="outline" className="mt-4 bg-background">
             <Link
-              to="/strategy-sprint"
+              to="/work-with-us"
               onClick={() =>
-                trackEvent("strategy_sprint_clicked", {
+                trackEvent("service_path_clicked", {
                   surface: "fit_finder_results",
                   ...funnelAttribution(),
                 })
               }
             >
-              Explore the Strategy Sprint <ArrowRight className="h-4 w-4" />
+              Explore the AI Workflow Diagnostic <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
         </div>
@@ -192,7 +192,7 @@ ${productName ? `- Product: ${productName}` : ""}
 
 ${
   highIntent
-    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider an Agent Strategy Sprint before implementation: https://melanatedintech.com/strategy-sprint"
+    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider a focused AI Workflow Diagnostic before implementation: https://melanatedintech.com/work-with-us"
     : "Run a small internal test, then repeat the Fit Finder when the team has evidence from real examples."
 }
 

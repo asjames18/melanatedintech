@@ -18,11 +18,11 @@ const primaryOffers = [
     title: "AI Clarity Session",
     price: "$297",
     description:
-      "A focused 90-minute working session for owners and small teams who want a practical, responsible starting point with AI.",
+      "A focused 90-minute working session for an owner and up to two teammates who want a practical, responsible starting point with AI.",
     includes: [
-      "A plain-language walkthrough of useful AI workflows",
+      "A short pre-session intake and plain-language walkthrough of useful AI workflows",
       "Live examples shaped around your work",
-      "A starter prompt pack and one-page next-step summary",
+      "A starter prompt pack and one-page next-step summary; no custom build is included",
     ],
     topic: "AI Clarity Session inquiry",
     cta: "Ask about AI training",
@@ -33,11 +33,11 @@ const primaryOffers = [
     title: "AI Workflow Diagnostic",
     price: "$297",
     description:
-      "Identify one repeated task or customer journey, map a safer next step, and leave with an actionable implementation recommendation.",
+      "A focused 90-minute diagnostic for one repeated task or customer journey, ending with an actionable implementation recommendation.",
     includes: [
-      "Current-state workflow review",
+      "A short pre-session intake and current-state workflow review",
       "One prioritized opportunity with human-approval boundaries",
-      "Tool-fit guidance and a practical implementation roadmap",
+      "Tool-fit guidance and a one-page implementation roadmap; no implementation is included",
     ],
     topic: "AI Workflow Diagnostic inquiry",
     cta: "Discuss a workflow",
@@ -48,11 +48,11 @@ const primaryOffers = [
     title: "Website Launch Sprint",
     price: "$997",
     description:
-      "A focused, mobile-first online presence for a business that needs to look credible and make it easy for the right people to get in touch.",
+      "A focused, mobile-first one-page website for a business that needs to look credible and make it easy for the right people to get in touch.",
     includes: [
-      "One landing page or tightly bounded small brochure site",
-      "Client-supplied copy, logo, and imagery",
-      "Inquiry form, basic metadata, one revision round, and handoff",
+      "One mobile-first landing page; additional pages and custom functionality are separately scoped",
+      "Client-supplied final copy, logo, imagery, domain, and access needed for launch",
+      "Inquiry form, basic metadata, one consolidated revision, and publish-ready handoff; third-party fees are not included",
     ],
     topic: "Website Launch Sprint inquiry",
     cta: "Ask about a launch sprint",
@@ -122,7 +122,7 @@ function WorkWithUs() {
             <p className="mt-4 leading-relaxed text-muted-foreground">
               These fixed-scope offers are designed to create a useful next step without asking you to
               commit to a large, undefined project. If your work requires a deeper build, we will scope it
-              clearly before implementation begins.
+              clearly before implementation begins. Every custom project receives a written scope, timeline, and price before work begins.
             </p>
           </div>
           <div className="mt-10 grid gap-5 lg:grid-cols-3">

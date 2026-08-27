@@ -18,8 +18,8 @@ function welcomeText() {
     `2. The Knowledge Hub — plain-English guides for putting AI agents to work: ${SITE_URL}/knowledge`,
     `3. The Fit Finder — five questions to find your first useful agent: ${SITE_URL}/fit-finder`,
     "",
-    'And if you\'re at the "we need a real plan" stage, the Agent Strategy Sprint is a two-week engagement at a fixed $1,500: ' +
-      `${SITE_URL}/strategy-sprint`,
+    'When you are ready for focused help, start with practical AI training, an AI Workflow Diagnostic, or a one-page Website Launch Sprint. Larger work is scoped in writing before implementation: ' +
+      `${SITE_URL}/work-with-us`,
     "",
     "Got a question or a workflow you're wrestling with? Just reply — I read these.",
     "",
@@ -43,7 +43,7 @@ function welcomeHtml() {
       <li style="margin-bottom:8px;">${link(`${SITE_URL}/knowledge`, "The Knowledge Hub")} — plain-English guides for putting AI agents to work.</li>
       <li style="margin-bottom:8px;">${link(`${SITE_URL}/fit-finder`, "The Fit Finder")} — five questions to find your first useful agent.</li>
     </ol>
-    <p>And if you're at the "we need a real plan" stage, the ${link(`${SITE_URL}/strategy-sprint`, "Agent Strategy Sprint")} is a two-week engagement at a fixed $1,500.</p>
+    <p>When you're ready for focused help, explore ${link(`${SITE_URL}/work-with-us`, "AI training, a workflow diagnostic, or a Website Launch Sprint")}. Larger work is scoped in writing before implementation.</p>
     <p>Got a question or a workflow you're wrestling with? Just reply — I read these.</p>
     <p style="margin-top:24px;">— Antonio<br/><span style="color:#8b7a68;font-size:13px;">Melanated In Tech · melanatedintech.com</span></p>
     <p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px;">Don't want emails from us? Reply with "unsubscribe" and you're out, no hard feelings.</p>

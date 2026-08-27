@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { queryOptions } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { SiteLayout } from "@/components/site-layout";
@@ -61,6 +61,9 @@ const serviceBySlugQO = (slug: string) =>
   });
 
 export const Route = createFileRoute("/services/$slug")({
+  beforeLoad: () => {
+    throw redirect({ to: "/work-with-us" });
+  },
   loader: async ({ context, params }) => {
     const service = await context.queryClient.ensureQueryData(serviceBySlugQO(params.slug));
     if (!service) throw notFound();

@@ -60,9 +60,9 @@ export const PILLARS = [
     tag: "Pillar 05",
   },
   {
-    title: "Agent Services",
-    href: "/services" as const,
-    blurb: "Strategy sprints, custom agent builds, and ministry implementations - done with you.",
+    title: "Work With Us",
+    href: "/work-with-us" as const,
+    blurb: "Practical AI training, workflow diagnostics, focused website launches, and scoped custom implementation.",
     tag: "Pillar 06",
   },
   {

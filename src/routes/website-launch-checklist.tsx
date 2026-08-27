@@ -60,7 +60,7 @@ function WebsiteLaunchChecklist() {
         source: typeof attribution.source === "string" ? attribution.source : "direct_or_other",
         campaign: typeof attribution.campaign === "string" ? attribution.campaign : undefined,
       });
-      toast.success("Your checklist request is recorded.");
+      toast.success("Check your inbox to confirm your request.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong.");
     } finally {
@@ -117,7 +117,7 @@ function WebsiteLaunchChecklist() {
                 <CheckCircle2 className="h-8 w-8 text-primary" />
                 <h2 className="mt-4 font-display text-2xl font-semibold">Your request is recorded.</h2>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  We&apos;ll use this email address for the Website Launch Readiness Checklist and the related Website Launch Sprint updates you opted into. You can unsubscribe from marketing email at any time.
+                  Check your inbox and confirm your request. We&apos;ll send the checklist only after you confirm the email address. Website Launch Sprint updates remain paused until the campaign is activated, and every marketing email includes an unsubscribe option.
                 </p>
                 <Button asChild className="mt-6">
                   <Link to="/work-with-us">Explore the Website Launch Sprint</Link>
@@ -128,7 +128,7 @@ function WebsiteLaunchChecklist() {
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Get the checklist</p>
                 <h2 className="mt-3 font-display text-2xl font-semibold">Make the next website decision with more clarity.</h2>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  Enter your email and we&apos;ll send the checklist, followed by a short series of practical Website Launch Sprint notes. No hype. No invented results.
+                  Enter your email and we&apos;ll send a confirmation link. After you confirm, we&apos;ll deliver the checklist and, only if the paused campaign is activated later, a short series of practical Website Launch Sprint notes. No hype. No invented results.
                 </p>
 
                 <div className="absolute left-[-9999px] h-0 w-0 opacity-0" aria-hidden="true">
@@ -147,7 +147,7 @@ function WebsiteLaunchChecklist() {
                 </label>
 
                 <Button className="mt-6 w-full" type="submit" disabled={loading}>
-                  {loading ? "Saving your request…" : "Send me the checklist"}
+                  {loading ? "Saving your request…" : "Email me a confirmation link"}
                 </Button>
                 <p className="mt-4 text-xs leading-5 text-muted-foreground">We store your email and consent record to deliver this request and honor your communication choice. See our <Link className="underline underline-offset-4" to="/privacy">Privacy Policy</Link>.</p>
               </form>

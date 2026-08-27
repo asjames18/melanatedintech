@@ -32,6 +32,7 @@ async function processDue(supabase: SupabaseClient) {
     .select("id,waitlist_signup_id,current_step,waitlist_signups!inner(email,marketing_consent,source)")
     .eq("sequence_key", WEBSITE_LAUNCH_SEQUENCE_KEY)
     .eq("status", "active")
+    .gte("current_step", 1)
     .lte("next_send_at", now)
     .lt("current_step", 4)
     .or(`lease_until.is.null,lease_until.lt.${now}`)

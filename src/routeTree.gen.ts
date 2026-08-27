@@ -46,6 +46,7 @@ import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
+import { Route as WebsiteLaunchChecklistConfirmRouteImport } from './routes/website-launch-checklist.confirm'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
 import { Route as ToolsWorkflowSpecBuilderRouteImport } from './routes/tools.workflow-spec-builder'
 import { Route as ToolsVoiceAgentBuilderRouteImport } from './routes/tools.voice-agent-builder'
@@ -302,6 +303,12 @@ const AgentsIndexRoute = AgentsIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AgentsRoute,
 } as any)
+const WebsiteLaunchChecklistConfirmRoute =
+  WebsiteLaunchChecklistConfirmRouteImport.update({
+    id: '/confirm',
+    path: '/confirm',
+    getParentRoute: () => WebsiteLaunchChecklistRoute,
+  } as any)
 const UUserIdRoute = UUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
@@ -706,7 +713,7 @@ export interface FileRoutesByFullPath {
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRouteWithChildren
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -765,6 +772,7 @@ export interface FileRoutesByFullPath {
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
+  '/website-launch-checklist/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
@@ -809,7 +817,7 @@ export interface FileRoutesByTo {
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRouteWithChildren
   '/work-with-us': typeof WorkWithUsRoute
   '/account': typeof AuthenticatedAccountRoute
   '/interests': typeof AuthenticatedInterestsRoute
@@ -866,6 +874,7 @@ export interface FileRoutesByTo {
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
+  '/website-launch-checklist/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents': typeof AgentsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
   '/community': typeof CommunityIndexRoute
@@ -918,7 +927,7 @@ export interface FileRoutesById {
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
   '/unsubscribe': typeof UnsubscribeRoute
-  '/website-launch-checklist': typeof WebsiteLaunchChecklistRoute
+  '/website-launch-checklist': typeof WebsiteLaunchChecklistRouteWithChildren
   '/work-with-us': typeof WorkWithUsRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -977,6 +986,7 @@ export interface FileRoutesById {
   '/tools/voice-agent-builder': typeof ToolsVoiceAgentBuilderRoute
   '/tools/workflow-spec-builder': typeof ToolsWorkflowSpecBuilderRoute
   '/u/$userId': typeof UUserIdRoute
+  '/website-launch-checklist/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents/': typeof AgentsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
@@ -1088,6 +1098,7 @@ export interface FileRouteTypes {
     | '/tools/voice-agent-builder'
     | '/tools/workflow-spec-builder'
     | '/u/$userId'
+    | '/website-launch-checklist/confirm'
     | '/agents/'
     | '/challenges/'
     | '/community/'
@@ -1189,6 +1200,7 @@ export interface FileRouteTypes {
     | '/tools/voice-agent-builder'
     | '/tools/workflow-spec-builder'
     | '/u/$userId'
+    | '/website-launch-checklist/confirm'
     | '/agents'
     | '/challenges'
     | '/community'
@@ -1299,6 +1311,7 @@ export interface FileRouteTypes {
     | '/tools/voice-agent-builder'
     | '/tools/workflow-spec-builder'
     | '/u/$userId'
+    | '/website-launch-checklist/confirm'
     | '/agents/'
     | '/challenges/'
     | '/community/'
@@ -1351,7 +1364,7 @@ export interface RootRouteChildren {
   StrategySprintRoute: typeof StrategySprintRoute
   TermsRoute: typeof TermsRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
-  WebsiteLaunchChecklistRoute: typeof WebsiteLaunchChecklistRoute
+  WebsiteLaunchChecklistRoute: typeof WebsiteLaunchChecklistRouteWithChildren
   WorkWithUsRoute: typeof WorkWithUsRoute
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
@@ -1661,6 +1674,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/agents/'
       preLoaderRoute: typeof AgentsIndexRouteImport
       parentRoute: typeof AgentsRoute
+    }
+    '/website-launch-checklist/confirm': {
+      id: '/website-launch-checklist/confirm'
+      path: '/confirm'
+      fullPath: '/website-launch-checklist/confirm'
+      preLoaderRoute: typeof WebsiteLaunchChecklistConfirmRouteImport
+      parentRoute: typeof WebsiteLaunchChecklistRoute
     }
     '/u/$userId': {
       id: '/u/$userId'
@@ -2334,6 +2354,20 @@ const ProductsRouteWithChildren = ProductsRoute._addFileChildren(
   ProductsRouteChildren,
 )
 
+interface WebsiteLaunchChecklistRouteChildren {
+  WebsiteLaunchChecklistConfirmRoute: typeof WebsiteLaunchChecklistConfirmRoute
+}
+
+const WebsiteLaunchChecklistRouteChildren: WebsiteLaunchChecklistRouteChildren =
+  {
+    WebsiteLaunchChecklistConfirmRoute: WebsiteLaunchChecklistConfirmRoute,
+  }
+
+const WebsiteLaunchChecklistRouteWithChildren =
+  WebsiteLaunchChecklistRoute._addFileChildren(
+    WebsiteLaunchChecklistRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -2359,7 +2393,7 @@ const rootRouteChildren: RootRouteChildren = {
   StrategySprintRoute: StrategySprintRoute,
   TermsRoute: TermsRoute,
   UnsubscribeRoute: UnsubscribeRoute,
-  WebsiteLaunchChecklistRoute: WebsiteLaunchChecklistRoute,
+  WebsiteLaunchChecklistRoute: WebsiteLaunchChecklistRouteWithChildren,
   WorkWithUsRoute: WorkWithUsRoute,
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,

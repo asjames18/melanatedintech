@@ -218,8 +218,119 @@ export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       .single();
     if (error || !signup?.id) throw new Error("Could not save your checklist request. Please try again.");
 
-    const { enrollWebsiteLaunchNurture } = await import("@/lib/website-launch-nurture.server");
+    const { data: suppression, error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .select("id")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+    if (suppressionError) throw new Error("Could not prepare your checklist request. Please try again.");
+    // Preserve a prior unsubscribe without disclosing it or sending any new email.
+    if (suppression) return { ok: true, confirmationRequired: false };
+
+    const {
+      buildWebsiteLaunchConfirmationPayload,
+      createWebsiteLaunchConfirmationToken,
+      enrollWebsiteLaunchNurture,
+    } = await import("@/lib/website-launch-nurture.server");
     await enrollWebsiteLaunchNurture(signup.id);
+    const confirmationToken = await createWebsiteLaunchConfirmationToken(signup.id);
+    if (confirmationToken) {
+      const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: buildWebsiteLaunchConfirmationPayload({ email: normalizedEmail, confirmationToken }),
+      });
+      if (queueError) throw new Error("Could not prepare your confirmation email. Please try again.");
+    }
+
+    return { ok: true, confirmationRequired: Boolean(confirmationToken) };
+  });
+
+const websiteChecklistConfirmationSchema = z.object({ token: z.string().trim().min(24).max(120) });
+
+export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => websiteChecklistConfirmationSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const { data: tokenRow, error: tokenError } = await supabaseAdmin
+      .from("website_launch_confirmation_tokens")
+      .select("waitlist_signup_id,expires_at,confirmed_at,waitlist_signups!inner(email,marketing_consent,source)")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (tokenError || !tokenRow) throw new Error("This confirmation link is invalid or expired.");
+    if (!tokenRow.confirmed_at && (!tokenRow.expires_at || new Date(tokenRow.expires_at) <= now)) {
+      throw new Error("This confirmation link has expired. Please request the checklist again.");
+    }
+
+    const signup = tokenRow.waitlist_signups as unknown as {
+      email?: string;
+      marketing_consent?: boolean;
+      source?: string;
+    };
+    const email = signup?.email?.trim().toLowerCase();
+    if (!email || signup?.marketing_consent !== true || signup?.source !== "website_launch_checklist") {
+      throw new Error("This request is no longer eligible for confirmation.");
+    }
+
+    const { data: suppression, error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (suppressionError) throw new Error("Could not confirm your request. Please try again.");
+    if (suppression) {
+      await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "suppressed", next_send_at: null, updated_at: nowIso })
+        .eq("waitlist_signup_id", tokenRow.waitlist_signup_id);
+      return { ok: true, suppressed: true };
+    }
+
+    const { buildWebsiteLaunchChecklistDeliveryPayload } = await import("@/lib/website-launch-nurture.server");
+    const checklistPayload = buildWebsiteLaunchChecklistDeliveryPayload({
+      email,
+      waitlistSignupId: tokenRow.waitlist_signup_id,
+    });
+    if (tokenRow.confirmed_at) {
+      const { error: replayQueueError } = await supabaseAdmin.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: checklistPayload,
+      });
+      if (replayQueueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
+      return { ok: true, alreadyConfirmed: true };
+    }
+
+    const { data: marked, error: markError } = await supabaseAdmin
+      .from("website_launch_confirmation_tokens")
+      .update({ confirmed_at: nowIso })
+      .eq("token", data.token)
+      .is("confirmed_at", null)
+      .select("waitlist_signup_id")
+      .maybeSingle();
+    if (markError || !marked) throw new Error("This confirmation link is invalid or has already been used.");
+
+    const followUpAt = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: enrollmentError } = await supabaseAdmin
+      .from("website_launch_nurture_enrollments")
+      .update({
+        status: "active",
+        current_step: 1,
+        next_send_at: followUpAt,
+        confirmed_at: nowIso,
+        lease_until: null,
+        last_error: null,
+        updated_at: nowIso,
+      })
+      .eq("waitlist_signup_id", tokenRow.waitlist_signup_id)
+      .eq("status", "pending_confirmation");
+    if (enrollmentError) throw new Error("Could not activate your checklist delivery. Please try again.");
+
+    const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: checklistPayload,
+    });
+    if (queueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
 
     return { ok: true };
   });

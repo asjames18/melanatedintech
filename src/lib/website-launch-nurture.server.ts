@@ -2,10 +2,13 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SITE_URL } from "@/lib/site";
 
 export const WEBSITE_LAUNCH_SEQUENCE_KEY = "website_launch_sprint_v1";
-export const WEBSITE_LAUNCH_NURTURE_STEPS = [0, 1, 2, 3] as const;
+// Step 0 is the requested checklist delivery. Steps 1–3 are the paused-by-default marketing follow-up.
+export const WEBSITE_LAUNCH_NURTURE_STEPS = [1, 2, 3] as const;
 
 const FROM = "Antonio at Melanated In Tech <hello@melanatedintech.com>";
 const DAY_MS = 24 * 60 * 60 * 1000;
+const CONFIRMATION_TTL_MS = 48 * 60 * 60 * 1000;
+const CHECKLIST_PATH = "/website-launch-readiness-checklist.pdf";
 
 type NurtureEmail = {
   subject: string;
@@ -24,11 +27,11 @@ function escapeHtml(value: string): string {
   })[char] ?? char);
 }
 
-function emailLayout(email: NurtureEmail, unsubscribeUrl: string) {
+function emailLayout(email: NurtureEmail, unsubscribeUrl: string, mailingAddress: string) {
   const link = (href: string, label: string) =>
     `<a href="${escapeHtml(href)}" style="color:#8a5a2b;font-weight:700;">${escapeHtml(label)}</a>`;
   const body = email.html;
-  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="color:#8b7a68;font-size:12px">${escapeHtml(email.preheader)}</p>${body}<p style="margin-top:28px">— Antonio<br><span style="color:#8b7a68;font-size:13px">Melanated In Tech · melanatedintech.com</span></p><p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px">You received this because you requested the Website Launch Readiness Checklist. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a5a2b">Unsubscribe</a> from these updates.</p></div>`;
+  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="color:#8b7a68;font-size:12px">${escapeHtml(email.preheader)}</p>${body}<p style="margin-top:28px">— Antonio<br><span style="color:#8b7a68;font-size:13px">Melanated In Tech · melanatedintech.com</span></p><p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px">You received this because you requested the Website Launch Readiness Checklist. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a5a2b">Unsubscribe</a> from these updates.<br>${escapeHtml(mailingAddress)}</p></div>`;
 }
 
 function stepEmail(step: number): NurtureEmail {
@@ -99,7 +102,7 @@ export async function enrollWebsiteLaunchNurture(waitlistSignupId: string): Prom
     {
       waitlist_signup_id: waitlistSignupId,
       sequence_key: WEBSITE_LAUNCH_SEQUENCE_KEY,
-      status: "paused",
+      status: "pending_confirmation",
       current_step: 0,
       next_send_at: null,
       updated_at: new Date().toISOString(),
@@ -107,6 +110,77 @@ export async function enrollWebsiteLaunchNurture(waitlistSignupId: string): Prom
     { onConflict: "waitlist_signup_id,sequence_key", ignoreDuplicates: true },
   );
   if (error) throw new Error(error.message);
+}
+
+function confirmationToken(): string {
+  return `${crypto.randomUUID()}${crypto.randomUUID().replaceAll("-", "")}`;
+}
+
+export async function createWebsiteLaunchConfirmationToken(waitlistSignupId: string): Promise<string | null> {
+  const now = new Date();
+  const { data: existing, error: existingError } = await supabaseAdmin
+    .from("website_launch_confirmation_tokens")
+    .select("token,expires_at,confirmed_at")
+    .eq("waitlist_signup_id", waitlistSignupId)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+  if (existing?.confirmed_at) return null;
+  if (existing?.token && existing.expires_at && new Date(existing.expires_at) > now) return existing.token;
+
+  const token = confirmationToken();
+  const { error } = await supabaseAdmin
+    .from("website_launch_confirmation_tokens")
+    .upsert(
+      {
+        waitlist_signup_id: waitlistSignupId,
+        token,
+        expires_at: new Date(now.getTime() + CONFIRMATION_TTL_MS).toISOString(),
+        confirmed_at: null,
+      },
+      { onConflict: "waitlist_signup_id" },
+    );
+  if (error) throw new Error(error.message);
+  return token;
+}
+
+export function buildWebsiteLaunchConfirmationPayload(params: { email: string; confirmationToken: string }) {
+  const confirmationUrl = `${SITE_URL}/website-launch-checklist/confirm?token=${encodeURIComponent(params.confirmationToken)}`;
+  const messageId = `website_launch_confirmation:${params.confirmationToken}`;
+  return {
+    to: params.email,
+    from: FROM,
+    subject: "Confirm your Website Launch Readiness Checklist request",
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="font-size:18px;font-weight:700">Confirm your email to receive the checklist.</p><p>You asked Melanated In Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Please confirm that request before we send anything further.</p><p><a href="${escapeHtml(confirmationUrl)}" style="display:inline-block;padding:12px 18px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700">Confirm my request</a></p><p style="color:#8b7a68;font-size:12px">This confirmation link expires in 48 hours. If you did not request this, no action is needed.</p></div>`,
+    text: `You asked Melanated In Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Confirm your request: ${confirmationUrl}\n\nThis link expires in 48 hours. If you did not request this, no action is needed.`,
+    label: "website_launch_confirmation",
+    purpose: "transactional",
+    message_id: messageId,
+    idempotency_key: messageId,
+    queued_at: new Date().toISOString(),
+  };
+}
+
+export function buildWebsiteLaunchChecklistDeliveryPayload(params: { email: string; waitlistSignupId: string }) {
+  const checklistUrl = `${SITE_URL}${CHECKLIST_PATH}`;
+  const messageId = `website_launch_checklist:${params.waitlistSignupId}`;
+  return {
+    to: params.email,
+    from: FROM,
+    subject: "Your Website Launch Readiness Checklist",
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="font-size:18px;font-weight:700">Your Website Launch Readiness Checklist is ready.</p><p>Use this practical one-page guide to prepare a clear, mobile-friendly website decision before you begin a redesign or hire help.</p><p><a href="${escapeHtml(checklistUrl)}" style="display:inline-block;padding:12px 18px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700">Open the checklist</a></p><p style="color:#8b7a68;font-size:12px">You requested this checklist. You will receive Website Launch Sprint updates only after the campaign is activated, and you may unsubscribe from those updates at any time.</p></div>`,
+    text: `Your Website Launch Readiness Checklist is ready: ${checklistUrl}\n\nYou requested this checklist. You will receive Website Launch Sprint updates only after the campaign is activated, and you may unsubscribe from those updates at any time.`,
+    label: "website_launch_checklist_delivery",
+    purpose: "transactional",
+    message_id: messageId,
+    idempotency_key: messageId,
+    queued_at: new Date().toISOString(),
+  };
+}
+
+export function getMarketingPostalAddress(): string {
+  const address = process.env.MARKETING_POSTAL_ADDRESS?.trim();
+  if (!address) throw new Error("A valid marketing postal address must be configured before activating the nurture campaign.");
+  return address;
 }
 
 export function buildNurturePayload(params: {
@@ -117,12 +191,13 @@ export function buildNurturePayload(params: {
 }) {
   const content = stepEmail(params.step);
   const unsubscribeUrl = `${SITE_URL}/unsubscribe?token=${encodeURIComponent(params.unsubscribeToken)}`;
+  const mailingAddress = getMarketingPostalAddress();
   const messageId = `website_launch_nurture:${params.enrollmentId}:step:${params.step}`;
   return {
     to: params.email,
     from: FROM,
     subject: content.subject,
-    html: emailLayout(content, unsubscribeUrl),
+    html: emailLayout(content, unsubscribeUrl, mailingAddress),
     text: `${content.text}\n\nUnsubscribe: ${unsubscribeUrl}`,
     label: `website_launch_nurture_${params.step + 1}`,
     purpose: "marketing",
@@ -135,7 +210,9 @@ export function buildNurturePayload(params: {
 }
 
 export function nextSendAtForStep(step: number, now = new Date()): string | null {
-  if (step >= 3) return null;
-  const offsets = [0, 3, 7, 12];
-  return new Date(now.getTime() + offsets[step + 1] * DAY_MS).toISOString();
+  // The marketing follow-up occurs on days 3, 7, and 12 after confirmed checklist delivery.
+  // Because each value is calculated after the preceding send, use the cumulative gaps: 4 days, then 5 days.
+  const delayDays: Record<number, number> = { 1: 4, 2: 5 };
+  const delay = delayDays[step];
+  return delay === undefined ? null : new Date(now.getTime() + delay * DAY_MS).toISOString();
 }

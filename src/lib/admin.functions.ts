@@ -453,6 +453,11 @@ export const adminSetWebsiteLaunchNurture = createServerFn({ method: "POST" })
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
+    if (data.enabled) {
+      const { getMarketingPostalAddress } = await import("@/lib/website-launch-nurture.server");
+      // Refuse activation until the required commercial-email footer is configured.
+      getMarketingPostalAddress();
+    }
 
     const { error: settingsError } = await supabaseAdmin
       .from("website_launch_nurture_settings")
@@ -461,32 +466,12 @@ export const adminSetWebsiteLaunchNurture = createServerFn({ method: "POST" })
     if (settingsError) throw new Error(settingsError.message);
 
     if (data.enabled) {
-      const { data: signups, error: signupsError } = await supabaseAdmin
-        .from("waitlist_signups")
-        .select("id")
-        .eq("source", "website_launch_checklist")
-        .eq("marketing_consent", true)
-        .limit(5000);
-      if (signupsError) throw new Error(signupsError.message);
-      const rows = (signups ?? []).map((signup) => ({
-        waitlist_signup_id: signup.id,
-        sequence_key: "website_launch_sprint_v1",
-        status: "paused",
-        current_step: 0,
-        next_send_at: null,
-        updated_at: now,
-      }));
-      if (rows.length) {
-        const { error: enrollmentError } = await supabaseAdmin
-          .from("website_launch_nurture_enrollments")
-          .upsert(rows, { onConflict: "waitlist_signup_id,sequence_key", ignoreDuplicates: true });
-        if (enrollmentError) throw new Error(enrollmentError.message);
-      }
       const { error: activateError } = await supabaseAdmin
         .from("website_launch_nurture_enrollments")
-        .update({ status: "active", next_send_at: now, updated_at: now })
+        .update({ status: "active", updated_at: now })
         .eq("sequence_key", "website_launch_sprint_v1")
-        .in("status", ["paused", "pending_confirmation"]);
+        .eq("status", "paused")
+        .not("confirmed_at", "is", null);
       if (activateError) throw new Error(activateError.message);
     } else {
       const { error: pauseError } = await supabaseAdmin

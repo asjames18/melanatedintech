@@ -110,28 +110,11 @@ function AdminInvoices() {
     { description: "Website Launch Sprint — project kickoff", amount: "498.50" },
     { description: "Website Launch Sprint — final delivery and handoff", amount: "498.50" },
   ]);
+  // New invoices start without preselected add-ons. Ongoing care, SEO, and additional
+  // functionality must be specifically scoped and priced in the written proposal.
   const [addOns, setAddOns] = useState<
     { name: string; standard_price: string; community_price: string; description?: string }[]
-  >([
-    {
-      name: "Website care & minor updates",
-      standard_price: "$200/mo",
-      community_price: "$125/mo",
-      description: "Ongoing security, backups, & monthly content updates",
-    },
-    {
-      name: "Local SEO growth plan",
-      standard_price: "$750/mo",
-      community_price: "$450/mo",
-      description: "Keyword optimization & Google Business Profile management",
-    },
-    {
-      name: "SEO + Website care package",
-      standard_price: "$900/mo",
-      community_price: "$550/mo",
-      description: "Complete technical SEO, care & search growth package",
-    },
-  ]);
+  >([]);
 
   const { data: invoices = [], isLoading } = useQuery({
     queryKey: ["admin_client_invoices"],
@@ -239,26 +222,7 @@ function AdminInvoices() {
       { description: "Website Launch Sprint — project kickoff", amount: "498.50" },
       { description: "Website Launch Sprint — final delivery and handoff", amount: "498.50" },
     ]);
-    setAddOns([
-      {
-        name: "Website care & minor updates",
-        standard_price: "$200/mo",
-        community_price: "$125/mo",
-        description: "Ongoing security, backups, & monthly content updates",
-      },
-      {
-        name: "Local SEO growth plan",
-        standard_price: "$750/mo",
-        community_price: "$450/mo",
-        description: "Keyword optimization & Google Business Profile management",
-      },
-      {
-        name: "SEO + Website care package",
-        standard_price: "$900/mo",
-        community_price: "$550/mo",
-        description: "Complete technical SEO, care & search growth package",
-      },
-    ]);
+    setAddOns([]);
   };
 
   const handleEditInvoice = (inv: ClientInvoiceRecord) => {

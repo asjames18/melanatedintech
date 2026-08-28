@@ -245,6 +245,19 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
             <Button
               variant="outline"
               size="sm"
+              className="rounded-xl border-violet-500/30 bg-violet-600/10 text-violet-300 hover:bg-violet-600 hover:text-white gap-1.5"
+              disabled={!data}
+              onClick={() => {
+                if (!data) return;
+                downloadExecutiveBriefMd(data, days);
+              }}
+            >
+              <FileText className="h-3.5 w-3.5" /> Download Brief (.md)
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               className="rounded-xl border-slate-700 bg-slate-800/80 text-slate-200 hover:bg-slate-700 hover:text-white gap-1.5"
               disabled={!data}
               onClick={() => {
@@ -1318,4 +1331,47 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+function downloadExecutiveBriefMd(data: Summary, days: number) {
+  const lines: string[] = [];
+  lines.push(`# Melanated In Tech — Executive Intelligence Brief (${days} Days)`);
+  lines.push(`*Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}*`);
+  lines.push("");
+  lines.push("## Executive Summary");
+  lines.push(`- **Total Telemetry Events**: ${data.totals.events.toLocaleString()}`);
+  lines.push(`- **Total Registered Accounts**: ${data.userData.totalUsers.toLocaleString()} (+${data.userData.newUsersPeriod} in selected period)`);
+  lines.push(`- **Interactive Tool Executions**: ${(data.totals.toolRuns ?? 0).toLocaleString()}`);
+  lines.push(`- **Qualified Lead Prechecks**: ${(data.totals.leadChecks ?? 0).toLocaleString()}`);
+  lines.push(`- **Recommendation Impressions**: ${data.totals.impressions.toLocaleString()}`);
+  lines.push(`- **Overall Click-Through Rate (CTR)**: ${(data.totals.ctr * 100).toFixed(2)}%`);
+  lines.push("");
+  lines.push("## Platform Conversion Funnel");
+  lines.push(`1. **Diagnostic Visitors**: ${data.funnel.diagnosticViews}`);
+  lines.push(`2. **Prechecked Leads**: ${data.funnel.leadsQualified} (${Math.round(((data.funnel.leadsQualified ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
+  lines.push(`3. **Demos & Sprints Requested**: ${data.funnel.demosRequested} (${Math.round(((data.funnel.demosRequested ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
+  lines.push(`4. **Paid Deployments**: ${data.funnel.purchasesCompleted} (${Math.round(((data.funnel.purchasesCompleted ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
+  lines.push("");
+  lines.push("## Lead Quality Health");
+  lines.push(`- **Corporate Domain Leads**: ${data.leadQuality.corporate}`);
+  lines.push(`- **Personal Account Leads**: ${data.leadQuality.personal}`);
+  lines.push(`- **Inactive / Unregistered Leads**: ${data.leadQuality.inactive}`);
+  lines.push(`- **Invalid DNS / Bounced**: ${data.leadQuality.invalid}`);
+  lines.push("");
+  lines.push("## Top Interactive Tools");
+  (data.topTools ?? []).forEach((t, i) => {
+    lines.push(`${i + 1}. **${t.tool}**: ${t.count} runs`);
+  });
+  lines.push("");
+
+  const blob = new Blob([lines.join("\n")], { type: "text/markdown;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `executive-brief-${days}d-${new Date().toISOString().slice(0, 10)}.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast.success("Executive Intelligence Brief (.md) downloaded!");
 }

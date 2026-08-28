@@ -190,6 +190,9 @@ export function FeedComposer({
           <a href="/auth" className="font-semibold text-primary hover:underline">Sign in</a>{" "}
           to share a build, ask a question, or connect with the community.
         </p>
+        <a href="/community-guidelines" className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline">
+          Read Community Guidelines
+        </a>
       </div>
     );
   }

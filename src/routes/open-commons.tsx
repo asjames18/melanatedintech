@@ -90,16 +90,146 @@ function OpenCommons() {
               <MessageSquare className="h-4 w-4 text-primary" /> Community Feed
             </Link>
             <a
+              href="https://github.com/asjames18/ministry-ai-skills"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
+            >
+              <Github className="h-4 w-4" /> Ministry AI Skills Repo
+            </a>
+            <a
               href="https://github.com/asjames18/agent-tool-assurance"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
             >
-              <Github className="h-4 w-4" /> View the public kit
+              <Github className="h-4 w-4" /> Assurance Kit Repo
             </a>
           </div>
         }
       />
+
+      {/* Featured Public Repositories */}
+      <section className="border-b border-border bg-card/60">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Public Open Source Repositories
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-bold sm:text-3xl text-foreground">
+                Shared tools, prompts & validation kits
+              </h2>
+            </div>
+            <p className="max-w-md text-xs text-muted-foreground">
+              Explore and contribute to our open-source ecosystem hosted on GitHub under the MIT License.
+            </p>
+          </div>
+
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            {/* Ministry AI Skills */}
+            <div className="group flex flex-col justify-between rounded-3xl border border-border bg-card p-7 shadow-xs transition-all hover:border-primary/50 hover:shadow-md">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <Braces className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Public Repo
+                  </span>
+                </div>
+                <h3 className="mt-5 font-display text-xl font-bold text-foreground">
+                  Ministry AI Skills
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Open-source, platform-agnostic AI skills, prompts, workflows, and guardrails for churches and Christian ministries. Built with a modular 6-file anatomy: system prompts, JSON schemas, human-in-the-loop workflows, ethical guardrails, and realistic examples.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {["Weekly Announcements", "Sermon Prep", "Guest Follow-Up", "Media Pack", "Event Planning", "MIT License"].map((tag) => (
+                    <span key={tag} className="rounded-full border border-border bg-muted/30 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border/60 pt-5">
+                <a
+                  href="https://github.com/asjames18/ministry-ai-skills"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  <Github className="h-3.5 w-3.5" /> View on GitHub
+                </a>
+                <Link
+                  to="/starter-packs/$slug"
+                  params={{ slug: "ministry-nonprofit-pack" }}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-xs font-semibold hover:border-primary/40"
+                >
+                  Open Starter Pack <ArrowRight className="h-3 w-3" />
+                </Link>
+                <Link
+                  to="/governance"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Ministry Ethics <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Agent Tool Assurance */}
+            <div className="group flex flex-col justify-between rounded-3xl border border-border bg-card p-7 shadow-xs transition-all hover:border-primary/50 hover:shadow-md">
+              <div>
+                <div className="flex items-center justify-between">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Public Repo
+                  </span>
+                </div>
+                <h3 className="mt-5 font-display text-xl font-bold text-foreground">
+                  Agent Tool Assurance Kit
+                </h3>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Open evaluation contracts, synthetic test fixtures, and safety harnesses for bounded agent workflows. Test boundaries, parameter schemas, and failure modes before putting automated systems in production.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {["Evaluation Harness", "Boundary Contracts", "Synthetic Fixtures", "Safety Scoring", "MIT License"].map((tag) => (
+                    <span key={tag} className="rounded-full border border-border bg-muted/30 px-2.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border/60 pt-5">
+                <a
+                  href="https://github.com/asjames18/agent-tool-assurance"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  <Github className="h-3.5 w-3.5" /> View on GitHub
+                </a>
+                <Link
+                  to="/tools/eval-studio"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-xs font-semibold hover:border-primary/40"
+                >
+                  Launch Eval Studio <ArrowRight className="h-3 w-3" />
+                </Link>
+                <Link
+                  to="/governance"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  Governance Rules <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">

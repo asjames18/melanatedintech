@@ -10,6 +10,7 @@ export interface StarterPackItem {
   category: StarterPackCategory;
   description: string;
   targetAudience: string;
+  githubUrl?: string;
   prompts: { title: string; prompt: string }[];
   mcpConfigs?: { name: string; command: string; args: string[]; env: Record<string, string> }[];
   sopTemplate?: string;
@@ -26,6 +27,7 @@ export function buildPackMarkdown(pack: StarterPackItem): string {
     `# ${pack.title}`,
     pack.description,
     `**Built for:** ${pack.targetAudience}`,
+    ...(pack.githubUrl ? [`**Open-Source Repository:** [${pack.githubUrl}](${pack.githubUrl})`] : []),
     `## Prompts`,
     ...pack.prompts.map((p) => `### ${p.title}\n\n\`\`\`\n${p.prompt}\n\`\`\``),
   ];
@@ -93,8 +95,9 @@ Acknowledge that choosing a contractor is an important decision, ask if they hav
     id: "ministry-nonprofit-pack",
     title: "Ministry & Non-Profit Community Care Pack",
     category: "Non-Profit & Ministry",
-    description: "Ethical AI agent prompts, donor follow-up templates, and acceptable AI use policy tailored for non-profits, churches, and community organizations.",
+    description: "Ethical AI agent prompts, donor follow-up templates, and acceptable AI use policy tailored for non-profits, churches, and community organizations. Powered by the open-source Ministry AI Skills library.",
     targetAudience: "Executive directors, ministry leaders, volunteer coordinators",
+    githubUrl: "https://github.com/asjames18/ministry-ai-skills",
     prompts: [
       {
         title: "First-Time Visitor & Volunteer Welcome Assistant",

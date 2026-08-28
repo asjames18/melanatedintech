@@ -35,7 +35,7 @@ import {
   Check,
   FileCode,
 } from "lucide-react";
-import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+import { buildSeoMeta, ldScript, breadcrumbLd, softwareAppLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
@@ -417,6 +417,14 @@ export const Route = createFileRoute("/tools/agent-architect")({
             { name: "AI Tools", path: "/tools" },
             { name: "Agent Architect", path: "/tools/agent-architect" },
           ]),
+        ),
+        ldScript(
+          softwareAppLd({
+            name: "AI Agent Architect",
+            description:
+              "Design multi-agent architectures and workflows visually, generate code boilerplate, and simulate executions.",
+            url: "/tools/agent-architect",
+          }),
         ),
       ],
     };
@@ -1037,6 +1045,66 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
     toast.success("Blueprint JSON downloaded successfully.");
   };
 
+  const handleDownloadBriefMd = () => {
+    const presetName = PRESETS[presetKey]?.name ?? "Custom Multi-Agent System";
+    let md = `# Agent Specification Brief: ${presetName}\n\n`;
+    md += `**Generated:** ${new Date().toLocaleDateString()}\n`;
+    md += `**Pattern Topology:** ${presetKey.toUpperCase()}\n\n`;
+    md += `## Overview\n${PRESETS[presetKey]?.description ?? "Custom agent architecture configuration."}\n\n`;
+    md += `## Agent Specialist Nodes\n\n`;
+    nodes.forEach((n, idx) => {
+      md += `### ${idx + 1}. ${n.name} (\`${n.id}\`)\n`;
+      md += `- **Role:** ${n.role}\n`;
+      md += `- **Attached Tools:** ${n.tools.length > 0 ? n.tools.join(", ") : "None"}\n`;
+      md += `- **System Prompt:**\n\`\`\`\n${n.systemPrompt}\n\`\`\`\n\n`;
+    });
+    md += `## Mermaid Architecture Topology\n\`\`\`mermaid\n${mermaidGraph}\n\`\`\`\n`;
+
+    const blob = new Blob([md], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `agent-brief-${presetKey}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("Agent Specification Brief downloaded (.md)");
+    trackEvent("agent_architect_action", { action: "download_brief_md", preset: presetKey });
+  };
+
+  const handleDownloadMcpJson = () => {
+    const mcpConfig = {
+      mcpServers: {
+        "agent-architect": {
+          command: "npx",
+          args: ["-y", "@modelcontextprotocol/server-memory"],
+          env: {
+            AGENT_PRESET: presetKey,
+            AGENT_NODES: nodes.map((n) => n.id).join(","),
+          },
+        },
+      },
+      agentNodes: nodes.map((n) => ({
+        id: n.id,
+        name: n.name,
+        role: n.role,
+        tools: n.tools,
+        systemPrompt: n.systemPrompt,
+      })),
+      connections,
+    };
+
+    const json = JSON.stringify(mcpConfig, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `mcp-config-${presetKey}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    toast.success("MCP Specification JSON downloaded (.json)");
+    trackEvent("agent_architect_action", { action: "download_mcp_json", preset: presetKey });
+  };
+
   return (
     <SiteLayout>
       <div className="border-b border-border bg-muted/20">
@@ -1070,7 +1138,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                 Load a predefined multi-agent workflow layout to customize
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               {Object.keys(PRESETS).map((key) => (
                 <Button
                   key={key}
@@ -1082,6 +1150,25 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                   {PRESETS[key].name}
                 </Button>
               ))}
+              <div className="h-4 w-[1px] bg-border mx-1 hidden sm:block" />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadBriefMd}
+                className="rounded-full gap-1.5 text-xs font-semibold"
+              >
+                <Download className="h-3.5 w-3.5" />
+                Brief (.md)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadMcpJson}
+                className="rounded-full gap-1.5 text-xs font-semibold"
+              >
+                <Download className="h-3.5 w-3.5" />
+                MCP Spec (.json)
+              </Button>
             </div>
           </div>
           <div className="mt-4 border-t border-border/60 pt-3 text-sm text-muted-foreground flex items-start gap-2">

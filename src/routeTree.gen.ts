@@ -9,239 +9,120 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as AgentsRouteImport } from './routes/agents'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ChallengesRouteImport } from './routes/challenges'
-import { Route as CommunityRouteImport } from './routes/community'
-import { Route as CommunityGuidelinesRouteImport } from './routes/community-guidelines'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as DiagnosticRouteImport } from './routes/diagnostic'
-import { Route as FitFinderRouteImport } from './routes/fit-finder'
-import { Route as GetADemoRouteImport } from './routes/get-a-demo'
-import { Route as GovernanceRouteImport } from './routes/governance'
-import { Route as KnowledgeRouteImport } from './routes/knowledge'
-import { Route as OpenCommonsRouteImport } from './routes/open-commons'
-import { Route as PathsRouteImport } from './routes/paths'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as ProductsRouteImport } from './routes/products'
-import { Route as ProofRouteImport } from './routes/proof'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as StartSmallRouteImport } from './routes/start-small'
-import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
-import { Route as WebsiteLaunchChecklistRouteImport } from './routes/website-launch-checklist'
 import { Route as WorkWithUsRouteImport } from './routes/work-with-us'
-import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedInterestsRouteImport } from './routes/_authenticated/interests'
-import { Route as AuthenticatedMcpRouteImport } from './routes/_authenticated/mcp'
-import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated/prompts'
-import { Route as AuthenticatedSellerRouteImport } from './routes/_authenticated/seller'
-import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
-import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
-import { Route as AgentsIndexRouteImport } from './routes/agents.index'
-import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
-import { Route as AiPlaybookForNicheRouteImport } from './routes/ai-playbook-for.$niche'
-import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
-import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
-import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
-import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
-import { Route as CommunityIndexRouteImport } from './routes/community.index'
-import { Route as CommunityIdRouteImport } from './routes/community.$id'
-import { Route as DiagnosticSuccessRouteImport } from './routes/diagnostic.success'
-import { Route as InvoiceNumberRouteImport } from './routes/invoice.$number'
-import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
-import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
-import { Route as KnowledgeAiAgentsForMinistryRouteImport } from './routes/knowledge.ai-agents-for-ministry'
-import { Route as KnowledgeChoosingYourFirstAgentWorkflowRouteImport } from './routes/knowledge.choosing-your-first-agent-workflow'
-import { Route as KnowledgeControllingAgentCostsRouteImport } from './routes/knowledge.controlling-agent-costs'
-import { Route as KnowledgeFeedDotxmlRouteImport } from './routes/knowledge.feed[.]xml'
-import { Route as KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport } from './routes/knowledge.measuring-if-your-agent-actually-works'
-import { Route as KnowledgeWhatIsAnAiAgentRouteImport } from './routes/knowledge.what-is-an-ai-agent'
-import { Route as PathsIndexRouteImport } from './routes/paths.index'
-import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
-import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
-import { Route as PodcastFeedDotxmlRouteImport } from './routes/podcast.feed[.]xml'
-import { Route as ProductsIndexRouteImport } from './routes/products.index'
-import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
-import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
-import { Route as ServicesIndexRouteImport } from './routes/services.index'
-import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
-import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
-import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
-import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
-import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
-import { Route as StarterPacksIndexRouteImport } from './routes/starter-packs.index'
-import { Route as StarterPacksSlugRouteImport } from './routes/starter-packs.$slug'
-import { Route as SystemsIndexRouteImport } from './routes/systems.index'
-import { Route as SystemsSlugRouteImport } from './routes/systems.$slug'
-import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as WebsiteLaunchChecklistRouteImport } from './routes/website-launch-checklist'
+import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
+import { Route as StartSmallRouteImport } from './routes/start-small'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProofRouteImport } from './routes/proof'
+import { Route as ProductsRouteImport } from './routes/products'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PathsRouteImport } from './routes/paths'
+import { Route as OpenCommonsRouteImport } from './routes/open-commons'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as GovernanceRouteImport } from './routes/governance'
+import { Route as GetADemoRouteImport } from './routes/get-a-demo'
+import { Route as FitFinderRouteImport } from './routes/fit-finder'
+import { Route as DiagnosticRouteImport } from './routes/diagnostic'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CommunityGuidelinesRouteImport } from './routes/community-guidelines'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as ChallengesRouteImport } from './routes/challenges'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
-import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
-import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
-import { Route as ToolsAgentSandboxRouteImport } from './routes/tools.agent-sandbox'
-import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
-import { Route as ToolsAiReadinessAssessmentRouteImport } from './routes/tools.ai-readiness-assessment'
-import { Route as ToolsEvalStudioRouteImport } from './routes/tools.eval-studio'
-import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
-import { Route as ToolsJsonSchemaStudioRouteImport } from './routes/tools.json-schema-studio'
-import { Route as ToolsMcpBuilderRouteImport } from './routes/tools.mcp-builder'
-import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
-import { Route as ToolsMultiAgentCalculatorRouteImport } from './routes/tools.multi-agent-calculator'
-import { Route as ToolsPolicyGeneratorRouteImport } from './routes/tools.policy-generator'
-import { Route as ToolsPromptGuardAuditorRouteImport } from './routes/tools.prompt-guard-auditor'
-import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
-import { Route as ToolsRagChunkerRouteImport } from './routes/tools.rag-chunker'
-import { Route as ToolsRevenueLeakCalculatorRouteImport } from './routes/tools.revenue-leak-calculator'
-import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
-import { Route as ToolsSopGeneratorRouteImport } from './routes/tools.sop-generator'
-import { Route as ToolsTokenCostCalculatorRouteImport } from './routes/tools.token-cost-calculator'
-import { Route as ToolsVoiceAgentBuilderRouteImport } from './routes/tools.voice-agent-builder'
-import { Route as ToolsWorkflowSpecBuilderRouteImport } from './routes/tools.workflow-spec-builder'
-import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as SystemsIndexRouteImport } from './routes/systems.index'
+import { Route as StarterPacksIndexRouteImport } from './routes/starter-packs.index'
+import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as ProductsIndexRouteImport } from './routes/products.index'
+import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
+import { Route as PathsIndexRouteImport } from './routes/paths.index'
+import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
+import { Route as CommunityIndexRouteImport } from './routes/community.index'
+import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
+import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as WebsiteLaunchChecklistConfirmRouteImport } from './routes/website-launch-checklist_.confirm'
-import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
-import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
-import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
-import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
-import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
-import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
-import { Route as AuthenticatedAdminWebsiteLaunchNurtureRouteImport } from './routes/_authenticated/admin.website-launch-nurture'
+import { Route as UUserIdRouteImport } from './routes/u.$userId'
+import { Route as ToolsWorkflowSpecBuilderRouteImport } from './routes/tools.workflow-spec-builder'
+import { Route as ToolsVoiceAgentBuilderRouteImport } from './routes/tools.voice-agent-builder'
+import { Route as ToolsTokenCostCalculatorRouteImport } from './routes/tools.token-cost-calculator'
+import { Route as ToolsSopGeneratorRouteImport } from './routes/tools.sop-generator'
+import { Route as ToolsRoiCalculatorRouteImport } from './routes/tools.roi-calculator'
+import { Route as ToolsRevenueLeakCalculatorRouteImport } from './routes/tools.revenue-leak-calculator'
+import { Route as ToolsRagChunkerRouteImport } from './routes/tools.rag-chunker'
+import { Route as ToolsPromptPilotRouteImport } from './routes/tools.prompt-pilot'
+import { Route as ToolsPromptGuardAuditorRouteImport } from './routes/tools.prompt-guard-auditor'
+import { Route as ToolsPolicyGeneratorRouteImport } from './routes/tools.policy-generator'
+import { Route as ToolsMultiAgentCalculatorRouteImport } from './routes/tools.multi-agent-calculator'
+import { Route as ToolsModelPlaygroundRouteImport } from './routes/tools.model-playground'
+import { Route as ToolsMcpBuilderRouteImport } from './routes/tools.mcp-builder'
+import { Route as ToolsJsonSchemaStudioRouteImport } from './routes/tools.json-schema-studio'
+import { Route as ToolsGptTrainerRouteImport } from './routes/tools.gpt-trainer'
+import { Route as ToolsEvalStudioRouteImport } from './routes/tools.eval-studio'
+import { Route as ToolsAiReadinessAssessmentRouteImport } from './routes/tools.ai-readiness-assessment'
+import { Route as ToolsAiPlaybookRouteImport } from './routes/tools.ai-playbook'
+import { Route as ToolsAgentSandboxRouteImport } from './routes/tools.agent-sandbox'
+import { Route as ToolsAgentArchitectRouteImport } from './routes/tools.agent-architect'
+import { Route as ToolsAbTesterRouteImport } from './routes/tools.ab-tester'
+import { Route as TTagRouteImport } from './routes/t.$tag'
+import { Route as SystemsSlugRouteImport } from './routes/systems.$slug'
+import { Route as StarterPacksSlugRouteImport } from './routes/starter-packs.$slug'
+import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
+import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
+import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
+import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
+import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
+import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
+import { Route as PodcastFeedDotxmlRouteImport } from './routes/podcast.feed[.]xml'
+import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
+import { Route as KnowledgeWhatIsAnAiAgentRouteImport } from './routes/knowledge.what-is-an-ai-agent'
+import { Route as KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport } from './routes/knowledge.measuring-if-your-agent-actually-works'
+import { Route as KnowledgeFeedDotxmlRouteImport } from './routes/knowledge.feed[.]xml'
+import { Route as KnowledgeControllingAgentCostsRouteImport } from './routes/knowledge.controlling-agent-costs'
+import { Route as KnowledgeChoosingYourFirstAgentWorkflowRouteImport } from './routes/knowledge.choosing-your-first-agent-workflow'
+import { Route as KnowledgeAiAgentsForMinistryRouteImport } from './routes/knowledge.ai-agents-for-ministry'
+import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
+import { Route as InvoiceNumberRouteImport } from './routes/invoice.$number'
+import { Route as DiagnosticSuccessRouteImport } from './routes/diagnostic.success'
+import { Route as CommunityIdRouteImport } from './routes/community.$id'
+import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
+import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
+import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
+import { Route as AiPlaybookForNicheRouteImport } from './routes/ai-playbook-for.$niche'
+import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
+import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
+import { Route as AuthenticatedSubmissionsRouteImport } from './routes/_authenticated/submissions'
+import { Route as AuthenticatedSellerRouteImport } from './routes/_authenticated/seller'
+import { Route as AuthenticatedPromptsRouteImport } from './routes/_authenticated/prompts'
+import { Route as AuthenticatedMcpRouteImport } from './routes/_authenticated/mcp'
+import { Route as AuthenticatedInterestsRouteImport } from './routes/_authenticated/interests'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
-import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
-import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
-import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
-import { Route as LovableEmailNurtureProcessRouteImport } from './routes/lovable/email/nurture/process'
+import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
+import { Route as AuthenticatedAdminWebsiteLaunchNurtureRouteImport } from './routes/_authenticated/admin.website-launch-nurture'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
+import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
+import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
+import { Route as AuthenticatedAdminCatalogRouteImport } from './routes/_authenticated/admin.catalog'
+import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as LovableEmailNurtureProcessRouteImport } from './routes/lovable/email/nurture/process'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as ApiPublicAgentsChatRouteImport } from './routes/api/public/agents/chat'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AgentsRoute = AgentsRouteImport.update({
-  id: '/agents',
-  path: '/agents',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChallengesRoute = ChallengesRouteImport.update({
-  id: '/challenges',
-  path: '/challenges',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityRoute = CommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityGuidelinesRoute = CommunityGuidelinesRouteImport.update({
-  id: '/community-guidelines',
-  path: '/community-guidelines',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticRoute = DiagnosticRouteImport.update({
-  id: '/diagnostic',
-  path: '/diagnostic',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FitFinderRoute = FitFinderRouteImport.update({
-  id: '/fit-finder',
-  path: '/fit-finder',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GetADemoRoute = GetADemoRouteImport.update({
-  id: '/get-a-demo',
-  path: '/get-a-demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GovernanceRoute = GovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KnowledgeRoute = KnowledgeRouteImport.update({
-  id: '/knowledge',
-  path: '/knowledge',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OpenCommonsRoute = OpenCommonsRouteImport.update({
-  id: '/open-commons',
-  path: '/open-commons',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PathsRoute = PathsRouteImport.update({
-  id: '/paths',
-  path: '/paths',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsRoute = ProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProofRoute = ProofRouteImport.update({
-  id: '/proof',
-  path: '/proof',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StartSmallRoute = StartSmallRouteImport.update({
-  id: '/start-small',
-  path: '/start-small',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StrategySprintRoute = StrategySprintRouteImport.update({
-  id: '/strategy-sprint',
-  path: '/strategy-sprint',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const UnsubscribeRoute = UnsubscribeRouteImport.update({
-  id: '/unsubscribe',
-  path: '/unsubscribe',
+const WorkWithUsRoute = WorkWithUsRouteImport.update({
+  id: '/work-with-us',
+  path: '/work-with-us',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WebsiteLaunchChecklistRoute = WebsiteLaunchChecklistRouteImport.update({
@@ -249,243 +130,128 @@ const WebsiteLaunchChecklistRoute = WebsiteLaunchChecklistRouteImport.update({
   path: '/website-launch-checklist',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WorkWithUsRoute = WorkWithUsRouteImport.update({
-  id: '/work-with-us',
-  path: '/work-with-us',
+const UnsubscribeRoute = UnsubscribeRouteImport.update({
+  id: '/unsubscribe',
+  path: '/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const StrategySprintRoute = StrategySprintRouteImport.update({
+  id: '/strategy-sprint',
+  path: '/strategy-sprint',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedInterestsRoute = AuthenticatedInterestsRouteImport.update({
-  id: '/interests',
-  path: '/interests',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const StartSmallRoute = StartSmallRouteImport.update({
+  id: '/start-small',
+  path: '/start-small',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedMcpRoute = AuthenticatedMcpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedPromptsRoute = AuthenticatedPromptsRouteImport.update({
-  id: '/prompts',
-  path: '/prompts',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedSellerRoute = AuthenticatedSellerRouteImport.update({
-  id: '/seller',
-  path: '/seller',
-  getParentRoute: () => AuthenticatedRouteRoute,
+const ProofRoute = ProofRouteImport.update({
+  id: '/proof',
+  path: '/proof',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedSubmissionsRoute =
-  AuthenticatedSubmissionsRouteImport.update({
-    id: '/submissions',
-    path: '/submissions',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedSubmitAgentRoute =
-  AuthenticatedSubmitAgentRouteImport.update({
-    id: '/submit-agent',
-    path: '/submit-agent',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AgentsIndexRoute = AgentsIndexRouteImport.update({
+const ProductsRoute = ProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PathsRoute = PathsRouteImport.update({
+  id: '/paths',
+  path: '/paths',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OpenCommonsRoute = OpenCommonsRouteImport.update({
+  id: '/open-commons',
+  path: '/open-commons',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernanceRoute = GovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GetADemoRoute = GetADemoRouteImport.update({
+  id: '/get-a-demo',
+  path: '/get-a-demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FitFinderRoute = FitFinderRouteImport.update({
+  id: '/fit-finder',
+  path: '/fit-finder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticRoute = DiagnosticRouteImport.update({
+  id: '/diagnostic',
+  path: '/diagnostic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityGuidelinesRoute = CommunityGuidelinesRouteImport.update({
+  id: '/community-guidelines',
+  path: '/community-guidelines',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesRoute = ChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsRoute = AgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AgentsRoute,
-} as any)
-const AgentsSlugRoute = AgentsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => AgentsRoute,
-} as any)
-const AiPlaybookForNicheRoute = AiPlaybookForNicheRouteImport.update({
-  id: '/ai-playbook-for/$niche',
-  path: '/ai-playbook-for/$niche',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
-  id: '/authors/$slug',
-  path: '/authors/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ChallengesRoute,
-} as any)
-const ChallengesSlugRoute = ChallengesSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ChallengesRoute,
-} as any)
-const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
-  id: '/checkout/return',
-  path: '/checkout/return',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CommunityIndexRoute = CommunityIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => CommunityRoute,
-} as any)
-const CommunityIdRoute = CommunityIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => CommunityRoute,
-} as any)
-const DiagnosticSuccessRoute = DiagnosticSuccessRouteImport.update({
-  id: '/success',
-  path: '/success',
-  getParentRoute: () => DiagnosticRoute,
-} as any)
-const InvoiceNumberRoute = InvoiceNumberRouteImport.update({
-  id: '/invoice/$number',
-  path: '/invoice/$number',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => KnowledgeRoute,
-} as any)
-const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => KnowledgeRoute,
-} as any)
-const KnowledgeAiAgentsForMinistryRoute =
-  KnowledgeAiAgentsForMinistryRouteImport.update({
-    id: '/ai-agents-for-ministry',
-    path: '/ai-agents-for-ministry',
-    getParentRoute: () => KnowledgeRoute,
-  } as any)
-const KnowledgeChoosingYourFirstAgentWorkflowRoute =
-  KnowledgeChoosingYourFirstAgentWorkflowRouteImport.update({
-    id: '/choosing-your-first-agent-workflow',
-    path: '/choosing-your-first-agent-workflow',
-    getParentRoute: () => KnowledgeRoute,
-  } as any)
-const KnowledgeControllingAgentCostsRoute =
-  KnowledgeControllingAgentCostsRouteImport.update({
-    id: '/controlling-agent-costs',
-    path: '/controlling-agent-costs',
-    getParentRoute: () => KnowledgeRoute,
-  } as any)
-const KnowledgeFeedDotxmlRoute = KnowledgeFeedDotxmlRouteImport.update({
-  id: '/feed.xml',
-  path: '/feed.xml',
-  getParentRoute: () => KnowledgeRoute,
-} as any)
-const KnowledgeMeasuringIfYourAgentActuallyWorksRoute =
-  KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport.update({
-    id: '/measuring-if-your-agent-actually-works',
-    path: '/measuring-if-your-agent-actually-works',
-    getParentRoute: () => KnowledgeRoute,
-  } as any)
-const KnowledgeWhatIsAnAiAgentRoute =
-  KnowledgeWhatIsAnAiAgentRouteImport.update({
-    id: '/what-is-an-ai-agent',
-    path: '/what-is-an-ai-agent',
-    getParentRoute: () => KnowledgeRoute,
-  } as any)
-const PathsIndexRoute = PathsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => PathsRoute,
-} as any)
-const PathsSlugRoute = PathsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => PathsRoute,
-} as any)
-const PodcastIndexRoute = PodcastIndexRouteImport.update({
-  id: '/podcast/',
-  path: '/podcast/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PodcastFeedDotxmlRoute = PodcastFeedDotxmlRouteImport.update({
-  id: '/podcast/feed.xml',
-  path: '/podcast/feed.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProductsIndexRoute = ProductsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProductsRoute,
-} as any)
-const ProductsSlugRoute = ProductsSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ProductsRoute,
-} as any)
-const SellersSlugRoute = SellersSlugRouteImport.update({
-  id: '/sellers/$slug',
-  path: '/sellers/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesIndexRoute = ServicesIndexRouteImport.update({
-  id: '/services/',
-  path: '/services/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesSlugRoute = ServicesSlugRouteImport.update({
-  id: '/services/$slug',
-  path: '/services/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
-  id: '/services/ai-workshop',
-  path: '/services/ai-workshop',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ServicesCustomAgentBuildRoute =
-  ServicesCustomAgentBuildRouteImport.update({
-    id: '/services/custom-agent-build',
-    path: '/services/custom-agent-build',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ServicesMinistryAiImplementationRoute =
-  ServicesMinistryAiImplementationRouteImport.update({
-    id: '/services/ministry-ai-implementation',
-    path: '/services/ministry-ai-implementation',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
-  id: '/solutions/$slug',
-  path: '/solutions/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StarterPacksIndexRoute = StarterPacksIndexRouteImport.update({
-  id: '/starter-packs/',
-  path: '/starter-packs/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StarterPacksSlugRoute = StarterPacksSlugRouteImport.update({
-  id: '/starter-packs/$slug',
-  path: '/starter-packs/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SystemsIndexRoute = SystemsIndexRouteImport.update({
-  id: '/systems/',
-  path: '/systems/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SystemsSlugRoute = SystemsSlugRouteImport.update({
-  id: '/systems/$slug',
-  path: '/systems/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TTagRoute = TTagRouteImport.update({
-  id: '/t/$tag',
-  path: '/t/$tag',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsIndexRoute = ToolsIndexRouteImport.update({
@@ -493,108 +259,65 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
   path: '/tools/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsAbTesterRoute = ToolsAbTesterRouteImport.update({
-  id: '/tools/ab-tester',
-  path: '/tools/ab-tester',
+const SystemsIndexRoute = SystemsIndexRouteImport.update({
+  id: '/systems/',
+  path: '/systems/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsAgentArchitectRoute = ToolsAgentArchitectRouteImport.update({
-  id: '/tools/agent-architect',
-  path: '/tools/agent-architect',
+const StarterPacksIndexRoute = StarterPacksIndexRouteImport.update({
+  id: '/starter-packs/',
+  path: '/starter-packs/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsAgentSandboxRoute = ToolsAgentSandboxRouteImport.update({
-  id: '/tools/agent-sandbox',
-  path: '/tools/agent-sandbox',
+const ServicesIndexRoute = ServicesIndexRouteImport.update({
+  id: '/services/',
+  path: '/services/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsAiPlaybookRoute = ToolsAiPlaybookRouteImport.update({
-  id: '/tools/ai-playbook',
-  path: '/tools/ai-playbook',
+const ProductsIndexRoute = ProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const PodcastIndexRoute = PodcastIndexRouteImport.update({
+  id: '/podcast/',
+  path: '/podcast/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ToolsAiReadinessAssessmentRoute =
-  ToolsAiReadinessAssessmentRouteImport.update({
-    id: '/tools/ai-readiness-assessment',
-    path: '/tools/ai-readiness-assessment',
+const PathsIndexRoute = PathsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PathsRoute,
+} as any)
+const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => KnowledgeRoute,
+} as any)
+const CommunityIndexRoute = CommunityIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CommunityRoute,
+} as any)
+const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ChallengesRoute,
+} as any)
+const AgentsIndexRoute = AgentsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AgentsRoute,
+} as any)
+const WebsiteLaunchChecklistConfirmRoute =
+  WebsiteLaunchChecklistConfirmRouteImport.update({
+    id: '/website-launch-checklist_/confirm',
+    path: '/website-launch-checklist/confirm',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ToolsEvalStudioRoute = ToolsEvalStudioRouteImport.update({
-  id: '/tools/eval-studio',
-  path: '/tools/eval-studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
-  id: '/tools/gpt-trainer',
-  path: '/tools/gpt-trainer',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsJsonSchemaStudioRoute = ToolsJsonSchemaStudioRouteImport.update({
-  id: '/tools/json-schema-studio',
-  path: '/tools/json-schema-studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsMcpBuilderRoute = ToolsMcpBuilderRouteImport.update({
-  id: '/tools/mcp-builder',
-  path: '/tools/mcp-builder',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
-  id: '/tools/model-playground',
-  path: '/tools/model-playground',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsMultiAgentCalculatorRoute =
-  ToolsMultiAgentCalculatorRouteImport.update({
-    id: '/tools/multi-agent-calculator',
-    path: '/tools/multi-agent-calculator',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ToolsPolicyGeneratorRoute = ToolsPolicyGeneratorRouteImport.update({
-  id: '/tools/policy-generator',
-  path: '/tools/policy-generator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsPromptGuardAuditorRoute = ToolsPromptGuardAuditorRouteImport.update({
-  id: '/tools/prompt-guard-auditor',
-  path: '/tools/prompt-guard-auditor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
-  id: '/tools/prompt-pilot',
-  path: '/tools/prompt-pilot',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsRagChunkerRoute = ToolsRagChunkerRouteImport.update({
-  id: '/tools/rag-chunker',
-  path: '/tools/rag-chunker',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsRevenueLeakCalculatorRoute =
-  ToolsRevenueLeakCalculatorRouteImport.update({
-    id: '/tools/revenue-leak-calculator',
-    path: '/tools/revenue-leak-calculator',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
-  id: '/tools/roi-calculator',
-  path: '/tools/roi-calculator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsSopGeneratorRoute = ToolsSopGeneratorRouteImport.update({
-  id: '/tools/sop-generator',
-  path: '/tools/sop-generator',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ToolsTokenCostCalculatorRoute =
-  ToolsTokenCostCalculatorRouteImport.update({
-    id: '/tools/token-cost-calculator',
-    path: '/tools/token-cost-calculator',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ToolsVoiceAgentBuilderRoute = ToolsVoiceAgentBuilderRouteImport.update({
-  id: '/tools/voice-agent-builder',
-  path: '/tools/voice-agent-builder',
+const UUserIdRoute = UUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsWorkflowSpecBuilderRoute =
@@ -603,32 +326,331 @@ const ToolsWorkflowSpecBuilderRoute =
     path: '/tools/workflow-spec-builder',
     getParentRoute: () => rootRouteImport,
   } as any)
-const UUserIdRoute = UUserIdRouteImport.update({
-  id: '/u/$userId',
-  path: '/u/$userId',
+const ToolsVoiceAgentBuilderRoute = ToolsVoiceAgentBuilderRouteImport.update({
+  id: '/tools/voice-agent-builder',
+  path: '/tools/voice-agent-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
-const WebsiteLaunchChecklistConfirmRoute =
-  WebsiteLaunchChecklistConfirmRouteImport.update({
-    id: '/website-launch-checklist_/confirm',
-    path: '/website-launch-checklist/confirm',
+const ToolsTokenCostCalculatorRoute =
+  ToolsTokenCostCalculatorRouteImport.update({
+    id: '/tools/token-cost-calculator',
+    path: '/tools/token-cost-calculator',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsSopGeneratorRoute = ToolsSopGeneratorRouteImport.update({
+  id: '/tools/sop-generator',
+  path: '/tools/sop-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRoiCalculatorRoute = ToolsRoiCalculatorRouteImport.update({
+  id: '/tools/roi-calculator',
+  path: '/tools/roi-calculator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsRevenueLeakCalculatorRoute =
+  ToolsRevenueLeakCalculatorRouteImport.update({
+    id: '/tools/revenue-leak-calculator',
+    path: '/tools/revenue-leak-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsRagChunkerRoute = ToolsRagChunkerRouteImport.update({
+  id: '/tools/rag-chunker',
+  path: '/tools/rag-chunker',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPromptPilotRoute = ToolsPromptPilotRouteImport.update({
+  id: '/tools/prompt-pilot',
+  path: '/tools/prompt-pilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPromptGuardAuditorRoute = ToolsPromptGuardAuditorRouteImport.update({
+  id: '/tools/prompt-guard-auditor',
+  path: '/tools/prompt-guard-auditor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsPolicyGeneratorRoute = ToolsPolicyGeneratorRouteImport.update({
+  id: '/tools/policy-generator',
+  path: '/tools/policy-generator',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsMultiAgentCalculatorRoute =
+  ToolsMultiAgentCalculatorRouteImport.update({
+    id: '/tools/multi-agent-calculator',
+    path: '/tools/multi-agent-calculator',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsModelPlaygroundRoute = ToolsModelPlaygroundRouteImport.update({
+  id: '/tools/model-playground',
+  path: '/tools/model-playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsMcpBuilderRoute = ToolsMcpBuilderRouteImport.update({
+  id: '/tools/mcp-builder',
+  path: '/tools/mcp-builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsJsonSchemaStudioRoute = ToolsJsonSchemaStudioRouteImport.update({
+  id: '/tools/json-schema-studio',
+  path: '/tools/json-schema-studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsGptTrainerRoute = ToolsGptTrainerRouteImport.update({
+  id: '/tools/gpt-trainer',
+  path: '/tools/gpt-trainer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsEvalStudioRoute = ToolsEvalStudioRouteImport.update({
+  id: '/tools/eval-studio',
+  path: '/tools/eval-studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAiReadinessAssessmentRoute =
+  ToolsAiReadinessAssessmentRouteImport.update({
+    id: '/tools/ai-readiness-assessment',
+    path: '/tools/ai-readiness-assessment',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ToolsAiPlaybookRoute = ToolsAiPlaybookRouteImport.update({
+  id: '/tools/ai-playbook',
+  path: '/tools/ai-playbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAgentSandboxRoute = ToolsAgentSandboxRouteImport.update({
+  id: '/tools/agent-sandbox',
+  path: '/tools/agent-sandbox',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAgentArchitectRoute = ToolsAgentArchitectRouteImport.update({
+  id: '/tools/agent-architect',
+  path: '/tools/agent-architect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ToolsAbTesterRoute = ToolsAbTesterRouteImport.update({
+  id: '/tools/ab-tester',
+  path: '/tools/ab-tester',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TTagRoute = TTagRouteImport.update({
+  id: '/t/$tag',
+  path: '/t/$tag',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SystemsSlugRoute = SystemsSlugRouteImport.update({
+  id: '/systems/$slug',
+  path: '/systems/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StarterPacksSlugRoute = StarterPacksSlugRouteImport.update({
+  id: '/starter-packs/$slug',
+  path: '/starter-packs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
+  id: '/solutions/$slug',
+  path: '/solutions/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesMinistryAiImplementationRoute =
+  ServicesMinistryAiImplementationRouteImport.update({
+    id: '/services/ministry-ai-implementation',
+    path: '/services/ministry-ai-implementation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesCustomAgentBuildRoute =
+  ServicesCustomAgentBuildRouteImport.update({
+    id: '/services/custom-agent-build',
+    path: '/services/custom-agent-build',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
+  id: '/services/ai-workshop',
+  path: '/services/ai-workshop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesSlugRoute = ServicesSlugRouteImport.update({
+  id: '/services/$slug',
+  path: '/services/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SellersSlugRoute = SellersSlugRouteImport.update({
+  id: '/sellers/$slug',
+  path: '/sellers/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductsSlugRoute = ProductsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ProductsRoute,
+} as any)
+const PodcastFeedDotxmlRoute = PodcastFeedDotxmlRouteImport.update({
+  id: '/podcast/feed.xml',
+  path: '/podcast/feed.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PathsSlugRoute = PathsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => PathsRoute,
+} as any)
+const KnowledgeWhatIsAnAiAgentRoute =
+  KnowledgeWhatIsAnAiAgentRouteImport.update({
+    id: '/what-is-an-ai-agent',
+    path: '/what-is-an-ai-agent',
+    getParentRoute: () => KnowledgeRoute,
+  } as any)
+const KnowledgeMeasuringIfYourAgentActuallyWorksRoute =
+  KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport.update({
+    id: '/measuring-if-your-agent-actually-works',
+    path: '/measuring-if-your-agent-actually-works',
+    getParentRoute: () => KnowledgeRoute,
+  } as any)
+const KnowledgeFeedDotxmlRoute = KnowledgeFeedDotxmlRouteImport.update({
+  id: '/feed.xml',
+  path: '/feed.xml',
+  getParentRoute: () => KnowledgeRoute,
+} as any)
+const KnowledgeControllingAgentCostsRoute =
+  KnowledgeControllingAgentCostsRouteImport.update({
+    id: '/controlling-agent-costs',
+    path: '/controlling-agent-costs',
+    getParentRoute: () => KnowledgeRoute,
+  } as any)
+const KnowledgeChoosingYourFirstAgentWorkflowRoute =
+  KnowledgeChoosingYourFirstAgentWorkflowRouteImport.update({
+    id: '/choosing-your-first-agent-workflow',
+    path: '/choosing-your-first-agent-workflow',
+    getParentRoute: () => KnowledgeRoute,
+  } as any)
+const KnowledgeAiAgentsForMinistryRoute =
+  KnowledgeAiAgentsForMinistryRouteImport.update({
+    id: '/ai-agents-for-ministry',
+    path: '/ai-agents-for-ministry',
+    getParentRoute: () => KnowledgeRoute,
+  } as any)
+const KnowledgeSlugRoute = KnowledgeSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => KnowledgeRoute,
+} as any)
+const InvoiceNumberRoute = InvoiceNumberRouteImport.update({
+  id: '/invoice/$number',
+  path: '/invoice/$number',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DiagnosticSuccessRoute = DiagnosticSuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => DiagnosticRoute,
+} as any)
+const CommunityIdRoute = CommunityIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => CommunityRoute,
+} as any)
+const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
+  id: '/checkout/return',
+  path: '/checkout/return',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesSlugRoute = ChallengesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ChallengesRoute,
+} as any)
+const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
+  id: '/authors/$slug',
+  path: '/authors/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiPlaybookForNicheRoute = AiPlaybookForNicheRouteImport.update({
+  id: '/ai-playbook-for/$niche',
+  path: '/ai-playbook-for/$niche',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentsSlugRoute = AgentsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AgentsRoute,
+} as any)
+const AuthenticatedSubmitAgentRoute =
+  AuthenticatedSubmitAgentRouteImport.update({
+    id: '/submit-agent',
+    path: '/submit-agent',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSubmissionsRoute =
+  AuthenticatedSubmissionsRouteImport.update({
+    id: '/submissions',
+    path: '/submissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSellerRoute = AuthenticatedSellerRouteImport.update({
+  id: '/seller',
+  path: '/seller',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPromptsRoute = AuthenticatedPromptsRouteImport.update({
+  id: '/prompts',
+  path: '/prompts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMcpRoute = AuthenticatedMcpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInterestsRoute = AuthenticatedInterestsRouteImport.update({
+  id: '/interests',
+  path: '/interests',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSubmissionsIndexRoute =
+  AuthenticatedSubmissionsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSubmissionsRoute,
   } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminAnalyticsRoute =
-  AuthenticatedAdminAnalyticsRouteImport.update({
-    id: '/analytics',
-    path: '/analytics',
+const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
+  id: '/api/public/csp-report',
+  path: '/api/public/csp-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSubmissionsIdRoute =
+  AuthenticatedSubmissionsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedSubmissionsRoute,
+  } as any)
+const AuthenticatedAdminWebsiteLaunchNurtureRoute =
+  AuthenticatedAdminWebsiteLaunchNurtureRouteImport.update({
+    id: '/website-launch-nurture',
+    path: '/website-launch-nurture',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminCatalogRoute =
-  AuthenticatedAdminCatalogRouteImport.update({
-    id: '/catalog',
-    path: '/catalog',
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const AuthenticatedAdminInvoicesRoute =
+  AuthenticatedAdminInvoicesRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminContentAgentRoute =
@@ -637,49 +659,22 @@ const AuthenticatedAdminContentAgentRoute =
     path: '/content-agent',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminInvoicesRoute =
-  AuthenticatedAdminInvoicesRouteImport.update({
-    id: '/invoices',
-    path: '/invoices',
+const AuthenticatedAdminCatalogRoute =
+  AuthenticatedAdminCatalogRouteImport.update({
+    id: '/catalog',
+    path: '/catalog',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => AuthenticatedAdminRoute,
-} as any)
-const AuthenticatedAdminWebsiteLaunchNurtureRoute =
-  AuthenticatedAdminWebsiteLaunchNurtureRouteImport.update({
-    id: '/website-launch-nurture',
-    path: '/website-launch-nurture',
+const AuthenticatedAdminAnalyticsRoute =
+  AuthenticatedAdminAnalyticsRouteImport.update({
+    id: '/analytics',
+    path: '/analytics',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
-const AuthenticatedSubmissionsIndexRoute =
-  AuthenticatedSubmissionsIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedSubmissionsRoute,
-  } as any)
-const AuthenticatedSubmissionsIdRoute =
-  AuthenticatedSubmissionsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedSubmissionsRoute,
-  } as any)
-const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
-  id: '/api/public/csp-report',
-  path: '/api/public/csp-report',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicAgentsChatRoute = ApiPublicAgentsChatRouteImport.update({
-  id: '/api/public/agents/chat',
-  path: '/api/public/agents/chat',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPaymentsWebhookRoute =
-  ApiPublicPaymentsWebhookRouteImport.update({
-    id: '/api/public/payments/webhook',
-    path: '/api/public/payments/webhook',
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const LovableEmailNurtureProcessRoute =
@@ -688,12 +683,17 @@ const LovableEmailNurtureProcessRoute =
     path: '/lovable/email/nurture/process',
     getParentRoute: () => rootRouteImport,
   } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicAgentsChatRoute = ApiPublicAgentsChatRouteImport.update({
+  id: '/api/public/agents/chat',
+  path: '/api/public/agents/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -1430,179 +1430,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/agents': {
-      id: '/agents'
-      path: '/agents'
-      fullPath: '/agents'
-      preLoaderRoute: typeof AgentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/challenges': {
-      id: '/challenges'
-      path: '/challenges'
-      fullPath: '/challenges'
-      preLoaderRoute: typeof ChallengesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/community': {
-      id: '/community'
-      path: '/community'
-      fullPath: '/community'
-      preLoaderRoute: typeof CommunityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/community-guidelines': {
-      id: '/community-guidelines'
-      path: '/community-guidelines'
-      fullPath: '/community-guidelines'
-      preLoaderRoute: typeof CommunityGuidelinesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnostic': {
-      id: '/diagnostic'
-      path: '/diagnostic'
-      fullPath: '/diagnostic'
-      preLoaderRoute: typeof DiagnosticRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/fit-finder': {
-      id: '/fit-finder'
-      path: '/fit-finder'
-      fullPath: '/fit-finder'
-      preLoaderRoute: typeof FitFinderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/get-a-demo': {
-      id: '/get-a-demo'
-      path: '/get-a-demo'
-      fullPath: '/get-a-demo'
-      preLoaderRoute: typeof GetADemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/governance': {
-      id: '/governance'
-      path: '/governance'
-      fullPath: '/governance'
-      preLoaderRoute: typeof GovernanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/knowledge': {
-      id: '/knowledge'
-      path: '/knowledge'
-      fullPath: '/knowledge'
-      preLoaderRoute: typeof KnowledgeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/open-commons': {
-      id: '/open-commons'
-      path: '/open-commons'
-      fullPath: '/open-commons'
-      preLoaderRoute: typeof OpenCommonsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/paths': {
-      id: '/paths'
-      path: '/paths'
-      fullPath: '/paths'
-      preLoaderRoute: typeof PathsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products': {
-      id: '/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof ProductsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proof': {
-      id: '/proof'
-      path: '/proof'
-      fullPath: '/proof'
-      preLoaderRoute: typeof ProofRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/start-small': {
-      id: '/start-small'
-      path: '/start-small'
-      fullPath: '/start-small'
-      preLoaderRoute: typeof StartSmallRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/strategy-sprint': {
-      id: '/strategy-sprint'
-      path: '/strategy-sprint'
-      fullPath: '/strategy-sprint'
-      preLoaderRoute: typeof StrategySprintRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/unsubscribe': {
-      id: '/unsubscribe'
-      path: '/unsubscribe'
-      fullPath: '/unsubscribe'
-      preLoaderRoute: typeof UnsubscribeRouteImport
+    '/work-with-us': {
+      id: '/work-with-us'
+      path: '/work-with-us'
+      fullPath: '/work-with-us'
+      preLoaderRoute: typeof WorkWithUsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/website-launch-checklist': {
@@ -1612,326 +1444,179 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WebsiteLaunchChecklistRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/work-with-us': {
-      id: '/work-with-us'
-      path: '/work-with-us'
-      fullPath: '/work-with-us'
-      preLoaderRoute: typeof WorkWithUsRouteImport
+    '/unsubscribe': {
+      id: '/unsubscribe'
+      path: '/unsubscribe'
+      fullPath: '/unsubscribe'
+      preLoaderRoute: typeof UnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/account': {
-      id: '/_authenticated/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AuthenticatedAccountRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/strategy-sprint': {
+      id: '/strategy-sprint'
+      path: '/strategy-sprint'
+      fullPath: '/strategy-sprint'
+      preLoaderRoute: typeof StrategySprintRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/interests': {
-      id: '/_authenticated/interests'
-      path: '/interests'
-      fullPath: '/interests'
-      preLoaderRoute: typeof AuthenticatedInterestsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/start-small': {
+      id: '/start-small'
+      path: '/start-small'
+      fullPath: '/start-small'
+      preLoaderRoute: typeof StartSmallRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/mcp': {
-      id: '/_authenticated/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof AuthenticatedMcpRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/prompts': {
-      id: '/_authenticated/prompts'
-      path: '/prompts'
-      fullPath: '/prompts'
-      preLoaderRoute: typeof AuthenticatedPromptsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/seller': {
-      id: '/_authenticated/seller'
-      path: '/seller'
-      fullPath: '/seller'
-      preLoaderRoute: typeof AuthenticatedSellerRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/proof': {
+      id: '/proof'
+      path: '/proof'
+      fullPath: '/proof'
+      preLoaderRoute: typeof ProofRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/submissions': {
-      id: '/_authenticated/submissions'
-      path: '/submissions'
-      fullPath: '/submissions'
-      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/products': {
+      id: '/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof ProductsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/submit-agent': {
-      id: '/_authenticated/submit-agent'
-      path: '/submit-agent'
-      fullPath: '/submit-agent'
-      preLoaderRoute: typeof AuthenticatedSubmitAgentRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/agents/': {
-      id: '/agents/'
+    '/paths': {
+      id: '/paths'
+      path: '/paths'
+      fullPath: '/paths'
+      preLoaderRoute: typeof PathsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/open-commons': {
+      id: '/open-commons'
+      path: '/open-commons'
+      fullPath: '/open-commons'
+      preLoaderRoute: typeof OpenCommonsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governance': {
+      id: '/governance'
+      path: '/governance'
+      fullPath: '/governance'
+      preLoaderRoute: typeof GovernanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/get-a-demo': {
+      id: '/get-a-demo'
+      path: '/get-a-demo'
+      fullPath: '/get-a-demo'
+      preLoaderRoute: typeof GetADemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fit-finder': {
+      id: '/fit-finder'
+      path: '/fit-finder'
+      fullPath: '/fit-finder'
+      preLoaderRoute: typeof FitFinderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostic': {
+      id: '/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/diagnostic'
+      preLoaderRoute: typeof DiagnosticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community-guidelines': {
+      id: '/community-guidelines'
+      path: '/community-guidelines'
+      fullPath: '/community-guidelines'
+      preLoaderRoute: typeof CommunityGuidelinesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges': {
+      id: '/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof ChallengesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents': {
+      id: '/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
       path: '/'
-      fullPath: '/agents/'
-      preLoaderRoute: typeof AgentsIndexRouteImport
-      parentRoute: typeof AgentsRoute
-    }
-    '/agents/$slug': {
-      id: '/agents/$slug'
-      path: '/$slug'
-      fullPath: '/agents/$slug'
-      preLoaderRoute: typeof AgentsSlugRouteImport
-      parentRoute: typeof AgentsRoute
-    }
-    '/ai-playbook-for/$niche': {
-      id: '/ai-playbook-for/$niche'
-      path: '/ai-playbook-for/$niche'
-      fullPath: '/ai-playbook-for/$niche'
-      preLoaderRoute: typeof AiPlaybookForNicheRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/authors/$slug': {
-      id: '/authors/$slug'
-      path: '/authors/$slug'
-      fullPath: '/authors/$slug'
-      preLoaderRoute: typeof AuthorsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/challenges/': {
-      id: '/challenges/'
-      path: '/'
-      fullPath: '/challenges/'
-      preLoaderRoute: typeof ChallengesIndexRouteImport
-      parentRoute: typeof ChallengesRoute
-    }
-    '/challenges/$slug': {
-      id: '/challenges/$slug'
-      path: '/$slug'
-      fullPath: '/challenges/$slug'
-      preLoaderRoute: typeof ChallengesSlugRouteImport
-      parentRoute: typeof ChallengesRoute
-    }
-    '/checkout/return': {
-      id: '/checkout/return'
-      path: '/checkout/return'
-      fullPath: '/checkout/return'
-      preLoaderRoute: typeof CheckoutReturnRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/community/': {
-      id: '/community/'
-      path: '/'
-      fullPath: '/community/'
-      preLoaderRoute: typeof CommunityIndexRouteImport
-      parentRoute: typeof CommunityRoute
-    }
-    '/community/$id': {
-      id: '/community/$id'
-      path: '/$id'
-      fullPath: '/community/$id'
-      preLoaderRoute: typeof CommunityIdRouteImport
-      parentRoute: typeof CommunityRoute
-    }
-    '/diagnostic/success': {
-      id: '/diagnostic/success'
-      path: '/success'
-      fullPath: '/diagnostic/success'
-      preLoaderRoute: typeof DiagnosticSuccessRouteImport
-      parentRoute: typeof DiagnosticRoute
-    }
-    '/invoice/$number': {
-      id: '/invoice/$number'
-      path: '/invoice/$number'
-      fullPath: '/invoice/$number'
-      preLoaderRoute: typeof InvoiceNumberRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/knowledge/': {
-      id: '/knowledge/'
-      path: '/'
-      fullPath: '/knowledge/'
-      preLoaderRoute: typeof KnowledgeIndexRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/$slug': {
-      id: '/knowledge/$slug'
-      path: '/$slug'
-      fullPath: '/knowledge/$slug'
-      preLoaderRoute: typeof KnowledgeSlugRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/ai-agents-for-ministry': {
-      id: '/knowledge/ai-agents-for-ministry'
-      path: '/ai-agents-for-ministry'
-      fullPath: '/knowledge/ai-agents-for-ministry'
-      preLoaderRoute: typeof KnowledgeAiAgentsForMinistryRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/choosing-your-first-agent-workflow': {
-      id: '/knowledge/choosing-your-first-agent-workflow'
-      path: '/choosing-your-first-agent-workflow'
-      fullPath: '/knowledge/choosing-your-first-agent-workflow'
-      preLoaderRoute: typeof KnowledgeChoosingYourFirstAgentWorkflowRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/controlling-agent-costs': {
-      id: '/knowledge/controlling-agent-costs'
-      path: '/controlling-agent-costs'
-      fullPath: '/knowledge/controlling-agent-costs'
-      preLoaderRoute: typeof KnowledgeControllingAgentCostsRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/feed.xml': {
-      id: '/knowledge/feed.xml'
-      path: '/feed.xml'
-      fullPath: '/knowledge/feed.xml'
-      preLoaderRoute: typeof KnowledgeFeedDotxmlRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/measuring-if-your-agent-actually-works': {
-      id: '/knowledge/measuring-if-your-agent-actually-works'
-      path: '/measuring-if-your-agent-actually-works'
-      fullPath: '/knowledge/measuring-if-your-agent-actually-works'
-      preLoaderRoute: typeof KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/knowledge/what-is-an-ai-agent': {
-      id: '/knowledge/what-is-an-ai-agent'
-      path: '/what-is-an-ai-agent'
-      fullPath: '/knowledge/what-is-an-ai-agent'
-      preLoaderRoute: typeof KnowledgeWhatIsAnAiAgentRouteImport
-      parentRoute: typeof KnowledgeRoute
-    }
-    '/paths/': {
-      id: '/paths/'
-      path: '/'
-      fullPath: '/paths/'
-      preLoaderRoute: typeof PathsIndexRouteImport
-      parentRoute: typeof PathsRoute
-    }
-    '/paths/$slug': {
-      id: '/paths/$slug'
-      path: '/$slug'
-      fullPath: '/paths/$slug'
-      preLoaderRoute: typeof PathsSlugRouteImport
-      parentRoute: typeof PathsRoute
-    }
-    '/podcast/': {
-      id: '/podcast/'
-      path: '/podcast'
-      fullPath: '/podcast/'
-      preLoaderRoute: typeof PodcastIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/podcast/feed.xml': {
-      id: '/podcast/feed.xml'
-      path: '/podcast/feed.xml'
-      fullPath: '/podcast/feed.xml'
-      preLoaderRoute: typeof PodcastFeedDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/products/': {
-      id: '/products/'
-      path: '/'
-      fullPath: '/products/'
-      preLoaderRoute: typeof ProductsIndexRouteImport
-      parentRoute: typeof ProductsRoute
-    }
-    '/products/$slug': {
-      id: '/products/$slug'
-      path: '/$slug'
-      fullPath: '/products/$slug'
-      preLoaderRoute: typeof ProductsSlugRouteImport
-      parentRoute: typeof ProductsRoute
-    }
-    '/sellers/$slug': {
-      id: '/sellers/$slug'
-      path: '/sellers/$slug'
-      fullPath: '/sellers/$slug'
-      preLoaderRoute: typeof SellersSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services/': {
-      id: '/services/'
-      path: '/services'
-      fullPath: '/services/'
-      preLoaderRoute: typeof ServicesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services/$slug': {
-      id: '/services/$slug'
-      path: '/services/$slug'
-      fullPath: '/services/$slug'
-      preLoaderRoute: typeof ServicesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services/ai-workshop': {
-      id: '/services/ai-workshop'
-      path: '/services/ai-workshop'
-      fullPath: '/services/ai-workshop'
-      preLoaderRoute: typeof ServicesAiWorkshopRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services/custom-agent-build': {
-      id: '/services/custom-agent-build'
-      path: '/services/custom-agent-build'
-      fullPath: '/services/custom-agent-build'
-      preLoaderRoute: typeof ServicesCustomAgentBuildRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/services/ministry-ai-implementation': {
-      id: '/services/ministry-ai-implementation'
-      path: '/services/ministry-ai-implementation'
-      fullPath: '/services/ministry-ai-implementation'
-      preLoaderRoute: typeof ServicesMinistryAiImplementationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solutions/$slug': {
-      id: '/solutions/$slug'
-      path: '/solutions/$slug'
-      fullPath: '/solutions/$slug'
-      preLoaderRoute: typeof SolutionsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/starter-packs/': {
-      id: '/starter-packs/'
-      path: '/starter-packs'
-      fullPath: '/starter-packs/'
-      preLoaderRoute: typeof StarterPacksIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/starter-packs/$slug': {
-      id: '/starter-packs/$slug'
-      path: '/starter-packs/$slug'
-      fullPath: '/starter-packs/$slug'
-      preLoaderRoute: typeof StarterPacksSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/systems/': {
-      id: '/systems/'
-      path: '/systems'
-      fullPath: '/systems/'
-      preLoaderRoute: typeof SystemsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/systems/$slug': {
-      id: '/systems/$slug'
-      path: '/systems/$slug'
-      fullPath: '/systems/$slug'
-      preLoaderRoute: typeof SystemsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/t/$tag': {
-      id: '/t/$tag'
-      path: '/t/$tag'
-      fullPath: '/t/$tag'
-      preLoaderRoute: typeof TTagRouteImport
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools/': {
@@ -1941,151 +1626,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ToolsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/ab-tester': {
-      id: '/tools/ab-tester'
-      path: '/tools/ab-tester'
-      fullPath: '/tools/ab-tester'
-      preLoaderRoute: typeof ToolsAbTesterRouteImport
+    '/systems/': {
+      id: '/systems/'
+      path: '/systems'
+      fullPath: '/systems/'
+      preLoaderRoute: typeof SystemsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/agent-architect': {
-      id: '/tools/agent-architect'
-      path: '/tools/agent-architect'
-      fullPath: '/tools/agent-architect'
-      preLoaderRoute: typeof ToolsAgentArchitectRouteImport
+    '/starter-packs/': {
+      id: '/starter-packs/'
+      path: '/starter-packs'
+      fullPath: '/starter-packs/'
+      preLoaderRoute: typeof StarterPacksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/agent-sandbox': {
-      id: '/tools/agent-sandbox'
-      path: '/tools/agent-sandbox'
-      fullPath: '/tools/agent-sandbox'
-      preLoaderRoute: typeof ToolsAgentSandboxRouteImport
+    '/services/': {
+      id: '/services/'
+      path: '/services'
+      fullPath: '/services/'
+      preLoaderRoute: typeof ServicesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/ai-playbook': {
-      id: '/tools/ai-playbook'
-      path: '/tools/ai-playbook'
-      fullPath: '/tools/ai-playbook'
-      preLoaderRoute: typeof ToolsAiPlaybookRouteImport
+    '/products/': {
+      id: '/products/'
+      path: '/'
+      fullPath: '/products/'
+      preLoaderRoute: typeof ProductsIndexRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/podcast/': {
+      id: '/podcast/'
+      path: '/podcast'
+      fullPath: '/podcast/'
+      preLoaderRoute: typeof PodcastIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tools/ai-readiness-assessment': {
-      id: '/tools/ai-readiness-assessment'
-      path: '/tools/ai-readiness-assessment'
-      fullPath: '/tools/ai-readiness-assessment'
-      preLoaderRoute: typeof ToolsAiReadinessAssessmentRouteImport
-      parentRoute: typeof rootRouteImport
+    '/paths/': {
+      id: '/paths/'
+      path: '/'
+      fullPath: '/paths/'
+      preLoaderRoute: typeof PathsIndexRouteImport
+      parentRoute: typeof PathsRoute
     }
-    '/tools/eval-studio': {
-      id: '/tools/eval-studio'
-      path: '/tools/eval-studio'
-      fullPath: '/tools/eval-studio'
-      preLoaderRoute: typeof ToolsEvalStudioRouteImport
-      parentRoute: typeof rootRouteImport
+    '/knowledge/': {
+      id: '/knowledge/'
+      path: '/'
+      fullPath: '/knowledge/'
+      preLoaderRoute: typeof KnowledgeIndexRouteImport
+      parentRoute: typeof KnowledgeRoute
     }
-    '/tools/gpt-trainer': {
-      id: '/tools/gpt-trainer'
-      path: '/tools/gpt-trainer'
-      fullPath: '/tools/gpt-trainer'
-      preLoaderRoute: typeof ToolsGptTrainerRouteImport
-      parentRoute: typeof rootRouteImport
+    '/community/': {
+      id: '/community/'
+      path: '/'
+      fullPath: '/community/'
+      preLoaderRoute: typeof CommunityIndexRouteImport
+      parentRoute: typeof CommunityRoute
     }
-    '/tools/json-schema-studio': {
-      id: '/tools/json-schema-studio'
-      path: '/tools/json-schema-studio'
-      fullPath: '/tools/json-schema-studio'
-      preLoaderRoute: typeof ToolsJsonSchemaStudioRouteImport
-      parentRoute: typeof rootRouteImport
+    '/challenges/': {
+      id: '/challenges/'
+      path: '/'
+      fullPath: '/challenges/'
+      preLoaderRoute: typeof ChallengesIndexRouteImport
+      parentRoute: typeof ChallengesRoute
     }
-    '/tools/mcp-builder': {
-      id: '/tools/mcp-builder'
-      path: '/tools/mcp-builder'
-      fullPath: '/tools/mcp-builder'
-      preLoaderRoute: typeof ToolsMcpBuilderRouteImport
-      parentRoute: typeof rootRouteImport
+    '/agents/': {
+      id: '/agents/'
+      path: '/'
+      fullPath: '/agents/'
+      preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof AgentsRoute
     }
-    '/tools/model-playground': {
-      id: '/tools/model-playground'
-      path: '/tools/model-playground'
-      fullPath: '/tools/model-playground'
-      preLoaderRoute: typeof ToolsModelPlaygroundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/multi-agent-calculator': {
-      id: '/tools/multi-agent-calculator'
-      path: '/tools/multi-agent-calculator'
-      fullPath: '/tools/multi-agent-calculator'
-      preLoaderRoute: typeof ToolsMultiAgentCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/policy-generator': {
-      id: '/tools/policy-generator'
-      path: '/tools/policy-generator'
-      fullPath: '/tools/policy-generator'
-      preLoaderRoute: typeof ToolsPolicyGeneratorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/prompt-guard-auditor': {
-      id: '/tools/prompt-guard-auditor'
-      path: '/tools/prompt-guard-auditor'
-      fullPath: '/tools/prompt-guard-auditor'
-      preLoaderRoute: typeof ToolsPromptGuardAuditorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/prompt-pilot': {
-      id: '/tools/prompt-pilot'
-      path: '/tools/prompt-pilot'
-      fullPath: '/tools/prompt-pilot'
-      preLoaderRoute: typeof ToolsPromptPilotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/rag-chunker': {
-      id: '/tools/rag-chunker'
-      path: '/tools/rag-chunker'
-      fullPath: '/tools/rag-chunker'
-      preLoaderRoute: typeof ToolsRagChunkerRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/revenue-leak-calculator': {
-      id: '/tools/revenue-leak-calculator'
-      path: '/tools/revenue-leak-calculator'
-      fullPath: '/tools/revenue-leak-calculator'
-      preLoaderRoute: typeof ToolsRevenueLeakCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/roi-calculator': {
-      id: '/tools/roi-calculator'
-      path: '/tools/roi-calculator'
-      fullPath: '/tools/roi-calculator'
-      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/sop-generator': {
-      id: '/tools/sop-generator'
-      path: '/tools/sop-generator'
-      fullPath: '/tools/sop-generator'
-      preLoaderRoute: typeof ToolsSopGeneratorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/token-cost-calculator': {
-      id: '/tools/token-cost-calculator'
-      path: '/tools/token-cost-calculator'
-      fullPath: '/tools/token-cost-calculator'
-      preLoaderRoute: typeof ToolsTokenCostCalculatorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/voice-agent-builder': {
-      id: '/tools/voice-agent-builder'
-      path: '/tools/voice-agent-builder'
-      fullPath: '/tools/voice-agent-builder'
-      preLoaderRoute: typeof ToolsVoiceAgentBuilderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools/workflow-spec-builder': {
-      id: '/tools/workflow-spec-builder'
-      path: '/tools/workflow-spec-builder'
-      fullPath: '/tools/workflow-spec-builder'
-      preLoaderRoute: typeof ToolsWorkflowSpecBuilderRouteImport
+    '/website-launch-checklist_/confirm': {
+      id: '/website-launch-checklist_/confirm'
+      path: '/website-launch-checklist/confirm'
+      fullPath: '/website-launch-checklist/confirm'
+      preLoaderRoute: typeof WebsiteLaunchChecklistConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/u/$userId': {
@@ -2095,12 +1710,404 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUserIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/website-launch-checklist_/confirm': {
-      id: '/website-launch-checklist_/confirm'
-      path: '/website-launch-checklist/confirm'
-      fullPath: '/website-launch-checklist/confirm'
-      preLoaderRoute: typeof WebsiteLaunchChecklistConfirmRouteImport
+    '/tools/workflow-spec-builder': {
+      id: '/tools/workflow-spec-builder'
+      path: '/tools/workflow-spec-builder'
+      fullPath: '/tools/workflow-spec-builder'
+      preLoaderRoute: typeof ToolsWorkflowSpecBuilderRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/tools/voice-agent-builder': {
+      id: '/tools/voice-agent-builder'
+      path: '/tools/voice-agent-builder'
+      fullPath: '/tools/voice-agent-builder'
+      preLoaderRoute: typeof ToolsVoiceAgentBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/token-cost-calculator': {
+      id: '/tools/token-cost-calculator'
+      path: '/tools/token-cost-calculator'
+      fullPath: '/tools/token-cost-calculator'
+      preLoaderRoute: typeof ToolsTokenCostCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/sop-generator': {
+      id: '/tools/sop-generator'
+      path: '/tools/sop-generator'
+      fullPath: '/tools/sop-generator'
+      preLoaderRoute: typeof ToolsSopGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/roi-calculator': {
+      id: '/tools/roi-calculator'
+      path: '/tools/roi-calculator'
+      fullPath: '/tools/roi-calculator'
+      preLoaderRoute: typeof ToolsRoiCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/revenue-leak-calculator': {
+      id: '/tools/revenue-leak-calculator'
+      path: '/tools/revenue-leak-calculator'
+      fullPath: '/tools/revenue-leak-calculator'
+      preLoaderRoute: typeof ToolsRevenueLeakCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/rag-chunker': {
+      id: '/tools/rag-chunker'
+      path: '/tools/rag-chunker'
+      fullPath: '/tools/rag-chunker'
+      preLoaderRoute: typeof ToolsRagChunkerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/prompt-pilot': {
+      id: '/tools/prompt-pilot'
+      path: '/tools/prompt-pilot'
+      fullPath: '/tools/prompt-pilot'
+      preLoaderRoute: typeof ToolsPromptPilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/prompt-guard-auditor': {
+      id: '/tools/prompt-guard-auditor'
+      path: '/tools/prompt-guard-auditor'
+      fullPath: '/tools/prompt-guard-auditor'
+      preLoaderRoute: typeof ToolsPromptGuardAuditorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/policy-generator': {
+      id: '/tools/policy-generator'
+      path: '/tools/policy-generator'
+      fullPath: '/tools/policy-generator'
+      preLoaderRoute: typeof ToolsPolicyGeneratorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/multi-agent-calculator': {
+      id: '/tools/multi-agent-calculator'
+      path: '/tools/multi-agent-calculator'
+      fullPath: '/tools/multi-agent-calculator'
+      preLoaderRoute: typeof ToolsMultiAgentCalculatorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/model-playground': {
+      id: '/tools/model-playground'
+      path: '/tools/model-playground'
+      fullPath: '/tools/model-playground'
+      preLoaderRoute: typeof ToolsModelPlaygroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/mcp-builder': {
+      id: '/tools/mcp-builder'
+      path: '/tools/mcp-builder'
+      fullPath: '/tools/mcp-builder'
+      preLoaderRoute: typeof ToolsMcpBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/json-schema-studio': {
+      id: '/tools/json-schema-studio'
+      path: '/tools/json-schema-studio'
+      fullPath: '/tools/json-schema-studio'
+      preLoaderRoute: typeof ToolsJsonSchemaStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/gpt-trainer': {
+      id: '/tools/gpt-trainer'
+      path: '/tools/gpt-trainer'
+      fullPath: '/tools/gpt-trainer'
+      preLoaderRoute: typeof ToolsGptTrainerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/eval-studio': {
+      id: '/tools/eval-studio'
+      path: '/tools/eval-studio'
+      fullPath: '/tools/eval-studio'
+      preLoaderRoute: typeof ToolsEvalStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-readiness-assessment': {
+      id: '/tools/ai-readiness-assessment'
+      path: '/tools/ai-readiness-assessment'
+      fullPath: '/tools/ai-readiness-assessment'
+      preLoaderRoute: typeof ToolsAiReadinessAssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ai-playbook': {
+      id: '/tools/ai-playbook'
+      path: '/tools/ai-playbook'
+      fullPath: '/tools/ai-playbook'
+      preLoaderRoute: typeof ToolsAiPlaybookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/agent-sandbox': {
+      id: '/tools/agent-sandbox'
+      path: '/tools/agent-sandbox'
+      fullPath: '/tools/agent-sandbox'
+      preLoaderRoute: typeof ToolsAgentSandboxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/agent-architect': {
+      id: '/tools/agent-architect'
+      path: '/tools/agent-architect'
+      fullPath: '/tools/agent-architect'
+      preLoaderRoute: typeof ToolsAgentArchitectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tools/ab-tester': {
+      id: '/tools/ab-tester'
+      path: '/tools/ab-tester'
+      fullPath: '/tools/ab-tester'
+      preLoaderRoute: typeof ToolsAbTesterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/t/$tag': {
+      id: '/t/$tag'
+      path: '/t/$tag'
+      fullPath: '/t/$tag'
+      preLoaderRoute: typeof TTagRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/systems/$slug': {
+      id: '/systems/$slug'
+      path: '/systems/$slug'
+      fullPath: '/systems/$slug'
+      preLoaderRoute: typeof SystemsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/starter-packs/$slug': {
+      id: '/starter-packs/$slug'
+      path: '/starter-packs/$slug'
+      fullPath: '/starter-packs/$slug'
+      preLoaderRoute: typeof StarterPacksSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solutions/$slug': {
+      id: '/solutions/$slug'
+      path: '/solutions/$slug'
+      fullPath: '/solutions/$slug'
+      preLoaderRoute: typeof SolutionsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ministry-ai-implementation': {
+      id: '/services/ministry-ai-implementation'
+      path: '/services/ministry-ai-implementation'
+      fullPath: '/services/ministry-ai-implementation'
+      preLoaderRoute: typeof ServicesMinistryAiImplementationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/custom-agent-build': {
+      id: '/services/custom-agent-build'
+      path: '/services/custom-agent-build'
+      fullPath: '/services/custom-agent-build'
+      preLoaderRoute: typeof ServicesCustomAgentBuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ai-workshop': {
+      id: '/services/ai-workshop'
+      path: '/services/ai-workshop'
+      fullPath: '/services/ai-workshop'
+      preLoaderRoute: typeof ServicesAiWorkshopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/$slug': {
+      id: '/services/$slug'
+      path: '/services/$slug'
+      fullPath: '/services/$slug'
+      preLoaderRoute: typeof ServicesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sellers/$slug': {
+      id: '/sellers/$slug'
+      path: '/sellers/$slug'
+      fullPath: '/sellers/$slug'
+      preLoaderRoute: typeof SellersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/products/$slug': {
+      id: '/products/$slug'
+      path: '/$slug'
+      fullPath: '/products/$slug'
+      preLoaderRoute: typeof ProductsSlugRouteImport
+      parentRoute: typeof ProductsRoute
+    }
+    '/podcast/feed.xml': {
+      id: '/podcast/feed.xml'
+      path: '/podcast/feed.xml'
+      fullPath: '/podcast/feed.xml'
+      preLoaderRoute: typeof PodcastFeedDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/paths/$slug': {
+      id: '/paths/$slug'
+      path: '/$slug'
+      fullPath: '/paths/$slug'
+      preLoaderRoute: typeof PathsSlugRouteImport
+      parentRoute: typeof PathsRoute
+    }
+    '/knowledge/what-is-an-ai-agent': {
+      id: '/knowledge/what-is-an-ai-agent'
+      path: '/what-is-an-ai-agent'
+      fullPath: '/knowledge/what-is-an-ai-agent'
+      preLoaderRoute: typeof KnowledgeWhatIsAnAiAgentRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/measuring-if-your-agent-actually-works': {
+      id: '/knowledge/measuring-if-your-agent-actually-works'
+      path: '/measuring-if-your-agent-actually-works'
+      fullPath: '/knowledge/measuring-if-your-agent-actually-works'
+      preLoaderRoute: typeof KnowledgeMeasuringIfYourAgentActuallyWorksRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/feed.xml': {
+      id: '/knowledge/feed.xml'
+      path: '/feed.xml'
+      fullPath: '/knowledge/feed.xml'
+      preLoaderRoute: typeof KnowledgeFeedDotxmlRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/controlling-agent-costs': {
+      id: '/knowledge/controlling-agent-costs'
+      path: '/controlling-agent-costs'
+      fullPath: '/knowledge/controlling-agent-costs'
+      preLoaderRoute: typeof KnowledgeControllingAgentCostsRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/choosing-your-first-agent-workflow': {
+      id: '/knowledge/choosing-your-first-agent-workflow'
+      path: '/choosing-your-first-agent-workflow'
+      fullPath: '/knowledge/choosing-your-first-agent-workflow'
+      preLoaderRoute: typeof KnowledgeChoosingYourFirstAgentWorkflowRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/ai-agents-for-ministry': {
+      id: '/knowledge/ai-agents-for-ministry'
+      path: '/ai-agents-for-ministry'
+      fullPath: '/knowledge/ai-agents-for-ministry'
+      preLoaderRoute: typeof KnowledgeAiAgentsForMinistryRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/knowledge/$slug': {
+      id: '/knowledge/$slug'
+      path: '/$slug'
+      fullPath: '/knowledge/$slug'
+      preLoaderRoute: typeof KnowledgeSlugRouteImport
+      parentRoute: typeof KnowledgeRoute
+    }
+    '/invoice/$number': {
+      id: '/invoice/$number'
+      path: '/invoice/$number'
+      fullPath: '/invoice/$number'
+      preLoaderRoute: typeof InvoiceNumberRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/diagnostic/success': {
+      id: '/diagnostic/success'
+      path: '/success'
+      fullPath: '/diagnostic/success'
+      preLoaderRoute: typeof DiagnosticSuccessRouteImport
+      parentRoute: typeof DiagnosticRoute
+    }
+    '/community/$id': {
+      id: '/community/$id'
+      path: '/$id'
+      fullPath: '/community/$id'
+      preLoaderRoute: typeof CommunityIdRouteImport
+      parentRoute: typeof CommunityRoute
+    }
+    '/checkout/return': {
+      id: '/checkout/return'
+      path: '/checkout/return'
+      fullPath: '/checkout/return'
+      preLoaderRoute: typeof CheckoutReturnRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges/$slug': {
+      id: '/challenges/$slug'
+      path: '/$slug'
+      fullPath: '/challenges/$slug'
+      preLoaderRoute: typeof ChallengesSlugRouteImport
+      parentRoute: typeof ChallengesRoute
+    }
+    '/authors/$slug': {
+      id: '/authors/$slug'
+      path: '/authors/$slug'
+      fullPath: '/authors/$slug'
+      preLoaderRoute: typeof AuthorsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-playbook-for/$niche': {
+      id: '/ai-playbook-for/$niche'
+      path: '/ai-playbook-for/$niche'
+      fullPath: '/ai-playbook-for/$niche'
+      preLoaderRoute: typeof AiPlaybookForNicheRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agents/$slug': {
+      id: '/agents/$slug'
+      path: '/$slug'
+      fullPath: '/agents/$slug'
+      preLoaderRoute: typeof AgentsSlugRouteImport
+      parentRoute: typeof AgentsRoute
+    }
+    '/_authenticated/submit-agent': {
+      id: '/_authenticated/submit-agent'
+      path: '/submit-agent'
+      fullPath: '/submit-agent'
+      preLoaderRoute: typeof AuthenticatedSubmitAgentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/submissions': {
+      id: '/_authenticated/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof AuthenticatedSubmissionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/seller': {
+      id: '/_authenticated/seller'
+      path: '/seller'
+      fullPath: '/seller'
+      preLoaderRoute: typeof AuthenticatedSellerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prompts': {
+      id: '/_authenticated/prompts'
+      path: '/prompts'
+      fullPath: '/prompts'
+      preLoaderRoute: typeof AuthenticatedPromptsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mcp': {
+      id: '/_authenticated/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof AuthenticatedMcpRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/interests': {
+      id: '/_authenticated/interests'
+      path: '/interests'
+      fullPath: '/interests'
+      preLoaderRoute: typeof AuthenticatedInterestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account': {
+      id: '/_authenticated/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/submissions/': {
+      id: '/_authenticated/submissions/'
+      path: '/'
+      fullPath: '/submissions/'
+      preLoaderRoute: typeof AuthenticatedSubmissionsIndexRouteImport
+      parentRoute: typeof AuthenticatedSubmissionsRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -2109,32 +2116,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/analytics': {
-      id: '/_authenticated/admin/analytics'
-      path: '/analytics'
-      fullPath: '/admin/analytics'
-      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+    '/api/public/csp-report': {
+      id: '/api/public/csp-report'
+      path: '/api/public/csp-report'
+      fullPath: '/api/public/csp-report'
+      preLoaderRoute: typeof ApiPublicCspReportRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/catalog': {
-      id: '/_authenticated/admin/catalog'
-      path: '/catalog'
-      fullPath: '/admin/catalog'
-      preLoaderRoute: typeof AuthenticatedAdminCatalogRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
+    '/_authenticated/submissions/$id': {
+      id: '/_authenticated/submissions/$id'
+      path: '/$id'
+      fullPath: '/submissions/$id'
+      preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
+      parentRoute: typeof AuthenticatedSubmissionsRoute
     }
-    '/_authenticated/admin/content-agent': {
-      id: '/_authenticated/admin/content-agent'
-      path: '/content-agent'
-      fullPath: '/admin/content-agent'
-      preLoaderRoute: typeof AuthenticatedAdminContentAgentRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/invoices': {
-      id: '/_authenticated/admin/invoices'
-      path: '/invoices'
-      fullPath: '/admin/invoices'
-      preLoaderRoute: typeof AuthenticatedAdminInvoicesRouteImport
+    '/_authenticated/admin/website-launch-nurture': {
+      id: '/_authenticated/admin/website-launch-nurture'
+      path: '/website-launch-nurture'
+      fullPath: '/admin/website-launch-nurture'
+      preLoaderRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/leads': {
@@ -2144,46 +2144,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/admin/website-launch-nurture': {
-      id: '/_authenticated/admin/website-launch-nurture'
-      path: '/website-launch-nurture'
-      fullPath: '/admin/website-launch-nurture'
-      preLoaderRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRouteImport
+    '/_authenticated/admin/invoices': {
+      id: '/_authenticated/admin/invoices'
+      path: '/invoices'
+      fullPath: '/admin/invoices'
+      preLoaderRoute: typeof AuthenticatedAdminInvoicesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/submissions/': {
-      id: '/_authenticated/submissions/'
-      path: '/'
-      fullPath: '/submissions/'
-      preLoaderRoute: typeof AuthenticatedSubmissionsIndexRouteImport
-      parentRoute: typeof AuthenticatedSubmissionsRoute
+    '/_authenticated/admin/content-agent': {
+      id: '/_authenticated/admin/content-agent'
+      path: '/content-agent'
+      fullPath: '/admin/content-agent'
+      preLoaderRoute: typeof AuthenticatedAdminContentAgentRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/_authenticated/submissions/$id': {
-      id: '/_authenticated/submissions/$id'
-      path: '/$id'
-      fullPath: '/submissions/$id'
-      preLoaderRoute: typeof AuthenticatedSubmissionsIdRouteImport
-      parentRoute: typeof AuthenticatedSubmissionsRoute
+    '/_authenticated/admin/catalog': {
+      id: '/_authenticated/admin/catalog'
+      path: '/catalog'
+      fullPath: '/admin/catalog'
+      preLoaderRoute: typeof AuthenticatedAdminCatalogRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/csp-report': {
-      id: '/api/public/csp-report'
-      path: '/api/public/csp-report'
-      fullPath: '/api/public/csp-report'
-      preLoaderRoute: typeof ApiPublicCspReportRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/admin/analytics': {
+      id: '/_authenticated/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
     }
-    '/api/public/agents/chat': {
-      id: '/api/public/agents/chat'
-      path: '/api/public/agents/chat'
-      fullPath: '/api/public/agents/chat'
-      preLoaderRoute: typeof ApiPublicAgentsChatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/payments/webhook': {
-      id: '/api/public/payments/webhook'
-      path: '/api/public/payments/webhook'
-      fullPath: '/api/public/payments/webhook'
-      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lovable/email/nurture/process': {
@@ -2193,11 +2186,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailNurtureProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/agents/chat': {
+      id: '/api/public/agents/chat'
+      path: '/api/public/agents/chat'
+      fullPath: '/api/public/agents/chat'
+      preLoaderRoute: typeof ApiPublicAgentsChatRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

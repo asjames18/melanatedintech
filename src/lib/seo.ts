@@ -329,3 +329,27 @@ export function collectionLd(c: { name: string; url: string; description?: strin
     description: c.description ?? undefined,
   };
 }
+
+/** SoftwareApplication JSON-LD for interactive tools. */
+export function softwareAppLd(s: {
+  name: string;
+  description: string;
+  url: string;
+  applicationCategory?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: s.name,
+    description: s.description,
+    url: absoluteUrl(s.url),
+    applicationCategory: s.applicationCategory ?? "DeveloperApplication",
+    operatingSystem: "All",
+    offers: {
+      "@type": "Offer",
+      price: "0.00",
+      priceCurrency: "USD",
+    },
+    author: { "@type": "Organization", name: DEFAULT_SITE },
+  };
+}

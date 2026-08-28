@@ -1,6 +1,6 @@
 # Internal linking and sourcing audit
 
-**Generated:** 2026-08-19  
+**Generated:** 2026-08-28  
 **Published articles:** 43  
 **Gates:** >=3 internal links, >=2 external references, >=800 words
 

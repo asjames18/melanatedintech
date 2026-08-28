@@ -7,7 +7,7 @@ import { SiteLayout } from "@/components/site-layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { FeedComposer } from "@/components/feed/feed-composer";
+import { FeedComposer, type PostType } from "@/components/feed/feed-composer";
 import { FeedList } from "@/components/feed/feed-list";
 import { StoriesBar } from "@/components/feed/stories-bar";
 import { TrendingSidebar } from "@/components/feed/trending-sidebar";
@@ -63,6 +63,7 @@ function Community() {
   const { tag } = Route.useSearch();
   const [me, setMe] = useState<string | null>(null);
   const [tab, setTab] = useState<FeedTab>("for-you");
+  const [composerIntent, setComposerIntent] = useState<PostType | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
@@ -152,7 +153,12 @@ function Community() {
               <MobileFeedNavigation tab={tab} onChange={setTab} signedIn={!!me} />
             </div>
 
-            <FeedComposer viewerId={me ?? null} initialTag={tag} />
+            <FeedComposer
+              viewerId={me ?? null}
+              initialTag={tag}
+              focusRequest={composerIntent}
+              onFocusRequestHandled={() => setComposerIntent(null)}
+            />
 
             <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)} className="hidden w-full sm:block">
               <TabsList className="flex w-full gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xs no-scrollbar">
@@ -169,7 +175,13 @@ function Community() {
               </TabsList>
             </Tabs>
 
-            <FeedController viewerId={me ?? null} tab={tab} tag={tag} />
+            <FeedController
+              viewerId={me ?? null}
+              tab={tab}
+              tag={tag}
+              onStartPost={setComposerIntent}
+              onBrowseLatest={() => setTab("latest")}
+            />
           </div>
 
           <aside className="hidden lg:block">
@@ -288,7 +300,19 @@ function notificationText(type: string) {
   return "sent an update";
 }
 
-function FeedController({ viewerId, tab, tag }: { viewerId: string | null; tab: FeedTab; tag?: string }) {
+function FeedController({
+  viewerId,
+  tab,
+  tag,
+  onStartPost,
+  onBrowseLatest,
+}: {
+  viewerId: string | null;
+  tab: FeedTab;
+  tag?: string;
+  onStartPost: (postType: PostType) => void;
+  onBrowseLatest: () => void;
+}) {
   const qc = useQueryClient();
   const react = useServerFn(reactPost);
   const unreact = useServerFn(unreactPost);
@@ -381,8 +405,10 @@ function FeedController({ viewerId, tab, tag }: { viewerId: string | null; tab: 
       onToggleReaction={toggleReaction}
       onDelete={(postId, asAdmin) => delMut.mutate({ postId, asAdmin })}
       onToggleSave={(postId, currentlySaved) => saveMut.mutate({ postId, currentlySaved })}
-      onReport={(postId) => reportMut.mutate(postId)}
-      onShare={(postId, channel) => shareMut.mutate({ postId, channel })}
+        onReport={(postId) => reportMut.mutate(postId)}
+        onShare={(postId, channel) => shareMut.mutate({ postId, channel })}
+        onStartPost={onStartPost}
+        onBrowseLatest={onBrowseLatest}
     />
   );
 }

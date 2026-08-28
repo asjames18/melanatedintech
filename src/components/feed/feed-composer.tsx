@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ImagePlus, Loader2, X, Wrench, HelpCircle, BookOpen, Bot, Users } from "lucide-react";
@@ -33,7 +33,7 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 type PendingMedia = { path: string; preview: string; status: "uploading" | "done" | "error" };
 
-type PostType = "build" | "question" | "agent" | "resource" | "collab";
+export type PostType = "build" | "question" | "agent" | "resource" | "collab";
 
 const POST_TYPE_CONFIG: Record<PostType, { label: string; icon: React.ReactNode; placeholder: string; category: CommunityCategory }> = {
   build: {
@@ -97,14 +97,19 @@ function CharRing({ value, max }: { value: number; max: number }) {
 export function FeedComposer({
   viewerId,
   initialTag,
+  focusRequest,
+  onFocusRequestHandled,
 }: {
   viewerId: string | null;
   initialTag?: string;
+  focusRequest?: PostType | null;
+  onFocusRequestHandled?: () => void;
 }) {
   const qc = useQueryClient();
   const create = useServerFn(createPost);
   const getProfileFn = useServerFn(getPublicProfile);
   const fileInput = useRef<HTMLInputElement>(null);
+  const composerInput = useRef<HTMLTextAreaElement>(null);
 
   const [postType, setPostType] = useState<PostType>("build");
   const [body, setBody] = useState(initialTag ? `Result for #${initialTag}:\n\n` : "");
@@ -127,6 +132,17 @@ export function FeedComposer({
     setPostType(pt);
     setCategory(POST_TYPE_CONFIG[pt].category);
   }
+
+  useEffect(() => {
+    if (!focusRequest || viewerId === null) return;
+    switchPostType(focusRequest);
+    const frame = window.requestAnimationFrame(() => {
+      composerInput.current?.scrollIntoView({ block: "center" });
+      composerInput.current?.focus();
+      onFocusRequestHandled?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusRequest, onFocusRequestHandled, viewerId]);
 
   const createMut = useMutation({
     mutationFn: async () => {
@@ -255,6 +271,7 @@ export function FeedComposer({
 
           {/* Body */}
           <Textarea
+            ref={composerInput}
             rows={focused ? 4 : 2}
             maxLength={POST_BODY_MAX}
             value={body}

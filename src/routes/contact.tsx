@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ContactForm } from "@/components/contact-form";
 import { buildSeoMeta } from "@/lib/seo";
@@ -11,11 +11,14 @@ const campaignLabel = z
   .max(100)
   .regex(/^[a-zA-Z0-9._-]+$/, "Invalid campaign label.");
 
+const optionalTopic = z.string().trim().max(120).transform((value) => value || undefined).optional().catch(undefined);
+const optionalCampaignLabel = campaignLabel.transform((value) => value || undefined).optional().catch(undefined);
+
 const searchSchema = z.object({
-  topic: fallback(z.string().max(120), "").default(""),
-  utm_source: fallback(campaignLabel, "").default(""),
-  utm_medium: fallback(campaignLabel, "").default(""),
-  utm_campaign: fallback(campaignLabel, "").default(""),
+  topic: optionalTopic,
+  utm_source: optionalCampaignLabel,
+  utm_medium: optionalCampaignLabel,
+  utm_campaign: optionalCampaignLabel,
 });
 
 export const Route = createFileRoute("/contact")({
@@ -44,9 +47,9 @@ function Contact() {
         <ContactForm
           defaultTopic={topic}
           campaign={{
-            source: utm_source || undefined,
-            medium: utm_medium || undefined,
-            campaign: utm_campaign || undefined,
+            source: utm_source,
+            medium: utm_medium,
+            campaign: utm_campaign,
           }}
         />
       </section>

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { ChevronDown, Menu, Search, UserRound, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 
 const HeaderAuthButton = lazy(() =>
   import("./header-auth-button").then((module) => ({ default: module.HeaderAuthButton })),
@@ -214,22 +214,23 @@ export function SiteHeader() {
 }
 function HeaderAuthFallback() {
   return (
-    <Link
-      to="/auth"
-      className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium"
+    <span
+      className="inline-flex h-9 w-20 animate-pulse rounded-md border border-border bg-muted/60"
+      role="status"
+      aria-label="Checking account status"
     >
-      Sign in
-    </Link>
+      <span className="sr-only">Checking account status</span>
+    </span>
   );
 }
-function MobileHeaderAuthFallback({ onClick }: { onClick: () => void }) {
+
+function MobileHeaderAuthFallback({ onClick: _onClick }: { onClick: () => void }) {
   return (
-    <Link
-      to="/auth"
-      onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm font-medium"
+    <span
+      className="flex items-center justify-center rounded-md border border-border bg-muted/60 px-3 py-2.5 text-sm text-muted-foreground"
+      role="status"
     >
-      <UserRound className="h-4 w-4" /> Sign in
-    </Link>
+      Checking account status
+    </span>
   );
 }

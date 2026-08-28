@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { PostCard } from "./post-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { listFeed } from "@/lib/community.functions";
 import type { FeedTab, ReactionKind } from "@/lib/community";
+import type { PostType } from "./feed-composer";
 
 type Props = {
   viewerId: string | null;
@@ -19,6 +22,8 @@ type Props = {
   onShare?: (postId: string, channel?: string) => void;
   newPostsBanner?: number;
   onClearBanner?: () => void;
+  onStartPost?: (postType: PostType) => void;
+  onBrowseLatest?: () => void;
 };
 
 const PAGE_SIZE = 20;
@@ -35,6 +40,8 @@ export function FeedList({
   onShare,
   newPostsBanner = 0,
   onClearBanner,
+  onStartPost,
+  onBrowseLatest,
 }: Props) {
   const list = useServerFn(listFeed);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -94,12 +101,12 @@ export function FeedList({
       {pages.length === 0 && q.isPending ? (
         <FeedSkeleton />
       ) : posts.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center">
-          <p className="font-display text-lg font-semibold">No posts yet</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {tab === "following" ? "Follow builders to see their posts here." : "Be the first to share an AI build, question, or resource."}
-          </p>
-        </div>
+        <EmptyFeedState
+          tab={tab}
+          viewerId={viewerId}
+          onStartPost={onStartPost}
+          onBrowseLatest={onBrowseLatest}
+        />
       ) : (
         <ul className="space-y-3">
           {posts.map((p) => (
@@ -126,6 +133,51 @@ export function FeedList({
           <FeedSkeleton count={2} />
         </div>
       )}
+    </div>
+  );
+}
+
+function EmptyFeedState({
+  tab,
+  viewerId,
+  onStartPost,
+  onBrowseLatest,
+}: {
+  tab: FeedTab;
+  viewerId: string | null;
+  onStartPost?: (postType: PostType) => void;
+  onBrowseLatest?: () => void;
+}) {
+  const intentByTab: Partial<Record<FeedTab, PostType>> = {
+    questions: "question",
+    "ai-agents": "agent",
+    showcase: "agent",
+  };
+  const postType = intentByTab[tab] ?? "build";
+  const actionLabel = postType === "question" ? "Ask a question" : postType === "agent" ? "Showcase an agent" : "Share an update";
+  const description = tab === "following"
+    ? "Follow builders to see their posts here."
+    : postType === "question"
+      ? "Be the first to ask the Community a question."
+      : "Be the first to share an AI build, question, or resource.";
+
+  return (
+    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center sm:p-12">
+      <p className="font-display text-lg font-semibold">No posts yet</p>
+      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      {viewerId === null ? (
+        <Button asChild size="sm" className="mt-4 rounded-xl">
+          <Link to="/auth">Sign in to participate</Link>
+        </Button>
+      ) : tab === "following" && onBrowseLatest ? (
+        <Button type="button" size="sm" className="mt-4 rounded-xl" onClick={onBrowseLatest}>
+          Browse latest updates
+        </Button>
+      ) : onStartPost ? (
+        <Button type="button" size="sm" className="mt-4 rounded-xl" onClick={() => onStartPost(postType)}>
+          {actionLabel}
+        </Button>
+      ) : null}
     </div>
   );
 }

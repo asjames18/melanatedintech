@@ -533,6 +533,12 @@ function Account() {
                 >
                   <User className="h-4 w-4 mr-2" /> Profile
                 </TabsTrigger>
+                <TabsTrigger
+                  value="deployments"
+                  className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-semibold text-muted-foreground hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent shadow-none"
+                >
+                  <ShieldCheck className="h-4 w-4 mr-2" /> Active Deployments
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="agents" className="mt-4 outline-none">
@@ -733,6 +739,48 @@ function Account() {
                 ) : (
                   <ProfileEditor profile={profile.data} />
                 )}
+              </TabsContent>
+
+              <TabsContent value="deployments" className="mt-4 outline-none">
+                <div className="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <h3 className="font-display text-lg font-bold text-foreground">Client Deployments & Sprints</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">Track your active AI agent operational status, Sprint milestones, and invoice receipts.</p>
+                    </div>
+                    <Button asChild size="sm" className="rounded-xl">
+                      <Link to="/contact">Request System Expansion</Link>
+                    </Button>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                        <span>Active Systems</span>
+                        <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px]">Operational</span>
+                      </div>
+                      <h4 className="font-display text-base font-bold text-foreground">Lead Dispatch & Revenue Recovery Agent</h4>
+                      <p className="text-xs text-muted-foreground">Automatic 60-second SMS & voice dispatch for missed inbound calls.</p>
+                      <div className="pt-2 flex items-center justify-between text-xs font-semibold text-foreground">
+                        <span>Uptime: 99.9%</span>
+                        <Link to="/tools/agent-sandbox" className="text-primary hover:underline">View Live Logs →</Link>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-muted-foreground">
+                        <span>Sprint Status</span>
+                        <span className="rounded-full bg-primary/10 text-primary px-2 py-0.5 text-[10px]">In Progress</span>
+                      </div>
+                      <h4 className="font-display text-base font-bold text-foreground">30-Day Recovery Sprint Milestone</h4>
+                      <p className="text-xs text-muted-foreground">Milestone 2 of 4: Custom knowledge base chunking & verification.</p>
+                      <div className="pt-2 flex items-center justify-between text-xs font-semibold text-foreground">
+                        <span>Target Launch: Day 30</span>
+                        <Link to="/strategy-sprint" className="text-primary hover:underline">Sprint Scope →</Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </TabsContent>
             </Tabs>
           </div>

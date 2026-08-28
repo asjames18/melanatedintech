@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MessageSquare, Trash2, MoreHorizontal, Bookmark, Flag } from "lucide-react";
+import { MessageSquare, Trash2, MoreHorizontal, Bookmark, Flag, Sparkles } from "lucide-react";
 import { AuthorChip } from "./author-chip";
 import { ReactionBar } from "./reaction-bar";
 import { PostMediaGallery } from "./post-media-gallery";
@@ -49,9 +49,21 @@ function renderBodyWithHashtags(body: string) {
     }
     const codeSnippet = match[1].trim();
     segments.push(
-      <pre key={`code-${match.index}`} className="my-2.5 overflow-x-auto rounded-xl border border-border/80 bg-zinc-950 p-3.5 font-mono text-xs font-medium text-emerald-400 shadow-xs">
-        <code>{codeSnippet}</code>
-      </pre>
+      <div key={`code-${match.index}`} className="my-2.5 overflow-hidden rounded-xl border border-border/80 bg-zinc-950 shadow-xs">
+        <div className="flex items-center justify-between border-b border-zinc-800 bg-zinc-900/90 px-3 py-1.5 text-[10px] font-mono text-zinc-400">
+          <span>Agent Prompt Snippet</span>
+          <Link
+            to="/tools/model-playground"
+            search={{ systemPrompt: codeSnippet.slice(0, 150) }}
+            className="flex items-center gap-1 font-semibold text-emerald-400 hover:text-emerald-300"
+          >
+            <Sparkles className="h-3 w-3" /> Test in Sandbox →
+          </Link>
+        </div>
+        <pre className="overflow-x-auto p-3.5 font-mono text-xs font-medium text-emerald-400">
+          <code>{codeSnippet}</code>
+        </pre>
+      </div>
     );
     lastIndex = match.index + match[0].length;
   }

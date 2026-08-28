@@ -192,6 +192,16 @@ export function RevenueLeakCalculator() {
                 >
                   Book $297 Revenue Leak Diagnostic <ArrowRight className="h-4 w-4" />
                 </Link>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => downloadRevenueLeakReport(monthlyInquiries, avgJobValue, totalLeakingLeadsMonthly, recoverableConversionsMonthly, monthlyLostRevenue, annualLostRevenue)}
+                  className="mt-2.5 w-full rounded-xl border-border/80 bg-card text-xs font-semibold gap-1.5 hover:bg-muted"
+                >
+                  <Download className="h-3.5 w-3.5" /> Download Revenue Audit (.md)
+                </Button>
               </div>
             </div>
           </div>
@@ -201,4 +211,39 @@ export function RevenueLeakCalculator() {
       </section>
     </SiteLayout>
   );
+}
+
+function downloadRevenueLeakReport(
+  inquiries: number,
+  avgValue: number,
+  leakingLeads: number,
+  recoverable: number,
+  monthlyLost: number,
+  annualLost: number
+) {
+  const md = `# Melanated In Tech — Lead Revenue Leakage Audit Report
+*Generated on ${new Date().toLocaleDateString()}*
+
+## Your Operating Metrics
+- **Monthly Inquiries (Calls/Forms)**: ${inquiries} / month
+- **Average Deal Value**: $${avgValue.toLocaleString()}
+- **Estimated Leaking Leads**: ${leakingLeads} leads / month
+- **Recoverable Conversions**: ${recoverable} jobs / month
+
+## Financial Impact
+- **Monthly Revenue Leak**: $${monthlyLost.toLocaleString()} / month
+- **Annual Estimated Revenue Leak**: **$${annualLost.toLocaleString()} / year**
+
+## Recommended Next Step
+Book a $297 Revenue Diagnostic to identify exact response bottlenecks and configure an automated SMS/voice dispatch system.
+https://melanatedintech.com/diagnostic
+`;
+
+  const blob = new Blob([md], { type: "text/markdown;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `revenue-leakage-audit-${new Date().toISOString().slice(0, 10)}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

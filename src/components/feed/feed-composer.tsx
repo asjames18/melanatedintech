@@ -185,10 +185,10 @@ export function FeedComposer({
 
   if (viewerId === null) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
-        <p className="text-sm font-medium text-muted-foreground">
-          <a href="/auth" className="text-primary hover:underline font-semibold">Sign in</a>{" "}
-          to post to the community
+      <div className="rounded-xl border border-dashed border-border bg-card px-4 py-4 text-left sm:rounded-2xl sm:p-6 sm:text-center">
+        <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+          <a href="/auth" className="font-semibold text-primary hover:underline">Sign in</a>{" "}
+          to share a build, ask a question, or connect with the community.
         </p>
       </div>
     );

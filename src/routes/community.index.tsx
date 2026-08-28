@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, Bot, HelpCircle, Home, Images, Rss, Sparkles, Users, Zap } from "lucide-react";
+import { Bell, Bot, Sparkles, Users, Zap } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -56,13 +56,8 @@ export const Route = createFileRoute("/community/")({
   component: Community,
 });
 
-const MOBILE_NAV = [
-  { label: "Feed", tab: "for-you" as FeedTab, Icon: Home },
-  { label: "Latest", tab: "latest" as FeedTab, Icon: Rss },
-  { label: "Agents", tab: "ai-agents" as FeedTab, Icon: Bot },
-  { label: "Q&A", tab: "questions" as FeedTab, Icon: HelpCircle },
-  { label: "Show", tab: "showcase" as FeedTab, Icon: Images },
-];
+const MOBILE_PRIMARY_TABS: FeedTab[] = ["for-you", "latest", "ai-agents"];
+const MOBILE_MORE_TABS: FeedTab[] = ["following", "questions", "showcase"];
 
 function Community() {
   const { tag } = Route.useSearch();
@@ -81,13 +76,13 @@ function Community() {
 
           <div className="min-w-0 space-y-4">
             <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-              <div className="bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_32%)] p-4 sm:p-6">
+              <div className="bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.18),transparent_34%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_32%)] p-3.5 sm:p-6">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="inline-flex items-center gap-1.5 rounded-full bg-background/80 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary ring-1 ring-border sm:px-3 sm:py-1 sm:text-[11px]">
                       <Sparkles className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> AI Builder Network
                     </p>
-                    <h1 className="mt-1.5 font-display text-2xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl">Community</h1>
+                    <h1 className="mt-1 font-display text-2xl font-bold tracking-tight text-foreground sm:mt-3 sm:text-4xl">Community</h1>
                     <p className="mt-1 hidden text-xs leading-relaxed text-muted-foreground sm:block sm:text-sm">
                       Share builds, showcase agents, ask for help, find collaborators, and follow people building with AI.
                     </p>
@@ -153,10 +148,14 @@ function Community() {
               </div>
             )}
 
+            <div className="sm:hidden">
+              <MobileFeedNavigation tab={tab} onChange={setTab} signedIn={!!me} />
+            </div>
+
             <FeedComposer viewerId={me ?? null} initialTag={tag} />
 
-            <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)} className="w-full">
-              <TabsList className="flex w-full overflow-x-auto no-scrollbar gap-1 rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xs">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as FeedTab)} className="hidden w-full sm:block">
+              <TabsList className="flex w-full gap-1 overflow-x-auto rounded-2xl border border-border/80 bg-card p-1.5 shadow-2xs no-scrollbar">
                 {FEED_TABS.map((t) => (
                   <TabsTrigger
                     key={t}
@@ -179,6 +178,55 @@ function Community() {
         </div>
       </section>
     </SiteLayout>
+  );
+}
+
+function MobileFeedNavigation({
+  tab,
+  onChange,
+  signedIn,
+}: {
+  tab: FeedTab;
+  onChange: (tab: FeedTab) => void;
+  signedIn: boolean;
+}) {
+  const mobileMoreValue = MOBILE_MORE_TABS.includes(tab) ? tab : "";
+
+  return (
+    <section aria-label="Community feed filters" className="rounded-xl border border-border/80 bg-card p-1.5 shadow-2xs">
+      <div className="flex items-center gap-2">
+        <div className="grid min-w-0 flex-1 grid-cols-3 gap-1">
+          {MOBILE_PRIMARY_TABS.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onChange(item)}
+              className={`min-h-10 min-w-0 truncate rounded-lg px-1 text-[11px] font-bold ${
+                tab === item ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {FEED_TAB_LABELS[item]}
+            </button>
+          ))}
+        </div>
+        <label className="shrink-0">
+          <span className="sr-only">More community feed views</span>
+          <select
+            value={mobileMoreValue}
+            onChange={(event) => onChange(event.target.value as FeedTab)}
+            className="h-10 w-[5.25rem] rounded-lg border border-border bg-background px-1.5 text-[11px] font-bold text-foreground"
+            aria-label="More community feed views"
+          >
+            <option value="">More</option>
+            {MOBILE_MORE_TABS.map((item) => (
+              <option key={item} value={item} disabled={item === "following" && !signedIn}>
+                {FEED_TAB_LABELS[item]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </section>
   );
 }
 

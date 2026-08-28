@@ -54,6 +54,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link to="/roadmap" className="hover:text-foreground">
+                  Roadmap
+                </Link>
+              </li>
+              <li>
                 <Link to="/contact" className="hover:text-foreground">
                   Contact
                 </Link>

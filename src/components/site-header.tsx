@@ -44,6 +44,7 @@ const directLinks = [
   ["Work With Us", "/work-with-us"],
   ["Marketplace", "/agents"],
   ["Open Commons", "/open-commons"],
+  ["Roadmap", "/roadmap"],
   ["About", "/about"],
 ] as const;
 

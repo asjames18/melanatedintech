@@ -207,6 +207,29 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                 Time Window:
               </span>
             </div>
+
+            <div className="flex items-center gap-1 rounded-xl border border-slate-800 bg-slate-950 p-1">
+              {[
+                { label: "24h", value: 1 },
+                { label: "7d", value: 7 },
+                { label: "30d", value: 30 },
+                { label: "90d", value: 90 },
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setDays(item.value)}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                    days === item.value
+                      ? "bg-violet-600 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white hover:bg-slate-900"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
             <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
               <SelectTrigger className="w-36 rounded-xl border-slate-700 bg-slate-950 text-slate-200 focus:ring-violet-500">
                 <SelectValue />
@@ -407,6 +430,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Visited /diagnostic page"
                   count={data?.funnel.diagnosticViews ?? 0}
                   color="sky"
+                  conversionRate="100%"
                 />
                 <FunnelStep
                   stepNumber={2}
@@ -414,6 +438,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Ran lead score & DNS check"
                   count={data?.funnel.leadsQualified ?? 0}
                   color="emerald"
+                  conversionRate={`${Math.round(((data?.funnel.leadsQualified ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
                 />
                 <FunnelStep
                   stepNumber={3}
@@ -421,6 +446,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Submitted build request"
                   count={data?.funnel.demosRequested ?? 0}
                   color="violet"
+                  conversionRate={`${Math.round(((data?.funnel.demosRequested ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
                 />
                 <FunnelStep
                   stepNumber={4}
@@ -428,6 +454,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Completed checkout"
                   count={data?.funnel.purchasesCompleted ?? 0}
                   color="emerald"
+                  conversionRate={`${Math.round(((data?.funnel.purchasesCompleted ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
                   highlight
                 />
               </div>
@@ -1114,6 +1141,7 @@ function FunnelStep({
   count,
   color,
   highlight,
+  conversionRate,
 }: {
   stepNumber: number;
   title: string;
@@ -1121,6 +1149,7 @@ function FunnelStep({
   count: number;
   color: "sky" | "emerald" | "violet";
   highlight?: boolean;
+  conversionRate?: string;
 }) {
   const colorMap = {
     sky: "bg-sky-500/10 border-sky-500/30 text-sky-400",
@@ -1140,7 +1169,12 @@ function FunnelStep({
         <div className={`h-7 w-7 rounded-lg border grid place-items-center font-bold text-xs ${colorMap[color]}`}>
           {stepNumber}
         </div>
-        <span className="font-mono text-lg font-bold text-white">{count}</span>
+        <div className="text-right">
+          <span className="font-mono text-lg font-bold text-white">{count}</span>
+          {conversionRate && (
+            <span className="block text-[10px] font-bold text-emerald-400">{conversionRate} rate</span>
+          )}
+        </div>
       </div>
       <div className="text-xs font-bold text-white">{title}</div>
       <div className="text-[11px] text-slate-400 mt-0.5">{subtext}</div>

@@ -27,11 +27,11 @@ export const REACTION_KINDS = ["like", "love", "celebrate", "insight", "funny"] 
 export type ReactionKind = (typeof REACTION_KINDS)[number];
 
 export const REACTION_META: Record<ReactionKind, { label: string; emoji: string }> = {
-  like: { label: "Like", emoji: "Like" },
-  love: { label: "Love", emoji: "Love" },
-  celebrate: { label: "Celebrate", emoji: "Celebrate" },
-  insight: { label: "Insight", emoji: "Insight" },
-  funny: { label: "Funny", emoji: "Funny" },
+  like: { label: "Like", emoji: "👍" },
+  love: { label: "Love", emoji: "❤️" },
+  celebrate: { label: "Celebrate", emoji: "🎉" },
+  insight: { label: "Insight", emoji: "💡" },
+  funny: { label: "Funny", emoji: "😄" },
 };
 
 /** Feed tabs available on /community. */

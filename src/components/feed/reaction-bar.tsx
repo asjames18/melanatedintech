@@ -74,25 +74,29 @@ export function ReactionBar({ counts, mine, onToggle, disabled, size = "sm", com
           )}
         </button>
       </PopoverTrigger>
-      <PopoverContent align="start" collisionPadding={8} className="w-auto p-1.5">
-        <div className="flex items-center gap-0.5">
+      <PopoverContent align="start" collisionPadding={8} className="w-auto rounded-2xl border border-border/80 bg-card/95 p-1.5 shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-1">
           {REACTION_KINDS.map((k) => {
             const has = mine.includes(k);
+            const meta = REACTION_META[k];
             return (
               <button
                 key={k}
                 type="button"
-                title={REACTION_META[k].label}
+                title={meta.label}
                 onClick={async () => {
                   await onToggle(k);
                   setOpen(false);
                 }}
                 className={cn(
-                  "grid h-9 w-9 place-items-center rounded-full text-lg transition-transform hover:scale-110",
-                  has && "bg-primary/10 ring-1 ring-primary/30",
+                  "group relative grid h-10 w-10 place-items-center rounded-xl text-xl transition-all duration-200 hover:scale-125 hover:bg-muted active:scale-95",
+                  has && "bg-primary/10 ring-1 ring-primary/40",
                 )}
               >
-                {REACTION_META[k].emoji}
+                <span className="select-none">{meta.emoji}</span>
+                <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-0.5 text-[10px] font-semibold text-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100 whitespace-nowrap">
+                  {meta.label}
+                </span>
               </button>
             );
           })}

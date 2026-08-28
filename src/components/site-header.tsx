@@ -31,19 +31,19 @@ const groups = [
     ],
   },
   {
-    label: "Learn",
+    label: "Resources",
     items: [
       ["Knowledge Hub", "/knowledge"],
       ["Learning Paths", "/paths"],
-      ["AI Tools", "/tools"],
+      ["AI Tools Workbench", "/tools"],
       ["Starter Packs", "/starter-packs"],
+      ["Open Commons", "/open-commons"],
     ],
   },
 ] as const;
 
 const directLinks = [
   ["Marketplace", "/agents"],
-  ["Open Commons", "/open-commons"],
   ["Roadmap", "/roadmap"],
   ["About", "/about"],
 ] as const;

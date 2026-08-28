@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
+import { ToolEmailCaptureModal } from "@/components/tool-email-capture-modal";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Download,
+  Mail,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/revenue-leak-calculator")({
@@ -46,6 +48,7 @@ export function RevenueLeakCalculator() {
   const [avgJobValue, setAvgJobValue] = useState(1200);
   const [missedCallRatePct, setMissedCallRatePct] = useState(25);
   const [slowFollowupPct, setSlowFollowupPct] = useState(30);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   // Calculations
   const monthlyMissedCalls = Math.round((monthlyInquiries * missedCallRatePct) / 100);
@@ -193,15 +196,34 @@ export function RevenueLeakCalculator() {
                   Book $297 Revenue Leak Diagnostic <ArrowRight className="h-4 w-4" />
                 </Link>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadRevenueLeakReport(monthlyInquiries, avgJobValue, totalLeakingLeadsMonthly, recoverableConversionsMonthly, monthlyLostRevenue, annualLostRevenue)}
-                  className="mt-2.5 w-full rounded-xl border-border/80 bg-card text-xs font-semibold gap-1.5 hover:bg-muted"
-                >
-                  <Download className="h-3.5 w-3.5" /> Download Revenue Audit (.md)
-                </Button>
+                <div className="mt-2.5 grid grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadRevenueLeakReport(monthlyInquiries, avgJobValue, totalLeakingLeadsMonthly, recoverableConversionsMonthly, monthlyLostRevenue, annualLostRevenue)}
+                    className="rounded-xl border-border/80 bg-card text-[11px] font-semibold gap-1 hover:bg-muted"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Download (.md)
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEmailModalOpen(true)}
+                    className="rounded-xl border-primary/30 bg-primary/10 text-primary text-[11px] font-semibold gap-1 hover:bg-primary/20"
+                  >
+                    <Mail className="h-3.5 w-3.5" /> Email Me Report
+                  </Button>
+                </div>
+
+                <ToolEmailCaptureModal
+                  open={emailModalOpen}
+                  onOpenChange={setEmailModalOpen}
+                  toolName="Revenue Leak Audit"
+                  summaryText={`Estimated annual revenue leak of $${annualLostRevenue.toLocaleString()}/year (${recoverableConversionsMonthly} recoverable jobs/mo).`}
+                />
               </div>
             </div>
           </div>

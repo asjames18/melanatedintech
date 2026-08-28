@@ -17,6 +17,7 @@ import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -158,6 +159,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProofRoute = ProofRouteImport.update({
@@ -714,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -819,6 +826,7 @@ export interface FileRoutesByTo {
   '/open-commons': typeof OpenCommonsRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
+  '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -930,6 +938,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -1043,6 +1052,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/roadmap'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1148,6 +1158,7 @@ export interface FileRouteTypes {
     | '/open-commons'
     | '/privacy'
     | '/proof'
+    | '/roadmap'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1258,6 +1269,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/roadmap'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1371,6 +1383,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
+  RoadmapRoute: typeof RoadmapRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StartSmallRoute: typeof StartSmallRoute
@@ -1484,6 +1497,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/proof': {
@@ -2395,6 +2415,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
+  RoadmapRoute: RoadmapRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StartSmallRoute: StartSmallRoute,

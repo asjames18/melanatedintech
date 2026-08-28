@@ -100,7 +100,7 @@ export function FeedComposer({
   focusRequest,
   onFocusRequestHandled,
 }: {
-  viewerId: string | null;
+  viewerId: string | null | undefined;
   initialTag?: string;
   focusRequest?: PostType | null;
   onFocusRequestHandled?: () => void;
@@ -134,7 +134,7 @@ export function FeedComposer({
   }
 
   useEffect(() => {
-    if (!focusRequest || viewerId === null) return;
+    if (!focusRequest || typeof viewerId !== "string") return;
     switchPostType(focusRequest);
     const frame = window.requestAnimationFrame(() => {
       composerInput.current?.scrollIntoView({ block: "center" });
@@ -198,6 +198,8 @@ export function FeedComposer({
       return m.filter((_, i) => i !== idx);
     });
   }
+
+  if (viewerId === undefined) return <ComposerSkeleton />;
 
   if (viewerId === null) {
     return (
@@ -355,3 +357,17 @@ export function FeedComposer({
   );
 }
 
+
+function ComposerSkeleton() {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4" aria-busy="true" aria-label="Loading Community composer">
+      <div className="flex gap-3">
+        <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+          <div className="h-8 w-full animate-pulse rounded bg-muted" />
+        </div>
+      </div>
+    </div>
+  );
+}

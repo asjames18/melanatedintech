@@ -11,7 +11,7 @@ import type { FeedTab, ReactionKind } from "@/lib/community";
 import type { PostType } from "./feed-composer";
 
 type Props = {
-  viewerId: string | null;
+  viewerId: string | null | undefined;
   isAdmin?: boolean;
   tab?: FeedTab;
   tag?: string;
@@ -113,7 +113,7 @@ export function FeedList({
             <li key={p.id}>
               <PostCard
                 post={p}
-                viewerId={viewerId}
+                viewerId={viewerId ?? null}
                 isAdmin={isAdmin}
                 onToggleReaction={onToggleReaction}
                 onDelete={onDelete}
@@ -144,7 +144,7 @@ function EmptyFeedState({
   onBrowseLatest,
 }: {
   tab: FeedTab;
-  viewerId: string | null;
+  viewerId: string | null | undefined;
   onStartPost?: (postType: PostType) => void;
   onBrowseLatest?: () => void;
 }) {
@@ -165,7 +165,9 @@ function EmptyFeedState({
     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center sm:p-12">
       <p className="font-display text-lg font-semibold">No posts yet</p>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      {viewerId === null ? (
+      {viewerId === undefined ? (
+        <p className="mt-4 text-xs font-medium text-muted-foreground" role="status">Loading participation options...</p>
+      ) : viewerId === null ? (
         <Button asChild size="sm" className="mt-4 rounded-xl">
           <Link to="/auth">Sign in to participate</Link>
         </Button>

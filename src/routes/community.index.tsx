@@ -61,7 +61,7 @@ const MOBILE_MORE_TABS: FeedTab[] = ["following", "questions", "showcase"];
 
 function Community() {
   const { tag } = Route.useSearch();
-  const [me, setMe] = useState<string | null>(null);
+  const [me, setMe] = useState<string | null | undefined>(undefined);
   const [tab, setTab] = useState<FeedTab>("for-you");
   const [composerIntent, setComposerIntent] = useState<PostType | null>(null);
 
@@ -73,7 +73,7 @@ function Community() {
     <SiteLayout>
       <section className="mx-auto max-w-7xl px-3 pb-20 pt-4 sm:px-6 sm:py-6 lg:px-8">
         <div className="grid gap-6 md:grid-cols-[200px_1fr] lg:grid-cols-[240px_1fr_280px]">
-          <LeftSidebar />
+          <LeftSidebar viewerId={me ?? null} authResolved={me !== undefined} />
 
           <div className="min-w-0 space-y-4">
             <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
@@ -150,11 +150,11 @@ function Community() {
             )}
 
             <div className="sm:hidden">
-              <MobileFeedNavigation tab={tab} onChange={setTab} signedIn={!!me} />
+              <MobileFeedNavigation tab={tab} onChange={setTab} signedIn={!!me} authResolved={me !== undefined} />
             </div>
 
             <FeedComposer
-              viewerId={me ?? null}
+              viewerId={me}
               initialTag={tag}
               focusRequest={composerIntent}
               onFocusRequestHandled={() => setComposerIntent(null)}
@@ -176,7 +176,7 @@ function Community() {
             </Tabs>
 
             <FeedController
-              viewerId={me ?? null}
+              viewerId={me}
               tab={tab}
               tag={tag}
               onStartPost={setComposerIntent}
@@ -197,10 +197,12 @@ function MobileFeedNavigation({
   tab,
   onChange,
   signedIn,
+  authResolved,
 }: {
   tab: FeedTab;
   onChange: (tab: FeedTab) => void;
   signedIn: boolean;
+  authResolved: boolean;
 }) {
   const mobileMoreValue = MOBILE_MORE_TABS.includes(tab) ? tab : "";
 
@@ -231,7 +233,7 @@ function MobileFeedNavigation({
           >
             <option value="">More</option>
             {MOBILE_MORE_TABS.map((item) => (
-              <option key={item} value={item} disabled={item === "following" && !signedIn}>
+              <option key={item} value={item} disabled={item === "following" && (!authResolved || !signedIn)}>
                 {FEED_TAB_LABELS[item]}
               </option>
             ))}
@@ -242,7 +244,7 @@ function MobileFeedNavigation({
   );
 }
 
-function NotificationButton({ viewerId }: { viewerId: string | null }) {
+function NotificationButton({ viewerId }: { viewerId: string | null | undefined }) {
   const list = useServerFn(listNotifications);
   const markRead = useServerFn(markNotificationsRead);
   const qc = useQueryClient();
@@ -258,7 +260,11 @@ function NotificationButton({ viewerId }: { viewerId: string | null }) {
   });
   const unread = (q.data ?? []).filter((n) => !n.read_at).length;
 
-  if (!viewerId) {
+  if (viewerId === undefined) {
+    return <span className="inline-flex h-10 w-10 animate-pulse rounded-xl border border-border bg-muted/60" role="status" aria-label="Loading notifications" />;
+  }
+
+  if (viewerId === null) {
     return (
       <Button asChild variant="outline" size="sm" className="rounded-xl">
         <Link to="/auth">Sign in</Link>
@@ -307,7 +313,7 @@ function FeedController({
   onStartPost,
   onBrowseLatest,
 }: {
-  viewerId: string | null;
+  viewerId: string | null | undefined;
   tab: FeedTab;
   tag?: string;
   onStartPost: (postType: PostType) => void;

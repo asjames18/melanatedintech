@@ -1,11 +1,11 @@
-﻿import { Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getPublicProfile } from "@/lib/community.functions";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Compass, BookOpen, Trophy, Sparkles, MessageSquare, Bot, UserPlus } from "lucide-react";
+import { Compass, BookOpen, Trophy, Sparkles, MessageSquare, Bot, UserPlus, UsersRound } from "lucide-react";
 
 export function LeftSidebar({
   viewerId = null,
@@ -94,6 +94,7 @@ export function LeftSidebar({
         <nav className="space-y-1">
           {[
             { label: "Community Feed", to: "/community", Icon: MessageSquare },
+            { label: "Open Commons", to: "/open-commons", Icon: UsersRound },
             { label: "AI Agent Market", to: "/agents", Icon: Sparkles },
             { label: "Learning Paths", to: "/paths", Icon: Compass },
             { label: "Knowledge Hub", to: "/knowledge", Icon: BookOpen },

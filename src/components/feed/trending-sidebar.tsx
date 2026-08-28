@@ -1,7 +1,7 @@
-﻿import { Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Flame, Zap, Users, ArrowRight, Trophy } from "lucide-react";
+import { Flame, Zap, Users, ArrowRight, Trophy, UsersRound } from "lucide-react";
 import { listTrending, listSuggestedBuilders } from "@/lib/community.functions";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { listBuilderChallenges } from "@/lib/retention.functions";
@@ -55,6 +55,21 @@ export function TrendingSidebar() {
         </div>
       )}
 
+      {/* Open Commons Showcase Card */}
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-4 shadow-2xs">
+        <div className="mb-2 flex items-center gap-2">
+          <UsersRound className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Open Commons</span>
+        </div>
+        <h3 className="font-display text-sm font-semibold leading-snug text-foreground">Community-Built Infrastructure</h3>
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Collaborate on open policy contracts, test fixtures, and assurance tools.</p>
+        <Button asChild size="sm" className="mt-3 w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-xs">
+          <Link to="/open-commons">
+            Explore Commons <ArrowRight className="ml-1 h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      </div>
+
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="mb-4 flex items-center gap-2">
           <Users className="h-4 w-4 text-primary" />
@@ -106,6 +121,7 @@ export function TrendingSidebar() {
         </div>
         <nav className="space-y-1">
           {[
+            { label: "Open Commons", to: "/open-commons" },
             { label: "AI Agent Market", to: "/agents" },
             { label: "Builder Challenges", to: "/challenges" },
             { label: "Prompt Library", to: "/prompts" },

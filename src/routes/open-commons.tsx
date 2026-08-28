@@ -6,6 +6,7 @@ import {
   GitPullRequest,
   Github,
   HandHeart,
+  MessageSquare,
   ShieldCheck,
   UsersRound,
   Workflow,
@@ -33,6 +34,14 @@ const contributionPaths = [
       "Help us identify where a small business, nonprofit, or community team needs a clearer AI boundary, approval step, or handoff.",
     action: "Share a use case",
     to: "/contact" as const,
+  },
+  {
+    icon: MessageSquare,
+    title: "Discuss in the Community Network",
+    description:
+      "Join the AI builder network to discuss open-source tools, share usage notes, and debate policy and safety standards.",
+    action: "Join the conversation",
+    to: "/community" as const,
   },
   {
     icon: Braces,
@@ -74,6 +83,12 @@ function OpenCommons() {
             >
               Explore practical tools <ArrowRight className="h-4 w-4" />
             </Link>
+            <Link
+              to="/community"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
+            >
+              <MessageSquare className="h-4 w-4 text-primary" /> Community Feed
+            </Link>
             <a
               href="https://github.com/asjames18/agent-tool-assurance"
               target="_blank"
@@ -82,12 +97,6 @@ function OpenCommons() {
             >
               <Github className="h-4 w-4" /> View the public kit
             </a>
-            <Link
-              to="/governance"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
-            >
-              How we govern the work
-            </Link>
           </div>
         }
       />
@@ -98,52 +107,36 @@ function OpenCommons() {
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
               A community commons, not a content feed
             </p>
-            <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
-              Real work. Real influence. Real credit.
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              We publish working tools, not just opinions about AI.
             </h2>
-            <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-              Open source gives people a path from learning about AI to improving the shared tools and
-              rules that shape how it is used. The goal is not to build a social feed. It is to make
-              participation practical: ask a useful question, improve an example, test a boundary,
-              document a lesson, or contribute code when you are ready.
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Most small teams do not need another viral demo. They need predictable boundaries, safe defaults, clear handoffs, and tool specifications that do not fail when an edge case appears.
             </p>
-            <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-              Melanated In Tech will remain accountable for scope, security, and release quality. As
-              trusted contributions grow, the project can share more stewardship in public and on
-              purpose.
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              The Open Commons collects patterns from live client and community systems, packages them into reusable assets, and opens them for review, criticism, and contribution.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-primary/25 bg-card p-7 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-display text-lg font-semibold">The first shared project</p>
-                <p className="text-sm text-muted-foreground">Agent Tool Assurance Kit</p>
-              </div>
+          <div className="rounded-3xl border border-border bg-card p-7 shadow-xs">
+            <div className="flex items-center gap-2.5 text-primary">
+              <ShieldCheck className="h-5 w-5" />
+              <h3 className="font-display text-lg font-bold">The Commons Principles</h3>
             </div>
-            <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
-              A small open toolkit for declaring what an AI tool is allowed to do, testing what it
-              must refuse, and producing portable evidence before deployment.
-            </p>
-            <div className="mt-5 rounded-2xl border border-border bg-muted/30 p-4 text-sm">
-              <p className="font-semibold">Version 0.1 is intentionally narrow.</p>
-              <p className="mt-1 text-muted-foreground">
-                It will begin with readable policy contracts, a lightweight verifier, synthetic
-                examples, and contribution materials. It will not host customer data or execute real
-                payments.
-              </p>
-              <a
-                href="https://github.com/asjames18/agent-tool-assurance"
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-              >
-                Explore the source and contribution guide <ArrowRight className="h-4 w-4" />
-              </a>
-            </div>
+            <ul className="mt-5 space-y-4 text-sm leading-relaxed text-muted-foreground">
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span><strong>Boundaries first:</strong> Every agent system must declare what it cannot do alone.</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span><strong>Open learning:</strong> Real failure modes are documented so teams avoid repeat mistakes.</span>
+              </li>
+              <li className="flex gap-3">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <span><strong>Human governance:</strong> Operational oversight stays with accountable professionals.</span>
+              </li>
+            </ul>
           </div>
         </div>
       </section>
@@ -156,20 +149,22 @@ function OpenCommons() {
               You do not have to be a senior engineer to help build the commons.
             </h2>
           </div>
-          <div className="mt-9 grid gap-5 lg:grid-cols-3">
+          <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {contributionPaths.map(({ icon: Icon, title, description, action, to }) => (
               <Link
                 key={title}
                 to={to}
-                className="group rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/45 hover:shadow-sm"
+                className="group flex flex-col justify-between rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/45 hover:shadow-sm"
               >
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <Icon className="h-5 w-5" />
+                <div>
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-5 font-display text-lg font-semibold">{title}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{description}</p>
                 </div>
-                <h3 className="mt-5 font-display text-xl font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
-                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                  {action} <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                <span className="mt-5 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+                  {action} <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
             ))}
@@ -216,15 +211,23 @@ function OpenCommons() {
                 </h2>
                 <p className="mt-3 text-background/70">
                   Share a workflow where the right boundary, approval, or human handoff would make AI
-                  more useful. The best public tools start with real needs and clear limits.
+                  more useful. Join the community network to collaborate with other builders.
                 </p>
               </div>
-              <Link
-                to="/contact"
-                className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground hover:bg-background/90"
-              >
-                Share a use case <HandHeart className="h-4 w-4" />
-              </Link>
+              <div className="flex flex-wrap gap-3 shrink-0">
+                <Link
+                  to="/community"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
+                  Join Community Discussion <MessageSquare className="h-4 w-4" />
+                </Link>
+                <Link
+                  to="/contact"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground hover:bg-background/90"
+                >
+                  Share a use case <HandHeart className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

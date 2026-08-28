@@ -16,10 +16,10 @@ const PATHS = [
     body: "Blueprints, prompt libraries, and SOPs you can lift and adapt today.",
   },
   {
-    to: "/strategy-sprint" as const,
+    to: "/work-with-us" as const,
     Icon: Wrench,
-    title: "Get it built with you",
-    body: "The two-week Agent Strategy Sprint turns your idea into a working plan.",
+    title: "Get focused help",
+    body: "Choose practical AI training, a workflow diagnostic, a focused website launch, or a scoped custom build.",
   },
 ];
 

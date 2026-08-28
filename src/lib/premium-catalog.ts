@@ -11,6 +11,21 @@ export type PremiumKind = "agent" | "product";
 export interface PremiumEntry {
   priceId: string;
   amountCents: number;
+  /**
+   * Where the buyer goes after paying. Omitted for ordinary packs, which are
+   * delivered from their own `products`/`agents` row via getProductFulfillment.
+   *
+   * Set it for items whose deliverable is human work rather than a file — those
+   * have no catalog row to read `unlock_content` from, so the generic
+   * fulfillment path would hand back an empty box. The entitlement is still
+   * written; it is the record of purchase, not the delivery mechanism.
+   */
+  fulfillmentRoute?: string;
+}
+
+/** True when the item is delivered by a booking/service flow, not a file download. */
+export function isServiceEntry(entry: PremiumEntry | null | undefined): boolean {
+  return Boolean(entry?.fulfillmentRoute);
 }
 
 export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> = {
@@ -37,31 +52,18 @@ export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> 
     "revenue-leak-diagnostic": {
       priceId: "product_revenue_leak_diagnostic_297",
       amountCents: 29700,
+      // Delivered as a booked 45-minute session, not a download. Deliberately has
+      // no `products` row, so /products/revenue-leak-diagnostic 404s by design.
+      fulfillmentRoute: "/diagnostic/success",
     },
-    "agent-failover-redundancy-blueprint": {
-      priceId: "product_agent_failover_blueprint_onetime",
-      amountCents: 3900,
-    },
-    "revenue-recovery-starter-kit": {
-      priceId: "product_revenue_recovery_kit_onetime",
-      amountCents: 4900,
-    },
-    "field-service-automation-pack": {
-      priceId: "product_field_service_pack_onetime",
-      amountCents: 4900,
-    },
-    "agent-skill-pack-core": {
-      priceId: "product_agent_skill_pack_core_onetime",
-      amountCents: 4900,
-    },
-    "workflow-templates-ops": {
-      priceId: "product_workflow_templates_ops_onetime",
-      amountCents: 3900,
-    },
-    "prompt-library-pro": {
-      priceId: "product_prompt_library_pro_onetime",
-      amountCents: 3900,
-    },
+    // Every product pack is now free and claimed with an account rather than
+    // bought — see 20260825133000_free_pack_library.sql. The four that used to be
+    // listed here (agent-failover-redundancy-blueprint, agent-skill-pack-core,
+    // workflow-templates-ops, prompt-library-pro) are removed: a static catalog
+    // entry is by itself enough to make an item purchasable, so leaving them
+    // would keep a checkout alive for something the library gives away.
+    //
+    // The diagnostic above is the only paid product, and it is a service.
   },
 };
 
@@ -89,9 +91,13 @@ export async function resolvePremiumEntry(
   const table = kind === "agent" ? "agents" : "products";
   const { data } = await sb
     .from(table)
-    .select("price_cents")
+    .select("price_cents, tier")
     .eq("slug", slug)
     .eq("active", true)
+    // Free-tier items keep a price_cents anchor value for display ("normally
+    // $49"), so price alone is not permission to sell. Without this guard the
+    // fallback below would happily bill for a pack the library gives away.
+    .neq("tier", "free")
     .not("price_cents", "is", null)
     .maybeSingle();
 

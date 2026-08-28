@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ImagePlus, Loader2, X, Wrench, HelpCircle, BookOpen, Bot, Users } from "lucide-react";
@@ -33,7 +33,7 @@ const ACCEPTED = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 type PendingMedia = { path: string; preview: string; status: "uploading" | "done" | "error" };
 
-type PostType = "build" | "question" | "agent" | "resource" | "collab";
+export type PostType = "build" | "question" | "agent" | "resource" | "collab";
 
 const POST_TYPE_CONFIG: Record<PostType, { label: string; icon: React.ReactNode; placeholder: string; category: CommunityCategory }> = {
   build: {
@@ -97,14 +97,19 @@ function CharRing({ value, max }: { value: number; max: number }) {
 export function FeedComposer({
   viewerId,
   initialTag,
+  focusRequest,
+  onFocusRequestHandled,
 }: {
-  viewerId: string | null;
+  viewerId: string | null | undefined;
   initialTag?: string;
+  focusRequest?: PostType | null;
+  onFocusRequestHandled?: () => void;
 }) {
   const qc = useQueryClient();
   const create = useServerFn(createPost);
   const getProfileFn = useServerFn(getPublicProfile);
   const fileInput = useRef<HTMLInputElement>(null);
+  const composerInput = useRef<HTMLTextAreaElement>(null);
 
   const [postType, setPostType] = useState<PostType>("build");
   const [body, setBody] = useState(initialTag ? `Result for #${initialTag}:\n\n` : "");
@@ -127,6 +132,17 @@ export function FeedComposer({
     setPostType(pt);
     setCategory(POST_TYPE_CONFIG[pt].category);
   }
+
+  useEffect(() => {
+    if (!focusRequest || typeof viewerId !== "string") return;
+    switchPostType(focusRequest);
+    const frame = window.requestAnimationFrame(() => {
+      composerInput.current?.scrollIntoView({ block: "center" });
+      composerInput.current?.focus();
+      onFocusRequestHandled?.();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusRequest, onFocusRequestHandled, viewerId]);
 
   const createMut = useMutation({
     mutationFn: async () => {
@@ -183,13 +199,18 @@ export function FeedComposer({
     });
   }
 
+  if (viewerId === undefined) return <ComposerSkeleton />;
+
   if (viewerId === null) {
     return (
-      <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
-        <p className="text-sm font-medium text-muted-foreground">
-          <a href="/auth" className="text-primary hover:underline font-semibold">Sign in</a>{" "}
-          to post to the community
+      <div className="rounded-xl border border-dashed border-border bg-card px-4 py-4 text-left sm:rounded-2xl sm:p-6 sm:text-center">
+        <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+          <a href="/auth" className="font-semibold text-primary hover:underline">Sign in</a>{" "}
+          to share a build, ask a question, or connect with the community.
         </p>
+        <a href="/community-guidelines" className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline">
+          Read Community Guidelines
+        </a>
       </div>
     );
   }
@@ -252,6 +273,7 @@ export function FeedComposer({
 
           {/* Body */}
           <Textarea
+            ref={composerInput}
             rows={focused ? 4 : 2}
             maxLength={POST_BODY_MAX}
             value={body}
@@ -335,3 +357,17 @@ export function FeedComposer({
   );
 }
 
+
+function ComposerSkeleton() {
+  return (
+    <div className="rounded-2xl border border-border bg-card p-4" aria-busy="true" aria-label="Loading Community composer">
+      <div className="flex gap-3">
+        <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-muted" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 w-32 animate-pulse rounded bg-muted" />
+          <div className="h-8 w-full animate-pulse rounded bg-muted" />
+        </div>
+      </div>
+    </div>
+  );
+}

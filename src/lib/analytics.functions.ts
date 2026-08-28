@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 
 const ALLOWED_PUBLIC_EVENTS = new Set([
   "ab_tester_run",
@@ -21,10 +21,12 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "demo_started",
   "deposit_paid",
   "deposit_started",
+  "diagnostic_intake_submitted",
   "diagnostic_page_viewed",
   "eval_studio_run",
   "final_payment_started",
   "fit_finder_completed",
+  "free_pack_claimed",
   "fit_finder_recommendation_clicked",
   "fit_finder_started",
   "fit_finder_viewed",
@@ -48,7 +50,10 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "recommendation_impression",
   "recommendation_reason_click",
   "roi_calculator_share",
+  "service_inquiry_started",
+  "service_inquiry_submitted",
   "service_model_selected",
+  "service_offer_cta_clicked",
   "service_page_viewed",
   "sop_generator_action",
   "start_small_viewed",
@@ -65,6 +70,8 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "tool_cross_sell_clicked",
   "unlock_clicked",
   "waitlist_joined",
+  "website_launch_checklist_opted_in",
+  "work_with_us_viewed",
 ]);
 
 const SENSITIVE_PROP_KEYS = /(^|_)(email|phone|name|message|content|address)($|_)/i;
@@ -107,11 +114,12 @@ const recordEventsSchema = z.object({
  * RLS enforces caller can only attribute events to themselves.
  */
 export const recordEvents = createServerFn({ method: "POST" })
-  .validator((d: unknown) => recordEventsSchema.parse(d))
+  .inputValidator((d: unknown) => recordEventsSchema.parse(d))
   .handler(async ({ data }) => {
     // Dampen metric pollution: cap how fast one IP can pump events in.
     const { getRequest } = await import("@tanstack/react-start/server");
-    const { allowPersistentRequest, getClientIp } = await import("@/lib/request-guard.server");
+    const { allowPersistentRequest, getClientIp, getCallerUserId } =
+      await import("@/lib/request-guard.server");
     const headers = getRequest()?.headers;
     if (
       headers &&
@@ -120,22 +128,50 @@ export const recordEvents = createServerFn({ method: "POST" })
       return { ok: true, count: 0 }; // silently drop — never break the page over analytics
     }
 
-    const { createClient } = await import("@supabase/supabase-js");
-    const url = getSupabaseUrl()!;
-    const key = getSupabasePublishableKey()!;
-    const supabase = createClient(url, key, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
+    // Writes go through the service role so the event allowlist, the PII check,
+    // and the rate limit above are the ONLY way into this table. Inserting with
+    // the publishable key made all three optional: that key ships in the browser
+    // bundle, so anyone could POST arbitrary rows straight to PostgREST and skip
+    // every guard in this file.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Attribute to the signed-in caller when the request carries a valid token.
+    // Anonymous events stay anonymous rather than being rejected.
+    const request = getRequest();
+    const userId = request ? await getCallerUserId(request) : null;
+
     const rows = data.events.map((e) => ({
       name: e.name,
-      props: e.props ?? {},
+      // Validated by analyticsPropsSchema and parsed from the JSON request body,
+      // so it is Json-shaped; the zod type is just wider than the column type.
+      props: (e.props ?? {}) as Json,
       session_id: e.session_id ?? null,
-      occurred_at: e.occurred_at ?? new Date().toISOString(),
+      user_id: userId,
+      occurred_at: clampOccurredAt(e.occurred_at),
     }));
-    const { error } = await supabase.from("analytics_events").insert(rows);
+    const { error } = await supabaseAdmin.from("analytics_events").insert(rows);
     if (error) throw new Error(error.message);
     return { ok: true, count: rows.length };
   });
+
+/** How far back a client may date an event, covering offline buffering. */
+const MAX_EVENT_BACKDATE_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * The client buffers events in localStorage and flushes later, so its
+ * `occurred_at` carries real information and is worth keeping. It is still
+ * caller-supplied, though: clamp it into a sane window so a bad actor cannot
+ * back- or forward-date rows and distort every report built on this table.
+ */
+function clampOccurredAt(value: string | null | undefined): string {
+  const now = Date.now();
+  if (!value) return new Date(now).toISOString();
+
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return new Date(now).toISOString();
+
+  return new Date(Math.min(Math.max(parsed, now - MAX_EVENT_BACKDATE_MS), now)).toISOString();
+}
 
 // ---------- Admin reads ----------
 
@@ -163,7 +199,7 @@ type EventRow = {
 
 export const adminAnalyticsSummary = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => summarySchema.parse(d ?? {}))
+  .inputValidator((d: unknown) => summarySchema.parse(d ?? {}))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

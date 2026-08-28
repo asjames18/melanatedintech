@@ -24,7 +24,7 @@ export const listAgents = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const getAgent = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
@@ -62,7 +62,7 @@ export const listArticles = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getArticle = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const now = new Date().toISOString();
@@ -89,7 +89,7 @@ export const listProducts = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const getProduct = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();
@@ -110,13 +110,17 @@ export const getProduct = createServerFn({ method: "GET" })
     if (!row) return null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { unlock_content, asset_path, ...rest } = row as any;
-    // Free packs are public — return their content. Premium content stays gated
-    // and is only served by getProductFulfillment to a verified owner.
-    const isFree = rest.tier === "free";
+    // The full pack is never returned from this public endpoint. Claiming one
+    // requires an account (claimFreePack) so the library produces a named lead,
+    // and delivery is getProductFulfillment's job — it checks the entitlement.
+    // A public excerpt still ships, so the page has real content to index.
+    const { buildPackPreview } = await import("@/lib/pack-preview");
+    const { preview, truncated } = buildPackPreview(unlock_content);
     return {
       ...rest,
       has_fulfillment: !!unlock_content || !!asset_path,
-      unlock_content: isFree ? (unlock_content ?? null) : undefined,
+      unlock_preview: preview || null,
+      unlock_preview_truncated: truncated,
     };
   });
 
@@ -140,7 +144,7 @@ const waitlistSchema = z.object({
   hp: z.string().trim().max(200).optional(),
 });
 export const joinWaitlist = createServerFn({ method: "POST" })
-  .validator((d: unknown) => waitlistSchema.parse(d))
+  .inputValidator((d: unknown) => waitlistSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };
@@ -174,17 +178,264 @@ export const joinWaitlist = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+const websiteChecklistSchema = z.object({
+  email: z.string().trim().email().max(255),
+  consent: z.literal(true),
+  source: z.string().trim().max(80).optional(),
+  // Honeypot: real users never fill this hidden field; bots do.
+  hp: z.string().trim().max(200).optional(),
+});
+
+export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => websiteChecklistSchema.parse(d))
+  .handler(async ({ data }) => {
+    if (data.hp) return { ok: true };
+
+    const { getClientIpHash, tooManyRecent } = await import("@/lib/rate-limit.server");
+    const ipHash = await getClientIpHash();
+    if (ipHash && (await tooManyRecent("waitlist_signups", ipHash, 60, 10))) {
+      throw new Error("Too many signups from this network. Please try again later.");
+    }
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const normalizedEmail = data.email.toLowerCase();
+    const source = "website_launch_checklist";
+    const row = {
+      email: normalizedEmail,
+      source,
+      interest: "Website Launch Readiness Checklist",
+      ip_hash: ipHash,
+      marketing_consent: true,
+      marketing_consent_at: new Date().toISOString(),
+      marketing_consent_source: source,
+      marketing_consent_version: "v1",
+    };
+
+    const { data: signup, error } = await supabaseAdmin
+      .from("waitlist_signups")
+      .upsert(row, { onConflict: "email,source" })
+      .select("id")
+      .single();
+    if (error || !signup?.id) throw new Error("Could not save your checklist request. Please try again.");
+
+    const { data: suppression, error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .select("id")
+      .eq("email", normalizedEmail)
+      .maybeSingle();
+    if (suppressionError) throw new Error("Could not prepare your checklist request. Please try again.");
+    // Preserve a prior unsubscribe without disclosing it or sending any new email.
+    if (suppression) return { ok: true, confirmationRequired: false };
+
+    const {
+      buildWebsiteLaunchConfirmationPayload,
+      createWebsiteLaunchConfirmationToken,
+      enrollWebsiteLaunchNurture,
+    } = await import("@/lib/website-launch-nurture.server");
+    await enrollWebsiteLaunchNurture(signup.id);
+    const confirmationToken = await createWebsiteLaunchConfirmationToken(signup.id);
+    if (confirmationToken) {
+      const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: buildWebsiteLaunchConfirmationPayload({ email: normalizedEmail, confirmationToken }),
+      });
+      if (queueError) throw new Error("Could not prepare your confirmation email. Please try again.");
+    }
+
+    return { ok: true, confirmationRequired: Boolean(confirmationToken) };
+  });
+
+const websiteChecklistConfirmationSchema = z.object({ token: z.string().trim().min(24).max(120) });
+
+export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => websiteChecklistConfirmationSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const { data: tokenRow, error: tokenError } = await supabaseAdmin
+      .from("website_launch_confirmation_tokens")
+      .select("waitlist_signup_id,expires_at,confirmed_at,waitlist_signups!inner(email,marketing_consent,source)")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (tokenError || !tokenRow) throw new Error("This confirmation link is invalid or expired.");
+    if (!tokenRow.confirmed_at && (!tokenRow.expires_at || new Date(tokenRow.expires_at) <= now)) {
+      throw new Error("This confirmation link has expired. Please request the checklist again.");
+    }
+
+    const signup = tokenRow.waitlist_signups as unknown as {
+      email?: string;
+      marketing_consent?: boolean;
+      source?: string;
+    };
+    const email = signup?.email?.trim().toLowerCase();
+    if (!email || signup?.marketing_consent !== true || signup?.source !== "website_launch_checklist") {
+      throw new Error("This request is no longer eligible for confirmation.");
+    }
+
+    const { data: suppression, error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+    if (suppressionError) throw new Error("Could not confirm your request. Please try again.");
+    if (suppression) {
+      await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "suppressed", next_send_at: null, updated_at: nowIso })
+        .eq("waitlist_signup_id", tokenRow.waitlist_signup_id);
+      return { ok: true, suppressed: true };
+    }
+
+    const { buildWebsiteLaunchChecklistDeliveryPayload } = await import("@/lib/website-launch-nurture.server");
+    const checklistPayload = buildWebsiteLaunchChecklistDeliveryPayload({
+      email,
+      waitlistSignupId: tokenRow.waitlist_signup_id,
+    });
+    if (tokenRow.confirmed_at) {
+      const { error: replayQueueError } = await supabaseAdmin.rpc("enqueue_email", {
+        queue_name: "transactional_emails",
+        payload: checklistPayload,
+      });
+      if (replayQueueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
+      return { ok: true, alreadyConfirmed: true };
+    }
+
+    const { data: marked, error: markError } = await supabaseAdmin
+      .from("website_launch_confirmation_tokens")
+      .update({ confirmed_at: nowIso })
+      .eq("token", data.token)
+      .is("confirmed_at", null)
+      .select("waitlist_signup_id")
+      .maybeSingle();
+    if (markError || !marked) throw new Error("This confirmation link is invalid or has already been used.");
+
+    const followUpAt = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: enrollmentError } = await supabaseAdmin
+      .from("website_launch_nurture_enrollments")
+      .update({
+        status: "active",
+        current_step: 1,
+        next_send_at: followUpAt,
+        confirmed_at: nowIso,
+        lease_until: null,
+        last_error: null,
+        updated_at: nowIso,
+      })
+      .eq("waitlist_signup_id", tokenRow.waitlist_signup_id)
+      .eq("status", "pending_confirmation");
+    if (enrollmentError) throw new Error("Could not activate your checklist delivery. Please try again.");
+
+    const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: checklistPayload,
+    });
+    if (queueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
+
+    return { ok: true };
+  });
+
+const unsubscribeSchema = z.object({ token: z.string().trim().min(24).max(120) });
+
+export const unsubscribeFromMarketing = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => unsubscribeSchema.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: tokenRow, error: tokenError } = await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .select("email,used_at")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (tokenError || !tokenRow?.email) throw new Error("This unsubscribe link is invalid or expired.");
+
+    const email = tokenRow.email.toLowerCase();
+    const { error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .upsert(
+        { email, reason: "unsubscribe", metadata: { source: "website_launch_nurture" } },
+        { onConflict: "email", ignoreDuplicates: true },
+      );
+    if (suppressionError) throw new Error("Could not complete unsubscribe. Please try again.");
+
+    await supabaseAdmin
+      .from("email_unsubscribe_tokens")
+      .update({ used_at: new Date().toISOString() })
+      .eq("token", data.token)
+      .is("used_at", null);
+
+    const { data: signups } = await supabaseAdmin
+      .from("waitlist_signups")
+      .select("id")
+      .eq("email", email)
+      .limit(20);
+    const signupIds = (signups ?? []).map((signup) => signup.id);
+    if (signupIds.length) {
+      await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({
+          status: "unsubscribed",
+          unsubscribed_at: new Date().toISOString(),
+          next_send_at: null,
+          updated_at: new Date().toISOString(),
+        })
+        .in("waitlist_signup_id", signupIds);
+    }
+
+    return { ok: true };
+  });
+
+const campaignValue = z
+  .string()
+  .trim()
+  .min(1)
+  .max(100)
+  .regex(/^[a-zA-Z0-9._-]+$/, "Campaign values may use letters, numbers, dots, underscores, and hyphens.")
+  .optional();
+
 const contactSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().max(255),
   organization: z.string().trim().max(120).optional(),
   topic: z.string().trim().max(80).optional(),
   message: z.string().trim().min(10).max(2000),
+  // Store only short allowlisted campaign labels—not raw URLs or customer data.
+  utm_source: campaignValue,
+  utm_medium: campaignValue,
+  utm_campaign: campaignValue,
   // Honeypot: real users never fill this hidden field; bots do.
   hp: z.string().trim().max(200).optional(),
 });
+
+export type ServiceInquiryType =
+  | "general"
+  | "ai_training"
+  | "workflow_diagnostic"
+  | "website_launch_sprint"
+  | "custom_ai_system"
+  | "custom_website_application"
+  | "presentation_support";
+
+export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
+  switch (topic) {
+    case "AI Clarity Session inquiry":
+      return "ai_training";
+    case "AI Workflow Diagnostic inquiry":
+      return "workflow_diagnostic";
+    case "Website Launch Sprint inquiry":
+      return "website_launch_sprint";
+    case "Custom AI system inquiry":
+      return "custom_ai_system";
+    case "Custom website or application inquiry":
+      return "custom_website_application";
+    case "Presentation support inquiry":
+      return "presentation_support";
+    default:
+      return "general";
+  }
+}
+
 export const submitContact = createServerFn({ method: "POST" })
-  .validator((d: unknown) => contactSchema.parse(d))
+  .inputValidator((d: unknown) => contactSchema.parse(d))
   .handler(async ({ data }) => {
     // Silently accept honeypot hits so bots can't distinguish a rejection.
     if (data.hp) return { ok: true };
@@ -202,11 +453,13 @@ export const submitContact = createServerFn({ method: "POST" })
       organization: data.organization ?? null,
       topic: data.topic ?? null,
       message: data.message,
+      inquiry_type: classifyServiceInquiry(data.topic),
+      utm_source: data.utm_source ?? null,
+      utm_medium: data.utm_medium ?? null,
+      utm_campaign: data.utm_campaign ?? null,
     };
     // Try with ip_hash; degrade to the bare row if the column isn't there yet.
-    let { error } = await supabaseAdmin
-      .from("contact_messages")
-      .insert({ ...base, ip_hash: ipHash } as never);
+    let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
     if (error && /ip_hash|column/i.test(error.message)) {
       ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
     }
@@ -221,11 +474,11 @@ export const submitContact = createServerFn({ method: "POST" })
       message: data.message,
     });
 
-    return { ok: true };
+    return { ok: true, inquiryType: classifyServiceInquiry(data.topic) };
   });
 
 export const getPublicSeller = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date().toISOString();

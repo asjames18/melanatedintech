@@ -10,32 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -468,37 +443,64 @@ export type Database = {
       }
       contact_messages: {
         Row: {
+          admin_notes: string | null
+          assigned_owner: string | null
           created_at: string
           email: string
+          follow_up_at: string | null
           handled: boolean
           id: string
+          inquiry_type: string
           ip_hash: string | null
+          lead_status: string
           message: string
           name: string
           organization: string | null
           topic: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
+          admin_notes?: string | null
+          assigned_owner?: string | null
           created_at?: string
           email: string
+          follow_up_at?: string | null
           handled?: boolean
           id?: string
+          inquiry_type?: string
           ip_hash?: string | null
+          lead_status?: string
           message: string
           name: string
           organization?: string | null
           topic?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
+          admin_notes?: string | null
+          assigned_owner?: string | null
           created_at?: string
           email?: string
+          follow_up_at?: string | null
           handled?: boolean
           id?: string
+          inquiry_type?: string
           ip_hash?: string | null
+          lead_status?: string
           message?: string
           name?: string
           organization?: string | null
           topic?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }
@@ -1972,6 +1974,10 @@ export type Database = {
           id: string
           interest: string | null
           ip_hash: string | null
+          marketing_consent: boolean
+          marketing_consent_at: string | null
+          marketing_consent_source: string | null
+          marketing_consent_version: string | null
           product_slug: string | null
           source: string | null
         }
@@ -1981,6 +1987,10 @@ export type Database = {
           id?: string
           interest?: string | null
           ip_hash?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
+          marketing_consent_version?: string | null
           product_slug?: string | null
           source?: string | null
         }
@@ -1990,8 +2000,127 @@ export type Database = {
           id?: string
           interest?: string | null
           ip_hash?: string | null
+          marketing_consent?: boolean
+          marketing_consent_at?: string | null
+          marketing_consent_source?: string | null
+          marketing_consent_version?: string | null
           product_slug?: string | null
           source?: string | null
+        }
+        Relationships: []
+      }
+      website_launch_confirmation_tokens: {
+        Row: {
+          confirmed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          token: string
+          waitlist_signup_id: string
+        }
+        Insert: {
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          token: string
+          waitlist_signup_id: string
+        }
+        Update: {
+          confirmed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          waitlist_signup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_launch_confirmation_tokens_waitlist_signup_id_fkey"
+            columns: ["waitlist_signup_id"]
+            isOneToOne: true
+            referencedRelation: "waitlist_signups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_launch_nurture_enrollments: {
+        Row: {
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          current_step: number
+          id: string
+          last_error: string | null
+          last_sent_at: string | null
+          lease_until: string | null
+          next_send_at: string | null
+          sequence_key: string
+          status: string
+          unsubscribed_at: string | null
+          updated_at: string
+          waitlist_signup_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          last_error?: string | null
+          last_sent_at?: string | null
+          lease_until?: string | null
+          next_send_at?: string | null
+          sequence_key?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          waitlist_signup_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          current_step?: number
+          id?: string
+          last_error?: string | null
+          last_sent_at?: string | null
+          lease_until?: string | null
+          next_send_at?: string | null
+          sequence_key?: string
+          status?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          waitlist_signup_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "website_launch_nurture_enrollments_waitlist_signup_id_fkey"
+            columns: ["waitlist_signup_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist_signups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      website_launch_nurture_settings: {
+        Row: {
+          enabled: boolean
+          id: number
+          sequence_key: string
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: number
+          sequence_key?: string
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: number
+          sequence_key?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2171,9 +2300,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       agent_tier: ["free", "premium", "custom"],

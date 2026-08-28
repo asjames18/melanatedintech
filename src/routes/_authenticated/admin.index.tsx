@@ -8,6 +8,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import React, { useState, useMemo, forwardRef } from "react";
+import type { Database } from "@/integrations/supabase/types";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,6 +84,8 @@ import {
   adminUpsertArticle,
   adminUpsertService,
   adminDelete,
+  CONTACT_PIPELINE_STATUSES,
+  type ContactPipelineStatus,
   checkAdminStatus,
   claimFirstAdmin,
 } from "@/lib/admin.functions";
@@ -193,7 +196,7 @@ function AdminPage() {
     services: "Professional Services",
     submissions: "Submissions",
     waitlist: "Waitlist",
-    messages: "Messages",
+    messages: "Services Pipeline & messages",
     purchases: "Purchases & Sales",
     community: "Community Moderation",
     analytics: "Recommendations",
@@ -281,6 +284,12 @@ function AdminPage() {
                 <Button variant="outline" className="gap-2 font-semibold shadow-sm">
                   <Inbox className="h-4 w-4" />
                   <span>Recovery Leads</span>
+                </Button>
+              </Link>
+              <Link to="/admin/website-launch-nurture">
+                <Button variant="outline" className="gap-2 font-semibold shadow-sm">
+                  <Mail className="h-4 w-4" />
+                  <span>Website Launch Nurture</span>
                 </Button>
               </Link>
               <Link to="/admin/invoices">
@@ -537,7 +546,7 @@ function AdminPage() {
                         className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                       >
                         <span className="flex items-center">
-                          <MessageSquare className="h-4 w-4 mr-3" /> Messages
+                          <MessageSquare className="h-4 w-4 mr-3" /> Services Pipeline
                         </span>
                         {unreadMessages > 0 && (
                           <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -686,7 +695,7 @@ function AdminPage() {
                     className="flex justify-between items-center text-sm font-medium px-3 py-2 rounded-xl text-muted-foreground hover:text-foreground data-[state=active]:bg-muted data-[state=active]:text-primary border-none shadow-none text-left w-full transition-all cursor-pointer"
                   >
                     <span className="flex items-center">
-                      <MessageSquare className="h-4 w-4 mr-3" /> Messages
+                      <MessageSquare className="h-4 w-4 mr-3" /> Services Pipeline
                     </span>
                     {unreadMessages > 0 && (
                       <span className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -1657,13 +1666,7 @@ function PurchasesPanel() {
   }, [allRows, showTest]);
 
   const grossCents = rows.reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
-  const sellerGrossCents = rows
-    .filter((r) => r.seller_id)
-    .reduce((sum, r) => sum + (r.amount_cents ?? 0), 0);
-  const sellerEarningsCents = rows.reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
-  const unpaidSellerCents = rows
-    .filter((r) => r.seller_id && !r.seller_paid)
-    .reduce((sum, r) => sum + (r.seller_earnings_cents ?? 0), 0);
+  const contributorRows = rows.filter((r) => r.seller_id).length;
 
   return (
     <div className="space-y-5">
@@ -1696,10 +1699,7 @@ function PurchasesPanel() {
                     "Item",
                     "Buyer",
                     "Gross",
-                    "Seller",
-                    "Seller Earnings",
-                    "Platform Fee",
-                    "Seller Paid",
+                    "Contributor",
                     "Stripe Session",
                   ],
                   rows.map((r) => [
@@ -1711,9 +1711,6 @@ function PurchasesPanel() {
                     r.buyer_name ?? r.user_id,
                     formatCents(r.amount_cents),
                     r.seller_name ?? "",
-                    formatCents(r.seller_earnings_cents),
-                    formatCents(r.platform_fee_cents),
-                    r.seller_paid ? "yes" : "no",
                     r.stripe_session_id ?? "",
                   ]),
                 )
@@ -1725,11 +1722,10 @@ function PurchasesPanel() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <SalesStat label="Gross sales" value={formatCents(grossCents)} />
-        <SalesStat label="Seller sales" value={formatCents(sellerGrossCents)} />
-        <SalesStat label="Seller earnings" value={formatCents(sellerEarningsCents)} />
-        <SalesStat label="Unpaid seller earnings" value={formatCents(unpaidSellerCents)} />
+        <SalesStat label="Transactions" value={String(rows.length)} />
+        <SalesStat label="Contributor listings" value={String(contributorRows)} />
       </div>
 
       <SearchableDataTable
@@ -1796,28 +1792,12 @@ function PurchasesPanel() {
             cell: (r) => <span className="font-medium">{formatCents(r.amount_cents)}</span>,
           },
           {
-            header: "Seller",
+            header: "Contributor",
             cell: (r) =>
               r.seller_id ? (
-                <div>
-                  <div className="font-medium">{r.seller_name ?? "Unknown seller"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    earns {formatCents(r.seller_earnings_cents)}
-                  </div>
-                </div>
+                <div className="font-medium">{r.seller_name ?? "Unknown contributor"}</div>
               ) : (
                 <span className="text-muted-foreground">Platform</span>
-              ),
-          },
-          {
-            header: "Payout",
-            cell: (r) =>
-              r.seller_id ? (
-                <Badge variant={r.seller_paid ? "secondary" : "outline"}>
-                  {r.seller_paid ? "Paid" : "Unpaid"}
-                </Badge>
-              ) : (
-                <span className="text-muted-foreground">—</span>
               ),
           },
           {
@@ -1908,37 +1888,69 @@ function WaitlistPanel() {
   );
 }
 
+type ContactMessage = Database["public"]["Tables"]["contact_messages"]["Row"];
+
+const INQUIRY_TYPE_LABELS: Record<string, string> = {
+  general: "General inquiry",
+  ai_training: "AI training",
+  workflow_diagnostic: "AI Workflow Diagnostic",
+  website_launch_sprint: "Website Launch Sprint",
+  custom_ai_system: "Custom AI system",
+  custom_website_application: "Custom website or application",
+  presentation_support: "Presentation support",
+};
+
+function formatPipelineLabel(value: string) {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function toLocalDateTimeValue(value: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
+}
+
 function MessagesPanel() {
   const qc = useQueryClient();
   const list = useServerFn(adminListMessages);
-  const update = useServerFn(adminUpdateMessage);
   const del = useServerFn(adminDeleteMessage);
   const q = useQuery({ queryKey: ["admin-messages"], queryFn: () => list() });
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("active");
+  const [inquiryFilter, setInquiryFilter] = useState("all");
 
   const filtered = useMemo(() => {
-    const s = search.toLowerCase().trim();
-    if (!s) return q.data ?? [];
-    return (q.data ?? []).filter(
+    let rows = q.data ?? [];
+    if (statusFilter === "active") {
+      rows = rows.filter((row) => !["won", "lost"].includes(row.lead_status));
+    } else if (statusFilter !== "all") {
+      rows = rows.filter((row) => row.lead_status === statusFilter);
+    }
+    if (inquiryFilter !== "all") {
+      rows = rows.filter((row) => row.inquiry_type === inquiryFilter);
+    }
+    const needle = search.toLowerCase().trim();
+    if (!needle) return rows;
+    return rows.filter(
       (row) =>
-        row.name.toLowerCase().includes(s) ||
-        row.email.toLowerCase().includes(s) ||
-        (row.organization && row.organization.toLowerCase().includes(s)) ||
-        (row.topic && row.topic.toLowerCase().includes(s)) ||
-        row.message.toLowerCase().includes(s),
+        row.name.toLowerCase().includes(needle) ||
+        row.email.toLowerCase().includes(needle) ||
+        (row.organization && row.organization.toLowerCase().includes(needle)) ||
+        (row.topic && row.topic.toLowerCase().includes(needle)) ||
+        row.message.toLowerCase().includes(needle),
     );
-  }, [q.data, search]);
+  }, [inquiryFilter, q.data, search, statusFilter]);
 
+  const inquiryTypes = useMemo(
+    () => Array.from(new Set((q.data ?? []).map((row) => row.inquiry_type))).sort(),
+    [q.data],
+  );
+  const activeCount = (q.data ?? []).filter(
+    (row) => !["won", "lost"].includes(row.lead_status),
+  ).length;
   const invalidate = () => qc.invalidateQueries({ queryKey: ["admin-messages"] });
-  const updateMut = useMutation({
-    mutationFn: (args: { id: string; handled: boolean }) => update({ data: args }),
-    onSuccess: (_r, args) => {
-      toast.success(args.handled ? "Marked handled." : "Reopened.");
-      invalidate();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
   const delMut = useMutation({
     mutationFn: (id: string) => del({ data: { id } }),
     onSuccess: () => {
@@ -1950,74 +1962,185 @@ function MessagesPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Toolbar
-          title="Contact messages"
-          count={filtered.length}
-          icon={<Mail className="h-4 w-4" />}
-        />
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search messages..."
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-            className="pl-9 h-9"
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <Toolbar
+            title="Services Pipeline & messages"
+            count={filtered.length}
+            icon={<Mail className="h-4 w-4" />}
           />
+          <p className="mt-1 text-xs text-muted-foreground">
+            {activeCount} active record{activeCount === 1 ? "" : "s"}. Customer details remain in this authenticated view and are not sent to analytics.
+          </p>
+        </div>
+        <div className="grid w-full gap-2 sm:grid-cols-3 lg:max-w-2xl">
+          <select
+            aria-label="Filter by pipeline status"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            <option value="active">Active stages</option>
+            <option value="all">All stages</option>
+            {CONTACT_PIPELINE_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {formatPipelineLabel(status)}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Filter by inquiry type"
+            className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+            value={inquiryFilter}
+            onChange={(event) => setInquiryFilter(event.target.value)}
+          >
+            <option value="all">All inquiry types</option>
+            {inquiryTypes.map((type) => (
+              <option key={type} value={type}>
+                {INQUIRY_TYPE_LABELS[type] ?? formatPipelineLabel(type)}
+              </option>
+            ))}
+          </select>
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search inquiries..."
+              value={search}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearch(event.target.value)}
+              className="h-9 pl-9"
+            />
+          </div>
         </div>
       </div>
       <div className="mt-4 grid gap-3">
-        {filtered.map((m) => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const handled = !!(m as any).handled;
-          return (
-            <div
-              key={m.id}
-              className={`rounded-xl border border-border bg-card p-4 ${handled ? "opacity-60" : ""}`}
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <div>
-                  <p className="font-medium">
-                    {m.name} <span className="text-muted-foreground">Â· {m.email}</span>
-                    {handled && (
-                      <span className="ml-2 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs text-emerald-600 ring-1 ring-emerald-500/30">
-                        Handled
-                      </span>
-                    )}
-                  </p>
-                  {m.organization && (
-                    <p className="text-xs text-muted-foreground">
-                      {m.organization}
-                      {m.topic ? ` Â· ${m.topic}` : ""}
-                    </p>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(m.created_at).toLocaleString()}
-                </span>
-              </div>
-              <p className="mt-2 whitespace-pre-line text-sm">{m.message}</p>
-              <div className="mt-3 flex flex-wrap justify-end gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={updateMut.isPending}
-                  onClick={() => updateMut.mutate({ id: m.id, handled: !handled })}
-                >
-                  {handled ? "Reopen" : "Mark handled"}
-                </Button>
-                <DeleteBtn onConfirm={() => delMut.mutate(m.id)} name={`message from ${m.name}`} />
-              </div>
-            </div>
-          );
-        })}
+        {filtered.map((message) => (
+          <MessagePipelineCard
+            key={message.id}
+            message={message}
+            onDelete={() => delMut.mutate(message.id)}
+          />
+        ))}
         {!q.isLoading && filtered.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
-            {search ? "No matching messages found." : "No messages yet."}
+            {search || inquiryFilter !== "all" || statusFilter !== "active"
+              ? "No inquiries match these filters."
+              : "No contact messages yet."}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+function MessagePipelineCard({
+  message,
+  onDelete,
+}: {
+  message: ContactMessage;
+  onDelete: () => void;
+}) {
+  const qc = useQueryClient();
+  const update = useServerFn(adminUpdateMessage);
+  const [leadStatus, setLeadStatus] = useState<ContactPipelineStatus>(
+    message.lead_status as ContactPipelineStatus,
+  );
+  const [owner, setOwner] = useState(message.assigned_owner ?? "");
+  const [notes, setNotes] = useState(message.admin_notes ?? "");
+  const [followUpAt, setFollowUpAt] = useState(toLocalDateTimeValue(message.follow_up_at));
+  const updateMut = useMutation({
+    mutationFn: () =>
+      update({
+        data: {
+          id: message.id,
+          lead_status: leadStatus,
+          assigned_owner: owner.trim() || null,
+          admin_notes: notes.trim() || null,
+          follow_up_at: followUpAt ? new Date(followUpAt).toISOString() : null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Services Pipeline record updated.");
+      qc.invalidateQueries({ queryKey: ["admin-messages"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+  const isClosed = ["won", "lost"].includes(message.lead_status);
+  const source = [message.utm_source, message.utm_medium, message.utm_campaign]
+    .filter(Boolean)
+    .join(" / ");
+
+  return (
+    <article className={`rounded-xl border border-border bg-card p-4 ${isClosed ? "opacity-70" : ""}`}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="font-medium">{message.name}</h3>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+              {INQUIRY_TYPE_LABELS[message.inquiry_type] ?? formatPipelineLabel(message.inquiry_type)}
+            </span>
+            <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+              {formatPipelineLabel(message.lead_status)}
+            </span>
+          </div>
+          <a className="mt-1 block text-sm text-primary hover:underline" href={`mailto:${message.email}`}>
+            {message.email}
+          </a>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {[message.organization, message.topic].filter(Boolean).join(" · ") || "No organization or topic supplied"}
+          </p>
+        </div>
+        <div className="text-right text-xs text-muted-foreground">
+          <p>Submitted {new Date(message.created_at).toLocaleString()}</p>
+          {source && <p className="mt-1">Campaign: {source}</p>}
+        </div>
+      </div>
+      <p className="mt-3 whitespace-pre-line text-sm">{message.message}</p>
+      <div className="mt-4 grid gap-3 rounded-xl bg-muted/35 p-4 md:grid-cols-2 xl:grid-cols-4">
+        <label className="space-y-1 text-sm font-medium">
+          Pipeline status
+          <select
+            className="block h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+            value={leadStatus}
+            onChange={(event) => setLeadStatus(event.target.value as ContactPipelineStatus)}
+          >
+            {CONTACT_PIPELINE_STATUSES.map((status) => (
+              <option key={status} value={status}>
+                {formatPipelineLabel(status)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="space-y-1 text-sm font-medium">
+          Assigned owner
+          <Input value={owner} maxLength={120} onChange={(event) => setOwner(event.target.value)} />
+        </label>
+        <label className="space-y-1 text-sm font-medium">
+          Follow up
+          <Input
+            type="datetime-local"
+            value={followUpAt}
+            onChange={(event) => setFollowUpAt(event.target.value)}
+          />
+        </label>
+        <div className="flex items-end">
+          <Button className="w-full" onClick={() => updateMut.mutate()} disabled={updateMut.isPending}>
+            {updateMut.isPending ? "Saving…" : "Save pipeline update"}
+          </Button>
+        </div>
+      </div>
+      <label className="mt-3 block space-y-1 text-sm font-medium">
+        Private admin notes
+        <Textarea
+          value={notes}
+          maxLength={4_000}
+          rows={3}
+          onChange={(event) => setNotes(event.target.value)}
+        />
+      </label>
+      <div className="mt-3 flex justify-end">
+        <DeleteBtn onConfirm={onDelete} name={`message from ${message.name}`} />
+      </div>
+    </article>
   );
 }
 

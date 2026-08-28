@@ -42,7 +42,7 @@ async function resolveOrCreateCustomer(
 
 export const createUnlockCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(
+  .inputValidator(
     (data: {
       // priceId is accepted for backwards-compat but ignored: the server derives
       // the real price from (kind, slug) so a client cannot pay for one item and
@@ -172,7 +172,7 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
  */
 export const confirmCheckoutSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { sessionId: string; environment: StripeEnv }) =>
+  .inputValidator((data: { sessionId: string; environment: StripeEnv }) =>
     z
       .object({
         sessionId: z.string().min(1).max(200),

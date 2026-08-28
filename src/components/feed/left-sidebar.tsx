@@ -1,33 +1,34 @@
-﻿import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+﻿import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { supabase } from "@/integrations/supabase/client";
 import { getPublicProfile } from "@/lib/community.functions";
 import { useAvatarUrl } from "@/hooks/use-avatar-url";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Compass, BookOpen, Trophy, Sparkles, MessageSquare, Bot, UserPlus } from "lucide-react";
 
-export function LeftSidebar() {
-  const [me, setMe] = useState<string | null>(null);
+export function LeftSidebar({
+  viewerId = null,
+  authResolved = true,
+}: {
+  viewerId?: string | null;
+  authResolved?: boolean;
+}) {
   const getProfileFn = useServerFn(getPublicProfile);
 
   const profileQ = useQuery({
-    queryKey: ["my-profile", me],
-    queryFn: () => getProfileFn({ data: { user_id: me! } }),
-    enabled: !!me,
+    queryKey: ["my-profile", viewerId],
+    queryFn: () => getProfileFn({ data: { user_id: viewerId! } }),
+    enabled: authResolved && !!viewerId,
   });
   const myProfile = profileQ.data;
   const avatarUrl = useAvatarUrl(myProfile?.avatar_url ?? null);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
-  }, []);
-
   return (
     <div className="hidden md:block space-y-4 sticky top-24 h-fit">
-      {me && myProfile ? (
+      {!authResolved || (viewerId !== null && !myProfile) ? (
+        <ProfileSidebarSkeleton />
+      ) : viewerId && myProfile ? (
         <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:border-foreground/10">
           <div className="relative h-20 bg-muted bg-[radial-gradient(circle_at_20%_20%,color-mix(in_oklab,var(--color-accent2)_24%,transparent),transparent_34%),radial-gradient(circle_at_80%_10%,color-mix(in_oklab,var(--color-primary)_22%,transparent),transparent_32%)]">
             {myProfile.cover_url && <img src={myProfile.cover_url} alt="" className="h-full w-full object-cover" />}
@@ -41,7 +42,7 @@ export function LeftSidebar() {
               </AvatarFallback>
             </Avatar>
 
-            <Link to="/u/$userId" params={{ userId: me }} className="mt-3 block font-display text-base font-semibold text-foreground hover:text-primary hover:underline">
+            <Link to="/u/$userId" params={{ userId: viewerId }} className="mt-3 block font-display text-base font-semibold text-foreground hover:text-primary hover:underline">
               {myProfile.display_name ?? "AI Builder"}
             </Link>
             <div className="mx-auto mt-1 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary">
@@ -109,5 +110,18 @@ export function LeftSidebar() {
   );
 }
 
-
-
+function ProfileSidebarSkeleton() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm" aria-busy="true" aria-label="Loading account">
+      <div className="h-20 animate-pulse bg-muted" />
+      <div className="px-4 pb-5 text-center">
+        <div className="mx-auto -mt-8 h-16 w-16 rounded-full border-4 border-card bg-muted" />
+        <div className="mx-auto mt-3 h-4 w-24 animate-pulse rounded bg-muted" />
+        <div className="mx-auto mt-3 h-3 w-36 animate-pulse rounded bg-muted" />
+        <div className="mt-5 grid grid-cols-3 gap-1 border-t border-border/50 pt-4">
+          {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-7 animate-pulse rounded bg-muted" />)}
+        </div>
+      </div>
+    </div>
+  );
+}

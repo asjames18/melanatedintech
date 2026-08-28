@@ -1,0 +1,17 @@
+# Melanated In Tech Notice
+
+Copyright (c) 2026 Melanated In Tech.
+
+## Code license
+
+Unless a file states otherwise, the software source code in this repository is made available under the [MIT License](LICENSE).
+
+## Brand reservation
+
+The MIT License does not grant any right to use the **Melanated In Tech** name, logos, domains, favicons, social-preview artwork, visual identity, or other branding as the identity of an independent product, service, deployment, organization, or fork.
+
+Brand assets and the use of the Melanated In Tech Marks are governed by [TRADEMARKS.md](TRADEMARKS.md) and [BRAND_ASSETS.md](BRAND_ASSETS.md). A public fork must adopt its own name and visual identity and must not imply affiliation with, endorsement by, or status as the official Melanated In Tech service.
+
+## Third-party services and credentials
+
+This repository may contain integration code for third-party services. No credentials, production data, customer data, payment configurations, or rights to use third-party accounts are included. Fork maintainers are responsible for configuring and securing their own independent services and deployments.

@@ -45,7 +45,7 @@ function slugify(input: string): string {
 
 export const submitAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => submissionSchema.parse(d))
+  .inputValidator((d: unknown) => submissionSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error, data: row } = await context.supabase
       .from("agent_submissions")
@@ -85,7 +85,7 @@ export const listMySubmissions = createServerFn({ method: "GET" })
 
 export const getMySubmission = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await context.supabase
       .from("agent_submissions")
@@ -101,7 +101,7 @@ const updateSchema = submissionSchema.extend({ id: z.string().uuid() });
 
 export const updateMySubmission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => updateSchema.parse(d))
+  .inputValidator((d: unknown) => updateSchema.parse(d))
   .handler(async ({ data, context }) => {
     // Only allow edits to pending or rejected submissions you own.
     const { data: existing, error: readErr } = await context.supabase
@@ -177,7 +177,7 @@ const reviewSchema = z.object({
 
 export const adminReviewSubmission = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => reviewSchema.parse(d))
+  .inputValidator((d: unknown) => reviewSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

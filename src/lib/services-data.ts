@@ -30,22 +30,22 @@ export const FALLBACK_SERVICES: ServiceItem[] = [
 Whether you need an automated customer support agent with database write access, an internal knowledge assistant connected to private documentation, or a multi-agent orchestration pipeline, we handle the entire engineering lifecycle.
 
 ### What We Build:
-- **System Architecture & Instruction Engineering**: Custom system prompts tuned for zero-hallucination and high compliance.
-- **RAG & Knowledge Vectorization**: Clean chunking, embedding, and indexing of your private documentation, FAQs, and PDFs.
-- **MCP Server & Database Integration**: Model Context Protocol (MCP) server development connecting your agent to PostgreSQL, Supabase, Stripe, GitHub, or custom REST APIs.
-- **Production Guardrails & Security Testing**: Automated stress testing against prompt injection, data leaks, and unauthorized actions.
-- **Deployment & Analytics**: Production deployment on Cloudflare, Vercel, or AWS with real-time latency and token cost analytics.`,
+- **System Architecture & Prompt Design**: Domain-aware prompts, documented workflow boundaries, and review steps designed to reduce avoidable errors.
+- **RAG & Knowledge Vectorization**: Clean chunking, embedding, and indexing of the private documentation approved for the project.
+- **MCP Server & Database Integration**: Model Context Protocol (MCP) server development connecting approved systems such as PostgreSQL, Supabase, Stripe, GitHub, or custom REST APIs.
+- **Guardrails & Security Testing**: Structured testing for prompt injection, data-boundary failures, and unauthorized actions, with findings documented before launch.
+- **Deployment & Analytics**: Production deployment on an agreed platform with defined monitoring, access, and operational handoff.`,
     outcomes: [
       "Fully deployed custom AI agent integrated directly into your existing workflow or web application.",
       "Custom Model Context Protocol (MCP) servers connecting your agent securely to internal databases.",
-      "Production security guardrails and automated stress test scorecard (0-100% safety score).",
-      "Complete source code ownership, technical documentation, and 30 days of post-launch engineering support.",
+      "Documented test findings and agreed safeguards for the workflow’s defined risk boundaries.",
+      "Documented ownership and reuse terms, technical handoff materials, and agreed post-launch support.",
       "Hands-on staff training session and operational SOP document.",
     ],
     features: [
-      "100% Source Code Ownership & No Vendor Lock-in",
+      "Clear Code and Operational Handoff",
       "Model-Agnostic Architecture (Claude 3.5, OpenAI, Llama 3.3)",
-      "Strict Data Privacy & Zero Retention Setup",
+      "Defined Data, Access, and Retention Boundaries",
       "Interactive Admin Dashboard & Audit Logs",
     ],
     process: [
@@ -59,7 +59,7 @@ Whether you need an automated customer support agent with database write access,
       },
       {
         title: "3. Stress Testing & Guardrails",
-        desc: "We run automated prompt injection and hallucination attack drills in Eval Studio to enforce 100% safety compliance.",
+        desc: "We run structured prompt-injection and error-handling test drills, document findings, and refine safeguards before launch.",
       },
       {
         title: "4. Production Deployment & Training",
@@ -73,7 +73,7 @@ Whether you need an automated customer support agent with database write access,
       },
       {
         q: "Who owns the code and IP?",
-        a: "Your organization receives 100% ownership of all source code, prompt templates, vector indexes, and custom MCP server scripts.",
+        a: "Ownership and reuse rights for custom deliverables are defined in the written proposal, alongside the agreed handoff materials.",
       },
       {
         q: "How long does a custom build take?",

@@ -5,9 +5,9 @@ export const SITE_URL = "https://melanatedintech.com";
 export const SITE = {
   name: "Melanated In Tech",
   short: "MIT",
-  tagline: "Revenue recovery systems for service businesses.",
+  tagline: "Practical AI tools, open infrastructure, and revenue recovery systems.",
   description:
-    "Melanated In Tech builds practical lead, estimate, route, and client recovery systems for local service businesses.",
+    "Melanated In Tech equips people and small organizations to build practical economic power with AI through useful tools, accountable systems, and open infrastructure.",
 };
 
 // Community is intentionally out of NAV until the feed has real activity —
@@ -17,6 +17,7 @@ export const NAV = [
   { to: "/systems", label: "Systems" },
   { to: "/agents", label: "Marketplace" },
   { to: "/knowledge", label: "Learn" },
+  { to: "/open-commons", label: "Open Commons" },
   { to: "/starter-packs", label: "Starter Packs" },
   { to: "/products", label: "Products" },
   { to: "/about", label: "About" },
@@ -59,10 +60,17 @@ export const PILLARS = [
     tag: "Pillar 05",
   },
   {
-    title: "Agent Services",
-    href: "/services" as const,
-    blurb: "Strategy sprints, custom agent builds, and ministry implementations - done with you.",
+    title: "Work With Us",
+    href: "/work-with-us" as const,
+    blurb: "Practical AI training, workflow diagnostics, focused website launches, and scoped custom implementation.",
     tag: "Pillar 06",
+  },
+  {
+    title: "Open Commons",
+    href: "/open-commons" as const,
+    blurb:
+      "Community-built policy patterns, test fixtures, and practical AI infrastructure that stays useful in the open.",
+    tag: "Pillar 07",
   },
 ];
 

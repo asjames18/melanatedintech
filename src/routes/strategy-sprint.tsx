@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   ArrowDown,
   CalendarDays,
@@ -19,6 +19,9 @@ import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 
 export const Route = createFileRoute("/strategy-sprint")({
+  beforeLoad: () => {
+    throw redirect({ to: "/work-with-us" });
+  },
   head: () => ({
     ...buildSeoMeta({
       title: "Agent Strategy Sprint | Melanated In Tech",

@@ -301,7 +301,7 @@ export function AIReadinessAssessment() {
           </div>
         )}
 
-        <ToolCrossSell currentToolSlug="ai-readiness-assessment" />
+        <ToolCrossSell tool="ai-readiness-assessment" />
       </section>
     </SiteLayout>
   );

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowDown,
   CalendarDays,
@@ -25,6 +25,9 @@ import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 
 export const Route = createFileRoute("/services/ai-workshop")({
+  beforeLoad: () => {
+    throw redirect({ to: "/work-with-us" });
+  },
   head: () => {
     const path = "/services/ai-workshop";
     const seo = buildSeoMeta({

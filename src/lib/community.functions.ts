@@ -318,7 +318,7 @@ const listFeedSchema = z.object({
 });
 
 export const listFeed = createServerFn({ method: "GET" })
-  .validator((d: unknown) => listFeedSchema.parse(d))
+  .inputValidator((d: unknown) => listFeedSchema.parse(d))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
@@ -379,7 +379,7 @@ const listUserPostsSchema = z.object({
 });
 
 export const listUserPosts = createServerFn({ method: "GET" })
-  .validator((d: unknown) => listUserPostsSchema.parse(d))
+  .inputValidator((d: unknown) => listUserPostsSchema.parse(d))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
@@ -423,7 +423,7 @@ export const listUserPosts = createServerFn({ method: "GET" })
 const getThreadSchema = z.object({ id: z.string().uuid() });
 
 export const getThread = createServerFn({ method: "GET" })
-  .validator((d: unknown) => getThreadSchema.parse(d))
+  .inputValidator((d: unknown) => getThreadSchema.parse(d))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
@@ -499,7 +499,7 @@ const createPostSchema = z.object({
 
 export const createPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => createPostSchema.parse(d))
+  .inputValidator((d: unknown) => createPostSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { data: row, error } = await (context.supabase as any)
       .from("discussion_posts")
@@ -525,7 +525,7 @@ const replySchema = z.object({
 
 export const replyToPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => replySchema.parse(d))
+  .inputValidator((d: unknown) => replySchema.parse(d))
   .handler(async ({ data, context }) => {
     const { data: post } = await (context.supabase as any)
       .from("discussion_posts")
@@ -566,7 +566,7 @@ const reactSchema = z.object({
 
 export const reactPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => reactSchema.parse(d))
+  .inputValidator((d: unknown) => reactSchema.parse(d))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     // 1. Delete any existing reactions by this user on this post first
@@ -594,7 +594,7 @@ export const reactPost = createServerFn({ method: "POST" })
 
 export const unreactPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => reactSchema.parse(d))
+  .inputValidator((d: unknown) => reactSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any)
       .from("post_reactions")
@@ -613,7 +613,7 @@ const replyReactSchema = z.object({
 
 export const reactReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => replyReactSchema.parse(d))
+  .inputValidator((d: unknown) => replyReactSchema.parse(d))
   .handler(async ({ data, context }) => {
     const supabase = context.supabase as any;
     // 1. Delete any existing reactions by this user on this reply first
@@ -635,7 +635,7 @@ export const reactReply = createServerFn({ method: "POST" })
 
 export const unreactReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => replyReactSchema.parse(d))
+  .inputValidator((d: unknown) => replyReactSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any)
       .from("reply_reactions")
@@ -655,7 +655,7 @@ const followSchema = z.object({ followee_id: z.string().uuid() });
 
 export const toggleFollow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => followSchema.parse(d))
+  .inputValidator((d: unknown) => followSchema.parse(d))
   .handler(async ({ data, context }) => {
     if (data.followee_id === context.userId) throw new Error("You can't follow yourself.");
     // Try delete first (toggle off); if no row matched, insert (toggle on).
@@ -692,7 +692,7 @@ export const toggleFollow = createServerFn({ method: "POST" })
 const publicProfileSchema = z.object({ user_id: z.string().uuid() });
 
 export const getPublicProfile = createServerFn({ method: "GET" })
-  .validator((d: unknown) => publicProfileSchema.parse(d))
+  .inputValidator((d: unknown) => publicProfileSchema.parse(d))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
@@ -763,7 +763,7 @@ export const getPublicProfile = createServerFn({ method: "GET" })
 const trendingSchema = z.object({ limit: z.number().int().min(1).max(20).default(8) });
 
 export const listTrending = createServerFn({ method: "GET" })
-  .validator((d: unknown) => trendingSchema.parse(d))
+  .inputValidator((d: unknown) => trendingSchema.parse(d))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
       .supabaseAdmin as any;
@@ -784,7 +784,7 @@ const postIdSchema = z.object({ post_id: z.string().uuid() });
 
 export const savePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => postIdSchema.parse(d))
+  .inputValidator((d: unknown) => postIdSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any).from("post_bookmarks").upsert({
       user_id: context.userId,
@@ -796,7 +796,7 @@ export const savePost = createServerFn({ method: "POST" })
 
 export const unsavePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => postIdSchema.parse(d))
+  .inputValidator((d: unknown) => postIdSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any)
       .from("post_bookmarks")
@@ -809,7 +809,7 @@ export const unsavePost = createServerFn({ method: "POST" })
 
 export const sharePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => postIdSchema.extend({ channel: z.string().max(40).default("copy") }).parse(d))
+  .inputValidator((d: unknown) => postIdSchema.extend({ channel: z.string().max(40).default("copy") }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any).from("post_shares").insert({
       user_id: context.userId,
@@ -822,7 +822,7 @@ export const sharePost = createServerFn({ method: "POST" })
 
 export const reportPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => postIdSchema.extend({ reason: z.string().max(80).default("other"), note: z.string().max(500).optional() }).parse(d))
+  .inputValidator((d: unknown) => postIdSchema.extend({ reason: z.string().max(80).default("other"), note: z.string().max(500).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await (context.supabase as any).from("post_reports").upsert({
       user_id: context.userId,
@@ -837,7 +837,7 @@ export const reportPost = createServerFn({ method: "POST" })
 
 export const listNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
     const { data: rows, error } = await supabaseAdmin
@@ -861,9 +861,21 @@ export const listNotifications = createServerFn({ method: "GET" })
     return notifications;
   });
 
+export const getUnreadNotificationCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { count, error } = await context.supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", context.userId)
+      .is("read_at", null);
+    if (error) throw new Error(error.message);
+    return { count: count ?? 0 };
+  });
+
 export const markNotificationsRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ ids: z.array(z.string().uuid()).optional() }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({ ids: z.array(z.string().uuid()).optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     let q = (context.supabase as any).from("notifications").update({ read_at: new Date().toISOString() }).eq("user_id", context.userId).is("read_at", null);
     if (data.ids?.length) q = q.in("id", data.ids);
@@ -873,7 +885,7 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
   });
 
 export const listSuggestedBuilders = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(12).default(5) }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(12).default(5) }).parse(d ?? {}))
   .handler(async ({ data }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
     const viewerId = await getViewerIdFromRequest();
@@ -920,7 +932,7 @@ export const listSuggestedBuilders = createServerFn({ method: "GET" })
 
 export const listSavedPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
+  .inputValidator((d: unknown) => z.object({ limit: z.number().int().min(1).max(50).default(20) }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
     const supabaseAdmin = (await import("@/integrations/supabase/client.server")).supabaseAdmin as any;
     const { data: saved, error } = await supabaseAdmin
@@ -951,7 +963,7 @@ const deleteSchema = z.object({ id: z.string().uuid(), kind: z.enum(["post", "re
 
 export const deleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => deleteSchema.parse(d))
+  .inputValidator((d: unknown) => deleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     const table = data.kind === "post" ? "discussion_posts" : "discussion_comments";
     const { error } = await context.supabase.from(table).delete().eq("id", data.id);
@@ -961,7 +973,7 @@ export const deleteItem = createServerFn({ method: "POST" })
 
 export const adminDeleteItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => deleteSchema.parse(d))
+  .inputValidator((d: unknown) => deleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -975,7 +987,7 @@ const moderateSchema = z.object({ id: z.string().uuid(), locked: z.boolean() });
 
 export const moderateThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => moderateSchema.parse(d))
+  .inputValidator((d: unknown) => moderateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -1016,7 +1028,7 @@ export type AdminPostRow = {
 
 export const adminListPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => adminListPostsSchema.parse(d))
+  .inputValidator((d: unknown) => adminListPostsSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
@@ -1080,7 +1092,7 @@ const adminListRepliesSchema = z.object({
 
 export const adminListReplies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => adminListRepliesSchema.parse(d))
+  .inputValidator((d: unknown) => adminListRepliesSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
@@ -1145,7 +1157,7 @@ const adminListHashtagsSchema = z.object({
 
 export const adminListHashtags = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => adminListHashtagsSchema.parse(d))
+  .inputValidator((d: unknown) => adminListHashtagsSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -1162,7 +1174,7 @@ const suppressSchema = z.object({ id: z.string().uuid(), suppressed: z.boolean()
 
 export const adminSuppressHashtag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => suppressSchema.parse(d))
+  .inputValidator((d: unknown) => suppressSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const supabaseAdmin = (await import("@/integrations/supabase/client.server"))
@@ -1258,7 +1270,7 @@ export const listDiscussionPosts = createServerFn({ method: "GET" }).handler(asy
 });
 
 export const getDiscussionThread = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
     const t = await getThread({ data: { id: data.id } });
     if (!t) return null;
@@ -1281,7 +1293,7 @@ export const getDiscussionThread = createServerFn({ method: "GET" })
 
 export const createDiscussionPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         title: z.string().trim().min(3).max(140),
@@ -1307,7 +1319,7 @@ export const createDiscussionPost = createServerFn({ method: "POST" })
 
 export const createDiscussionComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ post_id: z.string().uuid(), body: z.string().trim().min(1).max(2000) }).parse(d),
   )
   .handler(async ({ data, context }) => {

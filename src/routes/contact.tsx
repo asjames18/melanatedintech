@@ -1,21 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ContactForm } from "@/components/contact-form";
 import { buildSeoMeta } from "@/lib/seo";
 
+const campaignLabel = z
+  .string()
+  .trim()
+  .max(100)
+  .regex(/^[a-zA-Z0-9._-]+$/, "Invalid campaign label.");
+
+const optionalTopic = z.string().trim().max(120).transform((value) => value || undefined).optional().catch(undefined);
+const optionalCampaignLabel = campaignLabel.transform((value) => value || undefined).optional().catch(undefined);
+
 const searchSchema = z.object({
-  topic: fallback(z.string().max(120), "").default(""),
+  topic: optionalTopic,
+  utm_source: optionalCampaignLabel,
+  utm_medium: optionalCampaignLabel,
+  utm_campaign: optionalCampaignLabel,
 });
 
 export const Route = createFileRoute("/contact")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Contact — Melanated In Tech",
+      title: "Work With Melanated In Tech | Training, AI & Websites",
       description:
-        "Tell us about your AI agent project — strategy, custom build, ministry implementation, or workshop.",
+        "Tell us about your AI training, workflow, website, presentation, or custom implementation needs.",
       url: "/contact",
     }),
   }),
@@ -23,16 +35,23 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
-  const { topic } = Route.useSearch();
+  const { topic, utm_source, utm_medium, utm_campaign } = Route.useSearch();
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Contact"
-        title="Tell us about your agent."
-        description="Whether you're scoping a custom build, planning a ministry rollout, or just exploring — we'd love to hear what you're working on."
+        eyebrow="Work with us"
+        title="Tell us what you are trying to make better."
+        description="Whether you want practical AI training, a clearer workflow, a website launch, a presentation, or a custom build, we would love to hear what you are working on."
       />
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-        <ContactForm defaultTopic={topic} />
+        <ContactForm
+          defaultTopic={topic}
+          campaign={{
+            source: utm_source,
+            medium: utm_medium,
+            campaign: utm_campaign,
+          }}
+        />
       </section>
     </SiteLayout>
   );

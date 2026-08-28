@@ -14,13 +14,14 @@
     "preview:env": "npx wrangler dev --config dist/server/wrangler.json --env-file .env",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit --pretty false",
-    "check": "npm run lint && npm run typecheck && npm run build",
+    "check": "npm run lint && npm run typecheck && npm run build && npm run smoke",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "audit:links": "node scripts/audit-internal-links.mjs",
     "cap:sync": "npx cap sync",
     "cap:ios": "npx cap open ios",
-    "cap:android": "npx cap open android"
+    "cap:android": "npx cap open android",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^6.0.0",
@@ -107,6 +108,6 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.0.16",
-    "wrangler": "^4.104.0"
+    "wrangler": "^4.121.0"
   }
 }

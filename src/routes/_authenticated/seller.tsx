@@ -48,12 +48,6 @@ import {
   sellerUpsertService,
   sellerDeleteListing,
 } from "@/lib/seller.functions";
-import {
-  createConnectOnboardingLink,
-  checkConnectAccountStatus,
-  getSellerPayoutInfo,
-} from "@/lib/payouts.functions";
-import { getStripeEnvironment } from "@/lib/stripe";
 
 export const Route = createFileRoute("/_authenticated/seller")({
   head: () => ({ meta: [{ title: "Seller Dashboard — Melanated In Tech" }] }),
@@ -64,9 +58,9 @@ function SellerDashboard() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Seller"
-        title="Your marketplace."
-        description="Manage your agent and service listings, set pricing, and track earnings."
+        eyebrow="Contributor"
+        title="Your listings."
+        description="Publish agents, packs, and services to the library. Everything you contribute carries your name."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <Tabs defaultValue="agents">
@@ -75,7 +69,6 @@ function SellerDashboard() {
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="services">Services</TabsTrigger>
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="payouts">Payouts</TabsTrigger>
           </TabsList>
           <TabsContent value="agents" className="mt-6">
             <SellerAgentsPanel />
@@ -88,9 +81,6 @@ function SellerDashboard() {
           </TabsContent>
           <TabsContent value="profile" className="mt-6">
             <SellerProfilePanel />
-          </TabsContent>
-          <TabsContent value="payouts" className="mt-6">
-            <SellerPayoutsPanel />
           </TabsContent>
         </Tabs>
       </section>
@@ -195,20 +185,10 @@ function SellerProfilePanel() {
             /sellers/{q.data?.slug ?? "your-slug"}
           </code>
         </p>
-        <div className="mt-4 space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Status</span>
-            <span className="capitalize">{q.data?.stripe_account_status ?? "pending"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Payouts</span>
-            <span>{q.data?.payout_enabled ? "Enabled" : "Not connected"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Commission</span>
-            <span>{q.data?.commission_rate ?? 10}%</span>
-          </div>
-        </div>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Everything in the library is free, so listings carry your name rather than a
+          price. Your profile is the credit line on every pack you contribute.
+        </p>
       </div>
     </div>
   );
@@ -752,139 +732,6 @@ function SellerServiceEditor({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-// ---------- Payouts ----------
-
-type PayoutInfo = Awaited<ReturnType<typeof getSellerPayoutInfo>>;
-
-function SellerPayoutsPanel() {
-  const qc = useQueryClient();
-  const payoutFn = useServerFn(getSellerPayoutInfo);
-  const stripeEnv = getStripeEnvironment();
-  const q = useQuery({
-    queryKey: ["seller-payouts", stripeEnv],
-    queryFn: () => payoutFn({ data: { environment: stripeEnv } }),
-  });
-
-  const onboardFn = useServerFn(createConnectOnboardingLink);
-  const checkStatusFn = useServerFn(checkConnectAccountStatus);
-
-  const onboardMut = useMutation({
-    mutationFn: () =>
-      onboardFn({
-        data: { baseUrl: window.location.origin, environment: stripeEnv },
-      }),
-    onSuccess: (result) => {
-      window.location.href = result.url;
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const checkStatusMut = useMutation({
-    mutationFn: () => checkStatusFn({ data: { environment: stripeEnv } }),
-    onSuccess: () => {
-      toast.success("Account status updated.");
-      qc.invalidateQueries({ queryKey: ["seller-payouts", stripeEnv] });
-      qc.invalidateQueries({ queryKey: ["seller-profile"] });
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  if (q.isLoading) {
-    return <div className="p-6 text-sm text-muted-foreground">Loading payout info…</div>;
-  }
-
-  const info = q.data as PayoutInfo | undefined;
-  const needsOnboarding = !info?.stripe_account_id || info?.stripe_account_status !== "connected";
-
-  return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <div className="rounded-lg border p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Payout Settings</h3>
-        </div>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Stripe status</span>
-            <span className="capitalize">{info?.stripe_account_status ?? "pending"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Payouts enabled</span>
-            <span>{info?.payout_enabled ? "Yes" : "No"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Commission rate</span>
-            <span>{info?.commission_rate ?? 10}%</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Connected account</span>
-            <span className="font-mono text-xs">{info?.stripe_account_id ?? "Not connected"}</span>
-          </div>
-        </div>
-        <div className="mt-4 space-y-2">
-          {needsOnboarding ? (
-            <Button size="sm" onClick={() => onboardMut.mutate()} disabled={onboardMut.isPending}>
-              {onboardMut.isPending
-                ? "Generating link…"
-                : info?.stripe_account_id
-                  ? "Reconnect Stripe account"
-                  : "Connect Stripe account"}
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => checkStatusMut.mutate()}
-              disabled={checkStatusMut.isPending}
-            >
-              {checkStatusMut.isPending ? "Checking…" : "Refresh account status"}
-            </Button>
-          )}
-          {info?.stripe_account_id && info.stripe_account_status === "connected" && (
-            <p className="text-xs text-green-600">
-              Your Stripe account is connected and ready to receive payouts.
-            </p>
-          )}
-          {info?.stripe_account_id && info.stripe_account_status !== "connected" && (
-            <p className="text-xs text-amber-600">
-              Your account is connected but not yet active. Click the link above to complete
-              onboarding, then refresh.
-            </p>
-          )}
-        </div>
-      </div>
-      <div className="rounded-lg border p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Earnings</h3>
-        </div>
-        <div className="space-y-3 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Total earnings</span>
-            <span className="font-medium">
-              ${((info?.total_earnings_cents ?? 0) / 100).toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Unpaid earnings</span>
-            <span className="font-medium text-green-600">
-              ${((info?.unpaid_earnings_cents ?? 0) / 100).toFixed(2)}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Sales attributed</span>
-            <span>{info?.entitlements_count ?? 0}</span>
-          </div>
-        </div>
-        <div className="mt-4 rounded bg-muted/50 p-3 text-xs text-muted-foreground">
-          Earnings are calculated from purchases attributed to your listings. Payouts are processed
-          via Stripe Connect.
-        </div>
-      </div>
-    </div>
   );
 }
 

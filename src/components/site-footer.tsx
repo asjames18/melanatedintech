@@ -22,8 +22,8 @@ export function SiteFooter() {
             </picture>
           </Link>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Revenue recovery systems for local service businesses, backed by a practical AI
-            marketplace, knowledge hub, products, and tools.
+            Practical AI tools, open infrastructure, and revenue recovery systems that help people
+            and small organizations build useful economic power.
           </p>
         </div>
 
@@ -46,6 +46,11 @@ export function SiteFooter() {
               <li>
                 <Link to="/about" className="hover:text-foreground">
                   About
+                </Link>
+              </li>
+              <li>
+                <Link to="/open-commons" className="hover:text-foreground">
+                  Open Commons
                 </Link>
               </li>
               <li>

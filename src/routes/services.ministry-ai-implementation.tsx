@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
   ArrowDown,
   CalendarDays,
@@ -21,6 +21,9 @@ import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 
 export const Route = createFileRoute("/services/ministry-ai-implementation")({
+  beforeLoad: () => {
+    throw redirect({ to: "/work-with-us" });
+  },
   head: () => {
     const path = "/services/ministry-ai-implementation";
     const seo = buildSeoMeta({

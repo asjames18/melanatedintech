@@ -12,6 +12,7 @@ import {
   type PublicClientInvoiceRecord,
 } from "@/lib/invoices.functions";
 import { trackEvent } from "@/lib/analytics";
+import { getStripeEnvironment } from "@/lib/stripe";
 
 const invoiceSearchSchema = z.object({
   token: z.string().uuid().optional().catch(undefined),
@@ -142,7 +143,12 @@ function InvoicePage() {
           invoiceNumber: invoice.invoice_number,
           accessToken: search.token,
           paymentType: type,
-          environment: "live", // Uses live/sandbox as configured
+          // Derived from the build's publishable key (pk_test_ -> sandbox,
+          // pk_live_ -> live), the same signal UnlockButton uses. Hardcoding
+          // "live" meant testing this flow charged a real card; defaulting to
+          // "sandbox" server-side would have meant a real client paying into
+          // test mode. Deriving it makes dev safe and production correct.
+          environment: getStripeEnvironment(),
         },
       });
       if (res.checkoutUrl) {

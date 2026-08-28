@@ -17,7 +17,7 @@ const joinSchema = z.object({
 });
 
 export const joinProductWaitlist = createServerFn({ method: "POST" })
-  .validator((d: unknown) => joinSchema.parse(d))
+  .inputValidator((d: unknown) => joinSchema.parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { error } = await sb.from("waitlist_signups").insert({
@@ -39,7 +39,7 @@ export const joinProductWaitlist = createServerFn({ method: "POST" })
   });
 
 export const getProductWaitlistCount = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ product_slug: z.string().trim().min(1).max(120) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ product_slug: z.string().trim().min(1).max(120) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { count, error } = await sb

@@ -51,7 +51,7 @@ export const listPublicPrompts = createServerFn({ method: "GET" })
 
 export const getPrompt = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: prompt, error } = await supabaseAdmin
@@ -80,7 +80,7 @@ const promptSchema = z.object({
 
 export const upsertPrompt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => promptSchema.parse(d))
+  .inputValidator((d: unknown) => promptSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -104,7 +104,7 @@ export const upsertPrompt = createServerFn({ method: "POST" })
 
 export const deletePrompt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

@@ -119,7 +119,7 @@ export const listLearningPaths = createServerFn({ method: "GET" }).handler(async
 });
 
 export const getLearningPath = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: path, error } = await sb
@@ -157,7 +157,7 @@ export const listBuilderChallenges = createServerFn({ method: "GET" }).handler(a
 });
 
 export const getBuilderChallenge = createServerFn({ method: "GET" })
-  .validator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
+  .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {
     const sb = publicClient();
     const { data: challenge, error } = await sb
@@ -191,7 +191,7 @@ const pathProgressSchema = z.object({
 
 export const updateLearningPathProgress = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => pathProgressSchema.parse(d))
+  .inputValidator((d: unknown) => pathProgressSchema.parse(d))
   .handler(async ({ data, context }) => {
     const { data: path, error: pathError } = await context.supabase
       .from("learning_paths")
@@ -260,7 +260,7 @@ export const getMyFitFinderResult = createServerFn({ method: "GET" })
 
 export const saveMyFitFinderResult = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ result: fitFinderResultSchema }).parse(d))
+  .inputValidator((d: unknown) => z.object({ result: fitFinderResultSchema }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("profiles")

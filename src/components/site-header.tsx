@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { ChevronDown, Menu, Search, UserRound, X } from "lucide-react";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 
 const HeaderAuthButton = lazy(() =>
   import("./header-auth-button").then((module) => ({ default: module.HeaderAuthButton })),
@@ -16,7 +16,7 @@ const groups = [
       ["Project & Estimate Businesses", "/solutions/project-estimate-businesses"],
       ["Recurring Property Services", "/solutions/recurring-property-services"],
       ["Beauty & Personal Care", "/solutions/beauty-personal-care"],
-      ["Ministry & Nonprofit", "/services/ministry-ai-implementation"],
+      ["Nonprofit & Community Organizations", "/work-with-us"],
     ],
   },
   {
@@ -41,8 +41,9 @@ const groups = [
   },
 ] as const;
 const directLinks = [
+  ["Work With Us", "/work-with-us"],
   ["Marketplace", "/agents"],
-  ["Products", "/products"],
+  ["Open Commons", "/open-commons"],
   ["About", "/about"],
 ] as const;
 
@@ -144,10 +145,10 @@ export function SiteHeader() {
             </kbd>
           </Link>
           <Link
-            to="/get-a-demo"
+            to="/work-with-us"
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           >
-            Get a Demo
+            Work With Us
           </Link>
           {loadAuth ? (
             <Suspense fallback={<HeaderAuthFallback />}>
@@ -205,11 +206,11 @@ export function SiteHeader() {
               ))}
             </div>
             <Link
-              to="/get-a-demo"
+              to="/work-with-us"
               onClick={() => setOpen(false)}
               className="flex items-center justify-center rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
             >
-              Get a Demo
+              Work With Us
             </Link>
             <Link
               to="/search"
@@ -233,22 +234,23 @@ export function SiteHeader() {
 }
 function HeaderAuthFallback() {
   return (
-    <Link
-      to="/auth"
-      className="inline-flex h-9 items-center justify-center rounded-md border border-border bg-card px-3 text-sm font-medium"
+    <span
+      className="inline-flex h-9 w-20 animate-pulse rounded-md border border-border bg-muted/60"
+      role="status"
+      aria-label="Checking account status"
     >
-      Sign in
-    </Link>
+      <span className="sr-only">Checking account status</span>
+    </span>
   );
 }
-function MobileHeaderAuthFallback({ onClick }: { onClick: () => void }) {
+
+function MobileHeaderAuthFallback({ onClick: _onClick }: { onClick: () => void }) {
   return (
-    <Link
-      to="/auth"
-      onClick={onClick}
-      className="flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm font-medium"
+    <span
+      className="flex items-center justify-center rounded-md border border-border bg-muted/60 px-3 py-2.5 text-sm text-muted-foreground"
+      role="status"
     >
-      <UserRound className="h-4 w-4" /> Sign in
-    </Link>
+      Checking account status
+    </span>
   );
 }

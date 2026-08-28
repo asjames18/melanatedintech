@@ -45,6 +45,69 @@ function createSafeBrowserStorage(): SupabaseStorage | undefined {
   };
 }
 
+/**
+ * Serializes callbacks in-process. Used when the Web Locks API is unavailable —
+ * it cannot coordinate across tabs, but a single tab refreshing its own session
+ * is the case that actually matters.
+ */
+function createMemoryLock() {
+  let tail: Promise<unknown> = Promise.resolve();
+  return <R>(_name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> => {
+    const run = tail.then(fn, fn);
+    tail = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
+}
+
+const memoryLock = createMemoryLock();
+
+/** True for the storage-partitioning error, as opposed to a failure inside fn. */
+function isStorageAccessError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  return /access to storage|storage is not allowed|securityerror/i.test(message);
+}
+
+/**
+ * Session lock that degrades instead of throwing.
+ *
+ * supabase-js coordinates token refresh with navigator.locks. In a
+ * storage-partitioned context — an embedded frame, strict privacy settings,
+ * blocked third-party storage — that call throws
+ *
+ *     Access to storage is not allowed from this context.
+ *
+ * which surfaces as an unhandled rejection out of getSession()/getUser(), and
+ * every caller would otherwise need its own .catch (there are 25 of them).
+ * Handling it here fixes all of them at once.
+ */
+async function safeLock<R>(
+  name: string,
+  acquireTimeout: number,
+  fn: () => Promise<R>,
+): Promise<R> {
+  let locks: { request?: (n: string, f: () => Promise<R>) => Promise<R> } | undefined;
+  try {
+    locks = (navigator as unknown as { locks?: typeof locks })?.locks;
+  } catch {
+    locks = undefined; // Touching navigator.locks can itself throw.
+  }
+
+  if (typeof locks?.request === "function") {
+    try {
+      return await locks.request(name, fn);
+    } catch (error) {
+      // Only retry when the LOCK was refused. If fn threw, rerunning it would
+      // double-execute a token refresh.
+      if (!isStorageAccessError(error)) throw error;
+    }
+  }
+
+  return memoryLock(name, acquireTimeout, fn);
+}
+
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(
@@ -90,6 +153,7 @@ function createSupabaseClient() {
       storage: createSafeBrowserStorage(),
       persistSession: true,
       autoRefreshToken: true,
+      lock: safeLock,
     },
   });
 }

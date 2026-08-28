@@ -197,7 +197,7 @@ export function RevenueLeakCalculator() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="revenue-leak-calculator" />
+        <ToolCrossSell tool="revenue-leak-calculator" />
       </section>
     </SiteLayout>
   );

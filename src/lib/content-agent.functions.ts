@@ -744,7 +744,7 @@ export const adminListContentReviewPackets = createServerFn({ method: "GET" })
 
 export const adminGenerateContentReviewPacket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(generateInput)
+  .inputValidator(generateInput)
   .handler(async ({ data, context }): Promise<ContentReviewRow> => {
     const db = await getAdminDb(context.userId);
     const today = new Date().toISOString().slice(0, 10);
@@ -861,7 +861,7 @@ export const adminGenerateContentReviewPacket = createServerFn({ method: "POST" 
 
 export const adminReviewContentPacket = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(reviewInput)
+  .inputValidator(reviewInput)
   .handler(async ({ data, context }): Promise<ContentReviewRow> => {
     const db = await getAdminDb(context.userId);
     const { data: current, error: currentError } = await db

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { submitContact } from "@/lib/public.functions";
+import { classifyServiceInquiry, submitContact } from "@/lib/public.functions";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,19 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 
-export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
+type CampaignAttribution = {
+  source?: string;
+  medium?: string;
+  campaign?: string;
+};
+
+export function ContactForm({
+  defaultTopic = "",
+  campaign,
+}: {
+  defaultTopic?: string;
+  campaign?: CampaignAttribution;
+}) {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -19,33 +31,56 @@ export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
   const [hp, setHp] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [started, setStarted] = useState(false);
   const send = useServerFn(submitContact);
 
   function update<K extends keyof typeof form>(k: K, v: string) {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  function markServiceInquiryStarted() {
+    if (started) return;
+    const inquiryType = classifyServiceInquiry(defaultTopic);
+    if (inquiryType === "general") return;
+
+    setStarted(true);
+    trackEvent("service_inquiry_started", {
+      inquiry_type: inquiryType,
+      surface: "contact",
+      source: campaign?.source ?? "direct_or_other",
+      campaign: campaign?.campaign,
+    });
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await send({
+      const result = await send({
         data: {
           name: form.name,
           email: form.email,
           organization: form.organization || undefined,
           topic: form.topic || undefined,
           message: form.message,
+          utm_source: campaign?.source,
+          utm_medium: campaign?.medium,
+          utm_campaign: campaign?.campaign,
           hp: hp || undefined,
         },
       });
       setDone(true);
-      trackEvent(
-        form.topic === "Strategy Sprint application"
-          ? "strategy_sprint_application_submitted"
-          : "contact_submission_completed",
-        { surface: form.topic === "Strategy Sprint application" ? "strategy_sprint" : "contact" },
-      );
+      if (form.topic === "Strategy Sprint application") {
+        trackEvent("strategy_sprint_application_submitted", { surface: "strategy_sprint" });
+      } else {
+        trackEvent("contact_submission_completed", { surface: "contact" });
+        if (result.inquiryType !== "general") {
+          trackEvent("service_inquiry_submitted", {
+            inquiry_type: result.inquiryType,
+            surface: "contact",
+          });
+        }
+      }
       toast.success("Message sent — we'll be in touch.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
@@ -68,7 +103,7 @@ export function ContactForm({ defaultTopic = "" }: { defaultTopic?: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} onFocus={markServiceInquiryStarted} className="space-y-4">
       {/* Honeypot — hidden from real users; bots fill it and get silently dropped. */}
       <input
         type="text"

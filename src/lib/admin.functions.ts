@@ -144,9 +144,6 @@ type AdminPurchaseItem = {
   seller_id: string | null;
   seller_name: string | null;
   seller_slug: string | null;
-  seller_earnings_cents: number | null;
-  platform_fee_cents: number | null;
-  seller_paid: boolean;
   price_id: string | null;
   stripe_session_id: string | null;
   environment: string;
@@ -163,7 +160,7 @@ export const adminListPurchases = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("user_entitlements")
       .select(
-        "id,user_id,kind,slug,price_id,stripe_session_id,environment,granted_at,created_at,seller_id,commission_cents,seller_paid",
+        "id,user_id,kind,slug,price_id,stripe_session_id,environment,granted_at,created_at,seller_id",
       )
       .order("granted_at", { ascending: false })
       .limit(250);
@@ -184,7 +181,7 @@ export const adminListPurchases = createServerFn({ method: "GET" })
       sellerIds.length
         ? supabaseAdmin
             .from("seller_profiles")
-            .select("id,display_name,slug,commission_rate,payout_enabled")
+            .select("id,display_name,slug")
             .in("id", sellerIds)
         : Promise.resolve({ data: [], error: null }),
       agentSlugs.length
@@ -210,13 +207,6 @@ export const adminListPurchases = createServerFn({ method: "GET" })
       const staticEntry = kind === "agent" || kind === "product" ? getPremiumEntry(kind, row.slug) : null;
       const seller = row.seller_id ? sellerById.get(row.seller_id) : null;
       const amountCents = staticEntry?.amountCents ?? item?.price_cents ?? null;
-      const inferredSellerEarnings =
-        row.seller_id && amountCents != null
-          ? Math.round(amountCents * (1 - Number(seller?.commission_rate ?? 10) / 100))
-          : null;
-      const sellerEarningsCents = row.commission_cents ?? inferredSellerEarnings;
-      const platformFeeCents =
-        amountCents != null && sellerEarningsCents != null ? amountCents - sellerEarningsCents : null;
 
       return {
         id: row.id,
@@ -229,9 +219,6 @@ export const adminListPurchases = createServerFn({ method: "GET" })
         seller_id: row.seller_id,
         seller_name: seller?.display_name ?? null,
         seller_slug: seller?.slug ?? null,
-        seller_earnings_cents: sellerEarningsCents,
-        platform_fee_cents: platformFeeCents,
-        seller_paid: row.seller_paid,
         price_id: row.price_id,
         stripe_session_id: row.stripe_session_id,
         environment: row.environment,
@@ -241,26 +228,64 @@ export const adminListPurchases = createServerFn({ method: "GET" })
     });
   });
 
-// ---------- Contact message triage ----------
+// ---------- Contact message / services pipeline triage ----------
+
+export const CONTACT_PIPELINE_STATUSES = [
+  "new",
+  "reviewing",
+  "qualified",
+  "proposal_sent",
+  "in_progress",
+  "won",
+  "lost",
+] as const;
+
+export type ContactPipelineStatus = (typeof CONTACT_PIPELINE_STATUSES)[number];
+
+const contactPipelineUpdateSchema = z
+  .object({
+    id: z.string().uuid(),
+    lead_status: z.enum(CONTACT_PIPELINE_STATUSES).optional(),
+    assigned_owner: z.string().trim().min(1).max(120).nullable().optional(),
+    admin_notes: z.string().trim().min(1).max(4_000).nullable().optional(),
+    follow_up_at: z.string().datetime().nullable().optional(),
+    // Kept for compatibility with the original inbox action. The pipeline UI
+    // uses lead_status; terminal statuses automatically mark a message handled.
+    handled: z.boolean().optional(),
+  })
+  .refine(
+    (value) =>
+      value.lead_status !== undefined ||
+      value.assigned_owner !== undefined ||
+      value.admin_notes !== undefined ||
+      value.follow_up_at !== undefined ||
+      value.handled !== undefined,
+    "Choose at least one pipeline field to update.",
+  );
 
 export const adminUpdateMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid(), handled: z.boolean() }).parse(d))
+  .inputValidator((d: unknown) => contactPipelineUpdateSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    // handled isn't in the generated Database types yet â€” cast past the typed Update.
-    const { error } = await supabaseAdmin
-      .from("contact_messages")
-      .update({ handled: data.handled } as never)
-      .eq("id", data.id);
+    const terminal = data.lead_status === "won" || data.lead_status === "lost";
+    const update = {
+      ...(data.lead_status !== undefined ? { lead_status: data.lead_status, handled: terminal } : {}),
+      ...(data.assigned_owner !== undefined ? { assigned_owner: data.assigned_owner } : {}),
+      ...(data.admin_notes !== undefined ? { admin_notes: data.admin_notes } : {}),
+      ...(data.follow_up_at !== undefined ? { follow_up_at: data.follow_up_at } : {}),
+      ...(data.handled !== undefined && data.lead_status === undefined ? { handled: data.handled } : {}),
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = await supabaseAdmin.from("contact_messages").update(update).eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
 
 export const adminDeleteMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -316,7 +341,7 @@ const agentSchema = refinePublish(
 
 export const adminUpsertAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => agentSchema.parse(d))
+  .inputValidator((d: unknown) => agentSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -345,7 +370,7 @@ const articleSchema = refinePublish(
 
 export const adminUpsertArticle = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => articleSchema.parse(d))
+  .inputValidator((d: unknown) => articleSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -370,7 +395,7 @@ const serviceSchema = refinePublish(
 
 export const adminUpsertService = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => serviceSchema.parse(d))
+  .inputValidator((d: unknown) => serviceSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -389,11 +414,78 @@ const deleteSchema = z.object({
 
 export const adminDelete = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d: unknown) => deleteSchema.parse(d))
+  .inputValidator((d: unknown) => deleteSchema.parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from(data.table).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+
+// ---------- Website Launch nurture controls ----------
+
+const websiteLaunchNurtureToggleSchema = z.object({ enabled: z.boolean() });
+
+export const adminGetWebsiteLaunchNurture = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: settings, error: settingsError }, { data: enrollments, error: enrollmentError }] = await Promise.all([
+      supabaseAdmin
+        .from("website_launch_nurture_settings")
+        .select("id,sequence_key,enabled,updated_at")
+        .eq("id", 1)
+        .single(),
+      supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .select("status,current_step,next_send_at,last_sent_at,created_at")
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .order("created_at", { ascending: false })
+        .limit(250),
+    ]);
+    if (settingsError) throw new Error(settingsError.message);
+    if (enrollmentError) throw new Error(enrollmentError.message);
+    return { settings, enrollments: enrollments ?? [] };
+  });
+
+export const adminSetWebsiteLaunchNurture = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => websiteLaunchNurtureToggleSchema.parse(d))
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+    if (data.enabled) {
+      const { getMarketingPostalAddress } = await import("@/lib/website-launch-nurture.server");
+      // Refuse activation until the required commercial-email footer is configured.
+      getMarketingPostalAddress();
+    }
+
+    const { error: settingsError } = await supabaseAdmin
+      .from("website_launch_nurture_settings")
+      .update({ enabled: data.enabled, updated_at: now })
+      .eq("id", 1);
+    if (settingsError) throw new Error(settingsError.message);
+
+    if (data.enabled) {
+      const { error: activateError } = await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "active", updated_at: now })
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .eq("status", "paused")
+        .not("confirmed_at", "is", null);
+      if (activateError) throw new Error(activateError.message);
+    } else {
+      const { error: pauseError } = await supabaseAdmin
+        .from("website_launch_nurture_enrollments")
+        .update({ status: "paused", updated_at: now })
+        .eq("sequence_key", "website_launch_sprint_v1")
+        .eq("status", "active");
+      if (pauseError) throw new Error(pauseError.message);
+    }
+
+    return { ok: true, enabled: data.enabled };
   });

@@ -241,6 +241,28 @@ export function GovernanceKit() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="mb-8 rounded-2xl border border-primary/25 bg-primary/5 p-6 sm:flex sm:items-center sm:justify-between">
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-primary">
+              <Users className="h-4 w-4" />
+              <p className="text-xs font-semibold uppercase tracking-wider">Community stewardship</p>
+            </div>
+            <h2 className="mt-2 font-display text-xl font-semibold">
+              Practical AI needs clear boundaries—and people who can help improve them.
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Open Commons is Melanated In Tech’s public home for shared tools, examples, and
+              contribution paths. This governance hub explains the responsible practices behind that work.
+            </p>
+          </div>
+          <Link
+            to="/open-commons"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-card px-4 py-2.5 text-sm font-semibold text-primary hover:border-primary/60 sm:mt-0"
+          >
+            Explore Open Commons <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
         {/* Dynamic Variable Customizer Bar */}
         <div className="mb-8 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -393,7 +415,7 @@ export function GovernanceKit() {
           </div>
         </div>
 
-        <ToolCrossSell currentToolSlug="governance" />
+        <ToolCrossSell tool="governance" />
       </section>
     </SiteLayout>
   );

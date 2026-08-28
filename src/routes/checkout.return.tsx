@@ -6,6 +6,7 @@ import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { confirmCheckoutSession } from "@/lib/payments.functions";
 import { getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
+import { getPremiumEntry } from "@/lib/premium-catalog";
 import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
@@ -59,14 +60,19 @@ function CheckoutReturn() {
             // Refresh entitlement cache so the rest of the app sees the unlock.
             router.invalidate();
 
-            if (result.slug === "revenue-leak-diagnostic") {
-              navigate({ to: "/diagnostic/success", search: { session_id } });
+            // Service purchases (a booked session, not a download) have their own
+            // post-purchase route; packs stay on this page and link to the item.
+            const entry = getPremiumEntry(result.kind, result.slug);
+            if (entry?.fulfillmentRoute) {
+              navigate({ to: entry.fulfillmentRoute, search: { session_id } });
               return;
             }
             return;
           }
-        } catch {
-          // fall through to retry / pending
+        } catch (error) {
+          // Fall through to retry / pending, but never silently — a bug in this
+          // block (rather than a slow-settling payment) must still be visible.
+          console.error("[checkout-return] confirm attempt failed", error);
         }
         if (attempt < 2) await sleep(1500);
       }
@@ -76,7 +82,7 @@ function CheckoutReturn() {
     return () => {
       cancelled = true;
     };
-  }, [session_id, confirmFn, router]);
+  }, [session_id, confirmFn, router, navigate]);
 
   return (
     <SiteLayout>

@@ -38,19 +38,53 @@ const REACTION_TEXT: Record<string, string> = {
 };
 
 function renderBodyWithHashtags(body: string) {
-  const parts = body.split(/(\s+)/);
+  const codeBlockRegex = /```([\s\S]*?)```/g;
+  const segments: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = codeBlockRegex.exec(body)) !== null) {
+    if (match.index > lastIndex) {
+      segments.push(...formatInlineText(body.slice(lastIndex, match.index), lastIndex));
+    }
+    const codeSnippet = match[1].trim();
+    segments.push(
+      <pre key={`code-${match.index}`} className="my-2.5 overflow-x-auto rounded-xl border border-border/80 bg-zinc-950 p-3.5 font-mono text-xs font-medium text-emerald-400 shadow-xs">
+        <code>{codeSnippet}</code>
+      </pre>
+    );
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < body.length) {
+    segments.push(...formatInlineText(body.slice(lastIndex), lastIndex));
+  }
+
+  return segments;
+}
+
+function formatInlineText(text: string, baseKey: number): React.ReactNode[] {
+  const parts = text.split(/(\s+)/);
   return parts.map((part, index) => {
+    const key = `${baseKey}-${index}`;
+    if (part.startsWith("`") && part.endsWith("`") && part.length > 2) {
+      return (
+        <code key={key} className="rounded-md border border-border bg-muted/60 px-1.5 py-0.5 font-mono text-xs font-semibold text-primary">
+          {part.slice(1, -1)}
+        </code>
+      );
+    }
     if (part.startsWith("#") && part.length > 1) {
       const cleanTag = part.replace(/[^\w]/g, "");
       return (
-        <Link key={index} to="/community" search={{ tag: cleanTag }} className="font-semibold text-primary hover:underline">
+        <Link key={key} to="/community" search={{ tag: cleanTag }} className="font-semibold text-primary hover:underline">
           {part}
         </Link>
       );
     }
     if (part.startsWith("http://") || part.startsWith("https://")) {
       return (
-        <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="break-all font-semibold text-primary hover:underline">
+        <a key={key} href={part} target="_blank" rel="noopener noreferrer" className="break-all font-semibold text-primary hover:underline">
           {part}
         </a>
       );

@@ -110,6 +110,26 @@ function Community() {
               </div>
             </div>
 
+            {/* Visitor Onboarding Callout Banner */}
+            {!me && me !== undefined && (
+              <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-card p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                      <Sparkles className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-sm font-bold text-foreground">Join the Melanated In Tech Builder Network</h3>
+                      <p className="text-xs text-muted-foreground">Share builds, showcase agents, unlock starter templates, and collaborate with builders.</p>
+                    </div>
+                  </div>
+                  <Button asChild size="sm" className="shrink-0 rounded-xl bg-primary text-primary-foreground font-semibold shadow-xs">
+                    <Link to="/auth">Sign In to Join</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Featured Community Agent Showcase Spotlight */}
             <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-background to-card p-3.5 shadow-sm sm:p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

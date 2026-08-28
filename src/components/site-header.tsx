@@ -44,6 +44,7 @@ const groups = [
 const directLinks = [
   ["Marketplace", "/agents"],
   ["Open Commons", "/open-commons"],
+  ["Roadmap", "/roadmap"],
   ["About", "/about"],
 ] as const;
 

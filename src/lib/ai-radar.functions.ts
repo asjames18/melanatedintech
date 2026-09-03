@@ -893,15 +893,34 @@ function errorMessage(err: unknown): string {
 }
 
 /**
- * Runs every configured source once and returns the merged result. No cache, no
+ * Runs the configured sources once and returns the merged result. No cache, no
  * filtering — the scheduled ingest calls this directly, and the request-time
  * server function below wraps it with the in-memory cache.
+ *
+ * Pass `slice` to run only part of the source list; see the note inside on the
+ * Worker subrequest budget.
  */
 export async function gatherRadarFeed(
   now: number,
   profile: RadarProfile = "full",
+  slice?: { index: number; count: number },
 ): Promise<{ items: AiRadarItem[]; sourceStatus: AiRadarSourceStatus[] }> {
-  const tasks = profile === "fast" ? TASKS.filter((task) => task.fast) : TASKS;
+  let tasks = profile === "fast" ? TASKS.filter((task) => task.fast) : TASKS;
+
+  // A Cloudflare Worker gets a fixed number of outbound subrequests per
+  // request — 50 on the free plan. Eighty feeds plus the database calls blows
+  // straight through that, and the failure is nasty: once the budget is gone
+  // every later fetch fails, including the one that tries to record why.
+  //
+  // So a run takes a slice of the sources instead of all of them. `fast`
+  // sources (the model catalog and both status pages) are in every slice
+  // because they are the ones with a shelf life; the rest rotate, and with a
+  // 30-minute schedule the whole list is covered within a couple of hours.
+  // Items persist for 30 days and dedup handles the overlap, so nothing is
+  // lost by not reading every feed on every pass.
+  if (slice && slice.count > 1 && profile === "full") {
+    tasks = TASKS.filter((task, index) => task.fast || index % slice.count === slice.index);
+  }
   const results = await runWithBudget(
     tasks,
     now,

@@ -33,6 +33,17 @@ import {
 const RETAIN_DAYS = 30;
 
 /**
+ * How many runs it takes to walk the whole source list. See gatherRadarFeed:
+ * a Worker request has a fixed subrequest budget (50 on the free plan) and the
+ * full list plus the database calls exceeds it. Four slices keeps a run near
+ * ~20 feed fetches plus ~10 database calls, comfortably inside the budget, and
+ * covers everything every two hours on a 30-minute schedule.
+ */
+const SLICE_COUNT = 4;
+/** Matches the cron schedule, so consecutive runs land on consecutive slices. */
+const SLICE_INTERVAL_MS = 30 * 60 * 1000;
+
+/**
  * How far back to look for an existing version of an incoming story. Anything
  * older is not something a reader would experience as a duplicate.
  */
@@ -77,7 +88,11 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
         const runId = runRow.id as string;
 
         try {
-          const feed = await gatherRadarFeed(Date.now());
+          const sliceIndex = Math.floor(Date.now() / SLICE_INTERVAL_MS) % SLICE_COUNT;
+          const feed = await gatherRadarFeed(Date.now(), "full", {
+            index: sliceIndex,
+            count: SLICE_COUNT,
+          });
 
           const feedsOk = feed.sourceStatus.reduce((sum, s) => sum + s.feedsOk, 0);
           const feedsTotal = feed.sourceStatus.reduce((sum, s) => sum + s.feedsTotal, 0);
@@ -241,6 +256,7 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
             feeds_ok: feedsOk,
             feeds_total: feedsTotal,
             items_seen: feed.items.length,
+            slice: `${sliceIndex + 1}/${SLICE_COUNT}`,
             items_new: inserts.length,
             items_refreshed: seenAgain.length,
             items_duplicate: duplicates,
@@ -249,8 +265,15 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           console.error("[radar-ingest] failed", message);
+
+          // Report the reason in the response as well as the row. When this
+          // handler ran out of subrequests, the row update below was itself a
+          // subrequest and failed too — and because supabase-js returns errors
+          // instead of throwing, discarding its result meant the run recorded a
+          // null failure_message and nothing said why. The caller is already
+          // authenticated, so telling it what broke costs nothing.
           const finishedAt = new Date();
-          await supabase
+          const { error: writeError } = await supabase
             .from("radar_ingest_runs")
             .update({
               finished_at: finishedAt.toISOString(),
@@ -258,7 +281,19 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
               failure_message: message.slice(0, 4000),
             })
             .eq("id", runId);
-          return Response.json({ error: "Ingest failed", run_id: runId }, { status: 500 });
+          if (writeError) {
+            console.error("[radar-ingest] could not record the failure", writeError.message);
+          }
+
+          return Response.json(
+            {
+              error: "Ingest failed",
+              run_id: runId,
+              reason: message.slice(0, 500),
+              recorded: !writeError,
+            },
+            { status: 500 },
+          );
         }
       },
     },

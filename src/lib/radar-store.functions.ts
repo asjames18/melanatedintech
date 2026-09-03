@@ -38,6 +38,11 @@ const STORE_TIMEOUT_MS = 2500;
  */
 const STORE_RETRY_AFTER_MS = 60_000;
 /**
+ * How many recent runs to fold together for the source-health strip. Matches
+ * SLICE_COUNT in the ingest: one full rotation of the source list.
+ */
+const SLICE_COUNT = 4;
+/**
  * Matches the live path and the 30-day row retention, so the page can show
  * everything the store still holds.
  */
@@ -103,6 +108,24 @@ function rowToItem(row: RadarRow, now: number): AiRadarItem {
   };
 }
 
+/**
+ * Folds the per-run source reports from the last full rotation into one view.
+ * A run only covers a slice of the sources, so reporting a single run would
+ * make untouched groups look like failures.
+ */
+function mergeSourceStatus(
+  runs: Array<{ source_status: AiRadarSourceStatus[] }>,
+): AiRadarSourceStatus[] {
+  const merged = new Map<string, AiRadarSourceStatus>();
+  // Oldest first, so the newest run's numbers win for any group it covered.
+  for (const run of [...runs].reverse()) {
+    for (const status of run.source_status ?? []) {
+      merged.set(status.id, status);
+    }
+  }
+  return [...merged.values()];
+}
+
 const inputSchema = z
   .object({ limit: z.number().int().min(5).max(150).default(120) })
   .strict();
@@ -136,20 +159,25 @@ export const fetchRadarForPage = createServerFn({ method: "GET" })
               .order("published_at", { ascending: false })
               .limit(300)
               .abortSignal(AbortSignal.timeout(STORE_TIMEOUT_MS)),
+            // Several runs, not one: each covers a slice of the sources, so a
+            // single run's status would show whole groups as missing simply
+            // because this pass did not reach them.
             sb
               .from("radar_ingest_runs")
               .select("started_at, finished_at, source_status")
               .not("finished_at", "is", null)
               .order("started_at", { ascending: false })
-              .limit(1)
-              .abortSignal(AbortSignal.timeout(STORE_TIMEOUT_MS))
-              .maybeSingle(),
+              .limit(SLICE_COUNT)
+              .abortSignal(AbortSignal.timeout(STORE_TIMEOUT_MS)),
           ]);
 
           const rows = (itemsResult.data ?? []) as RadarRow[];
-          const lastRun = runResult.data as
-            | { started_at: string; finished_at: string; source_status: AiRadarSourceStatus[] }
-            | null;
+          const runs = (runResult.data ?? []) as Array<{
+            started_at: string;
+            finished_at: string;
+            source_status: AiRadarSourceStatus[];
+          }>;
+          const lastRun = runs[0] ?? null;
           const runAge = lastRun ? now - new Date(lastRun.started_at).getTime() : Infinity;
 
           if (!itemsResult.error && rows.length > 0 && runAge < STALE_AFTER_MS) {
@@ -162,7 +190,7 @@ export const fetchRadarForPage = createServerFn({ method: "GET" })
             return {
               items,
               sources: Array.from(new Set(items.map((i) => i.group))).sort(),
-              sourceStatus: lastRun?.source_status ?? [],
+              sourceStatus: mergeSourceStatus(runs),
               total: items.length,
               lastUpdated: lastRun?.started_at ?? new Date(now).toISOString(),
               servedFrom: "store",

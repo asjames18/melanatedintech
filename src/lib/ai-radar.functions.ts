@@ -1,5 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  classifySignal,
+  classifyTrack,
+  dedupeRanked,
+  rankItem,
+  stableId,
+  type RadarSignal,
+  type RadarTrackId,
+} from "@/lib/radar";
 
 export type AiRadarCategory = "all" | "models" | "agents" | "developer" | "research" | "industry";
 
@@ -15,18 +24,109 @@ export interface AiRadarItem {
   tags: string[];
   score?: number;
   commentsCount?: number;
+  /** Which Knowledge Hub track this belongs to, from keyword rules. */
+  track: RadarTrackId;
+  /** How urgently it should change what a running agent does. */
+  signal: RadarSignal;
+  /** Blended source-weight x recency x popularity score used for ordering. */
+  rank: number;
+}
+
+/** Per-source outcome for the run that produced this payload. */
+export interface AiRadarSourceStatus {
+  id: string;
+  label: string;
+  /** What this source is good for, shown in the transparency strip. */
+  note: string;
+  ok: boolean;
+  count: number;
+  /** Present only when the source could not be reached on this run. */
+  error?: string;
 }
 
 export interface AiRadarFeedResponse {
   items: AiRadarItem[];
   sources: string[];
+  /** Every configured source and whether it answered, including failures. */
+  sourceStatus: AiRadarSourceStatus[];
   total: number;
   lastUpdated: string;
+}
+
+/**
+ * Applies the editorial layer to a raw feed entry. Every item goes through
+ * here, so track/signal/rank are never assigned ad hoc at a call site.
+ */
+function classify(
+  item: Omit<AiRadarItem, "track" | "signal" | "rank">,
+  now: number,
+): AiRadarItem {
+  const text = `${item.title} ${item.summary}`;
+  return {
+    ...item,
+    track: classifyTrack(text),
+    signal: classifySignal(text),
+    rank: rankItem({ source: item.source, publishedAt: item.publishedAt, score: item.score, now }),
+  };
 }
 
 // In-memory cache for edge runtime (TTL 5 minutes)
 let cache: { data: AiRadarFeedResponse; expiresAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
+
+/** Nothing older than this is news; also bounds the Hacker News query. */
+const WINDOW_DAYS = 21;
+/** Hacker News stories below this score are noise at this query breadth. */
+const HN_POINTS_FLOOR = 40;
+
+/**
+ * Configured sources. `note` is reader-facing: the page names every source and
+ * says which ones answered, so an outage reads as an outage.
+ */
+const RADAR_SOURCES: Array<{
+  id: string;
+  label: string;
+  note: string;
+  load: (now: number) => Promise<AiRadarItem[]>;
+}> = [
+  {
+    id: "huggingface-papers",
+    label: "Hugging Face",
+    note: "Daily papers, ranked by community upvotes.",
+    load: fetchHuggingFacePapers,
+  },
+  {
+    id: "hackernews",
+    label: "Hacker News",
+    note: "Agent and model stories above a points floor.",
+    load: fetchHackerNewsAi,
+  },
+  {
+    id: "devto",
+    label: "Dev.to",
+    note: "Top-rated practitioner write-ups from the last week.",
+    load: fetchDevToArticles,
+  },
+  {
+    id: "arxiv",
+    label: "ArXiv",
+    note: "Newest cs.AI, cs.MA and cs.CL preprints.",
+    load: fetchArxivPapers,
+  },
+  {
+    id: "curated-rss",
+    label: "Curated feeds",
+    note: "Hugging Face Blog, Simon Willison, and VentureBeat AI.",
+    load: fetchCuratedRssFeeds,
+  },
+];
+
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.name === "AbortError" ? "timed out" : err.message;
+  }
+  return "unavailable";
+}
 
 /**
  * Strips HTML tags and entities cleanly for plain-text summaries
@@ -56,6 +156,7 @@ function parseXmlFeed(
   sourceName: string,
   defaultCategory: AiRadarItem["category"],
   defaultTags: string[],
+  now: number,
 ): AiRadarItem[] {
   const items: AiRadarItem[] = [];
 
@@ -131,17 +232,24 @@ function parseXmlFeed(
         tags.push("Open Source");
       }
 
-      items.push({
-        id: `${sourceName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}-${count}`,
-        title,
-        url,
-        summary: summary.slice(0, 240) + (summary.length > 240 ? "..." : ""),
-        source: sourceName,
-        category: defaultCategory,
-        author,
-        publishedAt,
-        tags: Array.from(new Set(tags)).slice(0, 4),
-      });
+      items.push(
+        classify(
+          {
+            // Hashed from the URL, not the clock: a Date.now()-based id changed
+            // on every fetch, which broke React keys and cross-run dedup.
+            id: stableId(sourceName.toLowerCase().replace(/\s+/g, "-"), url),
+            title,
+            url,
+            summary: summary.slice(0, 240) + (summary.length > 240 ? "..." : ""),
+            source: sourceName,
+            category: defaultCategory,
+            author,
+            publishedAt,
+            tags: Array.from(new Set(tags)).slice(0, 4),
+          },
+          now,
+        ),
+      );
     }
   }
 
@@ -168,35 +276,35 @@ async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs = 450
 /**
  * 1. Hugging Face Daily Papers API
  */
-async function fetchHuggingFacePapers(): Promise<AiRadarItem[]> {
-  try {
-    const res = await fetchWithTimeout("https://huggingface.co/api/daily_papers", {
-      headers: { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" },
-    });
-    if (!res.ok) return [];
-    const papers = (await res.json()) as Array<{
-      paper: {
-        id: string;
-        title: string;
-        summary: string;
-        publishedAt: string;
-        authors?: Array<{ name: string }>;
-        upvotes?: number;
-      };
-      title?: string;
-    }>;
+async function fetchHuggingFacePapers(now: number): Promise<AiRadarItem[]> {
+  const res = await fetchWithTimeout("https://huggingface.co/api/daily_papers", {
+    headers: { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const papers = (await res.json()) as Array<{
+    paper: {
+      id: string;
+      title: string;
+      summary: string;
+      publishedAt: string;
+      authors?: Array<{ name: string }>;
+      upvotes?: number;
+    };
+    title?: string;
+  }>;
 
-    return (papers || []).slice(0, 10).map((item, idx) => {
-      const p = item.paper || item;
-      const title = p.title || "AI Research Paper";
-      const summary = cleanHtmlText(p.summary || "");
-      const tags = ["Research", "Models"];
-      const lower = `${title} ${summary}`.toLowerCase();
-      if (lower.includes("agent") || lower.includes("tool") || lower.includes("workflow")) {
-        tags.push("Agents");
-      }
+  return (papers || []).slice(0, 10).map((item, idx) => {
+    const p = item.paper || item;
+    const title = p.title || "AI Research Paper";
+    const summary = cleanHtmlText(p.summary || "");
+    const tags = ["Research", "Models"];
+    const lower = `${title} ${summary}`.toLowerCase();
+    if (lower.includes("agent") || lower.includes("tool") || lower.includes("workflow")) {
+      tags.push("Agents");
+    }
 
-      return {
+    return classify(
+      {
         id: `hf-${p.id || idx}`,
         title,
         url: `https://huggingface.co/papers/${p.id}`,
@@ -204,55 +312,64 @@ async function fetchHuggingFacePapers(): Promise<AiRadarItem[]> {
         source: "Hugging Face",
         category: (tags.includes("Agents") ? "agents" : "models") as AiRadarItem["category"],
         author: p.authors?.[0]?.name || "AI Research Community",
-        publishedAt: p.publishedAt || new Date().toISOString(),
+        publishedAt: p.publishedAt || new Date(now).toISOString(),
         tags,
         score: p.upvotes,
-      };
-    });
-  } catch (err) {
-    console.warn("Hugging Face Daily Papers fetch error:", err);
-    return [];
-  }
+      },
+      now,
+    );
+  });
 }
 
 /**
  * 2. Hacker News Algolia Search API for AI, Agents, and LLM discussions
  */
-async function fetchHackerNewsAi(): Promise<AiRadarItem[]> {
-  try {
-    const res = await fetchWithTimeout(
-      "https://hn.algolia.com/api/v1/search_by_date?query=(AI+agent+OR+LLM+OR+deepseek+OR+claude+OR+mcp)&tags=story&hitsPerPage=12",
-      { headers: { Accept: "application/json" } },
-    );
-    if (!res.ok) return [];
-    const data = (await res.json()) as {
-      hits?: Array<{
-        objectID: string;
-        title: string;
-        url?: string;
-        author: string;
-        points: number;
-        num_comments: number;
-        created_at: string;
-      }>;
-    };
+async function fetchHackerNewsAi(now: number): Promise<AiRadarItem[]> {
+  // Relevance-ranked with a points floor and a date window. `search_by_date`
+  // returned whatever was newest, which on a query this broad is mostly noise:
+  // an unranked feed of everything posted in the last hour mentioning "AI".
+  //
+  // Algolia has no boolean OR in `query` — it matched "(AI agent OR LLM OR
+  // deepseek OR claude OR mcp)" as literal text requiring every token, which
+  // returns zero hits under relevance search. `optionalWords` is the actual
+  // primitive: match any subset, rank by how many matched.
+  const cutoff = Math.floor((now - WINDOW_DAYS * 86_400_000) / 1000);
+  const res = await fetchWithTimeout(
+    "https://hn.algolia.com/api/v1/search?query=AI+agent+LLM+MCP" +
+      "&optionalWords=AI,agent,LLM,MCP&restrictSearchableAttributes=title" +
+      `&tags=story&numericFilters=points%3E${HN_POINTS_FLOOR},created_at_i%3E${cutoff}&hitsPerPage=15`,
+    { headers: { Accept: "application/json" } },
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = (await res.json()) as {
+    hits?: Array<{
+      objectID: string;
+      title: string;
+      url?: string;
+      author: string;
+      points: number;
+      num_comments: number;
+      created_at: string;
+    }>;
+  };
 
-    return (data.hits || []).map((hit) => {
-      const lower = hit.title.toLowerCase();
-      let category: AiRadarItem["category"] = "developer";
-      const tags = ["Community", "HN"];
+  return (data.hits || []).map((hit) => {
+    const lower = hit.title.toLowerCase();
+    let category: AiRadarItem["category"] = "developer";
+    const tags = ["Community", "HN"];
 
-      if (lower.includes("agent") || lower.includes("mcp") || lower.includes("workflow")) {
-        category = "agents";
-        tags.push("Agents");
-      } else if (lower.includes("model") || lower.includes("llm") || lower.includes("benchmark") || lower.includes("weights")) {
-        category = "models";
-        tags.push("Models");
-      } else {
-        tags.push("Dev Trends");
-      }
+    if (lower.includes("agent") || lower.includes("mcp") || lower.includes("workflow")) {
+      category = "agents";
+      tags.push("Agents");
+    } else if (lower.includes("model") || lower.includes("llm") || lower.includes("benchmark") || lower.includes("weights")) {
+      category = "models";
+      tags.push("Models");
+    } else {
+      tags.push("Dev Trends");
+    }
 
-      return {
+    return classify(
+      {
         id: `hn-${hit.objectID}`,
         title: hit.title,
         url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
@@ -264,48 +381,48 @@ async function fetchHackerNewsAi(): Promise<AiRadarItem[]> {
         tags,
         score: hit.points,
         commentsCount: hit.num_comments,
-      };
-    });
-  } catch (err) {
-    console.warn("HackerNews API fetch error:", err);
-    return [];
-  }
+      },
+      now,
+    );
+  });
 }
 
 /**
  * 3. Dev.to API for Developer & Hands-on Agent Guides
  */
-async function fetchDevToArticles(): Promise<AiRadarItem[]> {
-  try {
-    const res = await fetchWithTimeout("https://dev.to/api/articles?tag=ai&per_page=10", {
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) return [];
-    const articles = (await res.json()) as Array<{
-      id: number;
-      title: string;
-      description: string;
-      url: string;
-      published_at: string;
-      public_reactions_count: number;
-      comments_count: number;
-      tag_list: string[];
-      user: { name: string };
-    }>;
+async function fetchDevToArticles(now: number): Promise<AiRadarItem[]> {
+  // `top=7` asks for the week's best-reacted posts. Plain recency on the `ai`
+  // tag is dominated by low-signal tutorial spam published minutes ago.
+  const res = await fetchWithTimeout("https://dev.to/api/articles?tag=ai&top=7&per_page=10", {
+    headers: { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const articles = (await res.json()) as Array<{
+    id: number;
+    title: string;
+    description: string;
+    url: string;
+    published_at: string;
+    public_reactions_count: number;
+    comments_count: number;
+    tag_list: string[];
+    user: { name: string };
+  }>;
 
-    return (articles || []).map((article) => {
-      const lower = `${article.title} ${article.description}`.toLowerCase();
-      let category: AiRadarItem["category"] = "developer";
-      if (lower.includes("agent") || lower.includes("mcp") || lower.includes("autonomous")) {
-        category = "agents";
-      } else if (lower.includes("model") || lower.includes("llm") || lower.includes("fine-tuning")) {
-        category = "models";
-      }
+  return (articles || []).map((article) => {
+    const lower = `${article.title} ${article.description}`.toLowerCase();
+    let category: AiRadarItem["category"] = "developer";
+    if (lower.includes("agent") || lower.includes("mcp") || lower.includes("autonomous")) {
+      category = "agents";
+    } else if (lower.includes("model") || lower.includes("llm") || lower.includes("fine-tuning")) {
+      category = "models";
+    }
 
-      const tags = (article.tag_list || []).slice(0, 3).map((t) => t.toUpperCase());
-      if (tags.length === 0) tags.push("AI", "Tutorial");
+    const tags = (article.tag_list || []).slice(0, 3).map((t) => t.toUpperCase());
+    if (tags.length === 0) tags.push("AI", "Tutorial");
 
-      return {
+    return classify(
+      {
         id: `devto-${article.id}`,
         title: article.title,
         url: article.url,
@@ -317,35 +434,27 @@ async function fetchDevToArticles(): Promise<AiRadarItem[]> {
         tags,
         score: article.public_reactions_count,
         commentsCount: article.comments_count,
-      };
-    });
-  } catch (err) {
-    console.warn("Dev.to API fetch error:", err);
-    return [];
-  }
+      },
+      now,
+    );
+  });
 }
 
 /**
  * 4. ArXiv CS API for Artificial Intelligence & Multi-Agent Systems
  */
-async function fetchArxivPapers(): Promise<AiRadarItem[]> {
-  try {
-    const query = "cat:cs.AI+OR+cat:cs.MA+OR+cat:cs.CL";
-    const url = `https://export.arxiv.org/api/query?search_query=${query}&sortBy=submittedDate&sortOrder=descending&max_results=8`;
-    const res = await fetchWithTimeout(url, { headers: { Accept: "application/atom+xml" } });
-    if (!res.ok) return [];
-    const text = await res.text();
-    return parseXmlFeed(text, "ArXiv", "research", ["ArXiv", "Peer-Reviewed"]);
-  } catch (err) {
-    console.warn("ArXiv API fetch error:", err);
-    return [];
-  }
+async function fetchArxivPapers(now: number): Promise<AiRadarItem[]> {
+  const query = "cat:cs.AI+OR+cat:cs.MA+OR+cat:cs.CL";
+  const url = `https://export.arxiv.org/api/query?search_query=${query}&sortBy=submittedDate&sortOrder=descending&max_results=8`;
+  const res = await fetchWithTimeout(url, { headers: { Accept: "application/atom+xml" } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return parseXmlFeed(await res.text(), "ArXiv", "research", ["ArXiv", "Peer-Reviewed"], now);
 }
 
 /**
  * 5. Tech & AI Industry RSS Feeds (Simon Willison AI Notes, Hugging Face Blog, VentureBeat AI)
  */
-async function fetchCuratedRssFeeds(): Promise<AiRadarItem[]> {
+async function fetchCuratedRssFeeds(now: number): Promise<AiRadarItem[]> {
   const feeds = [
     {
       url: "https://simonwillison.net/atom/everything/",
@@ -367,85 +476,35 @@ async function fetchCuratedRssFeeds(): Promise<AiRadarItem[]> {
     },
   ];
 
-  const results: AiRadarItem[] = [];
-
-  for (const feed of feeds) {
-    try {
+  // Fetched in parallel; three sequential 4.5s timeouts could otherwise stall
+  // the whole run past what a page load can wait for.
+  const settled = await Promise.allSettled(
+    feeds.map(async (feed) => {
       const res = await fetchWithTimeout(feed.url, {
-        headers: { Accept: "application/rss+xml, application/atom+xml, text/xml", "User-Agent": "MelanatedInTech-Radar/1.0" },
+        headers: {
+          Accept: "application/rss+xml, application/atom+xml, text/xml",
+          "User-Agent": "MelanatedInTech-Radar/1.0",
+        },
       });
-      if (res.ok) {
-        const xml = await res.text();
-        const items = parseXmlFeed(xml, feed.source, feed.category, feed.tags);
-        results.push(...items.slice(0, 5));
-      }
-    } catch (e) {
-      console.warn(`RSS feed fetch failed for ${feed.source}:`, e);
-    }
-  }
+      if (!res.ok) throw new Error(`${feed.source}: HTTP ${res.status}`);
+      const xml = await res.text();
+      return parseXmlFeed(xml, feed.source, feed.category, feed.tags, now).slice(0, 5);
+    }),
+  );
 
+  const results = settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+  const failed = settled.filter((r) => r.status === "rejected").length;
+  if (results.length === 0 && failed > 0) {
+    throw new Error(`${failed} of ${feeds.length} curated feeds unreachable`);
+  }
   return results;
 }
-
-/**
- * Robust fallback items if external networks are completely unreachable
- */
-const FALLBACK_RADAR_ITEMS: AiRadarItem[] = [
-  {
-    id: "fb-1",
-    title: "Model Context Protocol (MCP) Ecosystem Adoption & Standard Specification",
-    url: "https://modelcontextprotocol.io",
-    summary: "Anthropic and open source partners continue expanding MCP connector infrastructure for autonomous agent tool execution.",
-    source: "Anthropic / Open Commons",
-    category: "agents",
-    author: "Protocol Working Group",
-    publishedAt: new Date(Date.now() - 3600000).toISOString(),
-    tags: ["MCP", "Agents", "Architecture"],
-    score: 412,
-  },
-  {
-    id: "fb-2",
-    title: "DeepSeek V3 & Open Weights Performance Benchmarks Across Agent Tasks",
-    url: "https://huggingface.co",
-    summary: "Analysis of reasoning, token generation efficiency, and tool calling reliability in modern open weights models.",
-    source: "Hugging Face",
-    category: "models",
-    author: "Open Source Collective",
-    publishedAt: new Date(Date.now() - 7200000).toISOString(),
-    tags: ["Models", "Open Weights", "Benchmarks"],
-    score: 654,
-  },
-  {
-    id: "fb-3",
-    title: "Architecting Multi-Agent Systems: Golden-Set Evaluation and Context Budgeting",
-    url: "https://melanatedintech.com/knowledge",
-    summary: "Field-tested operational patterns for small engineering teams shipping production AI loops without run-away API costs.",
-    source: "Melanated In Tech",
-    category: "developer",
-    author: "Melanated In Tech Lab",
-    publishedAt: new Date(Date.now() - 14400000).toISOString(),
-    tags: ["Production", "Evaluation", "Agents"],
-    score: 280,
-  },
-  {
-    id: "fb-4",
-    title: "Autonomous Tool Use in Constrained Context Windows: ArXiv Preprint Review",
-    url: "https://arxiv.org",
-    summary: "Researchers investigate structured compression techniques for agent memory retrieval and tool selection accuracy.",
-    source: "ArXiv",
-    category: "research",
-    author: "AI Research Group",
-    publishedAt: new Date(Date.now() - 28800000).toISOString(),
-    tags: ["Research", "Memory", "Agents"],
-    score: 195,
-  },
-];
 
 /**
  * Master Server Function: Aggregates multiple free APIs and RSS feeds into a unified radar stream
  */
 export const fetchAiRadarFeed = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         category: z.enum(["all", "models", "agents", "developer", "research", "industry"]).default("all"),
@@ -465,60 +524,42 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
     }
 
     // Concurrent execution across all zero-cost sources
-    const [hfResult, hnResult, devResult, arxivResult, rssResult] = await Promise.allSettled([
-      fetchHuggingFacePapers(),
-      fetchHackerNewsAi(),
-      fetchDevToArticles(),
-      fetchArxivPapers(),
-      fetchCuratedRssFeeds(),
-    ]);
+    const settled = await Promise.allSettled(RADAR_SOURCES.map((source) => source.load(now)));
 
     const collected: AiRadarItem[] = [];
-
-    if (hfResult.status === "fulfilled") collected.push(...hfResult.value);
-    if (hnResult.status === "fulfilled") collected.push(...hnResult.value);
-    if (devResult.status === "fulfilled") collected.push(...devResult.value);
-    if (arxivResult.status === "fulfilled") collected.push(...arxivResult.value);
-    if (rssResult.status === "fulfilled") collected.push(...rssResult.value);
-
-    // Fallback if network blocked everything
-    const finalItems = collected.length > 0 ? collected : FALLBACK_RADAR_ITEMS;
-
-    // Deduplicate by URL or normalized Title
-    const seen = new Set<string>();
-    const deduplicated: AiRadarItem[] = [];
-
-    for (const item of finalItems) {
-      const key = (item.url || item.title).toLowerCase().trim();
-      if (!seen.has(key)) {
-        seen.add(key);
-        deduplicated.push(item);
+    const sourceStatus: AiRadarSourceStatus[] = settled.map((result, index) => {
+      const { id, label, note } = RADAR_SOURCES[index]!;
+      if (result.status === "rejected") {
+        console.warn(`[radar] ${id} failed:`, result.reason);
+        return { id, label, note, ok: false, count: 0, error: errorMessage(result.reason) };
       }
-    }
-
-    // Sort by publication date descending
-    deduplicated.sort((a, b) => {
-      const timeA = new Date(a.publishedAt).getTime();
-      const timeB = new Date(b.publishedAt).getTime();
-      return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+      collected.push(...result.value);
+      return { id, label, note, ok: true, count: result.value.length };
     });
 
-    const sources = Array.from(new Set(deduplicated.map((i) => i.source))).sort();
+    // No placeholder items. If every source failed, the payload is empty and
+    // the page says so — inventing plausible headlines under a "live" badge is
+    // indistinguishable from real data to a reader, and this site's whole
+    // proposition is that its claims are checkable.
+    const deduplicated = dedupeRanked(collected);
 
     const fullResponse: AiRadarFeedResponse = {
       items: deduplicated,
-      sources,
+      sources: Array.from(new Set(deduplicated.map((i) => i.source))).sort(),
+      sourceStatus,
       total: deduplicated.length,
-      lastUpdated: new Date().toISOString(),
+      lastUpdated: new Date(now).toISOString(),
     };
 
-    // Store in cache
-    cache = {
-      data: fullResponse,
-      expiresAt: now + CACHE_TTL_MS,
-    };
+    // Keep the previous payload rather than caching a total outage: a stale but
+    // real feed beats an empty one, and the timestamp shows its age. The status
+    // strip still reports THIS run, so serving stale items never reads as a
+    // healthy fetch.
+    if (deduplicated.length > 0 || !cache) {
+      cache = { data: fullResponse, expiresAt: now + CACHE_TTL_MS };
+    }
 
-    return filterRadarResponse(fullResponse, data);
+    return filterRadarResponse({ ...cache.data, sourceStatus }, data);
   });
 
 function filterRadarResponse(
@@ -550,6 +591,7 @@ function filterRadarResponse(
   return {
     items: items.slice(0, filter.limit || 60),
     sources: full.sources,
+    sourceStatus: full.sourceStatus,
     total: items.length,
     lastUpdated: full.lastUpdated,
   };

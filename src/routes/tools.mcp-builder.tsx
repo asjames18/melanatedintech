@@ -173,13 +173,25 @@ function McpBuilderPage() {
   const [repoSearch, setRepoSearch] = useState("");
   const [trendingRepos, setTrendingRepos] = useState<GitHubMcpRepo[]>([]);
   const [isLoadingRepos, setIsLoadingRepos] = useState(false);
+  // GitHub search is unauthenticated and rate-limited, so an empty directory
+  // has two very different meanings. Track which one we are looking at rather
+  // than telling the reader everything is already imported.
+  const [reposUnavailable, setReposUnavailable] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoadingRepos(true);
       fetchTrendingMcpServers({ data: { limit: 12, query: repoSearch } })
-        .then((repos) => setTrendingRepos(repos as GitHubMcpRepo[]))
-        .catch((err) => console.warn("Failed loading trending repos:", err))
+        .then((repos) => {
+          const list = repos as GitHubMcpRepo[];
+          setTrendingRepos(list);
+          setReposUnavailable(list.length === 0 && !repoSearch.trim());
+        })
+        .catch((err) => {
+          console.warn("Failed loading trending repos:", err);
+          setTrendingRepos([]);
+          setReposUnavailable(true);
+        })
         .finally(() => setIsLoadingRepos(false));
     }, 300);
 
@@ -557,6 +569,14 @@ function McpBuilderPage() {
                   <p className="text-muted-foreground animate-pulse py-2 text-center">
                     Searching GitHub repositories...
                   </p>
+                ) : reposUnavailable ? (
+                  <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20 text-center space-y-1">
+                    <p className="font-semibold text-foreground text-xs">GitHub directory unavailable</p>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      The public GitHub search API did not respond or is rate-limited. Everything
+                      else on this page still works; try the directory again in a few minutes.
+                    </p>
+                  </div>
                 ) : availableDirectoryRepos.length === 0 ? (
                   <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20 text-center space-y-1">
                     <Check className="h-5 w-5 text-emerald-500 mx-auto" />

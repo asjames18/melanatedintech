@@ -54,6 +54,11 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link to="/radar" className="hover:text-foreground">
+                  AI Radar & Updates
+                </Link>
+              </li>
+              <li>
                 <Link to="/roadmap" className="hover:text-foreground">
                   Roadmap
                 </Link>

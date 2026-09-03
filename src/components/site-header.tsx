@@ -34,6 +34,7 @@ const groups = [
     label: "Resources",
     items: [
       ["Knowledge Hub", "/knowledge"],
+      ["AI Radar & Updates", "/radar"],
       ["Learning Paths", "/paths"],
       ["AI Tools Workbench", "/tools"],
       ["Starter Packs", "/starter-packs"],

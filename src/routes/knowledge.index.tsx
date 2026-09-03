@@ -14,11 +14,11 @@ import {
   SlidersHorizontal,
   Sparkles,
   X,
-  Globe,
   ExternalLink,
   Rss,
 } from "lucide-react";
-import { fetchAiAgentNews, fetchAcademicAiPapers, NewsItem, AcademicPaper } from "@/lib/public-apis.functions";
+import { fetchAiRadarFeed, type AiRadarItem } from "@/lib/ai-radar.functions";
+import { RADAR_SIGNALS } from "@/lib/radar";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -444,7 +444,7 @@ Practical AI Agent Playbooks & Field Guides covering:
 
         <ContinueLearningPaths />
         <ContinueReading articles={articles} />
-        <LiveAiAgentNewsFeed />
+        <RadarTeaser />
       </section>
     </SiteLayout>
   );
@@ -559,124 +559,83 @@ function ContinueReading({
   );
 }
 
-function LiveAiAgentNewsFeed() {
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [papers, setPapers] = useState<AcademicPaper[]>([]);
-  const [feedTab, setFeedTab] = useState<"dev" | "academic">("dev");
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    Promise.all([
-      fetchAiAgentNews({ data: { limit: 6 } }),
-      fetchAcademicAiPapers({ data: { limit: 6 } }),
-    ])
-      .then(([newsRes, papersRes]) => {
-        setNews(newsRes as NewsItem[]);
-        setPapers(papersRes as AcademicPaper[]);
-      })
-      .catch((e) => console.warn("Live feed fetch failed:", e))
-      .finally(() => setLoading(false));
-  }, []);
+/**
+ * Compact promo for /radar. The full feed, its filters, source transparency
+ * strip, and the on-site next step for each item live on the Radar page — this
+ * is a three-item hook that sends readers there instead of ending the Knowledge
+ * Hub on a wall of outbound links.
+ */
+function RadarTeaser() {
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["ai-radar-feed", "teaser"],
+    queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 3 } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const items = data?.items ?? [];
 
   return (
-    <div className="mt-16 border-t pt-10">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <div className="mt-16 rounded-2xl border border-border bg-muted/30 p-6 sm:p-8">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <Rss className="h-5 w-5 text-amber-500" />
-            <h2 className="font-display text-xl font-semibold">Live AI Agent Dev & Research Feed</h2>
+            <Rss className="h-5 w-5 text-primary" />
+            <h2 className="font-display text-xl font-semibold">Agent Radar</h2>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Automated real-time trends surfaced via HackerNews, Dev.to, ArXiv, and OpenAlex Academic Graph APIs.
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Model releases, list-price moves, MCP updates, security findings, and new research —
+            sorted by how much each one should change your next build.
           </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border border-border bg-muted/30 p-1 text-xs">
-            <button
-              onClick={() => setFeedTab("dev")}
-              className={`px-3 py-1 font-medium rounded-md transition-all ${
-                feedTab === "dev" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Dev Trends
-            </button>
-            <button
-              onClick={() => setFeedTab("academic")}
-              className={`px-3 py-1 font-medium rounded-md transition-all ${
-                feedTab === "academic" ? "bg-background text-foreground shadow-sm font-semibold" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Academic Papers (OpenAlex)
-            </button>
-          </div>
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-mono font-medium text-amber-600 dark:text-amber-400">
-            <Globe className="h-3.5 w-3.5" /> Live REST APIs
-          </span>
-        </div>
+        <Link
+          to="/radar"
+          className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+        >
+          Open the Radar <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
 
-      {loading ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
+      {isPending ? (
+        <div className="mt-6 space-y-2">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-28 rounded-xl border bg-card p-4 animate-pulse" />
+            <div key={i} className="h-14 animate-pulse rounded-xl border bg-card" />
           ))}
         </div>
-      ) : feedTab === "dev" ? (
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {news.map((item) => (
-            <a
-              key={item.id}
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col justify-between rounded-xl border bg-card p-4 transition hover:border-primary/40 hover:shadow-md"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
-                  <span className="font-semibold text-primary">{item.source}</span>
-                  {item.score !== undefined && <span>{item.score} pts</span>}
-                </div>
-                <h3 className="mt-2 text-sm font-semibold text-foreground group-hover:text-primary line-clamp-2">
-                  {item.title}
-                </h3>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border">
-                <span>{item.author ? `By ${item.author}` : "Open Web"}</span>
-                <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </a>
-          ))}
-        </div>
+      ) : isError || items.length === 0 ? (
+        <p className="mt-6 text-sm text-muted-foreground">
+          The live feed is not reachable right now.{" "}
+          <Link to="/radar" className="font-medium text-primary">
+            Open the Radar
+          </Link>{" "}
+          to see which sources responded.
+        </p>
       ) : (
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {papers.map((paper) => (
-            <a
-              key={paper.id}
-              href={paper.pdfUrl || paper.doi}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col justify-between rounded-xl border bg-card p-4 transition hover:border-emerald-500/40 hover:shadow-md"
-            >
-              <div>
-                <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400">OpenAlex Paper ({paper.publicationYear})</span>
-                  <span>{paper.citedByCount} citations</span>
-                </div>
-                <h3 className="mt-2 text-sm font-semibold text-foreground group-hover:text-emerald-600 line-clamp-2">
-                  {paper.title}
-                </h3>
-                <p className="mt-1 text-[11px] text-muted-foreground line-clamp-1">
-                  {paper.authors.join(", ")}
-                </p>
-              </div>
-              <div className="mt-3 flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border">
-                <span className="truncate max-w-[180px]">{paper.venue}</span>
-                <ExternalLink className="h-3 w-3 group-hover:translate-x-0.5 transition-transform text-emerald-500" />
-              </div>
-            </a>
+        <ul className="mt-6 space-y-2">
+          {items.map((item: AiRadarItem) => (
+            <li key={item.id}>
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3 transition hover:border-primary/40"
+              >
+                <span className="mt-0.5 shrink-0 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  {RADAR_SIGNALS[item.signal].label}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 text-sm font-medium group-hover:text-primary">
+                    {item.title}
+                  </span>
+                  <span className="mt-0.5 block text-[11px] text-muted-foreground">
+                    {item.source} · {new Date(item.publishedAt).toLocaleDateString()}
+                  </span>
+                </span>
+                <ExternalLink className="mt-1 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );

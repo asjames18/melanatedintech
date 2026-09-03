@@ -1,13 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useMemo } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
+import { ListingPendingShell } from "@/components/listing-skeleton";
+import { LazyWaitlistForm } from "@/components/lazy-waitlist-form";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
+import { SITE_URL } from "@/lib/site";
+import { trackEvent } from "@/lib/analytics";
 import {
   fetchAiRadarFeed,
   AiRadarItem,
   AiRadarCategory,
+  AiRadarSourceStatus,
 } from "@/lib/ai-radar.functions";
+import {
+  RADAR_SIGNAL_IDS,
+  RADAR_SIGNALS,
+  RADAR_TRACK_IDS,
+  RADAR_TRACKS,
+  type RadarSignal,
+} from "@/lib/radar";
 import {
   Search,
   RefreshCw,
@@ -27,8 +39,23 @@ import {
   Flame,
   Clock,
   Radio,
+  AlertTriangle,
+  CheckCircle2,
+  BookOpen,
+  Rss,
 } from "lucide-react";
 import { toast } from "sonner";
+
+/**
+ * Loaded in the route loader so the feed is server-rendered. It used to fetch
+ * from a bare useQuery in the component, which meant crawlers and LLM answer
+ * engines saw an empty shell where the page's whole value is.
+ */
+const radarQuery = queryOptions({
+  queryKey: ["ai-radar-feed"],
+  queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 80 } }),
+  staleTime: 5 * 60 * 1000,
+});
 
 export const Route = createFileRoute("/radar/")({
   head: () => {
@@ -40,7 +67,15 @@ export const Route = createFileRoute("/radar/")({
     });
     return {
       meta: seo.meta,
-      links: seo.links,
+      links: [
+        ...seo.links,
+        {
+          rel: "alternate",
+          type: "application/rss+xml",
+          href: `${SITE_URL}/radar/feed.xml`,
+          title: "Melanated In Tech — AI & Agent Radar",
+        },
+      ],
       scripts: [
         ldScript(
           breadcrumbLd([
@@ -51,6 +86,22 @@ export const Route = createFileRoute("/radar/")({
       ],
     };
   },
+  // Only the feed is awaited. The article rail is deliberately not prefetched
+  // here: the Radar reads nothing from Supabase, and making the loader depend
+  // on it would let a database outage 500 a page built entirely from public
+  // feeds. The rail fills in on the client, or stays hidden.
+  loader: ({ context }) => context.queryClient.ensureQueryData(radarQuery),
+  pendingMs: 0,
+  pendingComponent: () => (
+    <SiteLayout>
+      <ListingPendingShell variant="article" label="radar updates" />
+    </SiteLayout>
+  ),
+  errorComponent: ({ error }) => (
+    <SiteLayout>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+    </SiteLayout>
+  ),
   component: RadarPage,
 });
 
@@ -128,14 +179,14 @@ function RadarPage() {
   const [selectedSource, setSelectedSource] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"cards" | "compact">("cards");
   const [timeframe, setTimeframe] = useState<"all" | "24h" | "3d" | "7d">("all");
+  const [selectedSignal, setSelectedSignal] = useState<RadarSignal | "all">("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ["ai-radar-feed"],
-    queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 80 } }),
-    staleTime: 5 * 60 * 1000,
-  });
+  // The route loader resolves this, so the component always has data: the
+  // first paint is server-rendered and there is no client-side loading pass.
+  // Pending and error UI live on the route (pendingComponent/errorComponent).
+  const { data, refetch } = useSuspenseQuery(radarQuery);
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
@@ -159,11 +210,10 @@ function RadarPage() {
     }
   };
 
-  const items = data?.items || [];
-  const sources = useMemo(() => {
-    const list = data?.sources || [];
-    return ["All", ...list];
-  }, [data?.sources]);
+  // useSuspenseQuery guarantees `data`, so these are stable references and can
+  // be used directly as hook dependencies.
+  const items = data.items;
+  const sources = useMemo(() => ["All", ...data.sources], [data.sources]);
 
   // Client-side filtering
   const filteredItems = useMemo(() => {
@@ -171,6 +221,11 @@ function RadarPage() {
     return items.filter((item) => {
       // Category filter
       if (selectedCategory !== "all" && item.category !== selectedCategory) {
+        return false;
+      }
+
+      // Signal filter (Act / Watch / Context)
+      if (selectedSignal !== "all" && item.signal !== selectedSignal) {
         return false;
       }
 
@@ -203,7 +258,16 @@ function RadarPage() {
 
       return true;
     });
-  }, [items, selectedCategory, selectedSource, timeframe, searchQuery]);
+  }, [items, selectedCategory, selectedSignal, selectedSource, timeframe, searchQuery]);
+
+  const signalCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of items) counts[item.signal] = (counts[item.signal] ?? 0) + 1;
+    return counts;
+  }, [items]);
+
+  const sourceStatus: AiRadarSourceStatus[] = data?.sourceStatus ?? [];
+  const liveSources = sourceStatus.filter((s) => s.ok && s.count > 0).length;
 
   return (
     <SiteLayout>
@@ -326,6 +390,40 @@ function RadarPage() {
           })}
         </div>
 
+        {/* Signal Triage: how urgently this should change what you run */}
+        <div className="mb-6 flex flex-wrap items-center gap-2 text-xs">
+          <span className="shrink-0 font-medium text-muted-foreground">Signal:</span>
+          <button
+            type="button"
+            onClick={() => setSelectedSignal("all")}
+            className={`shrink-0 rounded-lg px-2.5 py-1 transition ${
+              selectedSignal === "all"
+                ? "bg-foreground font-semibold text-background"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All {items.length}
+          </button>
+          {RADAR_SIGNAL_IDS.map((id) => (
+            <button
+              key={id}
+              type="button"
+              title={RADAR_SIGNALS[id].blurb}
+              onClick={() => setSelectedSignal(id)}
+              className={`shrink-0 rounded-lg px-2.5 py-1 transition ${
+                selectedSignal === id
+                  ? "bg-foreground font-semibold text-background"
+                  : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {RADAR_SIGNALS[id].label} {signalCounts[id] ?? 0}
+            </button>
+          ))}
+          <span className="ml-1 hidden text-[11px] text-muted-foreground sm:inline">
+            assigned by published keyword rules, not by a model
+          </span>
+        </div>
+
         {/* Source Pills Filter */}
         {sources.length > 1 && (
           <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-1 text-xs">
@@ -360,61 +458,29 @@ function RadarPage() {
           </div>
 
           <span className="text-[11px] text-muted-foreground">
-            Zero-cost public feeds: Hugging Face, HackerNews, Dev.to, ArXiv, RSS
+            {sourceStatus.length > 0
+              ? `${liveSources} of ${sourceStatus.length} sources responded`
+              : "Source status unavailable"}
           </span>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((idx) => (
-              <div
-                key={idx}
-                className="h-44 rounded-2xl border border-border bg-card p-5 animate-pulse"
-              >
-                <div className="h-4 w-24 rounded-md bg-muted" />
-                <div className="mt-3 h-5 w-3/4 rounded-md bg-muted" />
-                <div className="mt-2 h-12 w-full rounded-md bg-muted/60" />
-                <div className="mt-4 flex justify-between">
-                  <div className="h-4 w-20 rounded-md bg-muted" />
-                  <div className="h-4 w-12 rounded-md bg-muted" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Error State */}
-        {isError && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-8 text-center">
-            <p className="text-sm font-semibold text-red-600 dark:text-red-400">
-              Failed to load live AI updates.
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Please click refresh or check back in a few minutes.
-            </p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium"
-            >
-              <RefreshCw className="h-3.5 w-3.5" /> Try Again
-            </button>
-          </div>
-        )}
-
         {/* Empty State */}
-        {!isLoading && !isError && filteredItems.length === 0 && (
+        {filteredItems.length === 0 && (
           <div className="rounded-2xl border border-border bg-card p-12 text-center">
             <Radio className="mx-auto h-8 w-8 text-muted-foreground" />
-            <h3 className="mt-3 font-display text-base font-semibold">No updates match your filters</h3>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Try adjusting your search keyword, category, or timeframe.
+            <h3 className="mt-3 font-display text-base font-semibold">
+              {items.length === 0 ? "The live feed is unavailable" : "No updates match your filters"}
+            </h3>
+            <p className="mx-auto mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
+              {items.length === 0
+                ? "Every upstream source failed or timed out on this request. We show nothing rather than filling the gap with placeholder items — check the source list below."
+                : "Try adjusting your search keyword, category, signal, or timeframe."}
             </p>
             <button
               type="button"
               onClick={() => {
                 setSelectedCategory("all");
+                setSelectedSignal("all");
                 setSelectedSource("All");
                 setSearchQuery("");
                 setTimeframe("all");
@@ -427,7 +493,7 @@ function RadarPage() {
         )}
 
         {/* Items Grid View */}
-        {!isLoading && !isError && filteredItems.length > 0 && viewMode === "cards" && (
+        {filteredItems.length > 0 && viewMode === "cards" && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredItems.map((item) => {
               const badge = getCategoryBadge(item.category);
@@ -439,11 +505,19 @@ function RadarPage() {
                   <div>
                     {/* Top Row: Category badge, source & relative time */}
                     <div className="flex items-center justify-between gap-2 text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold ${badge.className}`}
-                      >
-                        {badge.label}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-semibold ${badge.className}`}
+                        >
+                          {badge.label}
+                        </span>
+                        <span
+                          className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${SIGNAL_STYLES[item.signal]}`}
+                          title={RADAR_SIGNALS[item.signal].blurb}
+                        >
+                          {RADAR_SIGNALS[item.signal].label}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
                         <Clock className="h-3 w-3" />
                         <span>{timeAgo(item.publishedAt)}</span>
@@ -480,6 +554,9 @@ function RadarPage() {
                         ))}
                       </div>
                     )}
+
+                    {/* On-site next step: the reason to stay rather than bounce */}
+                    <NextStepRow item={item} />
                   </div>
 
                   {/* Bottom Row: Source, metrics & actions */}
@@ -530,7 +607,7 @@ function RadarPage() {
         )}
 
         {/* Items Compact View */}
-        {!isLoading && !isError && filteredItems.length > 0 && viewMode === "compact" && (
+        {filteredItems.length > 0 && viewMode === "compact" && (
           <div className="divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
             {filteredItems.map((item) => {
               const badge = getCategoryBadge(item.category);
@@ -546,6 +623,12 @@ function RadarPage() {
                       >
                         {badge.label}
                       </span>
+                      <span
+                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${SIGNAL_STYLES[item.signal]}`}
+                        title={RADAR_SIGNALS[item.signal].blurb}
+                      >
+                        {RADAR_SIGNALS[item.signal].label}
+                      </span>
                       <span className="font-semibold text-foreground/80">{item.source}</span>
                       <span className="text-muted-foreground">&bull;</span>
                       <span className="text-muted-foreground">{timeAgo(item.publishedAt)}</span>
@@ -556,11 +639,19 @@ function RadarPage() {
                         </span>
                       )}
                     </div>
-                    <h4 className="mt-1 font-medium text-sm text-foreground truncate group-hover:text-primary">
-                      <a href={item.url} target="_blank" rel="noopener noreferrer">
+                    <h4 className="mt-1 truncate text-sm font-medium text-foreground group-hover:text-primary">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() =>
+                          trackEvent("radar_outbound_click", { source: item.source, id: item.id })
+                        }
+                      >
                         {item.title}
                       </a>
                     </h4>
+                    <NextStepRow item={item} compact />
                   </div>
 
                   <div className="flex shrink-0 items-center gap-2">
@@ -591,6 +682,100 @@ function RadarPage() {
             })}
           </div>
         )}
+
+        {/* Where this came from — failures named, never papered over */}
+        {sourceStatus.length > 0 && (
+          <div className="mt-12 rounded-2xl border border-border bg-muted/30 p-5 sm:p-6">
+            <h2 className="font-display text-sm font-semibold">Where this came from</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Synced {timeAgo(data.lastUpdated)}. A source that fails is listed as failed; it is
+              never replaced with sample content.
+            </p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {sourceStatus.map((source) => (
+                <li key={source.id} className="flex gap-2 text-xs">
+                  {source.ok ? (
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                  )}
+                  <span>
+                    <span className="font-medium">{source.label}</span>{" "}
+                    <span className="text-muted-foreground">
+                      {source.ok ? `· ${source.count} items` : `· ${source.error ?? "unavailable"}`}
+                    </span>
+                    <span className="block text-muted-foreground">{source.note}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <a
+              href="/radar/feed.xml"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-primary"
+            >
+              <Rss className="h-3.5 w-3.5" /> Subscribe to this radar by RSS
+            </a>
+          </div>
+        )}
+
+        {/* Where a headline turns into work you can do here */}
+        <div className="mt-6 rounded-2xl border border-border bg-card p-5 sm:p-6">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-primary" />
+            <h2 className="font-display text-sm font-semibold">Take it somewhere</h2>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Headlines age in a week. Each track pairs our writing on the subject with the tool that
+            answers it in about ten minutes.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {RADAR_TRACK_IDS.map((id) => {
+              const track = RADAR_TRACKS[id];
+              return (
+                <div key={id} className="rounded-xl border border-border p-3">
+                  <p className="text-xs font-semibold">{track.label}</p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {track.blurb}
+                  </p>
+                  <div className="mt-3 flex flex-col gap-1.5 text-[11px]">
+                    <Link
+                      to="/knowledge"
+                      search={{ category: track.category, page: 1 }}
+                      onClick={() => trackEvent("radar_rail_articles_click", { track: id })}
+                      className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary"
+                    >
+                      Read the {track.label.toLowerCase()} articles
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                    <Link
+                      to={track.nextStep.to}
+                      onClick={() => trackEvent("radar_rail_tool_click", { track: id })}
+                      className="inline-flex items-center gap-1 font-medium text-primary"
+                    >
+                      {track.nextStep.label}
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Weekly digest — the radar as a list-growth engine, not an exit ramp */}
+        <div className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-display text-sm font-semibold">Get the weekly digest</h2>
+              <p className="mt-1 max-w-xl text-xs leading-relaxed text-muted-foreground">
+                One email a week: what moved, what breaks, and the one thing worth changing.
+              </p>
+            </div>
+            <div className="w-full sm:max-w-sm">
+              <LazyWaitlistForm source="radar-digest" compact />
+            </div>
+          </div>
+        </div>
 
         {/* Builder & Operator Callout Strip */}
         <div className="mt-14 rounded-2xl border border-border bg-gradient-to-r from-primary/5 via-card to-accent2/5 p-6 sm:p-8">
@@ -628,5 +813,45 @@ function RadarPage() {
         </div>
       </section>
     </SiteLayout>
+  );
+}
+
+const SIGNAL_STYLES: Record<RadarSignal, string> = {
+  act: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  watch: "border-primary/30 bg-primary/10 text-primary",
+  context: "border-border bg-muted text-muted-foreground",
+};
+
+/**
+ * The on-site landing for an item: the track chip deep-links into the matching
+ * Knowledge Hub filter, and the next step opens the tool that answers it.
+ *
+ * Every card on this page used to be a pure exit — the only internal links were
+ * two buttons at the very bottom of the route. Reading a headline is not the
+ * work; this is the shortest path from "something changed" to doing something
+ * about it without leaving the site.
+ */
+function NextStepRow({ item, compact = false }: { item: AiRadarItem; compact?: boolean }) {
+  const track = RADAR_TRACKS[item.track];
+  return (
+    <div className={`flex flex-wrap items-center gap-2 text-[11px] ${compact ? "mt-1.5" : "mt-3"}`}>
+      <Link
+        to="/knowledge"
+        search={{ category: track.category, page: 1 }}
+        onClick={() => trackEvent("radar_track_click", { track: item.track })}
+        title={`${track.blurb} — read our articles in this track`}
+        className="rounded-md border border-border px-2 py-0.5 font-medium text-muted-foreground transition hover:border-primary/40 hover:text-primary"
+      >
+        {track.label}
+      </Link>
+      <Link
+        to={track.nextStep.to}
+        onClick={() => trackEvent("radar_next_step_click", { track: item.track })}
+        className="group/next inline-flex items-center gap-1 font-medium text-primary"
+      >
+        {track.nextStep.label}
+        <ArrowRight className="h-3 w-3 transition-transform group-hover/next:translate-x-0.5" />
+      </Link>
+    </div>
   );
 }

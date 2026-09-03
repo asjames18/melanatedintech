@@ -1,6 +1,19 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+/**
+ * Thin wrappers over keyless public APIs.
+ *
+ * These return an empty result when an upstream call fails. They used to return
+ * hand-written sample rows — invented repositories with invented star counts,
+ * invented headlines, an invented DOI — which rendered under a "Live REST APIs"
+ * badge and were indistinguishable from real data. Callers own the empty state.
+ *
+ * The AI news and research feeds that lived here now come from
+ * `src/lib/radar.functions.ts`, which merges six sources and reports per-source
+ * failures to the page.
+ */
+
 export interface GitHubMcpRepo {
   id: number;
   name: string;
@@ -16,94 +29,12 @@ export interface GitHubMcpRepo {
   topics: string[];
 }
 
-export interface NewsItem {
-  id: string;
-  title: string;
-  url: string;
-  source: "HackerNews" | "Dev.to" | "ArXiv";
-  author?: string;
-  publishedAt: string;
-  score?: number;
-}
-
-const FALLBACK_MCP_REPOS: GitHubMcpRepo[] = [
-  {
-    id: 1,
-    name: "mcp-server-postgres",
-    full_name: "modelcontextprotocol/servers",
-    description: "Official Model Context Protocol server for PostgreSQL databases.",
-    html_url: "https://github.com/modelcontextprotocol/servers",
-    stargazers_count: 14200,
-    forks_count: 1200,
-    owner: {
-      login: "modelcontextprotocol",
-      avatar_url: "https://avatars.githubusercontent.com/u/182068940?v=4",
-    },
-    topics: ["mcp-server", "postgres", "ai-agents"],
-  },
-  {
-    id: 2,
-    name: "mcp-server-puppeteer",
-    full_name: "modelcontextprotocol/server-puppeteer",
-    description: "Browser automation and web scraping MCP server for AI agents.",
-    html_url: "https://github.com/modelcontextprotocol/servers",
-    stargazers_count: 8500,
-    forks_count: 650,
-    owner: {
-      login: "modelcontextprotocol",
-      avatar_url: "https://avatars.githubusercontent.com/u/182068940?v=4",
-    },
-    topics: ["mcp-server", "puppeteer", "browser-automation"],
-  },
-  {
-    id: 3,
-    name: "mcp-server-brave-search",
-    full_name: "modelcontextprotocol/server-brave-search",
-    description: "Real-time web and local search integration via Brave API.",
-    html_url: "https://github.com/modelcontextprotocol/servers",
-    stargazers_count: 6300,
-    forks_count: 420,
-    owner: {
-      login: "modelcontextprotocol",
-      avatar_url: "https://avatars.githubusercontent.com/u/182068940?v=4",
-    },
-    topics: ["mcp-server", "search", "web-search"],
-  },
-];
-
-const FALLBACK_NEWS: NewsItem[] = [
-  {
-    id: "fn-1",
-    title: "Building Production-Grade AI Agents with Model Context Protocol",
-    url: "https://news.ycombinator.com",
-    source: "HackerNews",
-    author: "agent_builder",
-    publishedAt: new Date().toISOString(),
-    score: 342,
-  },
-  {
-    id: "fn-2",
-    title: "How to Build a Custom Multi-Agent System in TypeScript",
-    url: "https://dev.to",
-    source: "Dev.to",
-    author: "melanated_dev",
-    publishedAt: new Date().toISOString(),
-  },
-  {
-    id: "fn-3",
-    title: "Autonomous Agent Tool Use and Context Compression Metrics",
-    url: "https://arxiv.org",
-    source: "ArXiv",
-    author: "AI Research Group",
-    publishedAt: new Date().toISOString(),
-  },
-];
-
 /**
- * Server Function: Fetch trending MCP servers from GitHub API
+ * Server Function: Fetch trending MCP servers from the GitHub search API.
+ * Returns an empty list when GitHub is unreachable or rate-limited.
  */
 export const fetchTrendingMcpServers = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         limit: z.number().min(1).max(30).default(12),
@@ -111,7 +42,7 @@ export const fetchTrendingMcpServers = createServerFn({ method: "GET" })
       })
       .parse(d ?? {}),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<GitHubMcpRepo[]> => {
     try {
       const q = data.query?.trim();
       const searchTopic = q ? `${encodeURIComponent(q)}+topic:mcp-server` : "topic:mcp-server";
@@ -125,117 +56,31 @@ export const fetchTrendingMcpServers = createServerFn({ method: "GET" })
       });
 
       if (!res.ok) {
-        console.warn(`GitHub API returned status ${res.status}, using fallbacks.`);
-        return FALLBACK_MCP_REPOS.slice(0, data.limit);
+        console.warn(`GitHub API returned status ${res.status}.`);
+        return [];
       }
 
       const json = (await res.json()) as { items?: GitHubMcpRepo[] };
-      if (json.items && Array.isArray(json.items) && json.items.length > 0) {
-        return json.items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          full_name: item.full_name,
-          description: item.description,
-          html_url: item.html_url,
-          stargazers_count: item.stargazers_count,
-          forks_count: item.forks_count,
-          owner: {
-            login: item.owner?.login ?? "community",
-            avatar_url: item.owner?.avatar_url ?? "",
-          },
-          topics: item.topics ?? [],
-        }));
-      }
-      return FALLBACK_MCP_REPOS.slice(0, data.limit);
+      if (!json.items || !Array.isArray(json.items)) return [];
+
+      return json.items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        full_name: item.full_name,
+        description: item.description,
+        html_url: item.html_url,
+        stargazers_count: item.stargazers_count,
+        forks_count: item.forks_count,
+        owner: {
+          login: item.owner?.login ?? "community",
+          avatar_url: item.owner?.avatar_url ?? "",
+        },
+        topics: item.topics ?? [],
+      }));
     } catch (err) {
       console.warn("Failed to fetch GitHub trending MCP servers:", err);
-      return FALLBACK_MCP_REPOS.slice(0, data.limit);
+      return [];
     }
-  });
-
-/**
- * Server Function: Fetch trending AI Agent developer & research news
- */
-export const fetchAiAgentNews = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
-    z
-      .object({
-        limit: z.number().min(1).max(15).default(5),
-      })
-      .parse(d ?? {}),
-  )
-  .handler(async ({ data }) => {
-    const items: NewsItem[] = [];
-
-    // 1. Fetch HackerNews AI Agent posts via Algolia API
-    try {
-      const hnRes = await fetch(
-        "https://hn.algolia.com/api/v1/search_by_date?query=AI+Agent&tags=story&hitsPerPage=3",
-      );
-      if (hnRes.ok) {
-        const hnData = (await hnRes.json()) as {
-          hits?: Array<{
-            objectID: string;
-            title: string;
-            url: string;
-            author: string;
-            points: number;
-            created_at: string;
-          }>;
-        };
-        if (hnData.hits) {
-          hnData.hits.forEach((hit) => {
-            if (hit.title && (hit.url || hit.objectID)) {
-              items.push({
-                id: `hn-${hit.objectID}`,
-                title: hit.title,
-                url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
-                source: "HackerNews",
-                author: hit.author,
-                publishedAt: hit.created_at,
-                score: hit.points,
-              });
-            }
-          });
-        }
-      }
-    } catch (e) {
-      console.warn("HackerNews API fetch failed", e);
-    }
-
-    // 2. Fetch Dev.to AI Articles
-    try {
-      const devRes = await fetch("https://dev.to/api/articles?tag=ai&per_page=3");
-      if (devRes.ok) {
-        const devData = (await devRes.json()) as Array<{
-          id: number;
-          title: string;
-          url: string;
-          user: { name: string };
-          published_at: string;
-          public_reactions_count: number;
-        }>;
-        devData.forEach((article) => {
-          items.push({
-            id: `dev-${article.id}`,
-            title: article.title,
-            url: article.url,
-            source: "Dev.to",
-            author: article.user?.name,
-            publishedAt: article.published_at,
-            score: article.public_reactions_count,
-          });
-        });
-      }
-    } catch (e) {
-      console.warn("Dev.to API fetch failed", e);
-    }
-
-    if (items.length === 0) {
-      return FALLBACK_NEWS.slice(0, data.limit);
-    }
-
-    return items.slice(0, data.limit);
   });
 
 const PERSONAL_EMAIL_PROVIDERS = new Set([
@@ -262,7 +107,7 @@ const PERSONAL_EMAIL_PROVIDERS = new Set([
  * Server Function: Lead contact validation powered by Google Public DNS API
  */
 export const validateLeadContact = createServerFn({ method: "POST" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z
       .object({
         email: z.string().trim(),
@@ -322,7 +167,7 @@ export const validateLeadContact = createServerFn({ method: "POST" })
             `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
             { headers: { Accept: "application/json" } }
           );
-          const aData = aRes.ok ? ((await aRes.json()) as { Answer?: Array<any> }) : null;
+          const aData = aRes.ok ? ((await aRes.json()) as { Answer?: Array<unknown> }) : null;
 
           if (dnsData.Status === 3 || (!aData?.Answer || aData.Answer.length === 0)) {
             return {
@@ -373,17 +218,6 @@ export interface LlmModelPricing {
   contextLength: number;
 }
 
-export interface AcademicPaper {
-  id: string;
-  title: string;
-  doi: string;
-  publicationYear: number;
-  citedByCount: number;
-  authors: string[];
-  venue: string;
-  pdfUrl?: string;
-}
-
 export interface UserGeoLocation {
   city: string;
   region: string;
@@ -393,137 +227,65 @@ export interface UserGeoLocation {
 }
 
 /**
- * Server Function: Fetch live LLM token pricing from OpenRouter API
+ * Server Function: Fetch live LLM token pricing from the OpenRouter API.
+ * Returns an empty list when OpenRouter is unreachable, so a caller never
+ * presents stale hard-coded prices as a live quote.
  */
 export const fetchLiveLlmPricing = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
+  .inputValidator((d: unknown) =>
     z.object({ limit: z.number().default(150), query: z.string().optional() }).parse(d ?? {}),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data }): Promise<LlmModelPricing[]> => {
     try {
       const res = await fetch("https://openrouter.ai/api/v1/models", {
         headers: { Accept: "application/json" },
       });
-      if (res.ok) {
-        const json = (await res.json()) as {
-          data?: Array<{
-            id: string;
-            name: string;
-            context_length: number;
-            pricing?: { prompt?: string; completion?: string };
-          }>;
-        };
-
-        if (json.data && Array.isArray(json.data)) {
-          let models: LlmModelPricing[] = json.data
-            .filter((m) => m.pricing?.prompt !== undefined && m.pricing?.completion !== undefined)
-            .map((m) => {
-              const provider = m.id.split("/")[0] || "AI Provider";
-              const promptPerM = parseFloat(m.pricing?.prompt || "0") * 1000000;
-              const completionPerM = parseFloat(m.pricing?.completion || "0") * 1000000;
-              return {
-                id: m.id,
-                name: m.name || m.id,
-                provider: provider.toUpperCase(),
-                promptPricePerM: parseFloat(promptPerM.toFixed(4)),
-                completionPricePerM: parseFloat(completionPerM.toFixed(4)),
-                contextLength: m.context_length || 128000,
-              };
-            });
-
-          if (data.query?.trim()) {
-            const q = data.query.trim().toLowerCase();
-            models = models.filter(
-              (m) =>
-                m.name.toLowerCase().includes(q) ||
-                m.id.toLowerCase().includes(q) ||
-                m.provider.toLowerCase().includes(q)
-            );
-          }
-
-          models = models.slice(0, data.limit);
-          if (models.length > 0) return models;
-        }
+      if (!res.ok) {
+        console.warn(`OpenRouter models endpoint returned status ${res.status}.`);
+        return [];
       }
+
+      const json = (await res.json()) as {
+        data?: Array<{
+          id: string;
+          name: string;
+          context_length: number;
+          pricing?: { prompt?: string; completion?: string };
+        }>;
+      };
+      if (!json.data || !Array.isArray(json.data)) return [];
+
+      let models: LlmModelPricing[] = json.data
+        .filter((m) => m.pricing?.prompt !== undefined && m.pricing?.completion !== undefined)
+        .map((m) => {
+          const provider = m.id.split("/")[0] || "AI Provider";
+          const promptPerM = parseFloat(m.pricing?.prompt || "0") * 1000000;
+          const completionPerM = parseFloat(m.pricing?.completion || "0") * 1000000;
+          return {
+            id: m.id,
+            name: m.name || m.id,
+            provider: provider.toUpperCase(),
+            promptPricePerM: parseFloat(promptPerM.toFixed(4)),
+            completionPricePerM: parseFloat(completionPerM.toFixed(4)),
+            contextLength: m.context_length || 128000,
+          };
+        });
+
+      if (data.query?.trim()) {
+        const q = data.query.trim().toLowerCase();
+        models = models.filter(
+          (m) =>
+            m.name.toLowerCase().includes(q) ||
+            m.id.toLowerCase().includes(q) ||
+            m.provider.toLowerCase().includes(q)
+        );
+      }
+
+      return models.slice(0, data.limit);
     } catch (err) {
       console.warn("OpenRouter API model pricing fetch failed:", err);
+      return [];
     }
-
-    return [
-      { id: "openai/gpt-4o", name: "GPT-4o (OpenAI)", provider: "OPENAI", promptPricePerM: 2.50, completionPricePerM: 10.00, contextLength: 128000 },
-      { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet", provider: "ANTHROPIC", promptPricePerM: 3.00, completionPricePerM: 15.00, contextLength: 200000 },
-      { id: "google/gemini-1.5-pro", name: "Gemini 1.5 Pro", provider: "GOOGLE", promptPricePerM: 1.25, completionPricePerM: 5.00, contextLength: 2000000 },
-      { id: "deepseek/deepseek-chat", name: "DeepSeek V3", provider: "DEEPSEEK", promptPricePerM: 0.14, completionPricePerM: 0.28, contextLength: 64000 },
-      { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B", provider: "META", promptPricePerM: 0.35, completionPricePerM: 0.40, contextLength: 128000 },
-    ];
-  });
-
-/**
- * Server Function: Fetch peer-reviewed AI Agent academic research from OpenAlex API
- */
-export const fetchAcademicAiPapers = createServerFn({ method: "GET" })
-  .validator((d: unknown) =>
-    z.object({ query: z.string().optional(), limit: z.number().default(6) }).parse(d ?? {}),
-  )
-  .handler(async ({ data }) => {
-    try {
-      const q = encodeURIComponent(data.query || "model context protocol AI agents LLM benchmark");
-      const url = `https://api.openalex.org/works?search=${q}&per_page=${data.limit}&sort=cited_by_count:desc`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
-
-      if (res.ok) {
-        const json = (await res.json()) as {
-          results?: Array<{
-            id: string;
-            title: string;
-            doi?: string;
-            publication_year?: number;
-            cited_by_count?: number;
-            authorships?: Array<{ author?: { display_name?: string } }>;
-            host_venue?: { display_name?: string };
-            primary_location?: { pdf_url?: string; landing_page_url?: string };
-          }>;
-        };
-
-        if (json.results && Array.isArray(json.results) && json.results.length > 0) {
-          return json.results.map((p) => ({
-            id: p.id,
-            title: p.title,
-            doi: p.doi || p.primary_location?.landing_page_url || "https://openalex.org",
-            publicationYear: p.publication_year || new Date().getFullYear(),
-            citedByCount: p.cited_by_count || 0,
-            authors: (p.authorships || []).map((a) => a.author?.display_name || "Researcher").slice(0, 3),
-            venue: p.host_venue?.display_name || "ArXiv / Peer-Reviewed",
-            pdfUrl: p.primary_location?.pdf_url || p.doi,
-          }));
-        }
-      }
-    } catch (err) {
-      console.warn("OpenAlex API research paper fetch failed:", err);
-    }
-
-    return [
-      {
-        id: "oa-1",
-        title: "Model Context Protocol: Standardized Tool Integration for Autonomous Agents",
-        doi: "https://doi.org/10.48550/arXiv.2410.00000",
-        publicationYear: 2025,
-        citedByCount: 184,
-        authors: ["Anthropic AI Systems", "Open Source Collective"],
-        venue: "IEEE International Conference on Agent Systems",
-        pdfUrl: "https://arxiv.org",
-      },
-      {
-        id: "oa-2",
-        title: "Multi-Agent System Orchestration Metrics and Evaluation Frameworks",
-        doi: "https://doi.org/10.48550/arXiv.2409.00000",
-        publicationYear: 2024,
-        citedByCount: 92,
-        authors: ["Dr. E. Vance", "M. K. Patel"],
-        venue: "ACM Transactions on Intelligent Systems",
-        pdfUrl: "https://arxiv.org",
-      },
-    ];
   });
 
 /**

@@ -41,6 +41,7 @@ import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as SystemsIndexRouteImport } from './routes/systems.index'
 import { Route as StarterPacksIndexRouteImport } from './routes/starter-packs.index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
 import { Route as PathsIndexRouteImport } from './routes/paths.index'
@@ -80,6 +81,7 @@ import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.
 import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
+import { Route as RadarFeedDotxmlRouteImport } from './routes/radar.feed[.]xml'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as PodcastFeedDotxmlRouteImport } from './routes/podcast.feed[.]xml'
 import { Route as PathsSlugRouteImport } from './routes/paths.$slug'
@@ -278,6 +280,11 @@ const StarterPacksIndexRoute = StarterPacksIndexRouteImport.update({
 const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadarIndexRoute = RadarIndexRouteImport.update({
+  id: '/radar/',
+  path: '/radar/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsIndexRoute = ProductsIndexRouteImport.update({
@@ -481,6 +488,11 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
 const SellersSlugRoute = SellersSlugRouteImport.update({
   id: '/sellers/$slug',
   path: '/sellers/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadarFeedDotxmlRoute = RadarFeedDotxmlRouteImport.update({
+  id: '/radar/feed.xml',
+  path: '/radar/feed.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsSlugRoute = ProductsSlugRouteImport.update({
@@ -755,6 +767,7 @@ export interface FileRoutesByFullPath {
   '/paths/$slug': typeof PathsSlugRoute
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/radar/feed.xml': typeof RadarFeedDotxmlRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -794,6 +807,7 @@ export interface FileRoutesByFullPath {
   '/paths/': typeof PathsIndexRoute
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/radar/': typeof RadarIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/starter-packs/': typeof StarterPacksIndexRoute
   '/systems/': typeof SystemsIndexRoute
@@ -859,6 +873,7 @@ export interface FileRoutesByTo {
   '/paths/$slug': typeof PathsSlugRoute
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/radar/feed.xml': typeof RadarFeedDotxmlRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -898,6 +913,7 @@ export interface FileRoutesByTo {
   '/paths': typeof PathsIndexRoute
   '/podcast': typeof PodcastIndexRoute
   '/products': typeof ProductsIndexRoute
+  '/radar': typeof RadarIndexRoute
   '/services': typeof ServicesIndexRoute
   '/starter-packs': typeof StarterPacksIndexRoute
   '/systems': typeof SystemsIndexRoute
@@ -973,6 +989,7 @@ export interface FileRoutesById {
   '/paths/$slug': typeof PathsSlugRoute
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
+  '/radar/feed.xml': typeof RadarFeedDotxmlRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -1012,6 +1029,7 @@ export interface FileRoutesById {
   '/paths/': typeof PathsIndexRoute
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
+  '/radar/': typeof RadarIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/starter-packs/': typeof StarterPacksIndexRoute
   '/systems/': typeof SystemsIndexRoute
@@ -1087,6 +1105,7 @@ export interface FileRouteTypes {
     | '/paths/$slug'
     | '/podcast/feed.xml'
     | '/products/$slug'
+    | '/radar/feed.xml'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1126,6 +1145,7 @@ export interface FileRouteTypes {
     | '/paths/'
     | '/podcast/'
     | '/products/'
+    | '/radar/'
     | '/services/'
     | '/starter-packs/'
     | '/systems/'
@@ -1191,6 +1211,7 @@ export interface FileRouteTypes {
     | '/paths/$slug'
     | '/podcast/feed.xml'
     | '/products/$slug'
+    | '/radar/feed.xml'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1230,6 +1251,7 @@ export interface FileRouteTypes {
     | '/paths'
     | '/podcast'
     | '/products'
+    | '/radar'
     | '/services'
     | '/starter-packs'
     | '/systems'
@@ -1304,6 +1326,7 @@ export interface FileRouteTypes {
     | '/paths/$slug'
     | '/podcast/feed.xml'
     | '/products/$slug'
+    | '/radar/feed.xml'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1343,6 +1366,7 @@ export interface FileRouteTypes {
     | '/paths/'
     | '/podcast/'
     | '/products/'
+    | '/radar/'
     | '/services/'
     | '/starter-packs/'
     | '/systems/'
@@ -1397,6 +1421,7 @@ export interface RootRouteChildren {
   CheckoutReturnRoute: typeof CheckoutReturnRoute
   InvoiceNumberRoute: typeof InvoiceNumberRoute
   PodcastFeedDotxmlRoute: typeof PodcastFeedDotxmlRoute
+  RadarFeedDotxmlRoute: typeof RadarFeedDotxmlRoute
   SellersSlugRoute: typeof SellersSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
@@ -1430,6 +1455,7 @@ export interface RootRouteChildren {
   UUserIdRoute: typeof UUserIdRoute
   WebsiteLaunchChecklistConfirmRoute: typeof WebsiteLaunchChecklistConfirmRoute
   PodcastIndexRoute: typeof PodcastIndexRoute
+  RadarIndexRoute: typeof RadarIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
   StarterPacksIndexRoute: typeof StarterPacksIndexRoute
   SystemsIndexRoute: typeof SystemsIndexRoute
@@ -1665,6 +1691,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services/'
       preLoaderRoute: typeof ServicesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radar/': {
+      id: '/radar/'
+      path: '/radar'
+      fullPath: '/radar/'
+      preLoaderRoute: typeof RadarIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/': {
@@ -1938,6 +1971,13 @@ declare module '@tanstack/react-router' {
       path: '/sellers/$slug'
       fullPath: '/sellers/$slug'
       preLoaderRoute: typeof SellersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radar/feed.xml': {
+      id: '/radar/feed.xml'
+      path: '/radar/feed.xml'
+      fullPath: '/radar/feed.xml'
+      preLoaderRoute: typeof RadarFeedDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/$slug': {
@@ -2429,6 +2469,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutReturnRoute: CheckoutReturnRoute,
   InvoiceNumberRoute: InvoiceNumberRoute,
   PodcastFeedDotxmlRoute: PodcastFeedDotxmlRoute,
+  RadarFeedDotxmlRoute: RadarFeedDotxmlRoute,
   SellersSlugRoute: SellersSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
@@ -2462,6 +2503,7 @@ const rootRouteChildren: RootRouteChildren = {
   UUserIdRoute: UUserIdRoute,
   WebsiteLaunchChecklistConfirmRoute: WebsiteLaunchChecklistConfirmRoute,
   PodcastIndexRoute: PodcastIndexRoute,
+  RadarIndexRoute: RadarIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
   StarterPacksIndexRoute: StarterPacksIndexRoute,
   SystemsIndexRoute: SystemsIndexRoute,

@@ -93,9 +93,25 @@ const TRACK_RULES: Array<{ track: RadarTrackId; pattern: RegExp }> = [
   {
     track: "build",
     pattern:
-      /\bmcp\b|model context protocol|tool (?:use|call)|function calling|\bsdk\b|\bapi\b|framework|tutorial|how to|building|integrat|workflow|orchestrat|multi[\s-]?agent|\brag\b|fine[\s-]?tun|open[\s-]?source/i,
+      /\bmcp\b|model context protocol|tool (?:use|call)|function calling|\bsdk\b|tutorial|how to build|getting started|quickstart|workflow|orchestrat|multi[\s-]?agent|\brag\b|retrieval[\s-]augmented|fine[\s-]?tun|prompt engineering/i,
   },
 ];
+
+/**
+ * Where an item lands when no keyword rule matches. Most headlines match
+ * nothing — "Introducing WeatherNext 3" contains no track vocabulary at all —
+ * so the fallback decides the majority of the page. Keying it to the category
+ * the aggregator already assigned beats sending everything to one track:
+ * research is something you evaluate, a model or an industry story is something
+ * you decide about, and tooling is something you build with.
+ */
+const CATEGORY_FALLBACK_TRACK: Record<string, RadarTrackId> = {
+  research: "operate",
+  models: "decide",
+  industry: "decide",
+  agents: "build",
+  developer: "build",
+};
 
 const ACT_PATTERN =
   /deprecat|sunset|end[\s-]of[\s-]life|breaking change|price (?:cut|drop|increase|change)|shutting down|discontinu|retire|vulnerab|\bcve\b|exploit|prompt[\s-]?injection|security advisory|data leak|incident|outage/i;
@@ -103,11 +119,11 @@ const ACT_PATTERN =
 const WATCH_PATTERN =
   /release|launch|announc|now available|introduc|\bga\b|beta|preview|new model|open[\s-]?sourc|version \d/i;
 
-export function classifyTrack(text: string): RadarTrackId {
+export function classifyTrack(text: string, category?: string): RadarTrackId {
   for (const rule of TRACK_RULES) {
     if (rule.pattern.test(text)) return rule.track;
   }
-  return "build";
+  return (category && CATEGORY_FALLBACK_TRACK[category]) || "build";
 }
 
 export function classifySignal(text: string): RadarSignal {
@@ -279,23 +295,98 @@ export function normalizeTitle(title: string): string {
 }
 
 /**
- * Keeps the highest-ranked copy of each story. The same release routinely
- * surfaces on Hacker News, a vendor blog, and Dev.to within an hour; comparing
- * raw URL strings (different query params, trailing slashes) misses all of it.
+ * Words that carry no identity in a headline. Dropped before fingerprinting so
+ * "OpenAI Launches GPT-6" and "OpenAI launches the GPT-6 model" collapse.
+ */
+const TITLE_STOPWORDS = new Set([
+  "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from", "has",
+  "have", "how", "in", "is", "it", "its", "of", "on", "or", "that", "the",
+  "their", "this", "to", "was", "were", "what", "when", "which", "who", "why",
+  "will", "with", "you", "your", "new", "now", "says", "said", "can", "could",
+  "just", "more", "most", "than", "then", "into", "over", "after", "about",
+]);
+
+/** Significant lowercase tokens of a headline, deduplicated. */
+export function titleTokens(title: string): Set<string> {
+  return new Set(
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(" ")
+      .filter((word) => word.length > 2 && !TITLE_STOPWORDS.has(word)),
+  );
+}
+
+/**
+ * Order-insensitive fingerprint of a headline, stored on the row so a later
+ * ingest can check for the same story without re-reading every title. Catches
+ * rearranged or repunctuated restatements; titleSimilarity catches the rest.
+ */
+export function titleFingerprint(title: string): string {
+  const tokens = [...titleTokens(title)].sort();
+  return stableId("t", tokens.length ? tokens.join(" ") : normalizeTitle(title));
+}
+
+/** Jaccard overlap of two headlines' significant tokens, 0..1. */
+export function titleSimilarity(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0;
+  let shared = 0;
+  for (const token of a) if (b.has(token)) shared += 1;
+  return shared / (a.size + b.size - shared);
+}
+
+/**
+ * Above this, two headlines are treated as the same story. Tuned for the real
+ * failure mode with this many feeds: one model launch covered by TechCrunch,
+ * The Verge, Ars and SiliconANGLE inside an hour, each with its own wording for
+ * what a reader would call a single item.
+ */
+export const TITLE_DUPLICATE_THRESHOLD = 0.6;
+
+/** True when `title` restates a story already represented in `seen`. */
+export function isNearDuplicateTitle(
+  title: string,
+  seen: Iterable<Set<string>>,
+  threshold = TITLE_DUPLICATE_THRESHOLD,
+): boolean {
+  const tokens = titleTokens(title);
+  // Very short headlines are too thin to compare safely; the exact fingerprint
+  // still covers them.
+  if (tokens.size < 4) return false;
+  for (const other of seen) {
+    if (titleSimilarity(tokens, other) >= threshold) return true;
+  }
+  return false;
+}
+
+/**
+ * Keeps the highest-ranked copy of each story.
+ *
+ * Three passes, cheapest first: exact URL, exact token fingerprint, then
+ * Jaccard overlap against the headlines already kept. With eighty-odd feeds the
+ * same launch arrives from a vendor blog, four outlets and Hacker News inside
+ * an hour, and comparing raw URL strings catches almost none of it.
  */
 export function dedupeRanked<T extends { url: string; title: string; rank: number }>(
   items: T[],
 ): T[] {
   const seenUrls = new Set<string>();
-  const seenTitles = new Set<string>();
+  const seenFingerprints = new Set<string>();
+  const seenTokens: Set<string>[] = [];
   const out: T[] = [];
 
   for (const item of [...items].sort((a, b) => b.rank - a.rank)) {
     const url = normalizeUrl(item.url);
-    const title = normalizeTitle(item.title);
-    if (seenUrls.has(url) || (title.length > 12 && seenTitles.has(title))) continue;
+    if (seenUrls.has(url)) continue;
+
+    const fingerprint = titleFingerprint(item.title);
+    if (seenFingerprints.has(fingerprint)) continue;
+
+    if (isNearDuplicateTitle(item.title, seenTokens)) continue;
+
     seenUrls.add(url);
-    seenTitles.add(title);
+    seenFingerprints.add(fingerprint);
+    seenTokens.push(titleTokens(item.title));
     out.push(item);
   }
 

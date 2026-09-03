@@ -6,7 +6,14 @@ import {
   getSupabaseUrl,
 } from "@/integrations/supabase/env";
 import { gatherRadarFeed } from "@/lib/ai-radar.functions";
-import { holdReasonFor, normalizeUrl, stableId } from "@/lib/radar";
+import {
+  holdReasonFor,
+  isNearDuplicateTitle,
+  normalizeUrl,
+  stableId,
+  titleFingerprint,
+  titleTokens,
+} from "@/lib/radar";
 
 /**
  * Scheduled AI Radar ingest.
@@ -22,8 +29,14 @@ import { holdReasonFor, normalizeUrl, stableId } from "@/lib/radar";
  * never dragged back by a later run.
  */
 
-/** Rows older than this are pruned so the table cannot grow without bound. */
-const RETAIN_DAYS = 180;
+/** Rows older than this are deleted on every run. */
+const RETAIN_DAYS = 30;
+
+/**
+ * How far back to look for an existing version of an incoming story. Anything
+ * older is not something a reader would experience as a duplicate.
+ */
+const DUPLICATE_LOOKBACK_DAYS = 10;
 
 export const Route = createFileRoute("/lovable/radar/ingest")({
   server: {
@@ -84,10 +97,34 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
             for (const row of data ?? []) known.set(row.url_hash as string, row.status as string);
           }
 
+          // Cross-run duplicate suppression. gatherRadarFeed already dedupes
+          // within a run, but the same launch reaches us from a vendor blog at
+          // 10:00 and from four outlets at 10:30 — different URLs, different
+          // headlines, one story. Compare each candidate against what the last
+          // ten days already hold, by exact fingerprint first and then by token
+          // overlap for restatements.
+          const lookbackFrom = new Date(
+            Date.now() - DUPLICATE_LOOKBACK_DAYS * 86_400_000,
+          ).toISOString();
+          const { data: recentRows, error: recentError } = await supabase
+            .from("radar_items")
+            .select("title_fingerprint, title")
+            .gte("published_at", lookbackFrom)
+            .limit(2000);
+          if (recentError) throw new Error(`duplicate lookup failed: ${recentError.message}`);
+
+          const storedFingerprints = new Set<string>();
+          const storedTokens: Set<string>[] = [];
+          for (const row of recentRows ?? []) {
+            if (row.title_fingerprint) storedFingerprints.add(row.title_fingerprint as string);
+            if (row.title) storedTokens.push(titleTokens(row.title as string));
+          }
+
           const nowIso = new Date().toISOString();
           const inserts: Record<string, unknown>[] = [];
           const seenAgain: string[] = [];
           let held = 0;
+          let duplicates = 0;
 
           feed.items.forEach((item, index) => {
             const hash = hashes[index]!;
@@ -95,10 +132,25 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
               seenAgain.push(hash);
               return;
             }
+
+            const fingerprint = titleFingerprint(item.title);
+            if (storedFingerprints.has(fingerprint)) {
+              duplicates += 1;
+              return;
+            }
+            if (isNearDuplicateTitle(item.title, storedTokens)) {
+              duplicates += 1;
+              return;
+            }
+            // A story kept in this batch also has to block the ones behind it.
+            storedFingerprints.add(fingerprint);
+            storedTokens.push(titleTokens(item.title));
+
             const holdReason = holdReasonFor(`${item.title} ${item.summary}`);
             if (holdReason) held += 1;
             inserts.push({
               url_hash: hash,
+              title_fingerprint: fingerprint,
               url: item.url.slice(0, 2000),
               title: item.title.slice(0, 500),
               summary: item.summary.slice(0, 2000),
@@ -150,12 +202,23 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
             if (error) console.warn("[radar-ingest] last_seen refresh failed", error.message);
           }
 
+          // Retention: nothing older than 30 days survives a run. Deleted, not
+          // hidden — including rejected rows, which by then have aged out of
+          // any feed that could resurface them.
           const cutoff = new Date(Date.now() - RETAIN_DAYS * 86_400_000).toISOString();
           const { error: pruneError } = await supabase
             .from("radar_items")
             .delete()
             .lt("published_at", cutoff);
           if (pruneError) console.warn("[radar-ingest] prune failed", pruneError);
+
+          // Ingest-run history is metadata, not content, but it should not grow
+          // forever either.
+          const { error: runPruneError } = await supabase
+            .from("radar_ingest_runs")
+            .delete()
+            .lt("started_at", cutoff);
+          if (runPruneError) console.warn("[radar-ingest] run prune failed", runPruneError);
 
           const finishedAt = new Date();
           await supabase
@@ -168,6 +231,7 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
               items_seen: feed.items.length,
               items_new: inserts.length,
               items_held: held,
+              items_duplicate: duplicates,
               source_status: feed.sourceStatus,
             })
             .eq("id", runId);
@@ -179,6 +243,7 @@ export const Route = createFileRoute("/lovable/radar/ingest")({
             items_seen: feed.items.length,
             items_new: inserts.length,
             items_refreshed: seenAgain.length,
+            items_duplicate: duplicates,
             items_held: held,
           });
         } catch (error) {

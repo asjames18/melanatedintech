@@ -37,8 +37,11 @@ const STORE_TIMEOUT_MS = 2500;
  * of the first successful ingest.
  */
 const STORE_RETRY_AFTER_MS = 60_000;
-/** Matches the live path's window so both render the same slice of time. */
-const WINDOW_DAYS = 21;
+/**
+ * Matches the live path and the 30-day row retention, so the page can show
+ * everything the store still holds.
+ */
+const WINDOW_DAYS = 30;
 
 /** Per-isolate negative cache for the store probe. */
 let storeUnavailableUntil = 0;

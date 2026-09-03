@@ -76,20 +76,28 @@ export interface AiRadarFeedResponse {
 let cache: { data: AiRadarFeedResponse; expiresAt: number } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-/** Nothing older than this is news; also bounds the Hacker News query. */
-const WINDOW_DAYS = 21;
+/**
+ * Nothing older than this is news, and it also bounds the Hacker News query.
+ * Matches the 30-day row retention in the ingest, so everything we keep is
+ * something the page can still show.
+ */
+const WINDOW_DAYS = 30;
 /** Hacker News stories below this score are noise at this query breadth. */
 const HN_POINTS_FLOOR = 40;
 /** Per-request ceiling. */
 const FETCH_TIMEOUT_MS = 4000;
 /**
- * Whole-gather ceiling. With forty-odd upstreams, the tail latency of the
- * slowest one must not decide how long a page load takes; whatever has landed
- * when the budget runs out is what ships, and the rest is reported as pending.
+ * Whole-gather ceilings. The tail latency of the slowest upstream must never
+ * decide how long something waits; whatever has landed when the budget runs out
+ * is what ships, and the rest is reported.
+ *
+ * The scheduled ingest gets the long budget because nobody is watching and
+ * pg_cron allows 30s. A page request that has to gather live gets the short one
+ * and the "fast" subset of feeds.
  */
-const GATHER_BUDGET_MS = 7000;
+const GATHER_BUDGET_MS = { full: 20_000, fast: 6_000 } as const;
 /** Simultaneous upstream connections. */
-const CONCURRENCY = 10;
+const CONCURRENCY = { full: 12, fast: 8 } as const;
 /** Hard cap on the merged archive so the payload cannot grow without bound. */
 const MAX_ITEMS = 250;
 
@@ -146,7 +154,7 @@ function classify(item: Omit<AiRadarItem, "track" | "signal" | "rank">, now: num
   const override = GROUP_OVERRIDE[item.group];
   return {
     ...item,
-    track: override?.track ?? classifyTrack(text),
+    track: override?.track ?? classifyTrack(text, item.category),
     signal: override?.signal ?? classifySignal(text),
     rank: rankItem({ source: item.source, publishedAt: item.publishedAt, score: item.score, now }),
   };
@@ -337,6 +345,12 @@ interface FeedSpec {
   /** Entries to take. Busy general feeds get fewer so they cannot crowd out
    *  a quiet vendor feed that published one important thing. */
   max: number;
+  /**
+   * Included in the "fast" profile, used when a page request has to gather
+   * live because the scheduled ingest has not run. That path cannot afford
+   * eighty upstream fetches, so it takes only the highest-signal handful.
+   */
+  fast?: true;
 }
 
 /**
@@ -347,20 +361,34 @@ interface FeedSpec {
  */
 const RSS_FEEDS: FeedSpec[] = [
   // --- Model vendors & labs -------------------------------------------------
-  { source: "OpenAI News", group: "vendors", url: "https://openai.com/news/rss.xml", category: "models", tags: ["OpenAI", "Vendor"], max: 4 },
-  { source: "Google DeepMind", group: "vendors", url: "https://deepmind.google/blog/rss.xml", category: "models", tags: ["DeepMind", "Vendor"], max: 4 },
+  { source: "OpenAI News", group: "vendors", url: "https://openai.com/news/rss.xml", category: "models", tags: ["OpenAI", "Vendor"], max: 4, fast: true },
+  { source: "Google DeepMind", group: "vendors", url: "https://deepmind.google/blog/rss.xml", category: "models", tags: ["DeepMind", "Vendor"], max: 4, fast: true },
   { source: "Google AI", group: "vendors", url: "https://blog.google/technology/ai/rss/", category: "models", tags: ["Google", "Vendor"], max: 3 },
   { source: "Google Research", group: "vendors", url: "https://research.google/blog/rss/", category: "research", tags: ["Google", "Research"], max: 3 },
-  { source: "Mistral AI", group: "vendors", url: "https://mistral.ai/rss.xml", category: "models", tags: ["Mistral", "Vendor"], max: 3 },
+  { source: "Microsoft Research", group: "vendors", url: "https://www.microsoft.com/en-us/research/feed/", category: "research", tags: ["Microsoft", "Research"], max: 3 },
+  { source: "Mistral AI", group: "vendors", url: "https://mistral.ai/rss.xml", category: "models", tags: ["Mistral", "Vendor"], max: 3, fast: true },
   { source: "Qwen", group: "vendors", url: "https://qwenlm.github.io/blog/index.xml", category: "models", tags: ["Qwen", "Open Weights"], max: 3 },
-  { source: "Hugging Face Blog", group: "vendors", url: "https://huggingface.co/blog/feed.xml", category: "models", tags: ["Open Source", "Weights"], max: 4 },
+  { source: "Hugging Face Blog", group: "vendors", url: "https://huggingface.co/blog/feed.xml", category: "models", tags: ["Open Source", "Weights"], max: 4, fast: true },
+  { source: "EleutherAI", group: "vendors", url: "https://blog.eleuther.ai/index.xml", category: "research", tags: ["Open Source", "Research"], max: 2 },
+  { source: "Stanford CRFM", group: "vendors", url: "https://crfm.stanford.edu/feed.xml", category: "research", tags: ["Benchmarks", "Research"], max: 2 },
   { source: "Together AI", group: "vendors", url: "https://www.together.ai/blog/rss.xml", category: "models", tags: ["Inference", "Vendor"], max: 3 },
   { source: "Ollama", group: "vendors", url: "https://ollama.com/blog/rss.xml", category: "models", tags: ["Local AI", "Open Weights"], max: 3 },
   { source: "Replicate", group: "vendors", url: "https://replicate.com/blog/rss", category: "developer", tags: ["Inference", "Vendor"], max: 3 },
+  { source: "NVIDIA Developer", group: "vendors", url: "https://developer.nvidia.com/blog/feed/", category: "developer", tags: ["NVIDIA", "Hardware"], max: 3 },
+  { source: "Weights and Biases", group: "vendors", url: "https://wandb.ai/fully-connected/rss.xml", category: "developer", tags: ["MLOps", "Evaluation"], max: 2 },
+  { source: "Mozilla AI", group: "vendors", url: "https://blog.mozilla.org/en/category/ai/feed/", category: "industry", tags: ["Open Source", "Trust"], max: 2 },
+  { source: "Weaviate", group: "vendors", url: "https://weaviate.io/blog/rss.xml", category: "developer", tags: ["Vector DB", "RAG"], max: 2 },
+  { source: "Qdrant", group: "vendors", url: "https://qdrant.tech/blog/index.xml", category: "developer", tags: ["Vector DB", "RAG"], max: 2 },
 
   // --- Service status: the sharpest "act now" signal on the page ------------
-  { source: "OpenAI Status", group: "status", url: "https://status.openai.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3 },
-  { source: "Anthropic Status", group: "status", url: "https://status.anthropic.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3 },
+  { source: "OpenAI Status", group: "status", url: "https://status.openai.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3, fast: true },
+  { source: "Anthropic Status", group: "status", url: "https://status.anthropic.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3, fast: true },
+
+  // --- Research -------------------------------------------------------------
+  { source: "arXiv cs.LG", group: "research", url: "http://rss.arxiv.org/rss/cs.LG", category: "research", tags: ["ArXiv", "Machine Learning"], max: 6 },
+  { source: "Alignment Forum", group: "research", url: "https://www.alignmentforum.org/feed.xml", category: "research", tags: ["Alignment", "Safety"], max: 2 },
+  { source: "LessWrong", group: "research", url: "https://www.lesswrong.com/feed.xml?view=curated", category: "research", tags: ["Safety", "Analysis"], max: 2 },
+  { source: "The Gradient", group: "research", url: "https://thegradient.pub/rss/", category: "research", tags: ["Analysis", "Research"], max: 2 },
 
   // --- Industry press -------------------------------------------------------
   { source: "TechCrunch AI", group: "press", url: "https://techcrunch.com/category/artificial-intelligence/feed/", category: "industry", tags: ["Industry"], max: 3 },
@@ -368,14 +396,40 @@ const RSS_FEEDS: FeedSpec[] = [
   { source: "The Verge AI", group: "press", url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", category: "industry", tags: ["Industry"], max: 3 },
   { source: "MIT Technology Review", group: "press", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed", category: "industry", tags: ["Industry", "Analysis"], max: 3 },
   { source: "VentureBeat AI", group: "press", url: "https://venturebeat.com/category/ai/feed/", category: "industry", tags: ["Industry", "Enterprise"], max: 3 },
+  { source: "THE DECODER", group: "press", url: "https://the-decoder.com/feed/", category: "industry", tags: ["Industry", "Models"], max: 3 },
+  { source: "SiliconANGLE", group: "press", url: "https://siliconangle.com/category/ai/feed/", category: "industry", tags: ["Enterprise", "Infrastructure"], max: 2 },
+  { source: "Synced Review", group: "press", url: "https://syncedreview.com/feed/", category: "industry", tags: ["Industry", "Global"], max: 2 },
   { source: "AWS Machine Learning", group: "press", url: "https://aws.amazon.com/blogs/machine-learning/feed/", category: "developer", tags: ["AWS", "Cloud"], max: 3 },
-  { source: "NVIDIA Blog", group: "press", url: "https://blogs.nvidia.com/feed/", category: "industry", tags: ["NVIDIA", "Hardware"], max: 3 },
+  { source: "NVIDIA Blog", group: "press", url: "https://blogs.nvidia.com/feed/", category: "industry", tags: ["NVIDIA", "Hardware"], max: 2 },
+  { source: "InfoQ AI", group: "press", url: "https://feed.infoq.com/ai-ml-data-eng/", category: "developer", tags: ["Enterprise", "Architecture"], max: 2 },
+  { source: "MarkTechPost", group: "press", url: "https://www.marktechpost.com/feed/", category: "research", tags: ["Papers", "Summaries"], max: 2 },
+  { source: "SemiAnalysis", group: "press", url: "https://www.semianalysis.com/feed", category: "industry", tags: ["Hardware", "Supply Chain"], max: 2 },
+  { source: "Chips and Cheese", group: "press", url: "https://chipsandcheese.com/feed/", category: "industry", tags: ["Hardware", "Analysis"], max: 1 },
+
+  // --- Policy, governance and AI security -----------------------------------
+  { source: "EU AI Act", group: "press", url: "https://artificialintelligenceact.eu/feed/", category: "industry", tags: ["Policy", "Compliance"], max: 2 },
+  { source: "CSET Georgetown", group: "press", url: "https://cset.georgetown.edu/feed/", category: "industry", tags: ["Policy", "Security"], max: 2 },
+  { source: "ChinaTalk", group: "press", url: "https://www.chinatalk.media/feed", category: "industry", tags: ["Policy", "Global"], max: 2 },
+  { source: "PromptArmor", group: "community", url: "https://promptarmor.substack.com/feed", category: "agents", tags: ["Security", "Prompt Injection"], max: 2 },
 
   // --- Community ------------------------------------------------------------
-  { source: "Simon Willison Weblog", group: "community", url: "https://simonwillison.net/atom/everything/", category: "agents", tags: ["LLM Tooling", "Analysis"], max: 4 },
-  { source: "Import AI", group: "community", url: "https://importai.substack.com/feed", category: "research", tags: ["Newsletter", "Analysis"], max: 2 },
+  { source: "Simon Willison Weblog", group: "community", url: "https://simonwillison.net/atom/everything/", category: "agents", tags: ["LLM Tooling", "Analysis"], max: 4, fast: true },
+  { source: "Import AI", group: "community", url: "https://jack-clark.net/feed/", category: "research", tags: ["Newsletter", "Analysis"], max: 2 },
   { source: "Latent Space", group: "community", url: "https://www.latent.space/feed", category: "agents", tags: ["Newsletter", "Engineering"], max: 2 },
   { source: "Ahead of AI", group: "community", url: "https://magazine.sebastianraschka.com/feed", category: "research", tags: ["Newsletter", "Models"], max: 2 },
+  { source: "Interconnects", group: "community", url: "https://www.interconnects.ai/feed", category: "models", tags: ["Newsletter", "Post-training"], max: 2 },
+  { source: "One Useful Thing", group: "community", url: "https://www.oneusefulthing.org/feed", category: "industry", tags: ["Newsletter", "Adoption"], max: 2 },
+  { source: "AI Snake Oil", group: "community", url: "https://www.aisnakeoil.com/feed", category: "industry", tags: ["Newsletter", "Critique"], max: 2 },
+  { source: "Gary Marcus", group: "community", url: "https://garymarcus.substack.com/feed", category: "industry", tags: ["Newsletter", "Critique"], max: 1 },
+  { source: "Last Week in AI", group: "community", url: "https://lastweekin.ai/feed", category: "industry", tags: ["Newsletter", "Digest"], max: 2 },
+  { source: "KDnuggets", group: "community", url: "https://www.kdnuggets.com/feed", category: "developer", tags: ["Tutorials", "ML"], max: 2 },
+  { source: "Towards AI", group: "community", url: "https://towardsai.net/feed", category: "developer", tags: ["Tutorials", "Agents"], max: 2 },
+  { source: "Towards Data Science", group: "community", url: "https://towardsdatascience.com/feed", category: "developer", tags: ["Tutorials", "ML"], max: 2 },
+  { source: "AI Weirdness", group: "community", url: "https://aiweirdness.com/rss", category: "research", tags: ["Failure Modes", "Analysis"], max: 1 },
+  { source: "r/MachineLearning", group: "community", url: "https://www.reddit.com/r/MachineLearning/.rss", category: "research", tags: ["Community", "Reddit"], max: 3 },
+  { source: "Product Hunt AI", group: "community", url: "https://www.producthunt.com/feed?category=artificial-intelligence", category: "developer", tags: ["Launches", "Tools"], max: 3 },
+  { source: "Practical AI", group: "community", url: "https://changelog.com/practicalai/feed", category: "developer", tags: ["Podcast", "Production"], max: 1 },
+  { source: "Two Minute Papers", group: "community", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg", category: "research", tags: ["Video", "Papers"], max: 2 },
 ];
 
 /** SDK and runtime release notes — the "will this break my build" feed. */
@@ -389,6 +443,13 @@ const RELEASE_REPOS = [
   "vllm-project/vllm",
   "ollama/ollama",
   "ggml-org/llama.cpp",
+  "langchain-ai/langchain",
+  "run-llama/llama_index",
+  "stanfordnlp/dspy",
+  "unslothai/unsloth",
+  "OpenAccess-AI-Collective/axolotl",
+  "open-webui/open-webui",
+  "comfyanonymous/ComfyUI",
 ];
 
 // ---------------------------------------------------------------------------
@@ -723,17 +784,24 @@ interface RadarTask {
   run: (now: number, budget: number) => Promise<AiRadarItem[]>;
 }
 
-const TASKS: RadarTask[] = [
-  { label: "OpenRouter", group: "catalog", run: fetchOpenRouterModels },
-  { label: "Hugging Face Models", group: "catalog", run: fetchHuggingFaceModels },
-  { label: "Hugging Face Papers", group: "research", run: fetchHuggingFacePapers },
-  { label: "ArXiv", group: "research", run: fetchArxivPapers },
-  { label: "Hacker News", group: "community", run: fetchHackerNewsAi },
-  { label: "Dev.to", group: "community", run: fetchDevToArticles },
+export type RadarProfile = "full" | "fast";
+
+interface RadarTaskWithProfile extends RadarTask {
+  fast: boolean;
+}
+
+const TASKS: RadarTaskWithProfile[] = [
+  { label: "OpenRouter", group: "catalog", run: fetchOpenRouterModels, fast: true },
+  { label: "Hugging Face Models", group: "catalog", run: fetchHuggingFaceModels, fast: true },
+  { label: "Hugging Face Papers", group: "research", run: fetchHuggingFacePapers, fast: false },
+  { label: "ArXiv", group: "research", run: fetchArxivPapers, fast: false },
+  { label: "Hacker News", group: "community", run: fetchHackerNewsAi, fast: true },
+  { label: "Dev.to", group: "community", run: fetchDevToArticles, fast: false },
   ...RSS_FEEDS.map(
-    (feed): RadarTask => ({
+    (feed): RadarTaskWithProfile => ({
       label: feed.source,
       group: feed.group,
+      fast: feed.fast === true,
       run: async (now, budget) => {
         const res = await fetchWithTimeout(feed.url, { headers: FEED_HEADERS }, budget);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -750,9 +818,10 @@ const TASKS: RadarTask[] = [
     }),
   ),
   ...RELEASE_REPOS.map(
-    (repo): RadarTask => ({
+    (repo): RadarTaskWithProfile => ({
       label: repo,
       group: "releases",
+      fast: false,
       run: async (now, budget) => {
         // releases.atom needs no token and does not consume the 60-per-hour
         // anonymous REST quota that a shared edge IP would burn through.
@@ -830,13 +899,22 @@ function errorMessage(err: unknown): string {
  */
 export async function gatherRadarFeed(
   now: number,
+  profile: RadarProfile = "full",
 ): Promise<{ items: AiRadarItem[]; sourceStatus: AiRadarSourceStatus[] }> {
-  const results = await runWithBudget(TASKS, now, CONCURRENCY, now + GATHER_BUDGET_MS);
+  const tasks = profile === "fast" ? TASKS.filter((task) => task.fast) : TASKS;
+  const results = await runWithBudget(
+    tasks,
+    now,
+    CONCURRENCY[profile],
+    now + GATHER_BUDGET_MS[profile],
+  );
 
   const fresh: AiRadarItem[] = [];
   const byGroup = new Map<AiRadarSourceGroup, AiRadarSourceStatus>();
 
-  for (const group of Object.keys(GROUP_META) as AiRadarSourceGroup[]) {
+  // Only groups this profile actually ran are reported, so the fast path does
+  // not show untouched groups as failures.
+  for (const group of new Set(tasks.map((task) => task.group))) {
     byGroup.set(group, {
       id: group,
       ...GROUP_META[group],
@@ -850,6 +928,7 @@ export async function gatherRadarFeed(
 
   for (const result of results) {
     const status = byGroup.get(result.task.group)!;
+
     status.feedsTotal += 1;
     if (result.error) {
       console.warn(`[radar] ${result.task.label} failed: ${result.error}`);
@@ -868,8 +947,10 @@ export async function gatherRadarFeed(
 /**
  * Master Server Function: aggregates every free source into one radar stream.
  *
- * This is the live path, used before the scheduled ingest has populated
- * `radar_items` and as the fallback when it has not run recently.
+ * This is the live fallback, used before the scheduled ingest has populated
+ * `radar_items` and whenever it has not run recently. It deliberately runs only
+ * the "fast" subset: a page request cannot wait on eighty upstream feeds, and
+ * the full set is the scheduled job's business.
  */
 export const fetchAiRadarFeed = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
@@ -892,7 +973,7 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
       return filterRadarResponse(cache.data, data);
     }
 
-    const { items: fresh, sourceStatus } = await gatherRadarFeed(now);
+    const { items: fresh, sourceStatus } = await gatherRadarFeed(now, "fast");
 
     // Merge with what is already cached rather than replacing it. Sources that
     // ran out of budget on this pass keep their previous items, so the archive

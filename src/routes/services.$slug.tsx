@@ -15,6 +15,7 @@ import {
   Database,
   FileSearch,
   Gauge,
+  Github,
   Heart,
   HelpCircle,
   Layers,
@@ -545,17 +546,45 @@ function MinistryAiImplementationView({ service }: { service: ServiceItem }) {
         </div>
       </section>
 
+      {/* Open Source Foundation & Proof Banner */}
       <section className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-6 px-4 py-16 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-5 rounded-3xl border border-primary/25 bg-primary/5 p-7 sm:flex-row sm:items-center sm:justify-between sm:p-10">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Open-Source Transparency
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">
+                Built on the open-source Ministry AI Skills foundation.
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                We believe in ethical, open infrastructure. Our ministry implementations are engineered upon the public, modular 6-file skill standards in our open-source repository.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2.5 shrink-0">
+              <a
+                href="https://github.com/asjames18/ministry-ai-skills"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+              >
+                <Github className="h-4 w-4" /> View GitHub Repo
+              </a>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/open-commons">Explore Commons</Link>
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-5 rounded-3xl border border-border bg-card p-7 sm:flex-row sm:items-center sm:justify-between sm:p-8">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">
                 Ministry Proof Reference
               </p>
-              <h2 className="mt-2 font-display text-2xl font-semibold">
+              <h3 className="mt-2 font-display text-xl font-semibold">
                 See a real-world ministry volunteer intake workflow in action.
-              </h2>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+              </h3>
+              <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
                 Review complete reference workflows showing human approval boundaries, safeguarding rules, and expected outcomes.
               </p>
             </div>

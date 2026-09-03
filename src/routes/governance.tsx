@@ -139,18 +139,22 @@ At **[ORGANIZATION NAME]**, we deploy AI technology to extend our community reac
 **Ministry / Church**: [ORGANIZATION NAME]
 **Effective Date**: [EFFECTIVE DATE]
 **Ministry Technology Lead**: [AI OFFICER EMAIL]
+**Open-Source Standard**: [Ministry AI Skills Framework](https://github.com/asjames18/ministry-ai-skills)
 
 ---
 
 ## 1. Biblical Stewardship & Technology Statement
-At **[ORGANIZATION NAME]**, we view technology as a practical tool for faithful stewardship, efficient administrative coordination, and global gospel outreach.
+At **[ORGANIZATION NAME]**, we view technology as a practical tool for faithful stewardship, efficient administrative coordination, and global gospel outreach. We align our workflows with the open-source [Ministry AI Skills](https://github.com/asjames18/ministry-ai-skills) ethical framework.
 
 ## 2. Permissible Ministry Use Cases
-- ✅ **Approved Administrative Use**: Summarizing Sunday sermon audio into study guides, drafting volunteer schedules, translating media into multiple languages.
+- ✅ **Approved Administrative Use**: Summarizing Sunday sermon audio into study guides, drafting volunteer schedules, generating media packs and announcement scripts, translating media into multiple languages.
 - ❌ **Prohibited Pastoral Use**: Utilizing AI to generate pastoral counseling responses, prayer communications, or replacing human spiritual care.
 
-## 3. Content Integrity & Attribution
-- All teaching materials and media assets generated with AI assistance must undergo pastoral review to ensure theological alignment and absolute truth.`,
+## 3. Content Integrity & Theological Review
+- All teaching materials and media assets generated with AI assistance must undergo pastoral review to ensure theological alignment and absolute truth.
+
+## 4. Privacy & Data Safeguarding
+- No personal pastoral counseling notes, member prayer requests, giving records, or safeguarding data may be submitted to unvetted AI tools without Zero Data Retention (ZDR) guarantees. Refer to the open [Privacy & Data Handling Guide](https://github.com/asjames18/ministry-ai-skills/blob/main/docs/privacy-and-data-handling.md).`,
   },
   {
     id: "vendor_risk_scorecard",

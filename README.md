@@ -14,7 +14,9 @@
 | Content and learning | Knowledge-library content, guides, and practical AI tools. |
 | Data layer | Supabase schema migrations, row-level-security policy changes, and generated types. |
 
-The public [Open Commons](https://melanatedintech.com/open-commons) page links to the independently reusable [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance), which has its own contribution model and MIT license.
+The public [Open Commons](https://melanatedintech.com/open-commons) page features our open-source companion repositories under the MIT License:
+- [Ministry AI Skills](https://github.com/asjames18/ministry-ai-skills): Open-source, platform-agnostic AI skills, prompts, workflows, and guardrails for churches and Christian ministries.
+- [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance): Reusable policy contracts, evaluation harnesses, and synthetic test fixtures for bounded agent systems.
 
 ## Technology
 
@@ -102,7 +104,7 @@ Production secrets are configured outside this repository. Do not add secret val
 
 This repository is public for transparency and collaboration around the Melanated In Tech application. Before proposing a change, open or comment on an issue with the problem, the intended scope, and any user-facing or data-handling implications. Keep changes focused, add or update validation where practical, and run `npm run check` before requesting review.
 
-All participants are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). The standalone [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance) is the recommended place for contributions to reusable policy contracts, synthetic fixtures, verification tools, and public governance materials.
+All participants are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md). Our standalone open-source companion projects—[Ministry AI Skills](https://github.com/asjames18/ministry-ai-skills) and [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance)—are open for contributions to modular skills, prompts, JSON schemas, policy contracts, synthetic fixtures, and public governance materials.
 
 ## Branding, trademarks, and forks
 
@@ -112,4 +114,4 @@ Before publicly deploying or marketing a fork, adopt a distinct name and replace
 
 ## License
 
-This repository is released under the [MIT License](LICENSE). The Agent Tool Assurance Kit is separately released under the MIT License.
+This repository is released under the [MIT License](LICENSE). [Ministry AI Skills](https://github.com/asjames18/ministry-ai-skills) and the [Agent Tool Assurance Kit](https://github.com/asjames18/agent-tool-assurance) are separately released under the MIT License.

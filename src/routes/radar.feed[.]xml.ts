@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { SITE, SITE_URL } from "@/lib/site";
 import { absoluteUrl, cdata, escapeXml, rfc822, xmlLines } from "@/lib/xml";
-import { fetchAiRadarFeed } from "@/lib/ai-radar.functions";
+import { fetchRadarForPage } from "@/lib/radar-store.functions";
 import { RADAR_SIGNALS, RADAR_TRACKS } from "@/lib/radar";
 
 const FEED_PATH = "/radar/feed.xml";
@@ -11,7 +11,7 @@ export const Route = createFileRoute("/radar/feed.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const feed = await fetchAiRadarFeed({ data: { category: "all", limit: 50 } });
+        const feed = await fetchRadarForPage({ data: { limit: 50 } });
 
         if (feed.items.length === 0) {
           // Every source failed. A 503 tells readers to retry rather than

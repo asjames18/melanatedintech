@@ -8,12 +8,12 @@ import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
 import { trackEvent } from "@/lib/analytics";
 import {
-  fetchAiRadarFeed,
   radarGroupLabel,
   AiRadarItem,
   AiRadarCategory,
   AiRadarSourceStatus,
 } from "@/lib/ai-radar.functions";
+import { fetchRadarForPage } from "@/lib/radar-store.functions";
 import {
   RADAR_SIGNAL_IDS,
   RADAR_SIGNALS,
@@ -51,10 +51,13 @@ import { toast } from "sonner";
  * Loaded in the route loader so the feed is server-rendered. It used to fetch
  * from a bare useQuery in the component, which meant crawlers and LLM answer
  * engines saw an empty shell where the page's whole value is.
+ *
+ * Reads `radar_items`, which the scheduled ingest fills, and falls back to a
+ * live gather when the store is empty or the last run is stale.
  */
 const radarQuery = queryOptions({
   queryKey: ["ai-radar-feed"],
-  queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 120 } }),
+  queryFn: () => fetchRadarForPage({ data: { limit: 120 } }),
   staleTime: 5 * 60 * 1000,
 });
 
@@ -192,11 +195,10 @@ function RadarPage() {
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await fetchAiRadarFeed({ data: { category: "all", forceRefresh: true, limit: 120 } });
       await refetch();
-      toast.success("AI Radar feed updated with latest live feeds!");
+      toast.success("Radar reloaded.");
     } catch {
-      toast.error("Failed to refresh live feeds. Displaying cached data.");
+      toast.error("Could not reload the radar. Showing what was already loaded.");
     } finally {
       setIsRefreshing(false);
     }
@@ -690,8 +692,11 @@ function RadarPage() {
           <div className="mt-12 rounded-2xl border border-border bg-muted/30 p-5 sm:p-6">
             <h2 className="font-display text-sm font-semibold">Where this came from</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Synced {timeAgo(data.lastUpdated)}. A source that fails is listed as failed; it is
-              never replaced with sample content.
+              Synced {timeAgo(data.lastUpdated)}
+              {data.servedFrom === "store"
+                ? " by the scheduled ingest"
+                : " by a live fetch (the scheduled ingest has not run recently)"}
+              . A source that fails is listed as failed; it is never replaced with sample content.
             </p>
             <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {sourceStatus.map((source) => (

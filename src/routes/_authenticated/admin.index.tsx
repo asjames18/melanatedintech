@@ -753,6 +753,14 @@ function AdminPage() {
                   size="sm"
                   className="w-full justify-start rounded-xl"
                 >
+                  <Link to="/admin/radar">AI Radar review queue</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start rounded-xl"
+                >
                   <Link to="/admin/catalog" className="flex items-center justify-between w-full">
                     <span>Catalog verification</span>
                     <ArrowRight className="h-3.5 w-3.5 text-primary" />

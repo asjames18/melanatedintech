@@ -72,6 +72,11 @@ export function getEmailQueueProcessorSecret() {
   return readEnv(["EMAIL_QUEUE_PROCESSOR_SECRET"]);
 }
 
+/** A private shared secret used only by the scheduled AI Radar ingest. */
+export function getRadarIngestSecret() {
+  return readEnv(["RADAR_INGEST_SECRET"]);
+}
+
 export function missingSupabaseMessage(missing: string[]) {
   return `Missing Supabase environment variable(s): ${missing.join(", ")}. Configure them in Cloudflare.`;
 }

@@ -110,9 +110,11 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedSubmissionsIndexRouteImport } from './routes/_authenticated/submissions.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as LovableRadarIngestRouteImport } from './routes/lovable/radar/ingest'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
 import { Route as AuthenticatedAdminWebsiteLaunchNurtureRouteImport } from './routes/_authenticated/admin.website-launch-nurture'
+import { Route as AuthenticatedAdminRadarRouteImport } from './routes/_authenticated/admin.radar'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
@@ -643,6 +645,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const LovableRadarIngestRoute = LovableRadarIngestRouteImport.update({
+  id: '/lovable/radar/ingest',
+  path: '/lovable/radar/ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   id: '/api/public/csp-report',
   path: '/api/public/csp-report',
@@ -660,6 +667,11 @@ const AuthenticatedAdminWebsiteLaunchNurtureRoute =
     path: '/website-launch-nurture',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminRadarRoute = AuthenticatedAdminRadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -817,9 +829,11 @@ export interface FileRoutesByFullPath {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/radar': typeof AuthenticatedAdminRadarRoute
   '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/lovable/radar/ingest': typeof LovableRadarIngestRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -923,9 +937,11 @@ export interface FileRoutesByTo {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/radar': typeof AuthenticatedAdminRadarRoute
   '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/lovable/radar/ingest': typeof LovableRadarIngestRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/submissions': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -1039,9 +1055,11 @@ export interface FileRoutesById {
   '/_authenticated/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/radar': typeof AuthenticatedAdminRadarRoute
   '/_authenticated/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/lovable/radar/ingest': typeof LovableRadarIngestRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/submissions/': typeof AuthenticatedSubmissionsIndexRoute
   '/api/public/agents/chat': typeof ApiPublicAgentsChatRoute
@@ -1155,9 +1173,11 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/radar'
     | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
+    | '/lovable/radar/ingest'
     | '/admin/'
     | '/submissions/'
     | '/api/public/agents/chat'
@@ -1261,9 +1281,11 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/radar'
     | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
+    | '/lovable/radar/ingest'
     | '/admin'
     | '/submissions'
     | '/api/public/agents/chat'
@@ -1376,9 +1398,11 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content-agent'
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/radar'
     | '/_authenticated/admin/website-launch-nurture'
     | '/_authenticated/submissions/$id'
     | '/api/public/csp-report'
+    | '/lovable/radar/ingest'
     | '/_authenticated/admin/'
     | '/_authenticated/submissions/'
     | '/api/public/agents/chat'
@@ -1461,6 +1485,7 @@ export interface RootRouteChildren {
   SystemsIndexRoute: typeof SystemsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
+  LovableRadarIngestRoute: typeof LovableRadarIngestRoute
   ApiPublicAgentsChatRoute: typeof ApiPublicAgentsChatRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailNurtureProcessRoute: typeof LovableEmailNurtureProcessRoute
@@ -2176,6 +2201,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/lovable/radar/ingest': {
+      id: '/lovable/radar/ingest'
+      path: '/lovable/radar/ingest'
+      fullPath: '/lovable/radar/ingest'
+      preLoaderRoute: typeof LovableRadarIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/csp-report': {
       id: '/api/public/csp-report'
       path: '/api/public/csp-report'
@@ -2195,6 +2227,13 @@ declare module '@tanstack/react-router' {
       path: '/website-launch-nurture'
       fullPath: '/admin/website-launch-nurture'
       preLoaderRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/radar': {
+      id: '/_authenticated/admin/radar'
+      path: '/radar'
+      fullPath: '/admin/radar'
+      preLoaderRoute: typeof AuthenticatedAdminRadarRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/leads': {
@@ -2269,6 +2308,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminContentAgentRoute: typeof AuthenticatedAdminContentAgentRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminRadarRoute: typeof AuthenticatedAdminRadarRoute
   AuthenticatedAdminWebsiteLaunchNurtureRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -2279,6 +2319,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminContentAgentRoute: AuthenticatedAdminContentAgentRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminRadarRoute: AuthenticatedAdminRadarRoute,
   AuthenticatedAdminWebsiteLaunchNurtureRoute:
     AuthenticatedAdminWebsiteLaunchNurtureRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -2509,6 +2550,7 @@ const rootRouteChildren: RootRouteChildren = {
   SystemsIndexRoute: SystemsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
+  LovableRadarIngestRoute: LovableRadarIngestRoute,
   ApiPublicAgentsChatRoute: ApiPublicAgentsChatRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailNurtureProcessRoute: LovableEmailNurtureProcessRoute,

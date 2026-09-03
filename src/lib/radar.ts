@@ -211,6 +211,50 @@ export function rankItem(input: {
   return weight * recency * (0.5 + 0.5 * popularity);
 }
 
+/**
+ * Categories docs/daily-content-agent-spec.md marks as mandatory human review.
+ * An item whose text touches one of these is held for an admin rather than
+ * published straight to the page — not because the source is suspect, but
+ * because these are the subjects where amplifying a bad headline costs the most.
+ *
+ * Returns the reason to store on the row, or null to publish.
+ */
+const HOLD_RULES: Array<{ reason: string; pattern: RegExp }> = [
+  {
+    reason: "legal or regulatory claim",
+    pattern:
+      /\blawsuit|\bsued?\b|court|settlement|subpoena|regulat|legislat|\bban(?:ned|ning)?\b|copyright|liabilit|antitrust|\bfined?\b/i,
+  },
+  {
+    reason: "health or medical claim",
+    pattern: /\bmedical|\bhealth(?:care)?\b|diagnos|patient|clinical|\bfda\b|therap|mental health/i,
+  },
+  {
+    reason: "political or election content",
+    pattern:
+      /\belection|\bvoting\b|\bvoter|campaign trail|congress|senate|parliament|president(?:ial)?\b|political part/i,
+  },
+  {
+    reason: "hiring or workforce claim",
+    pattern: /\blayoff|\bfir(?:ed|ing)\b|\bhiring\b|job cuts|workforce reduction|replace(?:s|d)? workers/i,
+  },
+  {
+    reason: "financial advice or market claim",
+    pattern: /\bstock\b|\bshares\b|\bipo\b|valuation|market cap|invest(?:or|ment)s?\b|\bearnings\b/i,
+  },
+  {
+    reason: "ministry or faith content",
+    pattern: /\bchurch\b|\bministry\b|\bfaith\b|congregation|\bpastor|religio/i,
+  },
+];
+
+export function holdReasonFor(text: string): string | null {
+  for (const rule of HOLD_RULES) {
+    if (rule.pattern.test(text)) return rule.reason;
+  }
+  return null;
+}
+
 /** Strips protocol, `www.`, tracking params, and trailing slash for dedup. */
 export function normalizeUrl(url: string): string {
   try {

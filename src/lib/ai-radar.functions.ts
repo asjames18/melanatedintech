@@ -824,7 +824,52 @@ function errorMessage(err: unknown): string {
 }
 
 /**
+ * Runs every configured source once and returns the merged result. No cache, no
+ * filtering — the scheduled ingest calls this directly, and the request-time
+ * server function below wraps it with the in-memory cache.
+ */
+export async function gatherRadarFeed(
+  now: number,
+): Promise<{ items: AiRadarItem[]; sourceStatus: AiRadarSourceStatus[] }> {
+  const results = await runWithBudget(TASKS, now, CONCURRENCY, now + GATHER_BUDGET_MS);
+
+  const fresh: AiRadarItem[] = [];
+  const byGroup = new Map<AiRadarSourceGroup, AiRadarSourceStatus>();
+
+  for (const group of Object.keys(GROUP_META) as AiRadarSourceGroup[]) {
+    byGroup.set(group, {
+      id: group,
+      ...GROUP_META[group],
+      ok: false,
+      count: 0,
+      feedsOk: 0,
+      feedsTotal: 0,
+      failures: [],
+    });
+  }
+
+  for (const result of results) {
+    const status = byGroup.get(result.task.group)!;
+    status.feedsTotal += 1;
+    if (result.error) {
+      console.warn(`[radar] ${result.task.label} failed: ${result.error}`);
+      status.failures.push(`${result.task.label} (${result.error})`);
+      continue;
+    }
+    status.feedsOk += 1;
+    status.ok = true;
+    status.count += result.items.length;
+    fresh.push(...result.items);
+  }
+
+  return { items: dedupeRanked(fresh), sourceStatus: [...byGroup.values()] };
+}
+
+/**
  * Master Server Function: aggregates every free source into one radar stream.
+ *
+ * This is the live path, used before the scheduled ingest has populated
+ * `radar_items` and as the fallback when it has not run recently.
  */
 export const fetchAiRadarFeed = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
@@ -847,36 +892,7 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
       return filterRadarResponse(cache.data, data);
     }
 
-    const results = await runWithBudget(TASKS, now, CONCURRENCY, now + GATHER_BUDGET_MS);
-
-    const fresh: AiRadarItem[] = [];
-    const byGroup = new Map<AiRadarSourceGroup, AiRadarSourceStatus>();
-
-    for (const group of Object.keys(GROUP_META) as AiRadarSourceGroup[]) {
-      byGroup.set(group, {
-        id: group,
-        ...GROUP_META[group],
-        ok: false,
-        count: 0,
-        feedsOk: 0,
-        feedsTotal: 0,
-        failures: [],
-      });
-    }
-
-    for (const result of results) {
-      const status = byGroup.get(result.task.group)!;
-      status.feedsTotal += 1;
-      if (result.error) {
-        console.warn(`[radar] ${result.task.label} failed: ${result.error}`);
-        status.failures.push(`${result.task.label} (${result.error})`);
-        continue;
-      }
-      status.feedsOk += 1;
-      status.ok = true;
-      status.count += result.items.length;
-      fresh.push(...result.items);
-    }
+    const { items: fresh, sourceStatus } = await gatherRadarFeed(now);
 
     // Merge with what is already cached rather than replacing it. Sources that
     // ran out of budget on this pass keep their previous items, so the archive
@@ -893,7 +909,6 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
     // page says so — inventing plausible headlines under a "live" badge is
     // indistinguishable from real data to a reader, and this site's whole
     // proposition is that its claims are checkable.
-    const sourceStatus = [...byGroup.values()];
     const fullResponse: AiRadarFeedResponse = {
       items: merged,
       sources: Array.from(new Set(merged.map((i) => i.group))).sort(),

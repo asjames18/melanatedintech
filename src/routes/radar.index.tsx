@@ -9,6 +9,7 @@ import { SITE_URL } from "@/lib/site";
 import { trackEvent } from "@/lib/analytics";
 import {
   fetchAiRadarFeed,
+  radarGroupLabel,
   AiRadarItem,
   AiRadarCategory,
   AiRadarSourceStatus,
@@ -53,7 +54,7 @@ import { toast } from "sonner";
  */
 const radarQuery = queryOptions({
   queryKey: ["ai-radar-feed"],
-  queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 80 } }),
+  queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 120 } }),
   staleTime: 5 * 60 * 1000,
 });
 
@@ -191,7 +192,7 @@ function RadarPage() {
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await fetchAiRadarFeed({ data: { category: "all", forceRefresh: true, limit: 80 } });
+      await fetchAiRadarFeed({ data: { category: "all", forceRefresh: true, limit: 120 } });
       await refetch();
       toast.success("AI Radar feed updated with latest live feeds!");
     } catch {
@@ -229,8 +230,8 @@ function RadarPage() {
         return false;
       }
 
-      // Source filter
-      if (selectedSource !== "All" && item.source.toLowerCase() !== selectedSource.toLowerCase()) {
+      // Source filter (by group: seven readable buckets, not forty publishers)
+      if (selectedSource !== "All" && item.group !== selectedSource) {
         return false;
       }
 
@@ -267,7 +268,8 @@ function RadarPage() {
   }, [items]);
 
   const sourceStatus: AiRadarSourceStatus[] = data?.sourceStatus ?? [];
-  const liveSources = sourceStatus.filter((s) => s.ok && s.count > 0).length;
+  const feedsOk = sourceStatus.reduce((sum, s) => sum + s.feedsOk, 0);
+  const feedsTotal = sourceStatus.reduce((sum, s) => sum + s.feedsTotal, 0);
 
   return (
     <SiteLayout>
@@ -420,7 +422,7 @@ function RadarPage() {
             </button>
           ))}
           <span className="ml-1 hidden text-[11px] text-muted-foreground sm:inline">
-            assigned by published keyword rules, not by a model
+            assigned by published rules, not by a model
           </span>
         </div>
 
@@ -439,7 +441,7 @@ function RadarPage() {
                     : "bg-muted text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {src}
+                {src === "All" ? "All" : radarGroupLabel(src)}
               </button>
             ))}
           </div>
@@ -458,8 +460,8 @@ function RadarPage() {
           </div>
 
           <span className="text-[11px] text-muted-foreground">
-            {sourceStatus.length > 0
-              ? `${liveSources} of ${sourceStatus.length} sources responded`
+            {feedsTotal > 0
+              ? `${feedsOk} of ${feedsTotal} feeds responded`
               : "Source status unavailable"}
           </span>
         </div>
@@ -699,12 +701,17 @@ function RadarPage() {
                   ) : (
                     <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
                   )}
-                  <span>
+                  <span className="min-w-0">
                     <span className="font-medium">{source.label}</span>{" "}
                     <span className="text-muted-foreground">
-                      {source.ok ? `· ${source.count} items` : `· ${source.error ?? "unavailable"}`}
+                      · {source.feedsOk}/{source.feedsTotal} feeds · {source.count} items
                     </span>
                     <span className="block text-muted-foreground">{source.note}</span>
+                    {source.failures.length > 0 && (
+                      <span className="mt-0.5 block text-[11px] text-amber-700 dark:text-amber-500">
+                        No answer: {source.failures.join(", ")}
+                      </span>
+                    )}
                   </span>
                 </li>
               ))}

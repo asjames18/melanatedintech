@@ -117,18 +117,61 @@ export function classifySignal(text: string): RadarSignal {
 }
 
 /**
- * Source weights encode editorial trust, not volume: a primary release feed
- * outranks a comment-section headline even when the headline is louder. Keys
- * are the `source` strings the aggregator assigns; anything unlisted lands on
- * DEFAULT_SOURCE_WEIGHT rather than being dropped.
+ * Source weights encode editorial trust, not volume: a vendor's own release
+ * note outranks a comment-section headline about it, and a status-page
+ * incident outranks both. Keys are the `source` strings the aggregator
+ * assigns; anything unlisted lands on DEFAULT_SOURCE_WEIGHT rather than being
+ * dropped, so adding a feed never silently buries it.
  */
 const SOURCE_WEIGHT: Record<string, number> = {
-  "Hugging Face Blog": 0.95,
-  "Hugging Face": 0.85,
+  // Service incidents and catalog changes: the things that break or re-price a
+  // running agent today.
+  "OpenAI Status": 1,
+  "Anthropic Status": 1,
+  OpenRouter: 1,
+  "Hugging Face Models": 0.9,
+
+  // First-party vendor announcements.
+  "OpenAI News": 0.95,
+  "Google DeepMind": 0.95,
+  "Mistral AI": 0.92,
+  Qwen: 0.92,
+  "Google AI": 0.9,
+  Ollama: 0.9,
+  "Together AI": 0.88,
+  Replicate: 0.85,
+  "Hugging Face Blog": 0.9,
+  "Google Research": 0.8,
+
+  // SDK and runtime release notes.
+  "anthropic-sdk-python": 0.9,
+  "openai-python": 0.88,
+  "typescript-sdk": 0.85,
+  "python-sdk": 0.85,
+  servers: 0.85,
+  transformers: 0.82,
+  vllm: 0.82,
+  ollama: 0.82,
+  "llama.cpp": 0.8,
+
+  // Analysis and community.
   "Simon Willison Weblog": 0.85,
+  "Hugging Face Papers": 0.75,
   "Hacker News": 0.8,
+  "Latent Space": 0.72,
+  "Import AI": 0.7,
+  "Ahead of AI": 0.7,
   ArXiv: 0.7,
-  "VentureBeat AI": 0.6,
+
+  // Press: useful context, rarely something to act on this week.
+  "MIT Technology Review": 0.62,
+  "Ars Technica AI": 0.6,
+  "TechCrunch AI": 0.58,
+  "The Verge AI": 0.58,
+  "VentureBeat AI": 0.55,
+  "AWS Machine Learning": 0.6,
+  "NVIDIA Blog": 0.55,
+
   "Dev.to": 0.5,
 };
 const DEFAULT_SOURCE_WEIGHT = 0.6;
@@ -137,7 +180,8 @@ const DEFAULT_SOURCE_WEIGHT = 0.6;
 const SCORE_CEILING: Record<string, number> = {
   "Hacker News": 400,
   "Dev.to": 150,
-  "Hugging Face": 300,
+  "Hugging Face Papers": 300,
+  "Hugging Face Models": 2000,
 };
 const DEFAULT_SCORE_CEILING = 200;
 

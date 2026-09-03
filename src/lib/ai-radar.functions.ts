@@ -12,19 +12,35 @@ import {
 
 export type AiRadarCategory = "all" | "models" | "agents" | "developer" | "research" | "industry";
 
+/**
+ * Feeds are grouped so the reader sees seven honest rows instead of forty. The
+ * group is also the source filter on /radar; the specific publisher stays on
+ * the item for provenance.
+ */
+export type AiRadarSourceGroup =
+  | "catalog"
+  | "vendors"
+  | "status"
+  | "releases"
+  | "research"
+  | "press"
+  | "community";
+
 export interface AiRadarItem {
   id: string;
   title: string;
   url: string;
   summary: string;
+  /** Specific publisher, e.g. "OpenAI News" — shown on the card. */
   source: string;
+  group: AiRadarSourceGroup;
   category: "models" | "agents" | "developer" | "research" | "industry";
   author?: string;
   publishedAt: string;
   tags: string[];
   score?: number;
   commentsCount?: number;
-  /** Which Knowledge Hub track this belongs to, from keyword rules. */
+  /** Which Knowledge Hub track this belongs to, from published rules. */
   track: RadarTrackId;
   /** How urgently it should change what a running agent does. */
   signal: RadarSignal;
@@ -32,42 +48,28 @@ export interface AiRadarItem {
   rank: number;
 }
 
-/** Per-source outcome for the run that produced this payload. */
+/** Per-group outcome for the run that produced this payload. */
 export interface AiRadarSourceStatus {
-  id: string;
+  id: AiRadarSourceGroup;
   label: string;
-  /** What this source is good for, shown in the transparency strip. */
+  /** What this group is good for, shown in the transparency strip. */
   note: string;
   ok: boolean;
   count: number;
-  /** Present only when the source could not be reached on this run. */
-  error?: string;
+  feedsOk: number;
+  feedsTotal: number;
+  /** Publishers that failed or ran out of budget on this run. */
+  failures: string[];
 }
 
 export interface AiRadarFeedResponse {
   items: AiRadarItem[];
+  /** Group ids present in `items`, for the source filter. */
   sources: string[];
-  /** Every configured source and whether it answered, including failures. */
+  /** Every configured group and whether it answered, including failures. */
   sourceStatus: AiRadarSourceStatus[];
   total: number;
   lastUpdated: string;
-}
-
-/**
- * Applies the editorial layer to a raw feed entry. Every item goes through
- * here, so track/signal/rank are never assigned ad hoc at a call site.
- */
-function classify(
-  item: Omit<AiRadarItem, "track" | "signal" | "rank">,
-  now: number,
-): AiRadarItem {
-  const text = `${item.title} ${item.summary}`;
-  return {
-    ...item,
-    track: classifyTrack(text),
-    signal: classifySignal(text),
-    rank: rankItem({ source: item.source, publishedAt: item.publishedAt, score: item.score, now }),
-  };
 }
 
 // In-memory cache for edge runtime (TTL 5 minutes)
@@ -78,74 +80,110 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const WINDOW_DAYS = 21;
 /** Hacker News stories below this score are noise at this query breadth. */
 const HN_POINTS_FLOOR = 40;
+/** Per-request ceiling. */
+const FETCH_TIMEOUT_MS = 4000;
+/**
+ * Whole-gather ceiling. With forty-odd upstreams, the tail latency of the
+ * slowest one must not decide how long a page load takes; whatever has landed
+ * when the budget runs out is what ships, and the rest is reported as pending.
+ */
+const GATHER_BUDGET_MS = 7000;
+/** Simultaneous upstream connections. */
+const CONCURRENCY = 10;
+/** Hard cap on the merged archive so the payload cannot grow without bound. */
+const MAX_ITEMS = 250;
+
+const GROUP_META: Record<AiRadarSourceGroup, { label: string; note: string }> = {
+  catalog: {
+    label: "Model catalog",
+    note: "Models added to public catalogs, with live list pricing.",
+  },
+  vendors: {
+    label: "Model vendors & labs",
+    note: "First-party announcements from the companies shipping the models.",
+  },
+  status: {
+    label: "Service status",
+    note: "Incidents and degradations on the APIs agents depend on.",
+  },
+  releases: {
+    label: "Releases",
+    note: "Version notes from the SDKs and runtimes agents are built on.",
+  },
+  research: {
+    label: "Research",
+    note: "Preprints and papers, newest and most-discussed.",
+  },
+  press: {
+    label: "Industry press",
+    note: "Reporting and analysis on funding, policy, and adoption.",
+  },
+  community: {
+    label: "Community",
+    note: "Practitioner write-ups, newsletters, and front-page discussion.",
+  },
+};
 
 /**
- * Configured sources. `note` is reader-facing: the page names every source and
- * says which ones answered, so an outage reads as an outage.
+ * Groups where the source itself settles the answer, so we do not ask a keyword
+ * rule to guess it. An API incident is an operations problem to act on, whatever
+ * words the status post happens to use; a catalog addition with a price on it is
+ * a model-choice decision. Keyword rules handle everything else.
  */
-const RADAR_SOURCES: Array<{
-  id: string;
-  label: string;
-  note: string;
-  load: (now: number) => Promise<AiRadarItem[]>;
-}> = [
-  {
-    id: "huggingface-papers",
-    label: "Hugging Face",
-    note: "Daily papers, ranked by community upvotes.",
-    load: fetchHuggingFacePapers,
-  },
-  {
-    id: "hackernews",
-    label: "Hacker News",
-    note: "Agent and model stories above a points floor.",
-    load: fetchHackerNewsAi,
-  },
-  {
-    id: "devto",
-    label: "Dev.to",
-    note: "Top-rated practitioner write-ups from the last week.",
-    load: fetchDevToArticles,
-  },
-  {
-    id: "arxiv",
-    label: "ArXiv",
-    note: "Newest cs.AI, cs.MA and cs.CL preprints.",
-    load: fetchArxivPapers,
-  },
-  {
-    id: "curated-rss",
-    label: "Curated feeds",
-    note: "Hugging Face Blog, Simon Willison, and VentureBeat AI.",
-    load: fetchCuratedRssFeeds,
-  },
-];
+const GROUP_OVERRIDE: Partial<
+  Record<AiRadarSourceGroup, { track: RadarTrackId; signal: RadarSignal }>
+> = {
+  status: { track: "operate", signal: "act" },
+  catalog: { track: "decide", signal: "watch" },
+};
 
-function errorMessage(err: unknown): string {
-  if (err instanceof Error) {
-    return err.name === "AbortError" ? "timed out" : err.message;
-  }
-  return "unavailable";
+/**
+ * Applies the editorial layer to a raw feed entry. Every item goes through
+ * here, so track/signal/rank are never assigned ad hoc at a call site.
+ */
+function classify(item: Omit<AiRadarItem, "track" | "signal" | "rank">, now: number): AiRadarItem {
+  const text = `${item.title} ${item.summary}`;
+  const override = GROUP_OVERRIDE[item.group];
+  return {
+    ...item,
+    track: override?.track ?? classifyTrack(text),
+    signal: override?.signal ?? classifySignal(text),
+    rank: rankItem({ source: item.source, publishedAt: item.publishedAt, score: item.score, now }),
+  };
 }
 
-/**
- * Strips HTML tags and entities cleanly for plain-text summaries
- */
-function cleanHtmlText(text: string): string {
-  if (!text) return "";
+function decodeEntities(text: string): string {
   return text
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&#0?39;/g, "'")
+    .replace(/&apos;/g, "'")
     .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/&amp;/g, "&");
+}
+
+function stripTags(text: string): string {
+  return text
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<[^>]+>/g, " ");
+}
+
+/**
+ * Strips HTML tags and entities for plain-text summaries.
+ *
+ * Runs strip/decode twice on purpose: status pages (Atlassian Statuspage) put
+ * *escaped* markup inside <description>, so a single pass decodes "&lt;p&gt;"
+ * into a literal "<p>" that then survives into the visible summary.
+ */
+function cleanHtmlText(text: string): string {
+  if (!text) return "";
+  let out = text.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1");
+  for (let pass = 0; pass < 2; pass++) {
+    out = decodeEntities(stripTags(out));
+  }
+  return out.replace(/\s+/g, " ").trim();
 }
 
 /**
@@ -154,9 +192,11 @@ function cleanHtmlText(text: string): string {
 function parseXmlFeed(
   xml: string,
   sourceName: string,
+  group: AiRadarSourceGroup,
   defaultCategory: AiRadarItem["category"],
   defaultTags: string[],
   now: number,
+  max: number,
 ): AiRadarItem[] {
   const items: AiRadarItem[] = [];
 
@@ -167,7 +207,7 @@ function parseXmlFeed(
   let match: RegExpExecArray | null;
   let count = 0;
 
-  while ((match = entryPattern.exec(xml)) !== null && count < 15) {
+  while ((match = entryPattern.exec(xml)) !== null && count < max) {
     count++;
     const block = match[1];
 
@@ -205,7 +245,7 @@ function parseXmlFeed(
       block.match(/<updated[^>]*>([\s\S]*?)<\/updated>/i) ||
       block.match(/<dc:date[^>]*>([\s\S]*?)<\/dc:date>/i);
 
-    let publishedAt = new Date().toISOString();
+    let publishedAt = new Date(now).toISOString();
     if (dateMatch) {
       const parsedDate = new Date(cleanHtmlText(dateMatch[1]));
       if (!isNaN(parsedDate.getTime())) {
@@ -225,7 +265,13 @@ function parseXmlFeed(
       if (lower.includes("agent") || lower.includes("mcp") || lower.includes("multi-agent")) {
         tags.push("Agents");
       }
-      if (lower.includes("model") || lower.includes("llm") || lower.includes("weights") || lower.includes("gpt") || lower.includes("claude")) {
+      if (
+        lower.includes("model") ||
+        lower.includes("llm") ||
+        lower.includes("weights") ||
+        lower.includes("gpt") ||
+        lower.includes("claude")
+      ) {
         tags.push("Models");
       }
       if (lower.includes("open-source") || lower.includes("weights")) {
@@ -242,6 +288,7 @@ function parseXmlFeed(
             url,
             summary: summary.slice(0, 240) + (summary.length > 240 ? "..." : ""),
             source: sourceName,
+            group,
             category: defaultCategory,
             author,
             publishedAt,
@@ -257,30 +304,222 @@ function parseXmlFeed(
 }
 
 /**
- * Fetch wrapper with timeout to keep edge requests fast
+ * Fetch wrapper with timeout to keep edge requests fast. `budgetMs` clamps the
+ * per-request timeout to whatever is left of the whole-gather budget.
  */
-async function fetchWithTimeout(url: string, init?: RequestInit, timeoutMs = 4500): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  init?: RequestInit,
+  budgetMs = FETCH_TIMEOUT_MS,
+): Promise<Response> {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = setTimeout(() => controller.abort(), Math.max(250, budgetMs));
   try {
-    const res = await fetch(url, {
-      ...init,
-      signal: controller.signal,
-    });
-    return res;
+    return await fetch(url, { ...init, signal: controller.signal });
   } finally {
     clearTimeout(timeoutId);
   }
 }
 
+const FEED_HEADERS = {
+  Accept: "application/rss+xml, application/atom+xml, application/xml, text/xml",
+  "User-Agent": "MelanatedInTech-Radar/1.0",
+};
+const JSON_HEADERS = { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" };
+
+interface FeedSpec {
+  /** Publisher name shown on the card. */
+  source: string;
+  group: AiRadarSourceGroup;
+  url: string;
+  category: AiRadarItem["category"];
+  tags: string[];
+  /** Entries to take. Busy general feeds get fewer so they cannot crowd out
+   *  a quiet vendor feed that published one important thing. */
+  max: number;
+}
+
 /**
- * 1. Hugging Face Daily Papers API
+ * Every RSS/Atom source, verified reachable and parseable without a key.
+ *
+ * Anthropic publishes no public blog feed, so its releases are represented by
+ * the SDK release notes and its status page rather than being faked.
  */
-async function fetchHuggingFacePapers(now: number): Promise<AiRadarItem[]> {
-  const res = await fetchWithTimeout("https://huggingface.co/api/daily_papers", {
-    headers: { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" },
-  });
+const RSS_FEEDS: FeedSpec[] = [
+  // --- Model vendors & labs -------------------------------------------------
+  { source: "OpenAI News", group: "vendors", url: "https://openai.com/news/rss.xml", category: "models", tags: ["OpenAI", "Vendor"], max: 4 },
+  { source: "Google DeepMind", group: "vendors", url: "https://deepmind.google/blog/rss.xml", category: "models", tags: ["DeepMind", "Vendor"], max: 4 },
+  { source: "Google AI", group: "vendors", url: "https://blog.google/technology/ai/rss/", category: "models", tags: ["Google", "Vendor"], max: 3 },
+  { source: "Google Research", group: "vendors", url: "https://research.google/blog/rss/", category: "research", tags: ["Google", "Research"], max: 3 },
+  { source: "Mistral AI", group: "vendors", url: "https://mistral.ai/rss.xml", category: "models", tags: ["Mistral", "Vendor"], max: 3 },
+  { source: "Qwen", group: "vendors", url: "https://qwenlm.github.io/blog/index.xml", category: "models", tags: ["Qwen", "Open Weights"], max: 3 },
+  { source: "Hugging Face Blog", group: "vendors", url: "https://huggingface.co/blog/feed.xml", category: "models", tags: ["Open Source", "Weights"], max: 4 },
+  { source: "Together AI", group: "vendors", url: "https://www.together.ai/blog/rss.xml", category: "models", tags: ["Inference", "Vendor"], max: 3 },
+  { source: "Ollama", group: "vendors", url: "https://ollama.com/blog/rss.xml", category: "models", tags: ["Local AI", "Open Weights"], max: 3 },
+  { source: "Replicate", group: "vendors", url: "https://replicate.com/blog/rss", category: "developer", tags: ["Inference", "Vendor"], max: 3 },
+
+  // --- Service status: the sharpest "act now" signal on the page ------------
+  { source: "OpenAI Status", group: "status", url: "https://status.openai.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3 },
+  { source: "Anthropic Status", group: "status", url: "https://status.anthropic.com/history.rss", category: "industry", tags: ["Status", "Incident"], max: 3 },
+
+  // --- Industry press -------------------------------------------------------
+  { source: "TechCrunch AI", group: "press", url: "https://techcrunch.com/category/artificial-intelligence/feed/", category: "industry", tags: ["Industry"], max: 3 },
+  { source: "Ars Technica AI", group: "press", url: "https://arstechnica.com/ai/feed/", category: "industry", tags: ["Industry"], max: 3 },
+  { source: "The Verge AI", group: "press", url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml", category: "industry", tags: ["Industry"], max: 3 },
+  { source: "MIT Technology Review", group: "press", url: "https://www.technologyreview.com/topic/artificial-intelligence/feed", category: "industry", tags: ["Industry", "Analysis"], max: 3 },
+  { source: "VentureBeat AI", group: "press", url: "https://venturebeat.com/category/ai/feed/", category: "industry", tags: ["Industry", "Enterprise"], max: 3 },
+  { source: "AWS Machine Learning", group: "press", url: "https://aws.amazon.com/blogs/machine-learning/feed/", category: "developer", tags: ["AWS", "Cloud"], max: 3 },
+  { source: "NVIDIA Blog", group: "press", url: "https://blogs.nvidia.com/feed/", category: "industry", tags: ["NVIDIA", "Hardware"], max: 3 },
+
+  // --- Community ------------------------------------------------------------
+  { source: "Simon Willison Weblog", group: "community", url: "https://simonwillison.net/atom/everything/", category: "agents", tags: ["LLM Tooling", "Analysis"], max: 4 },
+  { source: "Import AI", group: "community", url: "https://importai.substack.com/feed", category: "research", tags: ["Newsletter", "Analysis"], max: 2 },
+  { source: "Latent Space", group: "community", url: "https://www.latent.space/feed", category: "agents", tags: ["Newsletter", "Engineering"], max: 2 },
+  { source: "Ahead of AI", group: "community", url: "https://magazine.sebastianraschka.com/feed", category: "research", tags: ["Newsletter", "Models"], max: 2 },
+];
+
+/** SDK and runtime release notes — the "will this break my build" feed. */
+const RELEASE_REPOS = [
+  "anthropics/anthropic-sdk-python",
+  "openai/openai-python",
+  "modelcontextprotocol/typescript-sdk",
+  "modelcontextprotocol/python-sdk",
+  "modelcontextprotocol/servers",
+  "huggingface/transformers",
+  "vllm-project/vllm",
+  "ollama/ollama",
+  "ggml-org/llama.cpp",
+];
+
+// ---------------------------------------------------------------------------
+// JSON sources
+// ---------------------------------------------------------------------------
+
+/**
+ * Models added to the OpenRouter catalog, with list pricing attached.
+ *
+ * This is the most direct answer on the page to "what did the model companies
+ * ship, and what does it cost?" — one call covers every vendor they carry.
+ */
+async function fetchOpenRouterModels(now: number, budget: number): Promise<AiRadarItem[]> {
+  const res = await fetchWithTimeout(
+    "https://openrouter.ai/api/v1/models",
+    { headers: JSON_HEADERS },
+    budget,
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const json = (await res.json()) as {
+    data?: Array<{
+      id: string;
+      name?: string;
+      created?: number;
+      context_length?: number;
+      description?: string;
+      pricing?: { prompt?: string; completion?: string };
+    }>;
+  };
+
+  const cutoff = (now - WINDOW_DAYS * 86_400_000) / 1000;
+  return (json.data ?? [])
+    .filter((m) => typeof m.created === "number" && m.created >= cutoff)
+    .sort((a, b) => (b.created ?? 0) - (a.created ?? 0))
+    .slice(0, 12)
+    .map((model) => {
+      const promptPerM = Number.parseFloat(model.pricing?.prompt ?? "0") * 1_000_000;
+      const completionPerM = Number.parseFloat(model.pricing?.completion ?? "0") * 1_000_000;
+      const priced = Number.isFinite(promptPerM) && Number.isFinite(completionPerM);
+      const vendor = model.id.split("/")[0] ?? "";
+      const summary = [
+        priced ? `$${promptPerM.toFixed(2)}/M input, $${completionPerM.toFixed(2)}/M output` : null,
+        model.context_length ? `${Math.round(model.context_length / 1000)}K context` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      return classify(
+        {
+          id: `openrouter-${model.id}`,
+          // Our own framing over a catalog fact, not a claim by the vendor.
+          title: `New model available: ${model.name || model.id}`,
+          url: `https://openrouter.ai/${model.id}`,
+          summary,
+          source: "OpenRouter",
+          group: "catalog",
+          category: "models",
+          author: vendor || undefined,
+          publishedAt: new Date((model.created ?? 0) * 1000).toISOString(),
+          tags: ["New Model", "Pricing", vendor].filter(Boolean).slice(0, 4),
+        },
+        now,
+      );
+    });
+}
+
+/**
+ * Trending open-weight releases. `sort=trendingScore` is the only ordering that
+ * surfaces actual model launches; `createdAt` returns whatever anonymous
+ * account uploaded a fine-tune thirty seconds ago.
+ */
+async function fetchHuggingFaceModels(now: number, budget: number): Promise<AiRadarItem[]> {
+  const res = await fetchWithTimeout(
+    "https://huggingface.co/api/models?sort=trendingScore&direction=-1&limit=12",
+    { headers: JSON_HEADERS },
+    budget,
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const models = (await res.json()) as Array<{
+    id?: string;
+    modelId?: string;
+    likes?: number;
+    downloads?: number;
+    createdAt?: string;
+    pipeline_tag?: string;
+  }>;
+
+  const cutoff = now - WINDOW_DAYS * 86_400_000;
+  return (models ?? [])
+    .filter((m) => (m.modelId || m.id) && m.createdAt && new Date(m.createdAt).getTime() >= cutoff)
+    .slice(0, 8)
+    .map((model) => {
+      const id = (model.modelId || model.id)!;
+      const org = id.split("/")[0] ?? "";
+      return classify(
+        {
+          id: `hf-model-${id}`,
+          title: `Trending open weights: ${id}`,
+          url: `https://huggingface.co/${id}`,
+          summary: [
+            model.pipeline_tag,
+            model.downloads ? `${model.downloads.toLocaleString()} downloads` : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+          source: "Hugging Face Models",
+          group: "catalog",
+          category: "models",
+          author: org || undefined,
+          publishedAt: model.createdAt!,
+          tags: ["Open Weights", "New Model", org].filter(Boolean).slice(0, 4),
+          score: model.likes,
+        },
+        now,
+      );
+    });
+}
+
+/**
+ * Hugging Face Daily Papers API
+ */
+async function fetchHuggingFacePapers(now: number, budget: number): Promise<AiRadarItem[]> {
+  const res = await fetchWithTimeout(
+    "https://huggingface.co/api/daily_papers",
+    { headers: JSON_HEADERS },
+    budget,
+  );
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
   const papers = (await res.json()) as Array<{
     paper: {
       id: string;
@@ -293,7 +532,7 @@ async function fetchHuggingFacePapers(now: number): Promise<AiRadarItem[]> {
     title?: string;
   }>;
 
-  return (papers || []).slice(0, 10).map((item, idx) => {
+  return (papers || []).slice(0, 8).map((item, idx) => {
     const p = item.paper || item;
     const title = p.title || "AI Research Paper";
     const summary = cleanHtmlText(p.summary || "");
@@ -309,7 +548,8 @@ async function fetchHuggingFacePapers(now: number): Promise<AiRadarItem[]> {
         title,
         url: `https://huggingface.co/papers/${p.id}`,
         summary: summary.slice(0, 240) + (summary.length > 240 ? "..." : ""),
-        source: "Hugging Face",
+        source: "Hugging Face Papers",
+        group: "research",
         category: (tags.includes("Agents") ? "agents" : "models") as AiRadarItem["category"],
         author: p.authors?.[0]?.name || "AI Research Community",
         publishedAt: p.publishedAt || new Date(now).toISOString(),
@@ -322,25 +562,26 @@ async function fetchHuggingFacePapers(now: number): Promise<AiRadarItem[]> {
 }
 
 /**
- * 2. Hacker News Algolia Search API for AI, Agents, and LLM discussions
+ * Hacker News via Algolia.
+ *
+ * Algolia has no boolean OR in `query` — the previous
+ * "(AI agent OR LLM OR deepseek OR claude OR mcp)" matched as literal text
+ * requiring every token, which returns zero hits under relevance search.
+ * `optionalWords` is the actual primitive: match any subset, rank by how many
+ * matched. Relevance plus a points floor also beats `search_by_date`, which on
+ * a query this broad returned an unranked feed of everything posted this hour.
  */
-async function fetchHackerNewsAi(now: number): Promise<AiRadarItem[]> {
-  // Relevance-ranked with a points floor and a date window. `search_by_date`
-  // returned whatever was newest, which on a query this broad is mostly noise:
-  // an unranked feed of everything posted in the last hour mentioning "AI".
-  //
-  // Algolia has no boolean OR in `query` — it matched "(AI agent OR LLM OR
-  // deepseek OR claude OR mcp)" as literal text requiring every token, which
-  // returns zero hits under relevance search. `optionalWords` is the actual
-  // primitive: match any subset, rank by how many matched.
+async function fetchHackerNewsAi(now: number, budget: number): Promise<AiRadarItem[]> {
   const cutoff = Math.floor((now - WINDOW_DAYS * 86_400_000) / 1000);
   const res = await fetchWithTimeout(
     "https://hn.algolia.com/api/v1/search?query=AI+agent+LLM+MCP" +
       "&optionalWords=AI,agent,LLM,MCP&restrictSearchableAttributes=title" +
       `&tags=story&numericFilters=points%3E${HN_POINTS_FLOOR},created_at_i%3E${cutoff}&hitsPerPage=15`,
-    { headers: { Accept: "application/json" } },
+    { headers: JSON_HEADERS },
+    budget,
   );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
   const data = (await res.json()) as {
     hits?: Array<{
       objectID: string;
@@ -361,7 +602,12 @@ async function fetchHackerNewsAi(now: number): Promise<AiRadarItem[]> {
     if (lower.includes("agent") || lower.includes("mcp") || lower.includes("workflow")) {
       category = "agents";
       tags.push("Agents");
-    } else if (lower.includes("model") || lower.includes("llm") || lower.includes("benchmark") || lower.includes("weights")) {
+    } else if (
+      lower.includes("model") ||
+      lower.includes("llm") ||
+      lower.includes("benchmark") ||
+      lower.includes("weights")
+    ) {
       category = "models";
       tags.push("Models");
     } else {
@@ -375,6 +621,7 @@ async function fetchHackerNewsAi(now: number): Promise<AiRadarItem[]> {
         url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
         summary: `Hacker News discussion by @${hit.author} with ${hit.points || 0} points and ${hit.num_comments || 0} comments.`,
         source: "Hacker News",
+        group: "community",
         category,
         author: hit.author,
         publishedAt: hit.created_at,
@@ -388,15 +635,17 @@ async function fetchHackerNewsAi(now: number): Promise<AiRadarItem[]> {
 }
 
 /**
- * 3. Dev.to API for Developer & Hands-on Agent Guides
+ * Dev.to. `top=7` asks for the week's best-reacted posts; plain recency on the
+ * `ai` tag is dominated by tutorial spam published minutes ago.
  */
-async function fetchDevToArticles(now: number): Promise<AiRadarItem[]> {
-  // `top=7` asks for the week's best-reacted posts. Plain recency on the `ai`
-  // tag is dominated by low-signal tutorial spam published minutes ago.
-  const res = await fetchWithTimeout("https://dev.to/api/articles?tag=ai&top=7&per_page=10", {
-    headers: { Accept: "application/json", "User-Agent": "MelanatedInTech-Radar/1.0" },
-  });
+async function fetchDevToArticles(now: number, budget: number): Promise<AiRadarItem[]> {
+  const res = await fetchWithTimeout(
+    "https://dev.to/api/articles?tag=ai&top=7&per_page=8",
+    { headers: JSON_HEADERS },
+    budget,
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
   const articles = (await res.json()) as Array<{
     id: number;
     title: string;
@@ -428,6 +677,7 @@ async function fetchDevToArticles(now: number): Promise<AiRadarItem[]> {
         url: article.url,
         summary: cleanHtmlText(article.description || ""),
         source: "Dev.to",
+        group: "community",
         category,
         author: article.user?.name,
         publishedAt: article.published_at,
@@ -441,76 +691,151 @@ async function fetchDevToArticles(now: number): Promise<AiRadarItem[]> {
 }
 
 /**
- * 4. ArXiv CS API for Artificial Intelligence & Multi-Agent Systems
+ * ArXiv Atom API for Artificial Intelligence & Multi-Agent Systems
  */
-async function fetchArxivPapers(now: number): Promise<AiRadarItem[]> {
+async function fetchArxivPapers(now: number, budget: number): Promise<AiRadarItem[]> {
   const query = "cat:cs.AI+OR+cat:cs.MA+OR+cat:cs.CL";
-  const url = `https://export.arxiv.org/api/query?search_query=${query}&sortBy=submittedDate&sortOrder=descending&max_results=8`;
-  const res = await fetchWithTimeout(url, { headers: { Accept: "application/atom+xml" } });
+  const res = await fetchWithTimeout(
+    `https://export.arxiv.org/api/query?search_query=${query}&sortBy=submittedDate&sortOrder=descending&max_results=8`,
+    { headers: { Accept: "application/atom+xml", "User-Agent": FEED_HEADERS["User-Agent"] } },
+    budget,
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return parseXmlFeed(await res.text(), "ArXiv", "research", ["ArXiv", "Peer-Reviewed"], now);
+  return parseXmlFeed(
+    await res.text(),
+    "ArXiv",
+    "research",
+    "research",
+    ["ArXiv", "Peer-Reviewed"],
+    now,
+    8,
+  );
 }
 
-/**
- * 5. Tech & AI Industry RSS Feeds (Simon Willison AI Notes, Hugging Face Blog, VentureBeat AI)
- */
-async function fetchCuratedRssFeeds(now: number): Promise<AiRadarItem[]> {
-  const feeds = [
-    {
-      url: "https://simonwillison.net/atom/everything/",
-      source: "Simon Willison Weblog",
-      category: "agents" as const,
-      tags: ["LLM Tooling", "Analysis"],
-    },
-    {
-      url: "https://huggingface.co/blog/feed.xml",
-      source: "Hugging Face Blog",
-      category: "models" as const,
-      tags: ["Open Source", "Weights"],
-    },
-    {
-      url: "https://venturebeat.com/category/ai/feed/",
-      source: "VentureBeat AI",
-      category: "industry" as const,
-      tags: ["Industry", "Enterprise"],
-    },
-  ];
+// ---------------------------------------------------------------------------
+// Task assembly
+// ---------------------------------------------------------------------------
 
-  // Fetched in parallel; three sequential 4.5s timeouts could otherwise stall
-  // the whole run past what a page load can wait for.
-  const settled = await Promise.allSettled(
-    feeds.map(async (feed) => {
-      const res = await fetchWithTimeout(feed.url, {
-        headers: {
-          Accept: "application/rss+xml, application/atom+xml, text/xml",
-          "User-Agent": "MelanatedInTech-Radar/1.0",
-        },
-      });
-      if (!res.ok) throw new Error(`${feed.source}: HTTP ${res.status}`);
-      const xml = await res.text();
-      return parseXmlFeed(xml, feed.source, feed.category, feed.tags, now).slice(0, 5);
+interface RadarTask {
+  /** Publisher label, used in the failure list. */
+  label: string;
+  group: AiRadarSourceGroup;
+  run: (now: number, budget: number) => Promise<AiRadarItem[]>;
+}
+
+const TASKS: RadarTask[] = [
+  { label: "OpenRouter", group: "catalog", run: fetchOpenRouterModels },
+  { label: "Hugging Face Models", group: "catalog", run: fetchHuggingFaceModels },
+  { label: "Hugging Face Papers", group: "research", run: fetchHuggingFacePapers },
+  { label: "ArXiv", group: "research", run: fetchArxivPapers },
+  { label: "Hacker News", group: "community", run: fetchHackerNewsAi },
+  { label: "Dev.to", group: "community", run: fetchDevToArticles },
+  ...RSS_FEEDS.map(
+    (feed): RadarTask => ({
+      label: feed.source,
+      group: feed.group,
+      run: async (now, budget) => {
+        const res = await fetchWithTimeout(feed.url, { headers: FEED_HEADERS }, budget);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return parseXmlFeed(
+          await res.text(),
+          feed.source,
+          feed.group,
+          feed.category,
+          feed.tags,
+          now,
+          feed.max,
+        );
+      },
     }),
-  );
+  ),
+  ...RELEASE_REPOS.map(
+    (repo): RadarTask => ({
+      label: repo,
+      group: "releases",
+      run: async (now, budget) => {
+        // releases.atom needs no token and does not consume the 60-per-hour
+        // anonymous REST quota that a shared edge IP would burn through.
+        const res = await fetchWithTimeout(
+          `https://github.com/${repo}/releases.atom`,
+          { headers: FEED_HEADERS },
+          budget,
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const name = repo.split("/")[1] ?? repo;
+        return parseXmlFeed(
+          await res.text(),
+          name,
+          "releases",
+          "developer",
+          ["Release", "SDK"],
+          now,
+          2,
+        ).map((item) => ({ ...item, title: `${name} ${item.title}`, author: repo }));
+      },
+    }),
+  ),
+];
 
-  const results = settled.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
-  const failed = settled.filter((r) => r.status === "rejected").length;
-  if (results.length === 0 && failed > 0) {
-    throw new Error(`${failed} of ${feeds.length} curated feeds unreachable`);
+/**
+ * Runs tasks `limit` at a time against a wall-clock deadline. Anything not
+ * started when the budget runs out is reported as pending rather than failed —
+ * the cache merge means it lands on a later request instead of being lost.
+ */
+async function runWithBudget(
+  tasks: RadarTask[],
+  now: number,
+  limit: number,
+  deadline: number,
+): Promise<Array<{ task: RadarTask; items: AiRadarItem[]; error?: string }>> {
+  const results: Array<{ task: RadarTask; items: AiRadarItem[]; error?: string }> = new Array(
+    tasks.length,
+  );
+  let cursor = 0;
+
+  async function worker() {
+    for (;;) {
+      const index = cursor++;
+      if (index >= tasks.length) return;
+      const task = tasks[index]!;
+      const remaining = deadline - Date.now();
+      if (remaining <= 250) {
+        results[index] = { task, items: [], error: "no time left in budget" };
+        continue;
+      }
+      try {
+        const items = await task.run(now, Math.min(FETCH_TIMEOUT_MS, remaining));
+        results[index] = { task, items };
+      } catch (err) {
+        results[index] = { task, items: [], error: errorMessage(err) };
+      }
+    }
   }
+
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker));
   return results;
 }
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) {
+    return err.name === "AbortError" || err.name === "TimeoutError" ? "timed out" : err.message;
+  }
+  return "unavailable";
+}
+
 /**
- * Master Server Function: Aggregates multiple free APIs and RSS feeds into a unified radar stream
+ * Master Server Function: aggregates every free source into one radar stream.
  */
 export const fetchAiRadarFeed = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        category: z.enum(["all", "models", "agents", "developer", "research", "industry"]).default("all"),
+        category: z
+          .enum(["all", "models", "agents", "developer", "research", "industry"])
+          .default("all"),
         source: z.string().optional(),
         query: z.string().optional(),
-        limit: z.number().min(5).max(100).default(60),
+        limit: z.number().min(5).max(150).default(60),
         forceRefresh: z.boolean().default(false),
       })
       .parse(d ?? {}),
@@ -518,36 +843,62 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
   .handler(async ({ data }): Promise<AiRadarFeedResponse> => {
     const now = Date.now();
 
-    // Check in-memory cache if not forced refresh
     if (!data.forceRefresh && cache && cache.expiresAt > now) {
       return filterRadarResponse(cache.data, data);
     }
 
-    // Concurrent execution across all zero-cost sources
-    const settled = await Promise.allSettled(RADAR_SOURCES.map((source) => source.load(now)));
+    const results = await runWithBudget(TASKS, now, CONCURRENCY, now + GATHER_BUDGET_MS);
 
-    const collected: AiRadarItem[] = [];
-    const sourceStatus: AiRadarSourceStatus[] = settled.map((result, index) => {
-      const { id, label, note } = RADAR_SOURCES[index]!;
-      if (result.status === "rejected") {
-        console.warn(`[radar] ${id} failed:`, result.reason);
-        return { id, label, note, ok: false, count: 0, error: errorMessage(result.reason) };
+    const fresh: AiRadarItem[] = [];
+    const byGroup = new Map<AiRadarSourceGroup, AiRadarSourceStatus>();
+
+    for (const group of Object.keys(GROUP_META) as AiRadarSourceGroup[]) {
+      byGroup.set(group, {
+        id: group,
+        ...GROUP_META[group],
+        ok: false,
+        count: 0,
+        feedsOk: 0,
+        feedsTotal: 0,
+        failures: [],
+      });
+    }
+
+    for (const result of results) {
+      const status = byGroup.get(result.task.group)!;
+      status.feedsTotal += 1;
+      if (result.error) {
+        console.warn(`[radar] ${result.task.label} failed: ${result.error}`);
+        status.failures.push(`${result.task.label} (${result.error})`);
+        continue;
       }
-      collected.push(...result.value);
-      return { id, label, note, ok: true, count: result.value.length };
-    });
+      status.feedsOk += 1;
+      status.ok = true;
+      status.count += result.items.length;
+      fresh.push(...result.items);
+    }
 
-    // No placeholder items. If every source failed, the payload is empty and
-    // the page says so — inventing plausible headlines under a "live" badge is
+    // Merge with what is already cached rather than replacing it. Sources that
+    // ran out of budget on this pass keep their previous items, so the archive
+    // converges instead of flickering between partial views.
+    const cutoff = now - WINDOW_DAYS * 86_400_000;
+    const merged = dedupeRanked(
+      [...fresh, ...(cache?.data.items ?? [])].filter((item) => {
+        const at = new Date(item.publishedAt).getTime();
+        return Number.isFinite(at) && at >= cutoff;
+      }),
+    ).slice(0, MAX_ITEMS);
+
+    // No placeholder items. If everything failed the payload is empty and the
+    // page says so — inventing plausible headlines under a "live" badge is
     // indistinguishable from real data to a reader, and this site's whole
     // proposition is that its claims are checkable.
-    const deduplicated = dedupeRanked(collected);
-
+    const sourceStatus = [...byGroup.values()];
     const fullResponse: AiRadarFeedResponse = {
-      items: deduplicated,
-      sources: Array.from(new Set(deduplicated.map((i) => i.source))).sort(),
+      items: merged,
+      sources: Array.from(new Set(merged.map((i) => i.group))).sort(),
       sourceStatus,
-      total: deduplicated.length,
+      total: merged.length,
       lastUpdated: new Date(now).toISOString(),
     };
 
@@ -555,7 +906,7 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
     // real feed beats an empty one, and the timestamp shows its age. The status
     // strip still reports THIS run, so serving stale items never reads as a
     // healthy fetch.
-    if (deduplicated.length > 0 || !cache) {
+    if (merged.length > 0 || !cache) {
       cache = { data: fullResponse, expiresAt: now + CACHE_TTL_MS };
     }
 
@@ -573,7 +924,10 @@ function filterRadarResponse(
   }
 
   if (filter.source && filter.source !== "All") {
-    items = items.filter((i) => i.source.toLowerCase() === filter.source?.toLowerCase());
+    const wanted = filter.source.toLowerCase();
+    items = items.filter(
+      (i) => i.group.toLowerCase() === wanted || i.source.toLowerCase() === wanted,
+    );
   }
 
   if (filter.query && filter.query.trim()) {
@@ -595,4 +949,9 @@ function filterRadarResponse(
     total: items.length,
     lastUpdated: full.lastUpdated,
   };
+}
+
+/** Group label lookup for the UI. */
+export function radarGroupLabel(group: string): string {
+  return GROUP_META[group as AiRadarSourceGroup]?.label ?? group;
 }

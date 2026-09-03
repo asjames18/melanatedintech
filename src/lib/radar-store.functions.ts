@@ -181,10 +181,12 @@ export const fetchRadarForPage = createServerFn({ method: "GET" })
           const runAge = lastRun ? now - new Date(lastRun.started_at).getTime() : Infinity;
 
           if (!itemsResult.error && rows.length > 0 && runAge < STALE_AFTER_MS) {
-            const items = rows
-              .map((row) => rowToItem(row, now))
-              .sort((a, b) => b.rank - a.rank)
-              .slice(0, data.limit);
+            // Newest first. The query already orders by published_at, so this
+            // just trims to the requested count. Rank still decides which copy
+            // of a duplicated story survives ingest; it no longer decides what
+            // a reader sees first, because on a news page recency is the order
+            // people expect.
+            const items = rows.map((row) => rowToItem(row, now)).slice(0, data.limit);
 
             storeUnavailableUntil = 0;
             return {

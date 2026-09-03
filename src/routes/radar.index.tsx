@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ListingPendingShell } from "@/components/listing-skeleton";
+import { Pagination } from "@/components/pagination";
 import { LazyWaitlistForm } from "@/components/lazy-waitlist-form";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { SITE_URL } from "@/lib/site";
@@ -184,6 +185,7 @@ function RadarPage() {
   const [viewMode, setViewMode] = useState<"cards" | "compact">("cards");
   const [timeframe, setTimeframe] = useState<"all" | "24h" | "3d" | "7d">("all");
   const [selectedSignal, setSelectedSignal] = useState<RadarSignal | "all">("all");
+  const [page, setPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -262,6 +264,23 @@ function RadarPage() {
       return true;
     });
   }, [items, selectedCategory, selectedSignal, selectedSource, timeframe, searchQuery]);
+
+  const pageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, page), pageCount);
+  const pagedItems = filteredItems.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
+  // Any filter change re-slices the list, so page 4 of the old result set is
+  // meaningless against the new one.
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory, selectedSignal, selectedSource, timeframe, searchQuery]);
+
+  const goToPage = (next: number) => {
+    setPage(next);
+    if (typeof document !== "undefined") {
+      document.getElementById("radar-items")?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   const signalCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -454,7 +473,13 @@ function RadarPage() {
           <div className="flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>
-              Showing <strong className="text-foreground">{filteredItems.length}</strong> updates
+              Showing{" "}
+              <strong className="text-foreground">
+                {filteredItems.length === 0
+                  ? 0
+                  : `${(safePage - 1) * PAGE_SIZE + 1}-${Math.min(safePage * PAGE_SIZE, filteredItems.length)}`}
+              </strong>{" "}
+              of <strong className="text-foreground">{filteredItems.length}</strong> updates
               {data?.lastUpdated && (
                 <> &bull; Synced {timeAgo(data.lastUpdated)}</>
               )}
@@ -498,8 +523,8 @@ function RadarPage() {
 
         {/* Items Grid View */}
         {filteredItems.length > 0 && viewMode === "cards" && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredItems.map((item) => {
+          <div id="radar-items" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {pagedItems.map((item) => {
               const badge = getCategoryBadge(item.category);
               return (
                 <article
@@ -612,8 +637,11 @@ function RadarPage() {
 
         {/* Items Compact View */}
         {filteredItems.length > 0 && viewMode === "compact" && (
-          <div className="divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden">
-            {filteredItems.map((item) => {
+          <div
+            id="radar-items"
+            className="divide-y divide-border rounded-2xl border border-border bg-card overflow-hidden"
+          >
+            {pagedItems.map((item) => {
               const badge = getCategoryBadge(item.category);
               return (
                 <div
@@ -684,6 +712,19 @@ function RadarPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {filteredItems.length > PAGE_SIZE && (
+          <div className="mt-8">
+            <Pagination
+              page={safePage}
+              pageCount={pageCount}
+              total={filteredItems.length}
+              pageSize={PAGE_SIZE}
+              label="updates"
+              onChange={goToPage}
+            />
           </div>
         )}
 
@@ -827,6 +868,9 @@ function RadarPage() {
     </SiteLayout>
   );
 }
+
+/** Items per page. Six keeps the newest set readable without a wall of cards. */
+const PAGE_SIZE = 6;
 
 const SIGNAL_STYLES: Record<RadarSignal, string> = {
   act: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",

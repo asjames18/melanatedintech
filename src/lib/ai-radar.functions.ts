@@ -998,12 +998,16 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
     // ran out of budget on this pass keep their previous items, so the archive
     // converges instead of flickering between partial views.
     const cutoff = now - WINDOW_DAYS * 86_400_000;
+    // Dedupe by rank (it picks the best copy of a repeated story), then order
+    // by publication time, which is what the page shows.
     const merged = dedupeRanked(
       [...fresh, ...(cache?.data.items ?? [])].filter((item) => {
         const at = new Date(item.publishedAt).getTime();
         return Number.isFinite(at) && at >= cutoff;
       }),
-    ).slice(0, MAX_ITEMS);
+    )
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
+      .slice(0, MAX_ITEMS);
 
     // No placeholder items. If everything failed the payload is empty and the
     // page says so — inventing plausible headlines under a "live" badge is

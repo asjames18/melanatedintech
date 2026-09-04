@@ -25,6 +25,7 @@
     .bg { background-color:#150b05 !important; }
     .card { background-color:#221610 !important; border-color:#3a2a1e !important; }
     .ink { color:#f6f1e9 !important; }
+    .logo { color:#f6f1e9 !important; }
     .ink-soft { color:#c9bcb0 !important; }
     .btn { background-color:#f0b27a !important; }
     .btn a { color:#150b05 !important; }
@@ -44,9 +45,15 @@
       <td align="center" style="padding:32px 12px;">
         <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;">
           <tr>
-            <td class="px" style="padding:0 8px 20px;">
+            <td class="px bg" bgcolor="#fff7eb" style="padding:0 8px 20px;background-color:#fff7eb;">
               <a href="https://melanatedintech.com" style="text-decoration:none;">
-                <img src="https://melanatedintech.com/brand/mit-logo-horizontal.png" width="176" height="36" alt="Melanated In Tech" style="display:block;width:176px;height:36px;border:0;">
+                <!-- Outlook desktop blocks remote images by default, as does the
+                     Supabase dashboard preview, so the alt text is what most
+                     first opens actually show. Styling the <img> styles the alt
+                     text too: blocked, this renders as a brand-coloured wordmark
+                     at heading size instead of default red serif. -->
+                <img src="https://melanatedintech.com/brand/mit-logo-horizontal.png" width="176" height="36" alt="Melanated In Tech" class="logo"
+                     style="display:block;width:176px;height:36px;border:0;font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:17px;line-height:36px;font-weight:700;letter-spacing:-0.01em;color:#1f130b;text-decoration:none;">
               </a>
             </td>
           </tr>

@@ -145,6 +145,7 @@ function shell({ title, preheader, inner, footerNote }) {
     .bg { background-color:${C.darkPage} !important; }
     .card { background-color:${C.darkCard} !important; border-color:${C.darkBorder} !important; }
     .ink { color:${C.darkInk} !important; }
+    .logo { color:${C.darkInk} !important; }
     .ink-soft { color:${C.darkInkSoft} !important; }
     .btn { background-color:${C.darkBtn} !important; }
     .btn a { color:${C.darkPage} !important; }
@@ -160,9 +161,15 @@ ${preheaderBlock(preheader)}
       <td align="center" style="padding:32px 12px;">
         <table role="presentation" class="container" width="560" cellpadding="0" cellspacing="0" border="0" style="width:560px;max-width:560px;">
           <tr>
-            <td class="px" style="padding:0 8px 20px;">
+            <td class="px bg" bgcolor="${C.page}" style="padding:0 8px 20px;background-color:${C.page};">
               <a href="${SITE}" style="text-decoration:none;">
-                <img src="${LOGO}" width="176" height="36" alt="Melanated In Tech" style="display:block;width:176px;height:36px;border:0;">
+                <!-- Outlook desktop blocks remote images by default, as does the
+                     Supabase dashboard preview, so the alt text is what most
+                     first opens actually show. Styling the <img> styles the alt
+                     text too: blocked, this renders as a brand-coloured wordmark
+                     at heading size instead of default red serif. -->
+                <img src="${LOGO}" width="176" height="36" alt="Melanated In Tech" class="logo"
+                     style="display:block;width:176px;height:36px;border:0;font-family:${DISPLAY};font-size:17px;line-height:36px;font-weight:700;letter-spacing:-0.01em;color:${C.ink};text-decoration:none;">
               </a>
             </td>
           </tr>

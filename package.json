@@ -21,7 +21,8 @@
     "cap:sync": "npx cap sync",
     "cap:ios": "npx cap open ios",
     "cap:android": "npx cap open android",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "generate:emails": "node scripts/generate-email-templates.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^6.2.2",

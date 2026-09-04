@@ -38,8 +38,38 @@ the body.
 | MFA method added | `12-mfa-added.html` |
 | MFA method removed | `13-mfa-removed.html` |
 
-Subject lines are set separately in the same screen; each file's `<title>` is
-written to work as one.
+## Subject lines
+
+Set in the same screen, above the body. Supabase's defaults ("Confirm Your
+Signup") undercut a branded body, so replace them too.
+
+| Template | Subject |
+|---|---|
+| Confirm sign up | Confirm your email |
+| Invite user | You're invited to Melanated In Tech |
+| Magic link or OTP | Your sign-in link |
+| Change email address | Confirm your new email address |
+| Reset password | Reset your password |
+| Reauthentication | `{{ .Token }}` is your verification code |
+| Password changed | Your password was changed |
+| Email address changed | Your email address was changed |
+| Phone number changed | Your phone number was changed |
+| Sign-in method linked | A sign-in method was added to your account |
+| Sign-in method removed | A sign-in method was removed from your account |
+| MFA method added | Two-factor verification was added |
+| MFA method removed | Two-factor verification was removed |
+
+Two deliberate choices there.
+
+**The reauthentication subject leads with the code.** Subject fields take the
+same variables as the body, so the code lands in the lock-screen notification
+and the inbox list — most people never open the email. Do this only for the
+short-lived reauthentication code, never for a link.
+
+**The security subjects state what happened, in the past tense, with no brand
+name in front.** Someone scanning an inbox for "did my account just get taken
+over?" needs the fact first. A subject reading "Melanated In Tech: Security
+Notification" buries it.
 
 ## Variables used
 

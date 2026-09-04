@@ -42,7 +42,6 @@ const STATIC_PATHS = [
   { path: "/knowledge", changefreq: "daily" as const, priority: "0.9" },
   { path: "/radar", changefreq: "daily" as const, priority: "0.8" },
   { path: "/start-small", changefreq: "monthly" as const, priority: "0.9" },
-  { path: "/strategy-sprint", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/fit-finder", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/diagnostic", changefreq: "weekly" as const, priority: "0.9" },
   // Tools hub + every interactive tool page
@@ -68,14 +67,6 @@ const STATIC_PATHS = [
   { path: "/tools/ab-tester", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/rag-chunker", changefreq: "monthly" as const, priority: "0.7" },
   { path: "/tools/voice-agent-builder", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/agent-sandbox", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/ai-readiness-assessment", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/json-schema-studio", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/multi-agent-calculator", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/prompt-guard-auditor", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/revenue-leak-calculator", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/token-cost-calculator", changefreq: "monthly" as const, priority: "0.7" },
-  { path: "/tools/workflow-spec-builder", changefreq: "monthly" as const, priority: "0.7" },
   // Free starter packs
   { path: "/starter-packs", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/starter-packs/service-recovery-pack", changefreq: "monthly" as const, priority: "0.7" },
@@ -90,17 +81,12 @@ const STATIC_PATHS = [
   { path: "/challenges", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/products", changefreq: "weekly" as const, priority: "0.8" },
   // Services hub + detail pages
-  { path: "/services", changefreq: "monthly" as const, priority: "0.8" },
-  { path: "/services/custom-agent-build", changefreq: "monthly" as const, priority: "0.8" },
-  { path: "/services/ministry-ai-implementation", changefreq: "monthly" as const, priority: "0.8" },
-  { path: "/services/ai-workshop", changefreq: "monthly" as const, priority: "0.8" },
   // Trust, community, tools & public assets
   { path: "/prompts", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/mcp", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/seller", changefreq: "monthly" as const, priority: "0.6" },
   { path: "/submit-agent", changefreq: "monthly" as const, priority: "0.6" },
   { path: "/interests", changefreq: "monthly" as const, priority: "0.5" },
-  { path: "/podcast", changefreq: "weekly" as const, priority: "0.6" },
   { path: "/governance", changefreq: "monthly" as const, priority: "0.5" },
   // Trust, community & legal
   { path: "/proof", changefreq: "monthly" as const, priority: "0.7" },
@@ -177,7 +163,13 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: "0.6",
           });
         }
-        for (const service of services.data ?? []) {
+        // Every /services/* URL currently answers 307 -> /work-with-us, and a
+        // sitemap that submits redirects earns "Page with redirect" in Search
+        // Console rather than indexing anything. The rows stay in the database;
+        // delete this guard to put them back in the sitemap when the section
+        // serves content again.
+        const SERVICES_REDIRECT_TO_WORK_WITH_US = true;
+        for (const service of SERVICES_REDIRECT_TO_WORK_WITH_US ? [] : (services.data ?? [])) {
           entries.push({
             path: `/services/${service.slug}`,
             lastmod: service.updated_at ?? undefined,
@@ -210,7 +202,16 @@ export const Route = createFileRoute("/sitemap.xml")({
           });
         }
 
-        const urls = entries.map((e) =>
+        // Static paths and database rows can name the same URL — /services/* did,
+        // appearing from both sides. Deduplicate here rather than trusting the
+        // two lists never to overlap; first writer wins, so a curated static
+        // entry keeps its priority over a generated one.
+        const bySitemapPath = new Map<string, Entry>();
+        for (const entry of entries) {
+          if (!bySitemapPath.has(entry.path)) bySitemapPath.set(entry.path, entry);
+        }
+
+        const urls = [...bySitemapPath.values()].map((e) =>
           [
             `  <url>`,
             // Slugs are user/admin-authored. One "&" in a slug would make the

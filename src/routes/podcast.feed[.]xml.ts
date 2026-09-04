@@ -6,10 +6,36 @@ import { absoluteUrl as absolute, cdata, escapeXml, rfc822, xmlLines } from "@/l
 
 const FEED_PATH = "/podcast/feed.xml";
 
+/**
+ * The podcast section is retired: /podcast answers 302 -> /knowledge.
+ *
+ * Serving a 200 feed for a section that no longer exists keeps podcast
+ * directories polling it and keeps existing subscribers receiving a channel
+ * they cannot click through to. 410 Gone is the one status aggregators treat
+ * as "stop asking" — 404 leaves most of them retrying for months.
+ *
+ * The episode data and the generator below are intact. Flip this to false to
+ * bring the feed back when the section returns.
+ */
+const PODCAST_RETIRED = true;
+
 export const Route = createFileRoute("/podcast/feed.xml")({
   server: {
     handlers: {
       GET: () => {
+        if (PODCAST_RETIRED) {
+          return new Response(
+            "The Melanated In Tech podcast feed has been retired. Current writing lives at https://melanatedintech.com/knowledge",
+            {
+              status: 410,
+              headers: {
+                "Content-Type": "text/plain; charset=utf-8",
+                "Cache-Control": "public, max-age=86400",
+              },
+            },
+          );
+        }
+
         const episodes = [...RELEASED_EPISODES].sort((a, b) =>
           a.publishedAt === b.publishedAt
             ? b.episodeNumber - a.episodeNumber

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -41,6 +41,9 @@ const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
   category: fallback(z.string(), "All").default("All"),
 });
+
+/** Mirrors the schema defaults above; both must stay in step. */
+const SEARCH_DEFAULTS = { page: 1, category: "All" } as const;
 
 type Length = "All" | "Quick" | "Medium" | "Deep";
 const LENGTHS: Length[] = ["All", "Quick", "Medium", "Deep"];
@@ -91,6 +94,14 @@ const TRACKS = [
 
 export const Route = createFileRoute("/knowledge/")({
   validateSearch: zodValidator(searchSchema),
+  // Without this, a bare GET of this route answered 307 ->
+  // ?page=1&category=All. The zod schema's .default() values make
+  // validateSearch produce keys the URL does not carry, and the router
+  // then rewrites the URL to match — a redirect on every request to one
+  // of the site's most-linked pages, with a canonical tag pointing at the
+  // URL that redirects away. Stripping defaults keeps the clean URL clean
+  // while the component still reads fully-defaulted search params.
+  search: { middlewares: [stripSearchParams(SEARCH_DEFAULTS)] },
   head: () => {
     const seo = buildSeoMeta({
       title: "Agent Knowledge Hub - Melanated In Tech",

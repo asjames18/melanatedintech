@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, stripSearchParams } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
@@ -20,8 +20,19 @@ const searchSchema = z.object({
   category: fallback(z.string(), "All").default("All"),
 });
 
+/** Mirrors the schema defaults above; both must stay in step. */
+const SEARCH_DEFAULTS = { page: 1, category: "All" } as const;
+
 export const Route = createFileRoute("/products/")({
   validateSearch: zodValidator(searchSchema),
+  // Without this, a bare GET of this route answered 307 ->
+  // ?page=1&category=All. The zod schema's .default() values make
+  // validateSearch produce keys the URL does not carry, and the router
+  // then rewrites the URL to match — a redirect on every request to one
+  // of the site's most-linked pages, with a canonical tag pointing at the
+  // URL that redirects away. Stripping defaults keeps the clean URL clean
+  // while the component still reads fully-defaulted search params.
+  search: { middlewares: [stripSearchParams(SEARCH_DEFAULTS)] },
   head: () => ({
     ...buildSeoMeta({
       title: "Agent Digital Products — Melanated In Tech",

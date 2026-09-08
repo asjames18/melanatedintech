@@ -1,110 +1,80 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import {
-  ArrowRight,
-  Bot,
-  GraduationCap,
-  MonitorSmartphone,
-  Presentation,
-  ShieldCheck,
-  Workflow,
-} from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowRight, CheckCircle2, ClipboardCheck, Gauge, Settings2, Workflow } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
+import { Button } from "@/components/ui/button";
+import { breadcrumbLd, buildSeoMeta, ldScript } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 
-const primaryOffers = [
+const engagements = [
   {
-    Icon: GraduationCap,
-    eyebrow: "Practical AI training",
-    title: "AI Clarity Session",
-    price: "$297",
-    description:
-      "A focused 90-minute working session for an owner and up to two teammates who want a practical, responsible starting point with AI.",
+    Icon: ClipboardCheck,
+    title: "Workflow Opportunity & ROI Sprint",
+    range: "$7.5K–$15K",
+    body: "A focused discovery engagement that maps one costly workflow, establishes a baseline, and produces an implementation-ready plan.",
     includes: [
-      "A short pre-session intake and plain-language walkthrough of useful AI workflows",
-      "Live examples shaped around your work",
-      "A starter prompt pack and one-page next-step summary; no custom build is included",
+      "Current-state workflow map",
+      "Opportunity, feasibility, and risk assessment",
+      "ROI model and implementation roadmap",
     ],
-    topic: "AI Clarity Session inquiry",
-    offer: "ai_training",
-    cta: "Ask about AI training",
+    to: "/strategy-sprint" as const,
+    cta: "Explore the Strategy Sprint",
   },
   {
     Icon: Workflow,
-    eyebrow: "Workflow strategy",
-    title: "AI Workflow Diagnostic",
-    price: "$297",
-    description:
-      "A focused 90-minute diagnostic for one repeated task or customer journey, ending with an actionable implementation recommendation.",
+    title: "Controlled Automation Pilot",
+    range: "$20K–$45K",
+    body: "A working pilot for one bounded workflow, tested with real users and explicit human approval points.",
     includes: [
-      "A short pre-session intake and current-state workflow review",
-      "One prioritized opportunity with human-approval boundaries",
-      "Tool-fit guidance and a one-page implementation roadmap; no implementation is included",
+      "Focused implementation",
+      "System connections and exception handling",
+      "Acceptance testing and decision report",
     ],
-    topic: "AI Workflow Diagnostic inquiry",
-    offer: "workflow_diagnostic",
-    cta: "Discuss a workflow",
+    to: "/contact" as const,
+    cta: "Discuss a pilot",
   },
   {
-    Icon: MonitorSmartphone,
-    eyebrow: "Website development",
-    title: "Website Launch Sprint",
-    price: "$997",
-    description:
-      "A focused, mobile-first one-page website for a business that needs to look credible and make it easy for the right people to get in touch.",
+    Icon: Gauge,
+    title: "Production AI Integration",
+    range: "$35K–$90K",
+    body: "Production implementation across approved systems, data sources, roles, and operating processes.",
     includes: [
-      "One mobile-first landing page; additional pages and custom functionality are separately scoped",
-      "Client-supplied final copy, logo, imagery, domain, and access needed for launch",
-      "Inquiry form, basic metadata, one consolidated revision, and publish-ready handoff; third-party fees are not included",
+      "Production integrations",
+      "Security, monitoring, and evaluation",
+      "Documentation and staff handoff",
     ],
-    topic: "Website Launch Sprint inquiry",
-    offer: "website_launch_sprint",
-    cta: "Ask about a launch sprint",
-  },
-] as const;
-
-const scopedServices = [
-  {
-    Icon: Bot,
-    title: "Custom AI systems",
-    description:
-      "For teams that need implementation, integrations, documented boundaries, testing, and staff handoff after a defined discovery process.",
-    topic: "Custom AI system inquiry",
-    offer: "custom_ai_system",
+    to: "/contact" as const,
+    cta: "Request a project scope",
   },
   {
-    Icon: MonitorSmartphone,
-    title: "Custom websites and applications",
-    description:
-      "For projects involving multiple pages, brand systems, booking, payments, client portals, databases, or tailored integrations.",
-    topic: "Custom website or application inquiry",
-    offer: "custom_website_application",
-  },
-  {
-    Icon: Presentation,
-    title: "Presentation support",
-    description:
-      "For training, sales, grant, and stakeholder decks where the scope depends on the story, source material, and delivery context.",
-    topic: "Presentation support inquiry",
-    offer: "presentation_support",
+    Icon: Settings2,
+    title: "Managed Automation Operations",
+    range: "$2.5K–$8K/mo",
+    body: "Ongoing monitoring, maintenance, evaluation, and workflow improvement after launch.",
+    includes: [
+      "Performance and failure monitoring",
+      "Updates as tools and workflows change",
+      "Monthly improvement priorities",
+    ],
+    to: "/contact" as const,
+    cta: "Ask about managed support",
   },
 ] as const;
 
 export const Route = createFileRoute("/work-with-us")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Work With Us | AI Training, Workflow Strategy & Websites | Melanated In Tech",
+      title: "AI Consulting & Implementation Services | Melanated In Tech",
       description:
-        "Start with practical AI training, a workflow diagnostic, or a focused website launch sprint. Melanated In Tech helps small organizations build useful systems with clear human boundaries.",
+        "Strategy, pilots, production AI integrations, and managed automation operations for organizations solving costly workflow problems.",
       url: "/work-with-us",
     }),
     scripts: [
       ldScript(
         breadcrumbLd([
           { name: "Home", path: "/" },
-          { name: "Work With Us", path: "/work-with-us" },
+          { name: "Services", path: "/work-with-us" },
         ]),
       ),
     ],
@@ -120,52 +90,59 @@ function WorkWithUs() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Services for practical progress"
-        title="Build the next useful thing for your business."
-        description="Start with the level of support that matches where you are today: learn AI, improve a workflow, launch a website, or scope a more tailored build."
+        title="Choose the next responsible step from problem to production."
+        description="MIT scopes AI work around the workflow, business impact, systems, data, and people involved. Every engagement has a defined outcome, price, and decision point."
+        actions={
+          <Button asChild size="lg">
+            <Link to="/contact" search={{ topic: "Business workflow inquiry" }}>
+              Tell us what you&apos;re trying to solve <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        }
       />
-
       <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Start small. Build with intention.</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Three clear ways to get moving.
-            </h2>
-            <p className="mt-4 leading-relaxed text-muted-foreground">
-              These fixed-scope offers are designed to create a useful next step without asking you to
-              commit to a large, undefined project. If your work requires a deeper build, we will scope it
-              clearly before implementation begins. Every custom project receives a written scope, timeline, and price before work begins.
-            </p>
-          </div>
-          <div className="mt-10 grid gap-5 lg:grid-cols-3">
-            {primaryOffers.map(({ Icon, eyebrow, title, price, description, includes, topic, offer, cta }) => (
-              <article key={title} className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            Engagement path
+          </p>
+          <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold">
+            Start small enough to learn. Build far enough to matter.
+          </h2>
+          <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
+            The ranges below are planning signals, not instant quotes. Final scope depends on
+            workflow complexity, integrations, data sensitivity, stakeholder count, and
+            implementation responsibility.
+          </p>
+          <div className="mt-9 grid gap-5 lg:grid-cols-2">
+            {engagements.map(({ Icon, title, range, body, includes, to, cta }) => (
+              <article
+                key={title}
+                className="flex h-full flex-col rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-7"
+              >
                 <div className="flex items-start justify-between gap-4">
                   <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">{price}</span>
+                  <span className="text-sm font-bold text-primary">{range}</span>
                 </div>
-                <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-primary">{eyebrow}</p>
-                <h3 className="mt-2 font-display text-2xl font-semibold">{title}</h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
-                <ul className="mt-5 space-y-2 text-sm leading-relaxed text-muted-foreground">
+                <h3 className="mt-5 font-display text-2xl font-semibold">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                <ul className="mt-5 space-y-2 text-sm text-muted-foreground">
                   {includes.map((item) => (
                     <li key={item} className="flex gap-2">
-                      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                       <span>{item}</span>
                     </li>
                   ))}
                 </ul>
                 <Link
-                  to="/contact"
-                  search={{ topic }}
+                  to={to}
+                  search={to === "/contact" ? { topic: `${title} inquiry` } : undefined}
                   className="mt-7 inline-flex items-center gap-1 text-sm font-semibold text-primary"
                   onClick={() =>
                     trackEvent("service_offer_cta_clicked", {
-                      offer,
-                      surface: "work_with_us_fixed_offer",
+                      offer: title.toLowerCase().replaceAll(" ", "_"),
+                      surface: "work_with_us",
                       ...funnelAttribution(),
                     })
                   }
@@ -177,69 +154,21 @@ function WorkWithUs() {
           </div>
         </div>
       </section>
-
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">When the work is more complex</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Scope the right build before we build it.</h2>
-            <p className="mt-4 leading-relaxed text-muted-foreground">
-              Custom systems are valuable when they solve a real operational problem. We begin with your
-              goals, dependencies, data boundaries, and approvals—not a generic promise or an undefined scope.
-            </p>
-          </div>
-          <div className="mt-9 grid gap-4 md:grid-cols-3">
-            {scopedServices.map(({ Icon, title, description, topic, offer }) => (
-              <article key={title} className="rounded-2xl border border-border bg-muted/20 p-5">
-                <Icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-4 font-display text-xl font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p>
-                <Link
-                  to="/contact"
-                  search={{ topic }}
-                  className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary"
-                  onClick={() =>
-                    trackEvent("service_offer_cta_clicked", {
-                      offer,
-                      surface: "work_with_us_custom_offer",
-                      ...funnelAttribution(),
-                    })
-                  }
-                >
-                  Request a scope <ArrowRight className="h-4 w-4" />
-                </Link>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section>
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="rounded-3xl bg-foreground p-7 text-background sm:p-10">
-            <p className="text-xs font-semibold uppercase tracking-wider text-background/65">Already know your challenge?</p>
-            <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
-              Tell us what you are trying to make better.
+            <h2 className="max-w-3xl font-display text-3xl font-semibold">
+              Not sure which engagement fits?
             </h2>
-            <p className="mt-4 max-w-2xl leading-relaxed text-background/75">
-              We read every inquiry and reply within two business days. Revenue recovery remains available as a
-              specialized service for businesses with a measurable follow-up or retention problem.
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-background/70">
+              Describe the workflow and the business result you need. We will recommend the smallest
+              useful next step—even when that means you should not hire us yet.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/contact"
-                search={{ topic: "General services inquiry" }}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground"
-              >
-                Start a conversation <ArrowRight className="h-4 w-4" />
+            <Button asChild size="lg" variant="secondary" className="mt-7">
+              <Link to="/contact" search={{ topic: "Business workflow inquiry" }}>
+                Start with the problem <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                to="/diagnostic"
-                className="inline-flex h-12 items-center justify-center rounded-xl border border-background/30 px-6 text-sm font-semibold text-background hover:bg-background/10"
-              >
-                Explore revenue recovery
-              </Link>
-            </div>
+            </Button>
           </div>
         </div>
       </section>

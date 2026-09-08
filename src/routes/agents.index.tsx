@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listAgents } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const PAGE_SIZE = 9;
 
@@ -78,6 +79,10 @@ function AgentsIndex() {
   useEffect(() => {
     if (urlCategory && urlCategory !== cat) setCat(urlCategory);
   }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    trackEvent("agents_page_viewed");
+  }, []);
 
   const filtered = agents.filter((a) => {
     const matchCat = cat === "All" || a.category === cat;

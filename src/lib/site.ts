@@ -15,11 +15,13 @@ export const SITE = {
 export const NAV = [
   { to: "/solutions/recurring-property-services", label: "Solutions" },
   { to: "/systems", label: "Systems" },
+  { to: "/ai-tools", label: "AI Tools" },
   { to: "/agents", label: "Marketplace" },
   { to: "/knowledge", label: "Learn" },
   { to: "/open-commons", label: "Open Commons" },
   { to: "/starter-packs", label: "Starter Packs" },
   { to: "/products", label: "Products" },
+  { to: "/work-with-us", label: "Work With Us" },
   { to: "/about", label: "About" },
 ] as const;
 

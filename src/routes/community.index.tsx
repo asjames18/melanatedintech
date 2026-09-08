@@ -29,6 +29,7 @@ import { checkAdminStatus } from "@/lib/admin.functions";
 import { FEED_TABS, FEED_TAB_LABELS, type FeedPage, type FeedTab, type ReactionKind } from "@/lib/community";
 import { toast } from "sonner";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
 
@@ -67,6 +68,7 @@ function Community() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
+    trackEvent("community_page_viewed");
   }, []);
 
   return (

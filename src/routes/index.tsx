@@ -1,51 +1,74 @@
+import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
   BookOpen,
   Bot,
+  Building2,
+  CheckCircle2,
+  FileText,
   GraduationCap,
-  HandHeart,
-  MonitorSmartphone,
+  Network,
   PackageOpen,
-  Presentation,
   ShieldCheck,
   Workflow,
 } from "lucide-react";
 import { Hero } from "@/components/hero";
-import { PlatformOverview } from "@/components/platform-overview";
 import { SiteLayout } from "@/components/site-layout";
-import { AgentCard, ArticleCard, ProductCard } from "@/components/cards";
-import { SystemDemo } from "@/components/system-demo";
-import {
-  CommercialTrust,
-  EngagementProcess,
-  PilotOffer,
-  SystemsGrid,
-} from "@/components/system-sections";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
-import { SOLUTIONS } from "@/lib/service-systems";
-import { buildSeoMeta, organizationLd, websiteLd, ldScript } from "@/lib/seo";
+import { buildSeoMeta, ldScript, organizationLd, websiteLd } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
 const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
 const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() });
 
+const services = [
+  {
+    Icon: Workflow,
+    title: "AI workflow automation",
+    body: "Reduce repeated tasks, manual handoffs, follow-up, and status chasing.",
+    to: "/services/workflow-automation" as const,
+  },
+  {
+    Icon: Network,
+    title: "AI and software integrations",
+    body: "Connect AI to the systems, data, and actions your team already relies on.",
+    to: "/services/ai-integrations" as const,
+  },
+  {
+    Icon: FileText,
+    title: "Document and intake automation",
+    body: "Classify, extract, validate, and route information with human review for exceptions.",
+    to: "/services/document-intake-automation" as const,
+  },
+  {
+    Icon: Bot,
+    title: "AI agent development",
+    body: "Build focused agents with approved context, useful tools, tests, and clear boundaries.",
+    to: "/services/ai-agents" as const,
+  },
+  {
+    Icon: BookOpen,
+    title: "Internal knowledge systems",
+    body: "Give staff source-aware answers across policies, procedures, and internal documents.",
+    to: "/services/internal-knowledge-systems" as const,
+  },
+];
+
 export const Route = createFileRoute("/")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Practical AI Education, Tools Workbench & Business Systems | Melanated In Tech",
+      title: "AI Workflow Automation & Integration Services | Melanated In Tech",
       description:
-        "Learn AI, improve a business workflow, launch a credible website, or build a more tailored system with clear human boundaries.",
+        "Melanated In Tech designs and implements controlled AI automation, software integrations, document workflows, agents, and internal knowledge systems.",
       url: "/",
     });
     return {
       meta: seo.meta,
       links: seo.links,
-      scripts: [
-        ldScript(organizationLd()),
-        ldScript(websiteLd()),
-      ],
+      scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
     };
   },
   loader: async ({ context }) => {
@@ -62,138 +85,85 @@ function Home() {
   const { data: agents } = useSuspenseQuery(agentsQO);
   const { data: articles } = useSuspenseQuery(articlesQO);
   const { data: products } = useSuspenseQuery(productsQO);
-  const featuredAgents = agents.filter((agent) => agent.featured).slice(0, 4);
-  const topArticles = articles.slice(0, 3);
-  const topProducts = products.slice(0, 3);
+
+  useEffect(() => {
+    trackEvent("homepage_viewed");
+  }, []);
 
   return (
     <SiteLayout>
       <Hero />
-      <PlatformOverview />
-
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Work with us</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              What we solve
+            </p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Choose the practical next step for your team.
+              The expensive work hiding between your systems.
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              Start with a clear outcome. We offer focused support for the work in front of you, then scope more complex projects before implementation begins.
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              MIT is a fit when a repeated process consumes staff time, delays customers or
+              students, creates preventable errors, or depends on knowledge that is hard to find.
             </p>
           </div>
-          <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[
-              {
-                Icon: GraduationCap,
-                title: "Learn AI",
-                body: "Build confidence with practical, beginner-friendly AI training for owners and small teams.",
-              },
-              {
-                Icon: Workflow,
-                title: "Improve a workflow",
-                body: "Identify one repeated task or customer journey and choose a safer, more useful next step.",
-              },
-              {
-                Icon: MonitorSmartphone,
-                title: "Launch a website",
-                body: "Create a focused, mobile-first digital presence built to help the right people get in touch.",
-              },
-              {
-                Icon: Presentation,
-                title: "Make the case clearly",
-                body: "Scope presentation support for training, sales, grant, or stakeholder conversations.",
-              },
-            ].map(({ Icon, title, body }) => (
-              <Link
-                key={title}
-                to="/work-with-us"
-                className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-primary/40 hover:shadow-md"
-              >
-                <Icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+              [
+                "Manual handoffs",
+                "Work moves through inboxes, spreadsheets, and memory instead of a clear operating flow.",
+              ],
+              [
+                "Disconnected systems",
+                "People copy information between tools because the systems do not coordinate.",
+              ],
+              [
+                "Document bottlenecks",
+                "Forms, PDFs, and attachments require slow review, re-entry, and routing.",
+              ],
+              [
+                "Knowledge friction",
+                "Staff spend too long finding the current policy, procedure, or approved answer.",
+              ],
+            ].map(([title, body]) => (
+              <article key={title} className="rounded-2xl border border-border bg-card p-5">
+                <h3 className="font-display text-lg font-semibold">{title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                  Find your starting point <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </span>
-              </Link>
+              </article>
             ))}
           </div>
         </div>
       </section>
-
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Build practical economic power with AI
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Start with a useful next step—or help improve the shared tools behind it.
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Melanated In Tech combines practical learning, accountable business systems, and open
-              infrastructure. Choose the path that fits where you are today.
-            </p>
-          </div>
-          <div className="mt-9 grid gap-5 lg:grid-cols-2">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Implementation services
+              </p>
+              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+                A focused path from problem to production.
+              </h2>
+            </div>
             <Link
               to="/work-with-us"
-              className="group rounded-3xl border border-border bg-card p-7 transition-colors hover:border-primary/45 hover:shadow-sm"
+              className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
             >
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <h3 className="mt-5 font-display text-2xl font-semibold">Work with our team.</h3>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Choose practical AI training, a workflow diagnostic, a focused website, or a more tailored project scope that fits where you are today.
-              </p>
-              <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Explore services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-            <Link
-              to="/open-commons"
-              className="group rounded-3xl border border-primary/25 bg-primary/5 p-7 transition-colors hover:border-primary/55 hover:shadow-sm"
-            >
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
-                <HandHeart className="h-5 w-5" />
-              </div>
-              <h3 className="mt-5 font-display text-2xl font-semibold">Build the open commons with us.</h3>
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Help shape public AI tools, policy patterns, examples, and test fixtures that make
-                useful technology more understandable and accountable.
-              </p>
-              <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Explore Open Commons <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </span>
+              View engagement options <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Specialized revenue recovery
-          </p>
-          <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
-            Recovery systems for service businesses with a measurable follow-up problem.
-          </h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {SOLUTIONS.map((solution) => (
+          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {services.map(({ Icon, title, body, to }) => (
               <Link
-                key={solution.slug}
-                to="/solutions/$slug"
-                params={{ slug: solution.slug }}
-                className="group rounded-2xl border border-border bg-card p-5 hover:border-primary/40 hover:shadow-md"
+                key={to}
+                to={to}
+                className="group rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/45 hover:shadow-sm"
               >
-                <h2 className="font-display text-lg font-semibold">{solution.title}</h2>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {solution.description}
-                </p>
-                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                  See your use cases{" "}
+                <Icon className="h-6 w-6 text-primary" />
+                <h3 className="mt-4 font-display text-xl font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  Explore this service{" "}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
@@ -201,172 +171,190 @@ function Home() {
           </div>
         </div>
       </section>
-
       <section className="border-b border-border">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Revenue is already leaking
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
+          <div className="rounded-3xl border border-primary/25 bg-primary/5 p-7 sm:p-9">
+            <GraduationCap className="h-7 w-7 text-primary" />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-primary">
+              Flagship industry
             </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              The opportunity is often in the follow-up.
+            <h2 className="mt-2 font-display text-3xl font-semibold">
+              Higher education operations need practical AI, not another innovation theater project.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Advertising creates demand. Recovery systems help your team act on it—without asking
-              staff to remember every missed call, estimate, renewal, cancellation, or rebooking
-              window.
+              We focus on administrative workflows where policy, sensitive data, legacy systems, and
+              human judgment all matter—from student-service intake to internal knowledge and
+              document processing.
             </p>
-          </div>
-          <CommercialTrust />
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Four focused systems
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Start with the revenue leak you can measure.
-            </h2>
-          </div>
-          <div className="mt-10">
-            <SystemsGrid />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="mb-9 max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Interactive workflow preview
-            </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              See the handoffs before we touch your software.
-            </h2>
-            <p className="mt-3 text-muted-foreground">
-              Choose a scenario and step through the customer, system, and team experience.
-            </p>
-          </div>
-          <SystemDemo compact />
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <PilotOffer />
-        </div>
-      </section>
-
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we work</p>
-          <h2 className="mt-2 font-display text-3xl font-semibold">
-            From qualification to optimization.
-          </h2>
-          <div className="mt-8">
-            <EngagementProcess />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                The broader platform
-              </p>
-              <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                Tools and knowledge behind the work.
-              </h2>
-              <p className="mt-3 max-w-2xl text-muted-foreground">
-                Explore the existing agent marketplace, practical field guides, and digital products
-                that make Melanated In Tech more than a services landing page.
-              </p>
-            </div>
             <Link
-              to="/knowledge"
-              className="inline-flex items-center gap-1 text-sm font-semibold text-primary"
+              to="/industries/higher-education"
+              className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary"
             >
-              Explore the knowledge hub <ArrowRight className="h-4 w-4" />
+              Explore higher-education solutions <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="mt-9 grid gap-4 sm:grid-cols-3">
-            {[
-              { Icon: Bot, label: `${agents.length} AI agents`, to: "/agents" as const },
-              {
-                Icon: BookOpen,
-                label: `${articles.length} field guides`,
-                to: "/knowledge" as const,
-              },
-              {
-                Icon: PackageOpen,
-                label: `${products.length} digital products`,
-                to: "/products" as const,
-              },
-            ].map(({ Icon, label, to }) => (
-              <Link
-                key={to}
-                to={to}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-5 font-display text-lg font-semibold hover:border-primary/40"
-              >
-                <Icon className="h-5 w-5 text-primary" /> {label}
-              </Link>
-            ))}
+          <div className="rounded-3xl border border-border bg-card p-7 sm:p-9">
+            <Building2 className="h-7 w-7 text-primary" />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-primary">
+              Also built for
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold">
+              Small organizations with real operational friction.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Service businesses, nonprofits, community organizations, and expert teams can use the
+              same workflow-first method without becoming an AI company themselves.
+            </p>
+            <Link
+              to="/work-with-us"
+              className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+            >
+              See how engagements work <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          {featuredAgents.length > 0 && (
-            <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {featuredAgents.map((agent) => (
-                <AgentCard
-                  key={agent.id}
-                  {...agent}
-                  tier={agent.tier}
-                  capabilities={agent.capabilities}
-                />
-              ))}
-            </div>
-          )}
-          {topProducts.length > 0 && (
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {topProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
-              ))}
-            </div>
-          )}
-          {topArticles.length > 0 && (
-            <div className="mt-10 grid gap-5 md:grid-cols-3">
-              {topArticles.map((article) => (
-                <ArticleCard key={article.id} {...article} />
-              ))}
-            </div>
-          )}
         </div>
       </section>
-
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we work</p>
+          <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
+            Buy the next responsible step—not an undefined transformation.
+          </h2>
+          <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              [
+                "1",
+                "Strategy Sprint",
+                "Map one workflow, quantify the opportunity, and define the implementation path.",
+              ],
+              [
+                "2",
+                "Controlled pilot",
+                "Build a focused version with real users, clear boundaries, and acceptance criteria.",
+              ],
+              [
+                "3",
+                "Production integration",
+                "Connect the workflow to approved systems, data, monitoring, and operating ownership.",
+              ],
+              [
+                "4",
+                "Managed improvement",
+                "Measure performance, handle changes, and improve the system after launch.",
+              ],
+            ].map(([number, title, body]) => (
+              <article key={number} className="rounded-2xl border border-border bg-card p-6">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-foreground text-sm font-semibold text-background">
+                  {number}
+                </span>
+                <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+              </article>
+            ))}
+          </div>
+          <Link
+            to="/strategy-sprint"
+            className="mt-7 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+          >
+            Explore the Strategy Sprint <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+      <section className="border-b border-border">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:px-8">
+          <div>
+            <ShieldCheck className="h-7 w-7 text-primary" />
+            <h2 className="mt-4 font-display text-3xl font-semibold">
+              Proof should be specific, sourced, and honest.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              MIT distinguishes client-verified results, anonymized work, reference designs, and
+              demonstrations. We do not turn assumptions into case-study claims.
+            </p>
+            <Link
+              to="/proof"
+              className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary"
+            >
+              Review our proof standard <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {[
+              "Human approval for consequential decisions",
+              "Defined data and system boundaries",
+              "Evaluation before expansion",
+              "Documentation and ownership after handoff",
+            ].map((item) => (
+              <div
+                key={item}
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-sm font-medium"
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="border-b border-border bg-muted/25">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                Resources
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold">
+                Explore MIT&apos;s practical AI library.
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                The workbench, field guides, agents, and products remain available as supporting
+                resources—not as a substitute for a clear implementation path.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/knowledge"
+                className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold"
+              >
+                {articles.length} field guides
+              </Link>
+              <Link
+                to="/agents"
+                className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold"
+              >
+                {agents.length} AI agents
+              </Link>
+              <Link
+                to="/products"
+                className="rounded-xl border border-border bg-card px-4 py-3 text-sm font-semibold"
+              >
+                <PackageOpen className="mr-2 inline h-4 w-4 text-primary" />
+                {products.length} products
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
       <section>
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-foreground p-7 text-background sm:p-12">
             <div className="bg-grid absolute inset-0 opacity-10" />
             <div className="relative flex flex-col justify-between gap-7 lg:flex-row lg:items-center">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-background/60">
-                  One clear next step
-                </p>
-                <h2 className="mt-2 max-w-2xl font-display text-3xl font-semibold sm:text-4xl">
-                  Tell us what you are trying to make better.
+                <h2 className="max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
+                  Tell us what you&apos;re trying to solve.
                 </h2>
                 <p className="mt-3 max-w-2xl text-background/70">
-                  Start with practical AI training, a business workflow, a focused website, or a scoped implementation conversation.
+                  Describe the workflow, where it breaks down, and what a useful result would look
+                  like. We will reply with fit and the smallest sensible next step.
                 </p>
               </div>
               <Link
-                to="/work-with-us"
+                to="/contact"
+                search={{ topic: "Business workflow inquiry" }}
                 className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground"
               >
-                Find your starting point <ArrowRight className="h-4 w-4" />
+                Start with the problem <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>

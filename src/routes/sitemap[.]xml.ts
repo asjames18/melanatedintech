@@ -6,6 +6,12 @@ import type { Database } from "@/integrations/supabase/types";
 import { SITE_URL } from "@/lib/site";
 import { escapeXml } from "@/lib/xml";
 import { NICHES } from "@/lib/playbook-data";
+import {
+  AI_TOOLS,
+  AI_SOLUTIONS,
+  AI_COMPARISONS,
+  AI_ALTERNATIVES,
+} from "@/lib/ai-tools-data";
 
 const BASE_URL = SITE_URL;
 
@@ -19,6 +25,12 @@ const INDEXABLE_NICHES = NICHES.filter((n) => (n.faqs?.length ?? 0) > 0);
 
 const STATIC_PATHS = [
   { path: "/", changefreq: "weekly" as const, priority: "1.0" },
+  { path: "/ai-tools", changefreq: "daily" as const, priority: "1.0" },
+  { path: "/ai-tools/higher-education", changefreq: "weekly" as const, priority: "0.9" },
+  { path: "/solutions", changefreq: "weekly" as const, priority: "0.9" },
+  { path: "/ai-stack-builder", changefreq: "weekly" as const, priority: "0.9" },
+  { path: "/solve", changefreq: "weekly" as const, priority: "0.9" },
+  { path: "/compare", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/agents", changefreq: "daily" as const, priority: "0.9" },
   { path: "/systems", changefreq: "monthly" as const, priority: "0.9" },
   { path: "/systems/revenue-recovery", changefreq: "monthly" as const, priority: "0.8" },
@@ -80,7 +92,25 @@ const STATIC_PATHS = [
   // Marketplace & content
   { path: "/challenges", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/products", changefreq: "weekly" as const, priority: "0.8" },
-  // Services hub + detail pages
+  // Live commercial pages only. Legacy /services, /services/custom-agent-build,
+  // /services/ministry-ai-implementation, and /services/ai-workshop still 307
+  // to /work-with-us, so they stay out of the sitemap.
+  { path: "/work-with-us", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/services/workflow-automation", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/services/ai-integrations", changefreq: "monthly" as const, priority: "0.9" },
+  {
+    path: "/services/document-intake-automation",
+    changefreq: "monthly" as const,
+    priority: "0.9",
+  },
+  { path: "/services/ai-agents", changefreq: "monthly" as const, priority: "0.8" },
+  {
+    path: "/services/internal-knowledge-systems",
+    changefreq: "monthly" as const,
+    priority: "0.8",
+  },
+  { path: "/industries/higher-education", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/strategy-sprint", changefreq: "monthly" as const, priority: "0.8" },
   // Trust, community, tools & public assets
   { path: "/prompts", changefreq: "weekly" as const, priority: "0.8" },
   { path: "/mcp", changefreq: "weekly" as const, priority: "0.8" },
@@ -199,6 +229,35 @@ export const Route = createFileRoute("/sitemap.xml")({
             lastmod: author.updated_at ?? undefined,
             changefreq: "monthly",
             priority: "0.5",
+          });
+        }
+
+        for (const t of AI_TOOLS) {
+          entries.push({
+            path: `/ai-tools/${t.slug}`,
+            changefreq: "weekly",
+            priority: "0.8",
+          });
+        }
+        for (const s of AI_SOLUTIONS) {
+          entries.push({
+            path: `/solutions/${s.slug}`,
+            changefreq: "weekly",
+            priority: "0.8",
+          });
+        }
+        for (const c of AI_COMPARISONS) {
+          entries.push({
+            path: `/compare/${c.slug}`,
+            changefreq: "monthly",
+            priority: "0.7",
+          });
+        }
+        for (const alt of AI_ALTERNATIVES) {
+          entries.push({
+            path: `/alternatives/${alt.toolSlug}`,
+            changefreq: "monthly",
+            priority: "0.7",
           });
         }
 

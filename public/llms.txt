@@ -1,18 +1,26 @@
 # Melanated In Tech
 
-> Melanated In Tech is a practical AI agent operating library, marketplace, tools hub, and services destination for builders, operators, community learners, and teams deciding what to ship next.
+> Melanated In Tech is an AI implementation company that improves costly workflows through automation, systems integration, controlled AI agents, document processing, and governed knowledge systems. Higher education is a flagship industry; practical tools and learning resources support the implementation work.
 
 ## Core Public Pages
 
 - [Home](https://melanatedintech.com/)
+- [AI Tool Library](https://melanatedintech.com/ai-tools): curated catalog of 60+ production AI tools with pricing, self-hosting, enterprise compliance, and MIT recommendation scores.
+- [Head-to-Head AI Comparisons](https://melanatedintech.com/compare): technical side-by-side benchmarks and trade-off analysis between competing AI tools.
+- [AI Stack Builder](https://melanatedintech.com/ai-stack-builder): interactive architecture wizard recommending full-stack AI combinations (model + orchestration + database + UI).
+- [Problem-First AI Solutions](https://melanatedintech.com/solutions): pre-architected blueprints for customer support, document extraction, lead routing, and academic operations.
+- [Higher Education AI Hub](https://melanatedintech.com/ai-tools/higher-education): FERPA-compliant, ethical AI tools for university admissions, student retention, and institutional workflows.
+- [Implementation Services](https://melanatedintech.com/work-with-us): strategy, controlled pilots, production integrations, and managed automation operations.
+- [Higher Education Services](https://melanatedintech.com/industries/higher-education): practical AI automation and integration for college and university administrative workflows.
+- [Strategy Sprint](https://melanatedintech.com/strategy-sprint): fixed-scope workflow opportunity, ROI, risk, and implementation planning.
+- [Proof](https://melanatedintech.com/proof): proof standards and clearly labeled reference workflows; reference designs are not client-result claims.
 - [Knowledge Hub](https://melanatedintech.com/knowledge): practical AI agent playbooks, checklists, field guides, scorecards, and operating templates.
 - [Agent Marketplace](https://melanatedintech.com/agents): production-oriented AI agent listings and packs.
 - [Learning Paths](https://melanatedintech.com/paths): guided paths that connect articles, agents, tools, and products.
-- [Interactive AI Tools](https://melanatedintech.com/tools): 12 free interactive AI tools (see below).
+- [Interactive AI Tools](https://melanatedintech.com/tools): 22 free interactive AI tools (see below).
 - [Products](https://melanatedintech.com/products): AI agent starter kits, prompt libraries, SOPs, and blueprints.
-- [Services](https://melanatedintech.com/services): strategy sprints, custom agent builds, workshops, and implementation support.
+- [Services](https://melanatedintech.com/work-with-us): AI consulting and implementation engagement options.
 - [Community](https://melanatedintech.com/community): discussion and shared learning for AI agent builders.
-- [Proof](https://melanatedintech.com/proof): case studies and results.
 - [AI Fit Finder](https://melanatedintech.com/fit-finder): guided quiz recommending the right agent or product for your use case.
 - [LeadFlow Revenue Audit](https://melanatedintech.com/diagnostic): instant email qualification, TLD validation, and revenue recovery diagnostic.
 
@@ -42,10 +50,12 @@
 
 ## Professional Services
 
-- [Custom Agent Build](https://melanatedintech.com/services/custom-agent-build): bespoke AI agent development.
-- [Ministry AI Implementation](https://melanatedintech.com/services/ministry-ai-implementation): AI adoption for churches, nonprofits, and community orgs.
-- [AI Workshop](https://melanatedintech.com/services/ai-workshop): hands-on team AI and agent training.
-- [Strategy Sprint](https://melanatedintech.com/strategy-sprint): 90-minute AI strategy session.
+- [AI Workflow Automation](https://melanatedintech.com/services/workflow-automation): controlled automation for repeated operational work and handoffs.
+- [AI and Software Integrations](https://melanatedintech.com/services/ai-integrations): connect AI to CRMs, forms, email, databases, document platforms, and internal systems.
+- [Document and Intake Automation](https://melanatedintech.com/services/document-intake-automation): classify, extract, validate, and route forms, email, PDFs, and uploaded documents.
+- [AI Agent Development](https://melanatedintech.com/services/ai-agents): focused agents with approved context, tools, evaluation, and human boundaries.
+- [Internal Knowledge Systems](https://melanatedintech.com/services/internal-knowledge-systems): source-aware search and governed answers across internal documents.
+- [Strategy Sprint](https://melanatedintech.com/strategy-sprint): two-week workflow opportunity and ROI engagement.
 
 ## Main Knowledge Tracks
 

@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { CheckCircle2, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
 import { ReferenceWorkflows } from "@/components/reference-workflows";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/proof")({
   head: () => ({
@@ -18,6 +20,10 @@ export const Route = createFileRoute("/proof")({
 });
 
 function Proof() {
+  useEffect(() => {
+    trackEvent("proof_page_viewed");
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader

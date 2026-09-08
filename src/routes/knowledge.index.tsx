@@ -32,6 +32,7 @@ import { SITE_URL } from "@/lib/site";
 import { listMyLearningProgress } from "@/lib/retention.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useReadingProgressList } from "@/hooks/use-reading-progress";
+import { trackEvent } from "@/lib/analytics";
 
 const PAGE_SIZE = 9;
 
@@ -159,6 +160,10 @@ function KnowledgeIndex() {
   useEffect(() => {
     if (urlCategory && urlCategory !== cat) setCat(urlCategory);
   }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    trackEvent("knowledge_page_viewed");
+  }, []);
 
   const filtered = articles.filter((a) => {
     const matchCat = cat === "All" || a.category?.toLowerCase() === cat.toLowerCase();
@@ -580,7 +585,7 @@ function ContinueReading({
 function RadarTeaser() {
   const { data, isPending, isError } = useQuery({
     queryKey: ["ai-radar-feed", "teaser"],
-    queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 3 } }),
+    queryFn: () => fetchAiRadarFeed({ data: { category: "all", limit: 5 } }),
     staleTime: 5 * 60 * 1000,
   });
 

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { listLearningPaths, listMyLearningProgress } from "@/lib/retention.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const pathsQo = queryOptions({
   queryKey: ["learning-paths"],
@@ -34,6 +35,7 @@ function PathsIndex() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setSignedIn(!!data.user));
+    trackEvent("paths_page_viewed");
   }, []);
 
   const progress = useQuery({

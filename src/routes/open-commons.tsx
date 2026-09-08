@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import {
   ArrowRight,
   Braces,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 import { PageHeader, SiteLayout } from "@/components/site-layout";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/open-commons")({
   head: () => ({
@@ -69,6 +71,10 @@ const openAssets = [
 ] as const;
 
 function OpenCommons() {
+  useEffect(() => {
+    trackEvent("open_commons_page_viewed");
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader

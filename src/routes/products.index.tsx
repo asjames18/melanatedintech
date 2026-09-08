@@ -10,6 +10,7 @@ import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listProducts } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const PAGE_SIZE = 9;
 
@@ -66,6 +67,10 @@ function ProductsIndex() {
   useEffect(() => {
     if (urlCategory && urlCategory !== cat) setCat(urlCategory);
   }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    trackEvent("products_page_viewed");
+  }, []);
 
   const filtered = products.filter((p) => {
     const matchCat = cat === "All" || p.category === cat;

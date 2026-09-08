@@ -22,14 +22,14 @@ export function SiteFooter() {
             </picture>
           </Link>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Practical AI tools, open infrastructure, and revenue recovery systems that help people
-            and small organizations build useful economic power.
+            AI workflow automation, systems integration, and controlled implementation for
+            organizations with costly operational friction.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-8 text-sm lg:col-span-1">
           <div>
-            <p className="font-medium">Platform</p>
+            <p className="font-medium">Services &amp; resources</p>
             <ul className="mt-3 space-y-2 text-muted-foreground">
               {NAV.filter((n) => n.to !== "/about").map((n) => (
                 <li key={n.to}>

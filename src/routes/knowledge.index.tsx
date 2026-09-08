@@ -32,6 +32,7 @@ import { SITE_URL } from "@/lib/site";
 import { listMyLearningProgress } from "@/lib/retention.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useReadingProgressList } from "@/hooks/use-reading-progress";
+import { trackEvent } from "@/lib/analytics";
 
 const PAGE_SIZE = 9;
 
@@ -148,6 +149,10 @@ function KnowledgeIndex() {
   useEffect(() => {
     if (urlCategory && urlCategory !== cat) setCat(urlCategory);
   }, [urlCategory]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    trackEvent("knowledge_page_viewed");
+  }, []);
 
   const filtered = articles.filter((a) => {
     const matchCat = cat === "All" || a.category?.toLowerCase() === cat.toLowerCase();
@@ -591,7 +596,14 @@ function LiveAiAgentNewsFeed() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <Link
+            to="/radar"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10"
+          >
+            <span>Explore Full AI Radar</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
           <div className="flex rounded-lg border border-border bg-muted/30 p-1 text-xs">
             <button
               onClick={() => setFeedTab("dev")}

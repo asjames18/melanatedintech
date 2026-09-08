@@ -216,14 +216,16 @@ export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       .upsert(row, { onConflict: "email,source" })
       .select("id")
       .single();
-    if (error || !signup?.id) throw new Error("Could not save your checklist request. Please try again.");
+    if (error || !signup?.id)
+      throw new Error("Could not save your checklist request. Please try again.");
 
     const { data: suppression, error: suppressionError } = await supabaseAdmin
       .from("suppressed_emails")
       .select("id")
       .eq("email", normalizedEmail)
       .maybeSingle();
-    if (suppressionError) throw new Error("Could not prepare your checklist request. Please try again.");
+    if (suppressionError)
+      throw new Error("Could not prepare your checklist request. Please try again.");
     // Preserve a prior unsubscribe without disclosing it or sending any new email.
     if (suppression) return { ok: true, confirmationRequired: false };
 
@@ -237,9 +239,13 @@ export const joinWebsiteLaunchChecklist = createServerFn({ method: "POST" })
     if (confirmationToken) {
       const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
         queue_name: "transactional_emails",
-        payload: buildWebsiteLaunchConfirmationPayload({ email: normalizedEmail, confirmationToken }),
+        payload: buildWebsiteLaunchConfirmationPayload({
+          email: normalizedEmail,
+          confirmationToken,
+        }),
       });
-      if (queueError) throw new Error("Could not prepare your confirmation email. Please try again.");
+      if (queueError)
+        throw new Error("Could not prepare your confirmation email. Please try again.");
     }
 
     return { ok: true, confirmationRequired: Boolean(confirmationToken) };
@@ -255,7 +261,9 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
     const nowIso = now.toISOString();
     const { data: tokenRow, error: tokenError } = await supabaseAdmin
       .from("website_launch_confirmation_tokens")
-      .select("waitlist_signup_id,expires_at,confirmed_at,waitlist_signups!inner(email,marketing_consent,source)")
+      .select(
+        "waitlist_signup_id,expires_at,confirmed_at,waitlist_signups!inner(email,marketing_consent,source)",
+      )
       .eq("token", data.token)
       .maybeSingle();
     if (tokenError || !tokenRow) throw new Error("This confirmation link is invalid or expired.");
@@ -269,7 +277,11 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       source?: string;
     };
     const email = signup?.email?.trim().toLowerCase();
-    if (!email || signup?.marketing_consent !== true || signup?.source !== "website_launch_checklist") {
+    if (
+      !email ||
+      signup?.marketing_consent !== true ||
+      signup?.source !== "website_launch_checklist"
+    ) {
       throw new Error("This request is no longer eligible for confirmation.");
     }
 
@@ -287,7 +299,8 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       return { ok: true, suppressed: true };
     }
 
-    const { buildWebsiteLaunchChecklistDeliveryPayload } = await import("@/lib/website-launch-nurture.server");
+    const { buildWebsiteLaunchChecklistDeliveryPayload } =
+      await import("@/lib/website-launch-nurture.server");
     const checklistPayload = buildWebsiteLaunchChecklistDeliveryPayload({
       email,
       waitlistSignupId: tokenRow.waitlist_signup_id,
@@ -297,7 +310,8 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
         queue_name: "transactional_emails",
         payload: checklistPayload,
       });
-      if (replayQueueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
+      if (replayQueueError)
+        throw new Error("Could not prepare your checklist delivery. Please try again.");
       return { ok: true, alreadyConfirmed: true };
     }
 
@@ -308,7 +322,8 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       .is("confirmed_at", null)
       .select("waitlist_signup_id")
       .maybeSingle();
-    if (markError || !marked) throw new Error("This confirmation link is invalid or has already been used.");
+    if (markError || !marked)
+      throw new Error("This confirmation link is invalid or has already been used.");
 
     const followUpAt = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
     const { error: enrollmentError } = await supabaseAdmin
@@ -324,7 +339,8 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       })
       .eq("waitlist_signup_id", tokenRow.waitlist_signup_id)
       .eq("status", "pending_confirmation");
-    if (enrollmentError) throw new Error("Could not activate your checklist delivery. Please try again.");
+    if (enrollmentError)
+      throw new Error("Could not activate your checklist delivery. Please try again.");
 
     const { error: queueError } = await supabaseAdmin.rpc("enqueue_email", {
       queue_name: "transactional_emails",
@@ -346,7 +362,8 @@ export const unsubscribeFromMarketing = createServerFn({ method: "POST" })
       .select("email,used_at")
       .eq("token", data.token)
       .maybeSingle();
-    if (tokenError || !tokenRow?.email) throw new Error("This unsubscribe link is invalid or expired.");
+    if (tokenError || !tokenRow?.email)
+      throw new Error("This unsubscribe link is invalid or expired.");
 
     const email = tokenRow.email.toLowerCase();
     const { error: suppressionError } = await supabaseAdmin
@@ -389,7 +406,10 @@ const campaignValue = z
   .trim()
   .min(1)
   .max(100)
-  .regex(/^[a-zA-Z0-9._-]+$/, "Campaign values may use letters, numbers, dots, underscores, and hyphens.")
+  .regex(
+    /^[a-zA-Z0-9._-]+$/,
+    "Campaign values may use letters, numbers, dots, underscores, and hyphens.",
+  )
   .optional();
 
 const contactSchema = z.object({
@@ -417,6 +437,21 @@ export type ServiceInquiryType =
 
 export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
   switch (topic) {
+    case "Business workflow inquiry":
+    case "AI Workflow Automation inquiry":
+      return "workflow_diagnostic";
+    case "AI & Software Integrations inquiry":
+    case "Document & Intake Automation inquiry":
+    case "AI Agent Development inquiry":
+    case "Internal Knowledge Systems inquiry":
+    case "Higher education workflow inquiry":
+    case "Controlled Automation Pilot inquiry":
+    case "Production AI Integration inquiry":
+    case "Managed Automation Operations inquiry":
+      return "custom_ai_system";
+    case "Strategy Sprint application":
+    case "Workflow Opportunity & ROI Sprint inquiry":
+      return "workflow_diagnostic";
     case "AI Clarity Session inquiry":
       return "ai_training";
     case "AI Workflow Diagnostic inquiry":
@@ -459,7 +494,9 @@ export const submitContact = createServerFn({ method: "POST" })
       utm_campaign: data.utm_campaign ?? null,
     };
     // Try with ip_hash; degrade to the bare row if the column isn't there yet.
-    let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
+    let { error } = await supabaseAdmin
+      .from("contact_messages")
+      .insert({ ...base, ip_hash: ipHash });
     if (error && /ip_hash|column/i.test(error.message)) {
       ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
     }
@@ -494,7 +531,9 @@ export const getPublicSeller = createServerFn({ method: "GET" })
 
     const { data: agents, error: agentsError } = await supabaseAdmin
       .from("agents")
-      .select("id, slug, name, tagline, category, capabilities, tier, price_cents, image_url, featured")
+      .select(
+        "id, slug, name, tagline, category, capabilities, tier, price_cents, image_url, featured",
+      )
       .eq("seller_id", seller.id)
       .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
       .order("name");
@@ -526,4 +565,3 @@ export const getPublicSeller = createServerFn({ method: "GET" })
       services: services ?? [],
     };
   });
-

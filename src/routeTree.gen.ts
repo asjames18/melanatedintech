@@ -15,9 +15,11 @@ import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as StrategySprintRouteImport } from './routes/strategy-sprint'
 import { Route as StartSmallRouteImport } from './routes/start-small'
+import { Route as SolveRouteImport } from './routes/solve'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as RadarRouteImport } from './routes/radar'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -29,10 +31,13 @@ import { Route as GetADemoRouteImport } from './routes/get-a-demo'
 import { Route as FitFinderRouteImport } from './routes/fit-finder'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CommunityGuidelinesRouteImport } from './routes/community-guidelines'
 import { Route as CommunityRouteImport } from './routes/community'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AiToolsRouteImport } from './routes/ai-tools'
+import { Route as AiStackBuilderRouteImport } from './routes/ai-stack-builder'
 import { Route as AgentsRouteImport } from './routes/agents'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -40,13 +45,16 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools.index'
 import { Route as SystemsIndexRouteImport } from './routes/systems.index'
 import { Route as StarterPacksIndexRouteImport } from './routes/starter-packs.index'
+import { Route as SolutionsIndexRouteImport } from './routes/solutions.index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as PodcastIndexRouteImport } from './routes/podcast.index'
 import { Route as PathsIndexRouteImport } from './routes/paths.index'
 import { Route as KnowledgeIndexRouteImport } from './routes/knowledge.index'
+import { Route as CompareIndexRouteImport } from './routes/compare.index'
 import { Route as CommunityIndexRouteImport } from './routes/community.index'
 import { Route as ChallengesIndexRouteImport } from './routes/challenges.index'
+import { Route as AiToolsIndexRouteImport } from './routes/ai-tools.index'
 import { Route as AgentsIndexRouteImport } from './routes/agents.index'
 import { Route as WebsiteLaunchChecklistConfirmRouteImport } from './routes/website-launch-checklist_.confirm'
 import { Route as UUserIdRouteImport } from './routes/u.$userId'
@@ -75,9 +83,14 @@ import { Route as TTagRouteImport } from './routes/t.$tag'
 import { Route as SystemsSlugRouteImport } from './routes/systems.$slug'
 import { Route as StarterPacksSlugRouteImport } from './routes/starter-packs.$slug'
 import { Route as SolutionsSlugRouteImport } from './routes/solutions.$slug'
+import { Route as ServicesWorkflowAutomationRouteImport } from './routes/services.workflow-automation'
 import { Route as ServicesMinistryAiImplementationRouteImport } from './routes/services.ministry-ai-implementation'
+import { Route as ServicesInternalKnowledgeSystemsRouteImport } from './routes/services.internal-knowledge-systems'
+import { Route as ServicesDocumentIntakeAutomationRouteImport } from './routes/services.document-intake-automation'
 import { Route as ServicesCustomAgentBuildRouteImport } from './routes/services.custom-agent-build'
 import { Route as ServicesAiWorkshopRouteImport } from './routes/services.ai-workshop'
+import { Route as ServicesAiIntegrationsRouteImport } from './routes/services.ai-integrations'
+import { Route as ServicesAiAgentsRouteImport } from './routes/services.ai-agents'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
@@ -91,11 +104,16 @@ import { Route as KnowledgeChoosingYourFirstAgentWorkflowRouteImport } from './r
 import { Route as KnowledgeAiAgentsForMinistryRouteImport } from './routes/knowledge.ai-agents-for-ministry'
 import { Route as KnowledgeSlugRouteImport } from './routes/knowledge.$slug'
 import { Route as InvoiceNumberRouteImport } from './routes/invoice.$number'
+import { Route as IndustriesHigherEducationRouteImport } from './routes/industries.higher-education'
 import { Route as DiagnosticSuccessRouteImport } from './routes/diagnostic.success'
+import { Route as CompareComparisonRouteImport } from './routes/compare.$comparison'
 import { Route as CommunityIdRouteImport } from './routes/community.$id'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as ChallengesSlugRouteImport } from './routes/challenges.$slug'
 import { Route as AuthorsSlugRouteImport } from './routes/authors.$slug'
+import { Route as AlternativesToolRouteImport } from './routes/alternatives.$tool'
+import { Route as AiToolsHigherEducationRouteImport } from './routes/ai-tools.higher-education'
+import { Route as AiToolsSlugRouteImport } from './routes/ai-tools.$slug'
 import { Route as AiPlaybookForNicheRouteImport } from './routes/ai-playbook-for.$niche'
 import { Route as AgentsSlugRouteImport } from './routes/agents.$slug'
 import { Route as AuthenticatedSubmitAgentRouteImport } from './routes/_authenticated/submit-agent'
@@ -111,6 +129,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as AuthenticatedSubmissionsIdRouteImport } from './routes/_authenticated/submissions.$id'
 import { Route as AuthenticatedAdminWebsiteLaunchNurtureRouteImport } from './routes/_authenticated/admin.website-launch-nurture'
+import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin.tools'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
 import { Route as AuthenticatedAdminContentAgentRouteImport } from './routes/_authenticated/admin.content-agent'
@@ -151,6 +170,11 @@ const StartSmallRoute = StartSmallRouteImport.update({
   path: '/start-small',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolveRoute = SolveRouteImport.update({
+  id: '/solve',
+  path: '/solve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -164,6 +188,11 @@ const SearchRoute = SearchRouteImport.update({
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RadarRoute = RadarRouteImport.update({
+  id: '/radar',
+  path: '/radar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProofRoute = ProofRouteImport.update({
@@ -221,6 +250,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommunityGuidelinesRoute = CommunityGuidelinesRouteImport.update({
   id: '/community-guidelines',
   path: '/community-guidelines',
@@ -239,6 +273,16 @@ const ChallengesRoute = ChallengesRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiToolsRoute = AiToolsRouteImport.update({
+  id: '/ai-tools',
+  path: '/ai-tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiStackBuilderRoute = AiStackBuilderRouteImport.update({
+  id: '/ai-stack-builder',
+  path: '/ai-stack-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AgentsRoute = AgentsRouteImport.update({
@@ -275,6 +319,11 @@ const StarterPacksIndexRoute = StarterPacksIndexRouteImport.update({
   path: '/starter-packs/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SolutionsIndexRoute = SolutionsIndexRouteImport.update({
+  id: '/solutions/',
+  path: '/solutions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
@@ -300,6 +349,11 @@ const KnowledgeIndexRoute = KnowledgeIndexRouteImport.update({
   path: '/',
   getParentRoute: () => KnowledgeRoute,
 } as any)
+const CompareIndexRoute = CompareIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CompareRoute,
+} as any)
 const CommunityIndexRoute = CommunityIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -309,6 +363,11 @@ const ChallengesIndexRoute = ChallengesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => ChallengesRoute,
+} as any)
+const AiToolsIndexRoute = AiToolsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AiToolsRoute,
 } as any)
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/',
@@ -456,10 +515,28 @@ const SolutionsSlugRoute = SolutionsSlugRouteImport.update({
   path: '/solutions/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicesWorkflowAutomationRoute =
+  ServicesWorkflowAutomationRouteImport.update({
+    id: '/services/workflow-automation',
+    path: '/services/workflow-automation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ServicesMinistryAiImplementationRoute =
   ServicesMinistryAiImplementationRouteImport.update({
     id: '/services/ministry-ai-implementation',
     path: '/services/ministry-ai-implementation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesInternalKnowledgeSystemsRoute =
+  ServicesInternalKnowledgeSystemsRouteImport.update({
+    id: '/services/internal-knowledge-systems',
+    path: '/services/internal-knowledge-systems',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ServicesDocumentIntakeAutomationRoute =
+  ServicesDocumentIntakeAutomationRouteImport.update({
+    id: '/services/document-intake-automation',
+    path: '/services/document-intake-automation',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ServicesCustomAgentBuildRoute =
@@ -471,6 +548,16 @@ const ServicesCustomAgentBuildRoute =
 const ServicesAiWorkshopRoute = ServicesAiWorkshopRouteImport.update({
   id: '/services/ai-workshop',
   path: '/services/ai-workshop',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesAiIntegrationsRoute = ServicesAiIntegrationsRouteImport.update({
+  id: '/services/ai-integrations',
+  path: '/services/ai-integrations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesAiAgentsRoute = ServicesAiAgentsRouteImport.update({
+  id: '/services/ai-agents',
+  path: '/services/ai-agents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesSlugRoute = ServicesSlugRouteImport.update({
@@ -543,10 +630,21 @@ const InvoiceNumberRoute = InvoiceNumberRouteImport.update({
   path: '/invoice/$number',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IndustriesHigherEducationRoute =
+  IndustriesHigherEducationRouteImport.update({
+    id: '/industries/higher-education',
+    path: '/industries/higher-education',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DiagnosticSuccessRoute = DiagnosticSuccessRouteImport.update({
   id: '/success',
   path: '/success',
   getParentRoute: () => DiagnosticRoute,
+} as any)
+const CompareComparisonRoute = CompareComparisonRouteImport.update({
+  id: '/$comparison',
+  path: '/$comparison',
+  getParentRoute: () => CompareRoute,
 } as any)
 const CommunityIdRoute = CommunityIdRouteImport.update({
   id: '/$id',
@@ -567,6 +665,21 @@ const AuthorsSlugRoute = AuthorsSlugRouteImport.update({
   id: '/authors/$slug',
   path: '/authors/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AlternativesToolRoute = AlternativesToolRouteImport.update({
+  id: '/alternatives/$tool',
+  path: '/alternatives/$tool',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiToolsHigherEducationRoute = AiToolsHigherEducationRouteImport.update({
+  id: '/higher-education',
+  path: '/higher-education',
+  getParentRoute: () => AiToolsRoute,
+} as any)
+const AiToolsSlugRoute = AiToolsSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AiToolsRoute,
 } as any)
 const AiPlaybookForNicheRoute = AiPlaybookForNicheRouteImport.update({
   id: '/ai-playbook-for/$niche',
@@ -648,6 +761,11 @@ const AuthenticatedAdminWebsiteLaunchNurtureRoute =
     path: '/website-launch-nurture',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminToolsRoute = AuthenticatedAdminToolsRouteImport.update({
+  id: '/tools',
+  path: '/tools',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
@@ -705,10 +823,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/ai-stack-builder': typeof AiStackBuilderRoute
+  '/ai-tools': typeof AiToolsRouteWithChildren
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/community-guidelines': typeof CommunityGuidelinesRoute
+  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/diagnostic': typeof DiagnosticRouteWithChildren
   '/fit-finder': typeof FitFinderRoute
@@ -720,9 +841,11 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/radar': typeof RadarRoute
   '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solve': typeof SolveRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
@@ -739,11 +862,16 @@ export interface FileRoutesByFullPath {
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/ai-playbook-for/$niche': typeof AiPlaybookForNicheRoute
+  '/ai-tools/$slug': typeof AiToolsSlugRoute
+  '/ai-tools/higher-education': typeof AiToolsHigherEducationRoute
+  '/alternatives/$tool': typeof AlternativesToolRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/compare/$comparison': typeof CompareComparisonRoute
   '/diagnostic/success': typeof DiagnosticSuccessRoute
+  '/industries/higher-education': typeof IndustriesHigherEducationRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -757,9 +885,14 @@ export interface FileRoutesByFullPath {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-agents': typeof ServicesAiAgentsRoute
+  '/services/ai-integrations': typeof ServicesAiIntegrationsRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/document-intake-automation': typeof ServicesDocumentIntakeAutomationRoute
+  '/services/internal-knowledge-systems': typeof ServicesInternalKnowledgeSystemsRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/services/workflow-automation': typeof ServicesWorkflowAutomationRoute
   '/solutions/$slug': typeof SolutionsSlugRoute
   '/starter-packs/$slug': typeof StarterPacksSlugRoute
   '/systems/$slug': typeof SystemsSlugRoute
@@ -788,13 +921,16 @@ export interface FileRoutesByFullPath {
   '/u/$userId': typeof UUserIdRoute
   '/website-launch-checklist/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents/': typeof AgentsIndexRoute
+  '/ai-tools/': typeof AiToolsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/starter-packs/': typeof StarterPacksIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -803,6 +939,7 @@ export interface FileRoutesByFullPath {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
@@ -816,6 +953,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/ai-stack-builder': typeof AiStackBuilderRoute
   '/auth': typeof AuthRoute
   '/community-guidelines': typeof CommunityGuidelinesRoute
   '/contact': typeof ContactRoute
@@ -826,9 +964,11 @@ export interface FileRoutesByTo {
   '/open-commons': typeof OpenCommonsRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
+  '/radar': typeof RadarRoute
   '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solve': typeof SolveRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
@@ -843,11 +983,16 @@ export interface FileRoutesByTo {
   '/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/ai-playbook-for/$niche': typeof AiPlaybookForNicheRoute
+  '/ai-tools/$slug': typeof AiToolsSlugRoute
+  '/ai-tools/higher-education': typeof AiToolsHigherEducationRoute
+  '/alternatives/$tool': typeof AlternativesToolRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/compare/$comparison': typeof CompareComparisonRoute
   '/diagnostic/success': typeof DiagnosticSuccessRoute
+  '/industries/higher-education': typeof IndustriesHigherEducationRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -861,9 +1006,14 @@ export interface FileRoutesByTo {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-agents': typeof ServicesAiAgentsRoute
+  '/services/ai-integrations': typeof ServicesAiIntegrationsRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/document-intake-automation': typeof ServicesDocumentIntakeAutomationRoute
+  '/services/internal-knowledge-systems': typeof ServicesInternalKnowledgeSystemsRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/services/workflow-automation': typeof ServicesWorkflowAutomationRoute
   '/solutions/$slug': typeof SolutionsSlugRoute
   '/starter-packs/$slug': typeof StarterPacksSlugRoute
   '/systems/$slug': typeof SystemsSlugRoute
@@ -892,13 +1042,16 @@ export interface FileRoutesByTo {
   '/u/$userId': typeof UUserIdRoute
   '/website-launch-checklist/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents': typeof AgentsIndexRoute
+  '/ai-tools': typeof AiToolsIndexRoute
   '/challenges': typeof ChallengesIndexRoute
   '/community': typeof CommunityIndexRoute
+  '/compare': typeof CompareIndexRoute
   '/knowledge': typeof KnowledgeIndexRoute
   '/paths': typeof PathsIndexRoute
   '/podcast': typeof PodcastIndexRoute
   '/products': typeof ProductsIndexRoute
   '/services': typeof ServicesIndexRoute
+  '/solutions': typeof SolutionsIndexRoute
   '/starter-packs': typeof StarterPacksIndexRoute
   '/systems': typeof SystemsIndexRoute
   '/tools': typeof ToolsIndexRoute
@@ -907,6 +1060,7 @@ export interface FileRoutesByTo {
   '/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
@@ -923,10 +1077,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/ai-stack-builder': typeof AiStackBuilderRoute
+  '/ai-tools': typeof AiToolsRouteWithChildren
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
   '/community-guidelines': typeof CommunityGuidelinesRoute
+  '/compare': typeof CompareRouteWithChildren
   '/contact': typeof ContactRoute
   '/diagnostic': typeof DiagnosticRouteWithChildren
   '/fit-finder': typeof FitFinderRoute
@@ -938,9 +1095,11 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/radar': typeof RadarRoute
   '/roadmap': typeof RoadmapRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solve': typeof SolveRoute
   '/start-small': typeof StartSmallRoute
   '/strategy-sprint': typeof StrategySprintRoute
   '/terms': typeof TermsRoute
@@ -957,11 +1116,16 @@ export interface FileRoutesById {
   '/_authenticated/submit-agent': typeof AuthenticatedSubmitAgentRoute
   '/agents/$slug': typeof AgentsSlugRoute
   '/ai-playbook-for/$niche': typeof AiPlaybookForNicheRoute
+  '/ai-tools/$slug': typeof AiToolsSlugRoute
+  '/ai-tools/higher-education': typeof AiToolsHigherEducationRoute
+  '/alternatives/$tool': typeof AlternativesToolRoute
   '/authors/$slug': typeof AuthorsSlugRoute
   '/challenges/$slug': typeof ChallengesSlugRoute
   '/checkout/return': typeof CheckoutReturnRoute
   '/community/$id': typeof CommunityIdRoute
+  '/compare/$comparison': typeof CompareComparisonRoute
   '/diagnostic/success': typeof DiagnosticSuccessRoute
+  '/industries/higher-education': typeof IndustriesHigherEducationRoute
   '/invoice/$number': typeof InvoiceNumberRoute
   '/knowledge/$slug': typeof KnowledgeSlugRoute
   '/knowledge/ai-agents-for-ministry': typeof KnowledgeAiAgentsForMinistryRoute
@@ -975,9 +1139,14 @@ export interface FileRoutesById {
   '/products/$slug': typeof ProductsSlugRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/services/ai-agents': typeof ServicesAiAgentsRoute
+  '/services/ai-integrations': typeof ServicesAiIntegrationsRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
   '/services/custom-agent-build': typeof ServicesCustomAgentBuildRoute
+  '/services/document-intake-automation': typeof ServicesDocumentIntakeAutomationRoute
+  '/services/internal-knowledge-systems': typeof ServicesInternalKnowledgeSystemsRoute
   '/services/ministry-ai-implementation': typeof ServicesMinistryAiImplementationRoute
+  '/services/workflow-automation': typeof ServicesWorkflowAutomationRoute
   '/solutions/$slug': typeof SolutionsSlugRoute
   '/starter-packs/$slug': typeof StarterPacksSlugRoute
   '/systems/$slug': typeof SystemsSlugRoute
@@ -1006,13 +1175,16 @@ export interface FileRoutesById {
   '/u/$userId': typeof UUserIdRoute
   '/website-launch-checklist_/confirm': typeof WebsiteLaunchChecklistConfirmRoute
   '/agents/': typeof AgentsIndexRoute
+  '/ai-tools/': typeof AiToolsIndexRoute
   '/challenges/': typeof ChallengesIndexRoute
   '/community/': typeof CommunityIndexRoute
+  '/compare/': typeof CompareIndexRoute
   '/knowledge/': typeof KnowledgeIndexRoute
   '/paths/': typeof PathsIndexRoute
   '/podcast/': typeof PodcastIndexRoute
   '/products/': typeof ProductsIndexRoute
   '/services/': typeof ServicesIndexRoute
+  '/solutions/': typeof SolutionsIndexRoute
   '/starter-packs/': typeof StarterPacksIndexRoute
   '/systems/': typeof SystemsIndexRoute
   '/tools/': typeof ToolsIndexRoute
@@ -1021,6 +1193,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/content-agent': typeof AuthenticatedAdminContentAgentRoute
   '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/_authenticated/admin/tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/admin/website-launch-nurture': typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   '/_authenticated/submissions/$id': typeof AuthenticatedSubmissionsIdRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
@@ -1037,10 +1210,13 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/agents'
+    | '/ai-stack-builder'
+    | '/ai-tools'
     | '/auth'
     | '/challenges'
     | '/community'
     | '/community-guidelines'
+    | '/compare'
     | '/contact'
     | '/diagnostic'
     | '/fit-finder'
@@ -1052,9 +1228,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/radar'
     | '/roadmap'
     | '/search'
     | '/sitemap.xml'
+    | '/solve'
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
@@ -1071,11 +1249,16 @@ export interface FileRouteTypes {
     | '/submit-agent'
     | '/agents/$slug'
     | '/ai-playbook-for/$niche'
+    | '/ai-tools/$slug'
+    | '/ai-tools/higher-education'
+    | '/alternatives/$tool'
     | '/authors/$slug'
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/compare/$comparison'
     | '/diagnostic/success'
+    | '/industries/higher-education'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -1089,9 +1272,14 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-agents'
+    | '/services/ai-integrations'
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
+    | '/services/document-intake-automation'
+    | '/services/internal-knowledge-systems'
     | '/services/ministry-ai-implementation'
+    | '/services/workflow-automation'
     | '/solutions/$slug'
     | '/starter-packs/$slug'
     | '/systems/$slug'
@@ -1120,13 +1308,16 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/website-launch-checklist/confirm'
     | '/agents/'
+    | '/ai-tools/'
     | '/challenges/'
     | '/community/'
+    | '/compare/'
     | '/knowledge/'
     | '/paths/'
     | '/podcast/'
     | '/products/'
     | '/services/'
+    | '/solutions/'
     | '/starter-packs/'
     | '/systems/'
     | '/tools/'
@@ -1135,6 +1326,7 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/tools'
     | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
@@ -1148,6 +1340,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/ai-stack-builder'
     | '/auth'
     | '/community-guidelines'
     | '/contact'
@@ -1158,9 +1351,11 @@ export interface FileRouteTypes {
     | '/open-commons'
     | '/privacy'
     | '/proof'
+    | '/radar'
     | '/roadmap'
     | '/search'
     | '/sitemap.xml'
+    | '/solve'
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
@@ -1175,11 +1370,16 @@ export interface FileRouteTypes {
     | '/submit-agent'
     | '/agents/$slug'
     | '/ai-playbook-for/$niche'
+    | '/ai-tools/$slug'
+    | '/ai-tools/higher-education'
+    | '/alternatives/$tool'
     | '/authors/$slug'
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/compare/$comparison'
     | '/diagnostic/success'
+    | '/industries/higher-education'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -1193,9 +1393,14 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-agents'
+    | '/services/ai-integrations'
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
+    | '/services/document-intake-automation'
+    | '/services/internal-knowledge-systems'
     | '/services/ministry-ai-implementation'
+    | '/services/workflow-automation'
     | '/solutions/$slug'
     | '/starter-packs/$slug'
     | '/systems/$slug'
@@ -1224,13 +1429,16 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/website-launch-checklist/confirm'
     | '/agents'
+    | '/ai-tools'
     | '/challenges'
     | '/community'
+    | '/compare'
     | '/knowledge'
     | '/paths'
     | '/podcast'
     | '/products'
     | '/services'
+    | '/solutions'
     | '/starter-packs'
     | '/systems'
     | '/tools'
@@ -1239,6 +1447,7 @@ export interface FileRouteTypes {
     | '/admin/content-agent'
     | '/admin/invoices'
     | '/admin/leads'
+    | '/admin/tools'
     | '/admin/website-launch-nurture'
     | '/submissions/$id'
     | '/api/public/csp-report'
@@ -1254,10 +1463,13 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/agents'
+    | '/ai-stack-builder'
+    | '/ai-tools'
     | '/auth'
     | '/challenges'
     | '/community'
     | '/community-guidelines'
+    | '/compare'
     | '/contact'
     | '/diagnostic'
     | '/fit-finder'
@@ -1269,9 +1481,11 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/radar'
     | '/roadmap'
     | '/search'
     | '/sitemap.xml'
+    | '/solve'
     | '/start-small'
     | '/strategy-sprint'
     | '/terms'
@@ -1288,11 +1502,16 @@ export interface FileRouteTypes {
     | '/_authenticated/submit-agent'
     | '/agents/$slug'
     | '/ai-playbook-for/$niche'
+    | '/ai-tools/$slug'
+    | '/ai-tools/higher-education'
+    | '/alternatives/$tool'
     | '/authors/$slug'
     | '/challenges/$slug'
     | '/checkout/return'
     | '/community/$id'
+    | '/compare/$comparison'
     | '/diagnostic/success'
+    | '/industries/higher-education'
     | '/invoice/$number'
     | '/knowledge/$slug'
     | '/knowledge/ai-agents-for-ministry'
@@ -1306,9 +1525,14 @@ export interface FileRouteTypes {
     | '/products/$slug'
     | '/sellers/$slug'
     | '/services/$slug'
+    | '/services/ai-agents'
+    | '/services/ai-integrations'
     | '/services/ai-workshop'
     | '/services/custom-agent-build'
+    | '/services/document-intake-automation'
+    | '/services/internal-knowledge-systems'
     | '/services/ministry-ai-implementation'
+    | '/services/workflow-automation'
     | '/solutions/$slug'
     | '/starter-packs/$slug'
     | '/systems/$slug'
@@ -1337,13 +1561,16 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/website-launch-checklist_/confirm'
     | '/agents/'
+    | '/ai-tools/'
     | '/challenges/'
     | '/community/'
+    | '/compare/'
     | '/knowledge/'
     | '/paths/'
     | '/podcast/'
     | '/products/'
     | '/services/'
+    | '/solutions/'
     | '/starter-packs/'
     | '/systems/'
     | '/tools/'
@@ -1352,6 +1579,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/content-agent'
     | '/_authenticated/admin/invoices'
     | '/_authenticated/admin/leads'
+    | '/_authenticated/admin/tools'
     | '/_authenticated/admin/website-launch-nurture'
     | '/_authenticated/submissions/$id'
     | '/api/public/csp-report'
@@ -1368,10 +1596,13 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRouteWithChildren
+  AiStackBuilderRoute: typeof AiStackBuilderRoute
+  AiToolsRoute: typeof AiToolsRouteWithChildren
   AuthRoute: typeof AuthRoute
   ChallengesRoute: typeof ChallengesRouteWithChildren
   CommunityRoute: typeof CommunityRouteWithChildren
   CommunityGuidelinesRoute: typeof CommunityGuidelinesRoute
+  CompareRoute: typeof CompareRouteWithChildren
   ContactRoute: typeof ContactRoute
   DiagnosticRoute: typeof DiagnosticRouteWithChildren
   FitFinderRoute: typeof FitFinderRoute
@@ -1383,9 +1614,11 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
+  RadarRoute: typeof RadarRoute
   RoadmapRoute: typeof RoadmapRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SolveRoute: typeof SolveRoute
   StartSmallRoute: typeof StartSmallRoute
   StrategySprintRoute: typeof StrategySprintRoute
   TermsRoute: typeof TermsRoute
@@ -1393,15 +1626,22 @@ export interface RootRouteChildren {
   WebsiteLaunchChecklistRoute: typeof WebsiteLaunchChecklistRoute
   WorkWithUsRoute: typeof WorkWithUsRoute
   AiPlaybookForNicheRoute: typeof AiPlaybookForNicheRoute
+  AlternativesToolRoute: typeof AlternativesToolRoute
   AuthorsSlugRoute: typeof AuthorsSlugRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  IndustriesHigherEducationRoute: typeof IndustriesHigherEducationRoute
   InvoiceNumberRoute: typeof InvoiceNumberRoute
   PodcastFeedDotxmlRoute: typeof PodcastFeedDotxmlRoute
   SellersSlugRoute: typeof SellersSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
+  ServicesAiAgentsRoute: typeof ServicesAiAgentsRoute
+  ServicesAiIntegrationsRoute: typeof ServicesAiIntegrationsRoute
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
   ServicesCustomAgentBuildRoute: typeof ServicesCustomAgentBuildRoute
+  ServicesDocumentIntakeAutomationRoute: typeof ServicesDocumentIntakeAutomationRoute
+  ServicesInternalKnowledgeSystemsRoute: typeof ServicesInternalKnowledgeSystemsRoute
   ServicesMinistryAiImplementationRoute: typeof ServicesMinistryAiImplementationRoute
+  ServicesWorkflowAutomationRoute: typeof ServicesWorkflowAutomationRoute
   SolutionsSlugRoute: typeof SolutionsSlugRoute
   StarterPacksSlugRoute: typeof StarterPacksSlugRoute
   SystemsSlugRoute: typeof SystemsSlugRoute
@@ -1431,6 +1671,7 @@ export interface RootRouteChildren {
   WebsiteLaunchChecklistConfirmRoute: typeof WebsiteLaunchChecklistConfirmRoute
   PodcastIndexRoute: typeof PodcastIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
+  SolutionsIndexRoute: typeof SolutionsIndexRoute
   StarterPacksIndexRoute: typeof StarterPacksIndexRoute
   SystemsIndexRoute: typeof SystemsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
@@ -1485,6 +1726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StartSmallRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/solve': {
+      id: '/solve'
+      path: '/solve'
+      fullPath: '/solve'
+      preLoaderRoute: typeof SolveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1504,6 +1752,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/radar': {
+      id: '/radar'
+      path: '/radar'
+      fullPath: '/radar'
+      preLoaderRoute: typeof RadarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/proof': {
@@ -1583,6 +1838,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/community-guidelines': {
       id: '/community-guidelines'
       path: '/community-guidelines'
@@ -1609,6 +1871,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-tools': {
+      id: '/ai-tools'
+      path: '/ai-tools'
+      fullPath: '/ai-tools'
+      preLoaderRoute: typeof AiToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-stack-builder': {
+      id: '/ai-stack-builder'
+      path: '/ai-stack-builder'
+      fullPath: '/ai-stack-builder'
+      preLoaderRoute: typeof AiStackBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/agents': {
@@ -1660,6 +1936,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StarterPacksIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/solutions/': {
+      id: '/solutions/'
+      path: '/solutions'
+      fullPath: '/solutions/'
+      preLoaderRoute: typeof SolutionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services/': {
       id: '/services/'
       path: '/services'
@@ -1695,6 +1978,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KnowledgeIndexRouteImport
       parentRoute: typeof KnowledgeRoute
     }
+    '/compare/': {
+      id: '/compare/'
+      path: '/'
+      fullPath: '/compare/'
+      preLoaderRoute: typeof CompareIndexRouteImport
+      parentRoute: typeof CompareRoute
+    }
     '/community/': {
       id: '/community/'
       path: '/'
@@ -1708,6 +1998,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/challenges/'
       preLoaderRoute: typeof ChallengesIndexRouteImport
       parentRoute: typeof ChallengesRoute
+    }
+    '/ai-tools/': {
+      id: '/ai-tools/'
+      path: '/'
+      fullPath: '/ai-tools/'
+      preLoaderRoute: typeof AiToolsIndexRouteImport
+      parentRoute: typeof AiToolsRoute
     }
     '/agents/': {
       id: '/agents/'
@@ -1905,11 +2202,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/services/workflow-automation': {
+      id: '/services/workflow-automation'
+      path: '/services/workflow-automation'
+      fullPath: '/services/workflow-automation'
+      preLoaderRoute: typeof ServicesWorkflowAutomationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services/ministry-ai-implementation': {
       id: '/services/ministry-ai-implementation'
       path: '/services/ministry-ai-implementation'
       fullPath: '/services/ministry-ai-implementation'
       preLoaderRoute: typeof ServicesMinistryAiImplementationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/internal-knowledge-systems': {
+      id: '/services/internal-knowledge-systems'
+      path: '/services/internal-knowledge-systems'
+      fullPath: '/services/internal-knowledge-systems'
+      preLoaderRoute: typeof ServicesInternalKnowledgeSystemsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/document-intake-automation': {
+      id: '/services/document-intake-automation'
+      path: '/services/document-intake-automation'
+      fullPath: '/services/document-intake-automation'
+      preLoaderRoute: typeof ServicesDocumentIntakeAutomationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services/custom-agent-build': {
@@ -1924,6 +2242,20 @@ declare module '@tanstack/react-router' {
       path: '/services/ai-workshop'
       fullPath: '/services/ai-workshop'
       preLoaderRoute: typeof ServicesAiWorkshopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ai-integrations': {
+      id: '/services/ai-integrations'
+      path: '/services/ai-integrations'
+      fullPath: '/services/ai-integrations'
+      preLoaderRoute: typeof ServicesAiIntegrationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services/ai-agents': {
+      id: '/services/ai-agents'
+      path: '/services/ai-agents'
+      fullPath: '/services/ai-agents'
+      preLoaderRoute: typeof ServicesAiAgentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services/$slug': {
@@ -2017,12 +2349,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InvoiceNumberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/industries/higher-education': {
+      id: '/industries/higher-education'
+      path: '/industries/higher-education'
+      fullPath: '/industries/higher-education'
+      preLoaderRoute: typeof IndustriesHigherEducationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/diagnostic/success': {
       id: '/diagnostic/success'
       path: '/success'
       fullPath: '/diagnostic/success'
       preLoaderRoute: typeof DiagnosticSuccessRouteImport
       parentRoute: typeof DiagnosticRoute
+    }
+    '/compare/$comparison': {
+      id: '/compare/$comparison'
+      path: '/$comparison'
+      fullPath: '/compare/$comparison'
+      preLoaderRoute: typeof CompareComparisonRouteImport
+      parentRoute: typeof CompareRoute
     }
     '/community/$id': {
       id: '/community/$id'
@@ -2051,6 +2397,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/authors/$slug'
       preLoaderRoute: typeof AuthorsSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/alternatives/$tool': {
+      id: '/alternatives/$tool'
+      path: '/alternatives/$tool'
+      fullPath: '/alternatives/$tool'
+      preLoaderRoute: typeof AlternativesToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-tools/higher-education': {
+      id: '/ai-tools/higher-education'
+      path: '/higher-education'
+      fullPath: '/ai-tools/higher-education'
+      preLoaderRoute: typeof AiToolsHigherEducationRouteImport
+      parentRoute: typeof AiToolsRoute
+    }
+    '/ai-tools/$slug': {
+      id: '/ai-tools/$slug'
+      path: '/$slug'
+      fullPath: '/ai-tools/$slug'
+      preLoaderRoute: typeof AiToolsSlugRouteImport
+      parentRoute: typeof AiToolsRoute
     }
     '/ai-playbook-for/$niche': {
       id: '/ai-playbook-for/$niche'
@@ -2157,6 +2524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/tools': {
+      id: '/_authenticated/admin/tools'
+      path: '/tools'
+      fullPath: '/admin/tools'
+      preLoaderRoute: typeof AuthenticatedAdminToolsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/leads'
@@ -2229,6 +2603,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminContentAgentRoute: typeof AuthenticatedAdminContentAgentRoute
   AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
+  AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedAdminWebsiteLaunchNurtureRoute: typeof AuthenticatedAdminWebsiteLaunchNurtureRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -2239,6 +2614,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminContentAgentRoute: AuthenticatedAdminContentAgentRoute,
   AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
+  AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedAdminWebsiteLaunchNurtureRoute:
     AuthenticatedAdminWebsiteLaunchNurtureRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
@@ -2301,6 +2677,21 @@ const AgentsRouteChildren: AgentsRouteChildren = {
 const AgentsRouteWithChildren =
   AgentsRoute._addFileChildren(AgentsRouteChildren)
 
+interface AiToolsRouteChildren {
+  AiToolsSlugRoute: typeof AiToolsSlugRoute
+  AiToolsHigherEducationRoute: typeof AiToolsHigherEducationRoute
+  AiToolsIndexRoute: typeof AiToolsIndexRoute
+}
+
+const AiToolsRouteChildren: AiToolsRouteChildren = {
+  AiToolsSlugRoute: AiToolsSlugRoute,
+  AiToolsHigherEducationRoute: AiToolsHigherEducationRoute,
+  AiToolsIndexRoute: AiToolsIndexRoute,
+}
+
+const AiToolsRouteWithChildren =
+  AiToolsRoute._addFileChildren(AiToolsRouteChildren)
+
 interface ChallengesRouteChildren {
   ChallengesSlugRoute: typeof ChallengesSlugRoute
   ChallengesIndexRoute: typeof ChallengesIndexRoute
@@ -2328,6 +2719,19 @@ const CommunityRouteChildren: CommunityRouteChildren = {
 const CommunityRouteWithChildren = CommunityRoute._addFileChildren(
   CommunityRouteChildren,
 )
+
+interface CompareRouteChildren {
+  CompareComparisonRoute: typeof CompareComparisonRoute
+  CompareIndexRoute: typeof CompareIndexRoute
+}
+
+const CompareRouteChildren: CompareRouteChildren = {
+  CompareComparisonRoute: CompareComparisonRoute,
+  CompareIndexRoute: CompareIndexRoute,
+}
+
+const CompareRouteWithChildren =
+  CompareRoute._addFileChildren(CompareRouteChildren)
 
 interface DiagnosticRouteChildren {
   DiagnosticSuccessRoute: typeof DiagnosticSuccessRoute
@@ -2400,10 +2804,13 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRouteWithChildren,
+  AiStackBuilderRoute: AiStackBuilderRoute,
+  AiToolsRoute: AiToolsRouteWithChildren,
   AuthRoute: AuthRoute,
   ChallengesRoute: ChallengesRouteWithChildren,
   CommunityRoute: CommunityRouteWithChildren,
   CommunityGuidelinesRoute: CommunityGuidelinesRoute,
+  CompareRoute: CompareRouteWithChildren,
   ContactRoute: ContactRoute,
   DiagnosticRoute: DiagnosticRouteWithChildren,
   FitFinderRoute: FitFinderRoute,
@@ -2415,9 +2822,11 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
+  RadarRoute: RadarRoute,
   RoadmapRoute: RoadmapRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SolveRoute: SolveRoute,
   StartSmallRoute: StartSmallRoute,
   StrategySprintRoute: StrategySprintRoute,
   TermsRoute: TermsRoute,
@@ -2425,15 +2834,22 @@ const rootRouteChildren: RootRouteChildren = {
   WebsiteLaunchChecklistRoute: WebsiteLaunchChecklistRoute,
   WorkWithUsRoute: WorkWithUsRoute,
   AiPlaybookForNicheRoute: AiPlaybookForNicheRoute,
+  AlternativesToolRoute: AlternativesToolRoute,
   AuthorsSlugRoute: AuthorsSlugRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  IndustriesHigherEducationRoute: IndustriesHigherEducationRoute,
   InvoiceNumberRoute: InvoiceNumberRoute,
   PodcastFeedDotxmlRoute: PodcastFeedDotxmlRoute,
   SellersSlugRoute: SellersSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
+  ServicesAiAgentsRoute: ServicesAiAgentsRoute,
+  ServicesAiIntegrationsRoute: ServicesAiIntegrationsRoute,
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,
   ServicesCustomAgentBuildRoute: ServicesCustomAgentBuildRoute,
+  ServicesDocumentIntakeAutomationRoute: ServicesDocumentIntakeAutomationRoute,
+  ServicesInternalKnowledgeSystemsRoute: ServicesInternalKnowledgeSystemsRoute,
   ServicesMinistryAiImplementationRoute: ServicesMinistryAiImplementationRoute,
+  ServicesWorkflowAutomationRoute: ServicesWorkflowAutomationRoute,
   SolutionsSlugRoute: SolutionsSlugRoute,
   StarterPacksSlugRoute: StarterPacksSlugRoute,
   SystemsSlugRoute: SystemsSlugRoute,
@@ -2463,6 +2879,7 @@ const rootRouteChildren: RootRouteChildren = {
   WebsiteLaunchChecklistConfirmRoute: WebsiteLaunchChecklistConfirmRoute,
   PodcastIndexRoute: PodcastIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,
+  SolutionsIndexRoute: SolutionsIndexRoute,
   StarterPacksIndexRoute: StarterPacksIndexRoute,
   SystemsIndexRoute: SystemsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,

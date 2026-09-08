@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { CalendarDays, MessageSquare } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { listBuilderChallenges } from "@/lib/retention.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const qo = queryOptions({
   queryKey: ["builder-challenges"],
@@ -26,6 +28,11 @@ export const Route = createFileRoute("/challenges/")({
 
 function ChallengesIndex() {
   const { data: challenges } = useSuspenseQuery(qo);
+
+  useEffect(() => {
+    trackEvent("challenges_page_viewed");
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader

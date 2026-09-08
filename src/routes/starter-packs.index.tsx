@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { ArrowRight, FileText, Server, Workflow } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { STARTER_PACKS } from "@/lib/agent-starter-packs";
 import { buildSeoMeta, breadcrumbLd, collectionLd, ldScript } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/starter-packs/")({
   head: () => ({
@@ -33,6 +35,10 @@ export const Route = createFileRoute("/starter-packs/")({
 });
 
 function StarterPacksIndex() {
+  useEffect(() => {
+    trackEvent("starter_packs_page_viewed");
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader

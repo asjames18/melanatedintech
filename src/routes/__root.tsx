@@ -19,8 +19,18 @@ import { Toaster } from "@/components/ui/sonner";
 import { SiteLayout } from "@/components/site-layout";
 import { organizationLd, websiteLd, ldScript } from "@/lib/seo";
 import { Search, ArrowRight } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 function NotFoundComponent() {
+  const location = useLocation();
+
+  useEffect(() => {
+    trackEvent("not_found_viewed", {
+      path: location.pathname,
+      search: location.search || undefined,
+    });
+  }, [location.pathname, location.search]);
+
   return (
     <SiteLayout>
       <div className="flex min-h-[70vh] flex-col items-center justify-center px-4 py-16 text-center sm:px-6 lg:px-8">

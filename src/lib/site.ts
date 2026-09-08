@@ -5,21 +5,21 @@ export const SITE_URL = "https://melanatedintech.com";
 export const SITE = {
   name: "Melanated In Tech",
   short: "MIT",
-  tagline: "Practical AI tools, open infrastructure, and revenue recovery systems.",
+  tagline: "Practical AI automation, integrations, and controlled implementation.",
   description:
-    "Melanated In Tech equips people and small organizations to build practical economic power with AI through useful tools, accountable systems, and open infrastructure.",
+    "Melanated In Tech improves costly business workflows through AI automation, systems integration, and controlled implementation.",
 };
 
 // Community is intentionally out of NAV until the feed has real activity —
 // an empty feed hurts trust more than a missing link. Route stays live.
 export const NAV = [
-  { to: "/solutions/recurring-property-services", label: "Solutions" },
-  { to: "/systems", label: "Systems" },
-  { to: "/agents", label: "Marketplace" },
-  { to: "/knowledge", label: "Learn" },
-  { to: "/open-commons", label: "Open Commons" },
-  { to: "/starter-packs", label: "Starter Packs" },
-  { to: "/products", label: "Products" },
+  { to: "/work-with-us", label: "Services" },
+  { to: "/services/workflow-automation", label: "Workflow Automation" },
+  { to: "/services/ai-integrations", label: "AI Integrations" },
+  { to: "/industries/higher-education", label: "Higher Education" },
+  { to: "/proof", label: "Results" },
+  { to: "/radar", label: "AI Radar" },
+  { to: "/knowledge", label: "Knowledge Hub" },
   { to: "/about", label: "About" },
 ] as const;
 
@@ -62,7 +62,7 @@ export const PILLARS = [
   {
     title: "Work With Us",
     href: "/work-with-us" as const,
-    blurb: "Practical AI training, workflow diagnostics, focused website launches, and scoped custom implementation.",
+    blurb: "Workflow strategy, controlled pilots, production AI integrations, and managed automation operations.",
     tag: "Pillar 06",
   },
   {

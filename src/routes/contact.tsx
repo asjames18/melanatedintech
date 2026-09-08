@@ -11,8 +11,17 @@ const campaignLabel = z
   .max(100)
   .regex(/^[a-zA-Z0-9._-]+$/, "Invalid campaign label.");
 
-const optionalTopic = z.string().trim().max(120).transform((value) => value || undefined).optional().catch(undefined);
-const optionalCampaignLabel = campaignLabel.transform((value) => value || undefined).optional().catch(undefined);
+const optionalTopic = z
+  .string()
+  .trim()
+  .max(120)
+  .transform((value) => value || undefined)
+  .optional()
+  .catch(undefined);
+const optionalCampaignLabel = campaignLabel
+  .transform((value) => value || undefined)
+  .optional()
+  .catch(undefined);
 
 const searchSchema = z.object({
   topic: optionalTopic,
@@ -25,9 +34,9 @@ export const Route = createFileRoute("/contact")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Work With Melanated In Tech | Training, AI & Websites",
+      title: "Discuss an AI Workflow or Integration Project | Melanated In Tech",
       description:
-        "Tell us about your AI training, workflow, website, presentation, or custom implementation needs.",
+        "Tell Melanated In Tech about the workflow, systems, impact, timing, and constraints behind your AI automation or integration project.",
       url: "/contact",
     }),
   }),
@@ -39,9 +48,8 @@ function Contact() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="Work with us"
-        title="Tell us what you are trying to make better."
-        description="Whether you want practical AI training, a clearer workflow, a website launch, a presentation, or a custom build, we would love to hear what you are working on."
+        title="Tell us what you're trying to solve."
+        description="Start with the operational problem—not an AI feature list. Share enough context for us to assess fit and recommend the smallest responsible next step."
       />
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         <ContactForm

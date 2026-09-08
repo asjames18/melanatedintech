@@ -18,6 +18,7 @@ import { useInterests } from "@/hooks/use-interests";
 import { interestScore, topCategories, reasonFor } from "@/lib/recommendations";
 import { buildSeoMeta, ldScript, productLd, breadcrumbLd } from "@/lib/seo";
 import { ogImage } from "@/lib/og";
+import { trackEvent } from "@/lib/analytics";
 import {
   ArrowLeft,
   Package,
@@ -125,6 +126,10 @@ function ProductDetail() {
   useEffect(() => {
     if (product) recordVisit(product.slug, product.category);
   }, [product, recordVisit]);
+
+  useEffect(() => {
+    if (product) trackEvent("product_detail_viewed", { slug: product.slug, category: product.category });
+  }, [product?.slug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const { related, pairedAgents, personalized, topInterests } = useMemo(() => {
     if (!product)

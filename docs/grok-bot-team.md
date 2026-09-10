@@ -169,7 +169,7 @@ BOUNDARIES
 Actions and data that are allowed or prohibited.
 
 DELIVERABLE
-Format, length, and acceptance criteria.
+Format, depth, and acceptance criteria.
 
 RETURN TO
 The Bot or owner who receives the completed work.

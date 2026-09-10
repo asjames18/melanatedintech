@@ -38,7 +38,18 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const BOOT_TIMEOUT_MS = 120_000;
 
 /** Routes that must render without any backing service. */
-const ROUTES = ["/tools", "/privacy", "/terms", "/start-small", "/governance"];
+const ROUTES = [
+  "/tools",
+  "/privacy",
+  "/terms",
+  "/start-small",
+  "/governance",
+  "/ai-tools",
+  "/compare",
+  "/solutions",
+  "/solve",
+  "/work-with-us",
+];
 
 /**
  * Values the browser cannot function without. The Worker injects these into

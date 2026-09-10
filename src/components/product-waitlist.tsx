@@ -18,11 +18,12 @@ export function ProductWaitlist({ productSlug }: { productSlug: string }) {
   });
 
   const [email, setEmail] = useState("");
+  const [hp, setHp] = useState("");
   const [done, setDone] = useState(false);
 
   const m = useMutation({
     mutationFn: (input: { email: string }) =>
-      join({ data: { email: input.email, product_slug: productSlug } }),
+      join({ data: { email: input.email, product_slug: productSlug, hp: hp || undefined } }),
     onSuccess: () => {
       setDone(true);
       trackEvent("waitlist_joined", { source: "product_detail", interest: productSlug });
@@ -72,6 +73,17 @@ export function ProductWaitlist({ productSlug }: { productSlug: string }) {
         }}
         className="flex flex-col gap-2 sm:flex-row"
       >
+        {/* Honeypot — hidden from real users; bots fill it and get silently dropped. */}
+        <input
+          type="text"
+          name="company_website"
+          tabIndex={-1}
+          autoComplete="off"
+          aria-hidden="true"
+          value={hp}
+          onChange={(e) => setHp(e.target.value)}
+          className="absolute left-[-9999px] h-0 w-0 opacity-0"
+        />
         <Input
           type="email"
           value={email}

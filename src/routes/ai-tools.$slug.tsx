@@ -18,7 +18,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AiLeadModal } from "@/components/ai-tools/ai-lead-modal";
-import { getAiTool, AI_TOOLS, AI_COMPARISONS, AI_SOLUTIONS } from "@/lib/ai-tools-data";
+import { getAiTool, AI_TOOLS, AI_COMPARISONS, AI_SOLUTIONS, type AiComparison } from "@/lib/ai-tools-data";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 
 export const Route = createFileRoute("/ai-tools/$slug")({
@@ -212,7 +212,7 @@ function ToolDetailPage() {
               Strengths & Advantages
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm text-muted-foreground">
-              {tool.strengths.map((str) => (
+              {tool.strengths.map((str: string) => (
                 <li key={str} className="flex items-start gap-2">
                   <span className="text-emerald-500 font-bold shrink-0">✓</span>
                   <span>{str}</span>
@@ -227,7 +227,7 @@ function ToolDetailPage() {
               Limitations & Weaknesses
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm text-muted-foreground">
-              {tool.weaknesses.map((weak) => (
+              {tool.weaknesses.map((weak: string) => (
                 <li key={weak} className="flex items-start gap-2">
                   <span className="text-destructive font-bold shrink-0">✕</span>
                   <span>{weak}</span>
@@ -263,7 +263,7 @@ function ToolDetailPage() {
               Key Features
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-muted-foreground">
-              {tool.keyFeatures.map((feat) => (
+              {tool.keyFeatures.map((feat: string) => (
                 <div key={feat} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
                   <Check className="h-3.5 w-3.5 text-primary shrink-0" />
                   <span>{feat}</span>
@@ -345,7 +345,7 @@ function ToolDetailPage() {
               Direct Comparisons Featuring {tool.name}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {relatedComparisons.map((comp) => (
+              {relatedComparisons.map((comp: AiComparison) => (
                 <Link
                   key={comp.slug}
                   to="/compare/$comparison"

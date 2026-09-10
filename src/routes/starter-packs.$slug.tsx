@@ -3,7 +3,7 @@ import { ArrowRight, Check, Copy, Download, Github, Info } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { buildPackMarkdown, getStarterPack } from "@/lib/agent-starter-packs";
+import { buildPackMarkdown, getStarterPack, type StarterPackItem } from "@/lib/agent-starter-packs";
 import { trackEvent } from "@/lib/analytics";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 
@@ -160,7 +160,7 @@ function StarterPackDetail() {
             with your own details before running these.
           </p>
           <div className="mt-6 space-y-6">
-            {pack.prompts.map((prompt) => (
+            {pack.prompts.map((prompt: StarterPackItem["prompts"][number]) => (
               <article key={prompt.title} className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="font-semibold">{prompt.title}</h3>
@@ -187,7 +187,7 @@ function StarterPackDetail() {
               </p>
             </div>
             <div className="mt-6 space-y-6">
-              {pack.mcpConfigs.map((config) => {
+              {pack.mcpConfigs.map((config: NonNullable<StarterPackItem["mcpConfigs"]>[number]) => {
                 const json = JSON.stringify(
                   { command: config.command, args: config.args, env: config.env },
                   null,

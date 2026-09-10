@@ -4,7 +4,7 @@ import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AiLeadModal } from "@/components/ai-tools/ai-lead-modal";
-import { getAiAlternativesFor, AI_ALTERNATIVES } from "@/lib/ai-tools-data";
+import { getAiAlternativesFor, AI_ALTERNATIVES, type AiAlternativeIndex } from "@/lib/ai-tools-data";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 
 export const Route = createFileRoute("/alternatives/$tool")({
@@ -74,7 +74,7 @@ function AlternativesDetailPage() {
             Why Teams Look for Alternatives to {alternative.toolName}
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs sm:text-sm text-muted-foreground">
-            {alternative.whyUsersSwitch.map((reason) => (
+            {alternative.whyUsersSwitch.map((reason: string) => (
               <li key={reason} className="flex items-start gap-2">
                 <span className="text-destructive font-bold shrink-0">•</span>
                 <span>{reason}</span>
@@ -114,7 +114,7 @@ function AlternativesDetailPage() {
           </h2>
 
           <div className="space-y-4">
-            {alternative.topAlternatives.map((alt, idx) => (
+            {alternative.topAlternatives.map((alt: AiAlternativeIndex["topAlternatives"][number], idx: number) => (
               <div
                 key={alt.slug}
                 className="rounded-2xl border border-border/80 bg-card p-6 space-y-3 transition-all hover:border-primary/50"

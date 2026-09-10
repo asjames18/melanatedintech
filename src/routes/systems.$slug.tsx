@@ -83,7 +83,7 @@ function SystemDetail() {
         <div className="rounded-3xl border border-border bg-card p-7">
           <h2 className="font-display text-2xl font-semibold">Revenue leaks addressed</h2>
           <ul className="mt-5 space-y-3">
-            {system.leaks.map((item) => (
+            {system.leaks.map((item: string) => (
               <li key={item} className="flex gap-2 text-muted-foreground">
                 <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" /> {item}
               </li>
@@ -93,7 +93,7 @@ function SystemDetail() {
         <div className="rounded-3xl border border-border bg-card p-7">
           <h2 className="font-display text-2xl font-semibold">Events the pilot measures</h2>
           <ul className="mt-5 space-y-3">
-            {system.outcomes.map((item) => (
+            {system.outcomes.map((item: string) => (
               <li key={item} className="flex gap-2 text-muted-foreground">
                 <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" /> {item}
               </li>

@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { PILLARS } from "@/lib/site";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -16,6 +18,10 @@ export const Route = createFileRoute("/about")({
 });
 
 function About() {
+  useEffect(() => {
+    trackEvent("about_page_viewed");
+  }, []);
+
   return (
     <SiteLayout>
       <PageHeader

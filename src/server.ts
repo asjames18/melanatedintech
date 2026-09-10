@@ -105,13 +105,52 @@ function injectPublicEnv(response: Response): Response {
   // script element early, whatever a value contains.
   const payload = JSON.stringify(publicEnv).replace(/</g, "\\u003c");
 
-  return new HTMLRewriter()
-    .on("head", {
-      element(element) {
-        element.prepend(`<script>window.__PUBLIC_ENV__=${payload}</script>`, { html: true });
+  if (typeof HTMLRewriter !== "undefined") {
+    return new HTMLRewriter()
+      .on("head", {
+        element(element) {
+          element.prepend(`<script>window.__PUBLIC_ENV__=${payload}</script>`, { html: true });
+        },
+      })
+      .transform(response);
+  }
+
+  // Fallback for local dev environments (e.g. Node.js with Vite dev server)
+  // where HTMLRewriter is not a global runtime primitive.
+  if (response.body) {
+    const scriptTag = `<script>window.__PUBLIC_ENV__=${payload}</script>`;
+    let injected = false;
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+
+    const transform = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        if (!injected) {
+          const text = decoder.decode(chunk, { stream: true });
+          const headIdx = text.indexOf("<head");
+          if (headIdx !== -1) {
+            const closeHeadTag = text.indexOf(">", headIdx);
+            if (closeHeadTag !== -1) {
+              const before = text.slice(0, closeHeadTag + 1);
+              const after = text.slice(closeHeadTag + 1);
+              controller.enqueue(encoder.encode(before + scriptTag + after));
+              injected = true;
+              return;
+            }
+          }
+        }
+        controller.enqueue(chunk);
       },
-    })
-    .transform(response);
+    });
+
+    return new Response(response.body.pipeThrough(transform), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
+
+  return response;
 }
 
 function withSecurityHeaders(request: Request, response: Response): Response {

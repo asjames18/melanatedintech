@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   ArrowDown,
   CalendarDays,
@@ -19,14 +19,11 @@ import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 
 export const Route = createFileRoute("/strategy-sprint")({
-  beforeLoad: () => {
-    throw redirect({ to: "/work-with-us" });
-  },
   head: () => ({
     ...buildSeoMeta({
-      title: "Agent Strategy Sprint | Melanated In Tech",
+      title: "AI Workflow Opportunity & ROI Sprint | Melanated In Tech",
       description:
-        "A focused strategy engagement that turns one important workflow into an implementation-ready AI agent plan.",
+        "A focused strategy engagement that maps one costly workflow, evaluates AI and automation options, estimates value, and produces an implementation-ready plan.",
       url: "/strategy-sprint",
     }),
   }),
@@ -41,8 +38,8 @@ const DELIVERABLES = [
   ],
   [
     Workflow,
-    "Agent blueprint",
-    "The agent job, context sources, tools, memory, handoffs, and success criteria.",
+    "Solution blueprint",
+    "The workflow design, system connections, information sources, handoffs, and success criteria.",
   ],
   [
     ShieldCheck,
@@ -69,14 +66,14 @@ const DELIVERABLES = [
 const FAQS = [
   [
     "How much does it cost?",
-    "Pricing is custom based on organizational scope, team size, and workflow complexity. We provide a transparent scope quote upfront with zero hourly billing surprises.",
+    "Most sprints are $7,500–$15,000. Higher-education or multi-department work may range from $12,000–$25,000 when stakeholder, policy, and integration complexity is higher. We provide a fixed written scope before work begins.",
   ],
   [
     "Do we need a technical team?",
     "No. We work with the people who own the workflow and translate the result into a plan a technical partner—or our team—can implement.",
   ],
   [
-    "Will you build the agent during the sprint?",
+    "Will you build the automation during the sprint?",
     "The sprint produces an implementation-ready design, not a production deployment. If a lightweight prototype is useful, we will scope it explicitly before work begins.",
   ],
   [
@@ -110,14 +107,14 @@ function StrategySprint() {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              Agent Strategy Sprint
+              Workflow Opportunity &amp; ROI Sprint
             </p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-tight sm:text-6xl">
-              Turn one important workflow into a plan your team can actually approve and build.
+              Turn one costly workflow into a plan your team can approve, fund, and build.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
-              A focused two-week engagement for teams that see the opportunity in AI agents but need
-              clarity on scope, risk, ownership, and expected value before they invest.
+              A focused two-week engagement for teams that need clarity on business value, scope,
+              integrations, risk, ownership, and the smallest responsible implementation path.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => scrollToApplication("hero")}>
@@ -129,7 +126,7 @@ function StrategySprint() {
             </div>
             <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2 font-semibold text-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary" /> Custom scope pricing
+                <CheckCircle2 className="h-4 w-4 text-primary" /> Typical investment: $7.5K–$15K
               </span>
               <span className="inline-flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" /> Two weeks
@@ -181,7 +178,7 @@ function StrategySprint() {
                 [
                   "Days 6–9",
                   "Design",
-                  "Define the agent, human approvals, guardrails, and evaluation plan.",
+                  "Define the solution, integrations, human approvals, guardrails, and evaluation plan.",
                 ],
                 [
                   "Days 10–14",
@@ -251,7 +248,7 @@ function StrategySprint() {
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Review detailed higher-education and ministry/nonprofit reference workflows,
-                including current process, agent role, human approvals, and expected outcomes.
+                including current process, system role, human approvals, and expected outcomes.
               </p>
             </div>
             <Button asChild variant="outline" className="shrink-0">

@@ -1,9 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowRight, Check, Copy, Download, Info } from "lucide-react";
+import { ArrowRight, Check, Copy, Download, Github, Info } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { buildPackMarkdown, getStarterPack } from "@/lib/agent-starter-packs";
+import { buildPackMarkdown, getStarterPack, type StarterPackItem } from "@/lib/agent-starter-packs";
 import { trackEvent } from "@/lib/analytics";
 import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 
@@ -92,6 +92,16 @@ function StarterPackDetail() {
             >
               <Download className="h-4 w-4" /> Download the pack (.md)
             </button>
+            {pack.githubUrl ? (
+              <a
+                href={pack.githubUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold hover:border-primary/40"
+              >
+                <Github className="h-4 w-4" /> View Open Source Repo
+              </a>
+            ) : null}
             <Link
               to="/starter-packs"
               className="inline-flex items-center rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold"
@@ -103,9 +113,45 @@ function StarterPackDetail() {
       />
 
       <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 lg:px-8">
-        <p className="text-sm text-muted-foreground">
-          <span className="font-semibold text-foreground">Built for:</span> {pack.targetAudience}
-        </p>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            <span className="font-semibold text-foreground">Built for:</span> {pack.targetAudience}
+          </p>
+          {pack.githubUrl ? (
+            <a
+              href={pack.githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
+            >
+              <Github className="h-3.5 w-3.5" /> Open-Source on GitHub
+            </a>
+          ) : null}
+        </div>
+
+        {pack.githubUrl ? (
+          <div className="mt-6 flex items-center justify-between rounded-2xl border border-primary/25 bg-primary/5 p-4 sm:p-5">
+            <div className="flex items-center gap-3">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <Github className="h-5 w-5" />
+              </div>
+              <div className="text-xs">
+                <p className="font-semibold text-foreground">Open-Source Community Skill Library</p>
+                <p className="text-muted-foreground">
+                  Explore full 6-file skill folders, JSON schemas, workflows, and automated linters.
+                </p>
+              </div>
+            </div>
+            <a
+              href={pack.githubUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="ml-3 inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              Explore repo <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        ) : null}
 
         <section className="mt-12">
           <h2 className="font-display text-2xl font-semibold">Prompts</h2>
@@ -114,7 +160,7 @@ function StarterPackDetail() {
             with your own details before running these.
           </p>
           <div className="mt-6 space-y-6">
-            {pack.prompts.map((prompt) => (
+            {pack.prompts.map((prompt: StarterPackItem["prompts"][number]) => (
               <article key={prompt.title} className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-start justify-between gap-4">
                   <h3 className="font-semibold">{prompt.title}</h3>
@@ -141,7 +187,7 @@ function StarterPackDetail() {
               </p>
             </div>
             <div className="mt-6 space-y-6">
-              {pack.mcpConfigs.map((config) => {
+              {pack.mcpConfigs.map((config: NonNullable<StarterPackItem["mcpConfigs"]>[number]) => {
                 const json = JSON.stringify(
                   { command: config.command, args: config.args, env: config.env },
                   null,

@@ -5,12 +5,17 @@ import type { Json } from "@/integrations/supabase/types";
 
 const ALLOWED_PUBLIC_EVENTS = new Set([
   "ab_tester_run",
+  "about_page_viewed",
+  "admin_analytics_ga4_test_ping",
   "agent_architect_action",
   "agent_clicked",
+  "agents_page_viewed",
   "ai_playbook_generated",
   "ai_playbook_prompt_copied",
   "ai_playbook_send_to_pilot",
+  "challenges_page_viewed",
   "checkout_started",
+  "community_page_viewed",
   "contact_submission_completed",
   "content_shared",
   "custom_agent_build_application_started",
@@ -21,8 +26,10 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "demo_started",
   "deposit_paid",
   "deposit_started",
+  "diagnostic_click_from_calc",
   "diagnostic_intake_submitted",
   "diagnostic_page_viewed",
+  "eval_report_downloaded",
   "eval_studio_run",
   "final_payment_started",
   "fit_finder_completed",
@@ -33,15 +40,24 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "funnel_landing_viewed",
   "gpt_trainer_action",
   "guide_message_sent",
+  "homepage_viewed",
+  "knowledge_page_viewed",
   "lead_qualified",
   "mcp_builder_action",
   "ministry_ai_application_started",
   "ministry_ai_implementation_viewed",
   "model_playground_run",
+  "not_found_viewed",
+  "open_commons_page_viewed",
+  "openrouter_models_fetched",
+  "paths_page_viewed",
   "pilot_converted_to_managed",
   "pilot_launched",
   "policy_generator_action",
   "product_clicked",
+  "product_detail_viewed",
+  "products_page_viewed",
+  "proof_page_viewed",
   "prompt_pilot_action",
   "proposal_sent",
   "purchase_completed",
@@ -49,7 +65,9 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "recommendation_click",
   "recommendation_impression",
   "recommendation_reason_click",
+  "roadmap_page_viewed",
   "roi_calculator_share",
+  "search_page_viewed",
   "service_inquiry_started",
   "service_inquiry_submitted",
   "service_model_selected",
@@ -59,6 +77,9 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "start_small_viewed",
   "starter_kit_downloaded",
   "starter_kit_email_captured",
+  "starter_pack_copied",
+  "starter_pack_downloaded",
+  "starter_packs_page_viewed",
   "strategy_sprint_application_started",
   "strategy_sprint_application_submitted",
   "strategy_sprint_clicked",
@@ -68,7 +89,10 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "team_ai_workshop_viewed",
   "tool_card_clicked",
   "tool_cross_sell_clicked",
+  "tool_export",
   "unlock_clicked",
+  "voice_agent_sim_started",
+  "voice_config_copied",
   "waitlist_joined",
   "website_launch_checklist_opted_in",
   "work_with_us_viewed",
@@ -249,10 +273,12 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
 
     const TOOL_EVENT_NAMES = new Set([
       "tool_used",
+      "tool_export",
       "fit_finder_completed",
       "sop_generator_action",
       "sop_generated",
       "eval_studio_run",
+      "eval_report_downloaded",
       "agent_architect_run",
       "agent_architect_action",
       "prompt_pilot_run",
@@ -265,7 +291,8 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       "rag_chunker_export",
       "roi_calculator_share",
       "ai_playbook_generated",
-      "voice_agent_builder",
+      "voice_agent_sim_started",
+      "voice_config_copied",
     ]);
 
     for (const e of events) {
@@ -296,7 +323,13 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         else if (status === "invalid") leadQuality.invalid++;
       }
 
-      if (e.name === "demo_requested" || e.name === "strategy_sprint_application_submitted" || e.name === "contact_submission_completed") {
+      if (
+        e.name === "demo_requested" ||
+        e.name === "strategy_sprint_application_submitted" ||
+        e.name === "contact_submission_completed" ||
+        e.name === "service_inquiry_submitted" ||
+        e.name === "diagnostic_intake_submitted"
+      ) {
         funnel.demosRequested++;
         dayBucket.conversions++;
       }

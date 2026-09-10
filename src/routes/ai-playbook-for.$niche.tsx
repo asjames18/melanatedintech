@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductWaitlist } from "@/components/product-waitlist";
 import { buildSeoMeta, ldScript, breadcrumbLd, faqLd } from "@/lib/seo";
-import { PLAYBOOK, NICHES, getNiche, getPromptsForNiche } from "@/lib/playbook-data";
+import { PLAYBOOK, NICHES, getNiche, getPromptsForNiche, type NicheFaq } from "@/lib/playbook-data";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import { ArrowRight, CheckCircle2, Copy, Sparkles } from "lucide-react";
@@ -97,7 +97,7 @@ function NichePlaybookPage() {
             {entry.intro}
           </p>
           <ul className="mt-6 space-y-2">
-            {entry.painPoints.map((p) => (
+            {entry.painPoints.map((p: string) => (
               <li key={p} className="flex items-start gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent2" />
                 {p}
@@ -196,7 +196,7 @@ function NichePlaybookPage() {
               Questions {entry.plural.toLowerCase()} ask about AI
             </h2>
             <div className="mt-6 space-y-4">
-              {entry.faqs.map((faq) => (
+              {entry.faqs.map((faq: NicheFaq) => (
                 <div
                   key={faq.question}
                   className="rounded-2xl border border-border bg-card p-6 shadow-sm"

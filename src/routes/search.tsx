@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import Fuse from "fuse.js";
 import { Search as SearchIcon, X } from "lucide-react";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
@@ -10,6 +10,7 @@ import { ArticleCard, AgentCard, ProductCard } from "@/components/cards";
 import { ListingPendingShell } from "@/components/listing-skeleton";
 import { listArticles, listAgents, listProducts } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
+import { trackEvent } from "@/lib/analytics";
 
 const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
 const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
@@ -73,6 +74,10 @@ function SearchPage() {
   const { data: articles } = useSuspenseQuery(articlesQO);
   const { data: agents } = useSuspenseQuery(agentsQO);
   const { data: products } = useSuspenseQuery(productsQO);
+
+  useEffect(() => {
+    trackEvent("search_page_viewed");
+  }, []);
 
   const articlesFuse = useMemo(
     () =>

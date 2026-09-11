@@ -40,6 +40,13 @@ const BOOT_TIMEOUT_MS = 120_000;
 /** Routes that must render without any backing service. */
 const ROUTES = ["/tools", "/privacy", "/terms", "/start-small", "/work-with-us", "/governance"];
 
+/** Live Knowledge Hub articles linked from this package — do not re-insert in SQL. */
+const LIVE_HUB_SLUGS = [
+  "before-you-automate-follow-up-name-the-workflow",
+  "what-a-10-day-workflow-discovery-produces",
+];
+const ROUTES_THAT_MUST_LINK_HUB = new Set(["/start-small", "/work-with-us"]);
+
 /**
  * Values the browser cannot function without. The Worker injects these into
  * <head>; if that regresses, auth and payments break silently in production
@@ -108,6 +115,13 @@ async function main() {
       if (/This page didn't load|Something went wrong on our end/.test(body)) {
         failures.push(`${route} -> 200 but rendered the SSR error page`);
         continue;
+      }
+      if (ROUTES_THAT_MUST_LINK_HUB.has(route)) {
+        const missing = LIVE_HUB_SLUGS.filter((slug) => !body.includes(slug));
+        if (missing.length) {
+          failures.push(`${route} missing live Knowledge Hub links: ${missing.join(", ")}`);
+          continue;
+        }
       }
       console.log(`  ok  ${route}`);
     }

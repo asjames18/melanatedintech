@@ -20,9 +20,9 @@ import { HUB_LEARN_ARTICLES } from "@/lib/workflow-opportunity-sprint";
 export const Route = createFileRoute("/start-small")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Find Your First Useful AI Agent | Melanated In Tech",
+      title: "Start Small | Name One Repeated Workflow | Melanated In Tech",
       description:
-        "Choose one useful workflow, get a practical recommendation, and leave with a personalized starter kit or a conversation about that workflow.",
+        "Name the repeated workflow in one sentence, then choose a DIY lane or a conversation about that workflow.",
       url: "/start-small",
     }),
   }),
@@ -94,7 +94,7 @@ function StartSmall() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
                 <Link to="/fit-finder" onClick={() => begin("start_small_hero")}>
-                  Find my first useful agent <ArrowRight className="h-4 w-4" />
+                  Name your workflow <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">

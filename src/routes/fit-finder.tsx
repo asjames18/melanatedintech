@@ -16,6 +16,7 @@ import { FitFinderStarterKit } from "@/components/fit-finder-starter-kit";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 import {
+  HUB_LEARN_ARTICLES,
   PLANNING_SIGNAL_DISCLAIMER,
   WORKFLOW_OPPORTUNITY_SPRINT as SPRINT,
   workflowInquiryMessage,
@@ -362,22 +363,54 @@ function FitFinderResults({
           Use these if you want to map the workflow internally before talking with anyone.
         </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        {articles.map((article) => (
-          <div
-            key={article.id}
-            onClickCapture={() =>
+      <div className="grid gap-4 md:grid-cols-2">
+        {HUB_LEARN_ARTICLES.map((article) => (
+          <Link
+            key={article.slug}
+            to="/knowledge/$slug"
+            params={{ slug: article.slug }}
+            onClick={() =>
               trackEvent("fit_finder_recommendation_clicked", {
                 itemType: "article",
                 itemSlug: article.slug,
                 ...funnelAttribution(),
               })
             }
+            className="rounded-2xl border border-border bg-background p-5 transition-colors hover:border-primary/40"
           >
-            <ArticleCard {...article} />
-          </div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Knowledge Hub
+            </p>
+            <h3 className="mt-2 font-display text-lg font-semibold">{article.title}</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
+            <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+              Read article <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
         ))}
       </div>
+      {articles.filter((article) => !HUB_LEARN_ARTICLES.some((hub) => hub.slug === article.slug))
+        .length > 0 && (
+        <div className="grid gap-4 md:grid-cols-3">
+          {articles
+            .filter((article) => !HUB_LEARN_ARTICLES.some((hub) => hub.slug === article.slug))
+            .slice(0, 3)
+            .map((article) => (
+              <div
+                key={article.id}
+                onClickCapture={() =>
+                  trackEvent("fit_finder_recommendation_clicked", {
+                    itemType: "article",
+                    itemSlug: article.slug,
+                    ...funnelAttribution(),
+                  })
+                }
+              >
+                <ArticleCard {...article} />
+              </div>
+            ))}
+        </div>
+      )}
       <FitFinderStarterKit
         answers={answers}
         agentNames={[]}

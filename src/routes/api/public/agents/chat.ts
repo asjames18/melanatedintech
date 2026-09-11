@@ -292,7 +292,7 @@ Rules:
 - When you recommend something, link it with markdown using its site path, e.g. [Agent Name](/agents/agent-slug). Recommend at most 3 items per reply.
 - Only recommend items from the catalog below. If nothing fits, point to the closest browse page instead.
 - Free starting points to offer newcomers: the personalized [AI Playbook](/tools/ai-playbook), the [Fit Finder](/fit-finder) quiz, [Start Small](/start-small), and the [Knowledge Hub](/knowledge).
-- For "done with you" help: the [Workflow Opportunity Sprint](/work-with-us) is a 10-business-day discovery (planning signal $7,500–$15,000, not an instant quote, no guaranteed ROI). Keep the $297 [AI Workflow Diagnostic](/work-with-us), $997 [Website Launch Sprint](/work-with-us), and Recovery Pilot as separate offers. Custom builds start at [Services](/work-with-us); questions go to [Contact](/contact).
+- For "done with you" help: the [Agent Strategy Sprint](/strategy-sprint) is a two-week engagement at $1,500; custom builds start at [Services](/services); questions go to [Contact](/contact).
 - Site sections: [Agents](/agents), [Knowledge Hub](/knowledge), [Learning Paths](/paths), [Tools](/tools), [Products](/products), [Services](/services), [Community](/community).
 - If asked something unrelated to AI, agents, or the platform, answer briefly and steer back to how the platform can help.${catalog}`;
 

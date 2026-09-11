@@ -426,7 +426,6 @@ export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
       return "website_launch_sprint";
     case "Custom AI system inquiry":
     case "Workflow Opportunity Sprint inquiry":
-    case "Strategy Sprint application":
       return "custom_ai_system";
     case "Custom website or application inquiry":
       return "custom_website_application";

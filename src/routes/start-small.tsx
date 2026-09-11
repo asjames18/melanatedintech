@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
+import { HUB_LEARN_ARTICLES } from "@/lib/workflow-opportunity-sprint";
 
 export const Route = createFileRoute("/start-small")({
   head: () => ({
@@ -214,6 +215,18 @@ function StartSmall() {
               Start the Fit Finder <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          <div className="mt-6 flex flex-col gap-2 text-sm text-background/75">
+            {HUB_LEARN_ARTICLES.map((article) => (
+              <Link
+                key={article.slug}
+                to="/knowledge/$slug"
+                params={{ slug: article.slug }}
+                className="inline-flex items-center gap-1 font-medium text-background hover:underline"
+              >
+                {article.title} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </SiteLayout>

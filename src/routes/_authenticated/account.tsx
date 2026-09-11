@@ -776,7 +776,7 @@ function Account() {
                       <p className="text-xs text-muted-foreground">Milestone 2 of 4: Custom knowledge base chunking & verification.</p>
                       <div className="pt-2 flex items-center justify-between text-xs font-semibold text-foreground">
                         <span>Target Launch: Day 30</span>
-                        <Link to="/work-with-us" className="text-primary hover:underline">Sprint Scope →</Link>
+                        <Link to="/strategy-sprint" className="text-primary hover:underline">Sprint Scope →</Link>
                       </div>
                     </div>
                   </div>

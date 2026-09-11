@@ -55,6 +55,22 @@ export const WORKFLOW_OPPORTUNITY_SPRINT = {
   ],
 } as const;
 
+/** Live Knowledge Hub articles (published in CMS). Link only — do not re-insert. */
+export const HUB_LEARN_ARTICLES = [
+  {
+    slug: "before-you-automate-follow-up-name-the-workflow",
+    title: "Before You Automate Follow-Up: Name the One Workflow That’s Leaking Time",
+    excerpt:
+      "A practical checklist to name the one repeated workflow before you buy tools or expand a pilot.",
+  },
+  {
+    slug: "what-a-10-day-workflow-discovery-produces",
+    title: "What a 10-Day Workflow Discovery Actually Produces (Map, Feasibility, Go/No-Go)",
+    excerpt:
+      "What a 10-business-day discovery should leave you with: a map, feasibility and risk, a plan, and a go / no-go / revise.",
+  },
+] as const;
+
 export const PLANNING_SIGNAL_DISCLAIMER =
   "The $7,500–$15,000 range is a planning signal, not an instant quote. Actual price is confirmed in a written scope before work begins. It does not guarantee ROI, recovered revenue, or a specific business result.";
 

@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, ClipboardList, ShieldAlert } from "lucide-rea
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 import {
+  HUB_LEARN_ARTICLES,
   PLANNING_SIGNAL_DISCLAIMER,
   WORKFLOW_OPPORTUNITY_SPRINT as SPRINT,
 } from "@/lib/workflow-opportunity-sprint";
@@ -126,6 +127,28 @@ export function WorkflowSprintClarity({ surface }: { surface: string }) {
               ))}
             </ul>
           </article>
+        </div>
+
+        <div className="mt-8 rounded-3xl border border-border bg-card p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            Related reading
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {HUB_LEARN_ARTICLES.map((article) => (
+              <Link
+                key={article.slug}
+                to="/knowledge/$slug"
+                params={{ slug: article.slug }}
+                className="group rounded-2xl border border-border p-4 hover:border-primary/40"
+              >
+                <h3 className="font-display text-lg font-semibold">{article.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{article.excerpt}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  Read article <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>

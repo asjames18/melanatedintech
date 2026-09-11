@@ -2740,7 +2740,7 @@ UPDATE public.articles
 SET title = $md$Human Approval Patterns for Agents$md$,
     excerpt = $md$Playbook: choose the right approval gate for agent actions without slowing every task to a crawl.$md$,
     read_minutes = 6,
-    body = $md$#Human Approval Patterns for Agents  
+    body = $md$# Human Approval Patterns for Agents  
 
 ## The Core Problem  
 
@@ -2835,9 +2835,12 @@ print(approval_gate_score(meta))  # → (3.7, 'Pre-action Approval')
 
 Replace the dict with data pulled from your agent’s metadata store or feature service.
 
-## Scorecard for Ongoing Gate Effectiveness can be measured with a lightweight scorecard reviewed each sprint.
+## Scorecard for Ongoing Gate Effectiveness
 
-- Target | Measurement | -------------------- | ------- | ------------------------------------------------------------- |
+Ongoing gate effectiveness can be measured with a lightweight scorecard reviewed each sprint.
+
+| Gate | Target | Measurement |
+|------|--------|-------------|
 | Pre‑action Approval | Mean time to approval (MTTA) ≤ 5 min | Track timestamps from request to reviewer sign‑off |
 | Post‑action Notification | Acknowledgment rate ≥ 90 % | % of notifications where reviewer clicks “acknowledged” |
 | Break‑glass Override | False‑positive rate ≤ 2 % | # of unnecessary overrides / total overrides |

@@ -62,7 +62,8 @@ export const PILLARS = [
   {
     title: "Work With Us",
     href: "/work-with-us" as const,
-    blurb: "Practical AI training, workflow diagnostics, focused website launches, and scoped custom implementation.",
+    blurb:
+      "Practical AI training, a $297 workflow diagnostic, a $997 website launch, a Workflow Opportunity Sprint, and scoped custom implementation.",
     tag: "Pillar 06",
   },
   {

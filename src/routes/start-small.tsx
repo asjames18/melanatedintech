@@ -21,7 +21,7 @@ export const Route = createFileRoute("/start-small")({
     ...buildSeoMeta({
       title: "Find Your First Useful AI Agent | Melanated In Tech",
       description:
-        "Choose one useful workflow, get a practical recommendation, and leave with a personalized AI agent starter kit.",
+        "Choose one useful workflow, get a practical recommendation, and leave with a personalized starter kit or a conversation about that workflow.",
       url: "/start-small",
     }),
   }),
@@ -87,8 +87,8 @@ function StartSmall() {
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               You do not need an AI transformation plan. You need one repeated task, a clear human
-              owner, and a useful first result. The Fit Finder will help you choose it in about
-              three minutes.
+              owner, and a useful first result. The Fit Finder asks you to name that workflow in one
+              sentence.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
@@ -176,13 +176,13 @@ function StartSmall() {
           {[
             [
               "1",
-              "Answer five questions",
-              "Tell us your role, first goal, risk level, tools, and timeline.",
+              "Name the workflow",
+              "Write the repeated work in one sentence, then answer a few questions about role, risk, tools, and timeline.",
             ],
             [
               "2",
-              "See matched resources",
-              "Get agents, articles, and a next step selected around your answers.",
+              "See two lanes",
+              "Lane A is articles and a starter kit. Lane B’s primary next step is “Tell us this workflow.”",
             ],
             [
               "3",
@@ -205,8 +205,9 @@ function StartSmall() {
             Leave with a better first move—not another list of AI tools.
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-background/70">
-            The Fit Finder is free. If the workflow is complex or high-risk, we will also show you
-            when an Agent Strategy Sprint is the safer next step.
+            The Fit Finder is free. Name the repeated workflow in one sentence. If the work is
+            complex or high-risk, we will also show you when a Workflow Opportunity Sprint is the
+            safer next step—not an Agent Strategy Sprint or ROI sprint.
           </p>
           <Button asChild size="lg" variant="secondary" className="mt-7">
             <Link to="/fit-finder" onClick={() => begin("start_small_final")}>

@@ -11,11 +11,28 @@ const campaignLabel = z
   .max(100)
   .regex(/^[a-zA-Z0-9._-]+$/, "Invalid campaign label.");
 
-const optionalTopic = z.string().trim().max(120).transform((value) => value || undefined).optional().catch(undefined);
-const optionalCampaignLabel = campaignLabel.transform((value) => value || undefined).optional().catch(undefined);
+const optionalTopic = z
+  .string()
+  .trim()
+  .max(120)
+  .transform((value) => value || undefined)
+  .optional()
+  .catch(undefined);
+const optionalMessage = z
+  .string()
+  .trim()
+  .max(2000)
+  .transform((value) => value || undefined)
+  .optional()
+  .catch(undefined);
+const optionalCampaignLabel = campaignLabel
+  .transform((value) => value || undefined)
+  .optional()
+  .catch(undefined);
 
 const searchSchema = z.object({
   topic: optionalTopic,
+  message: optionalMessage,
   utm_source: optionalCampaignLabel,
   utm_medium: optionalCampaignLabel,
   utm_campaign: optionalCampaignLabel,
@@ -35,7 +52,7 @@ export const Route = createFileRoute("/contact")({
 });
 
 function Contact() {
-  const { topic, utm_source, utm_medium, utm_campaign } = Route.useSearch();
+  const { topic, message, utm_source, utm_medium, utm_campaign } = Route.useSearch();
   return (
     <SiteLayout>
       <PageHeader
@@ -46,6 +63,7 @@ function Contact() {
       <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
         <ContactForm
           defaultTopic={topic}
+          defaultMessage={message}
           campaign={{
             source: utm_source,
             medium: utm_medium,

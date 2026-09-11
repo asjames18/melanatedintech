@@ -420,10 +420,13 @@ export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
     case "AI Clarity Session inquiry":
       return "ai_training";
     case "AI Workflow Diagnostic inquiry":
+    case "Tell us this workflow":
       return "workflow_diagnostic";
     case "Website Launch Sprint inquiry":
       return "website_launch_sprint";
     case "Custom AI system inquiry":
+    case "Workflow Opportunity Sprint inquiry":
+    case "Strategy Sprint application":
       return "custom_ai_system";
     case "Custom website or application inquiry":
       return "custom_website_application";

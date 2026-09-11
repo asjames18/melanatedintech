@@ -180,30 +180,59 @@ Whether you need an automated customer support agent with database write access,
   {
     id: "agent-strategy-sprint",
     slug: "agent-strategy-sprint",
-    name: "2-Week Agent Strategy Sprint",
-    tagline: "Intensive 2-week sprint to evaluate, scope, architect, and prototype your team's first AI agent.",
+    name: "Workflow Opportunity Sprint",
+    tagline:
+      "A 10-business-day discovery that turns one costly workflow into a map, risk review, implementation-ready plan, and a pilot go/no-go/revise.",
     starting_price_cents: null,
     category: "Strategy & Advisory",
-    description: `Turn AI hype into a clear, actionable implementation blueprint. Over 14 days, we work directly with your leadership and engineering teams to identify high-ROI workflows, design the system architecture, and deliver a working MVP prototype.`,
+    description: `Name one repeated, costly workflow. Over 10 business days we map the work, assess feasibility and risk, and deliver an implementation-ready plan with a written pilot go / no-go / revise.
+
+The public planning signal is $7,500–$15,000. That range is not an instant quote, not a guaranteed ROI, and not a recovered-revenue forecast. Price is confirmed in a written scope before work begins.
+
+This engagement is not the $297 AI Workflow Diagnostic, not the $997 Website Launch Sprint, and not a Recovery Pilot. Those remain separate SKUs.
+
+### What you receive:
+- **Workflow map**: users, systems, handoffs, bottlenecks, and edge cases.
+- **Feasibility and risk**: what is viable now, what needs a human approval, and what should not be automated yet.
+- **Implementation-ready plan**: bounded scope, sequence, dependencies, and a definition of done.
+- **Pilot go / no-go / revise**: a written recommendation before anyone starts building.`,
     outcomes: [
-      "Complete Architectural Blueprint & Sequence Diagrams.",
-      "Financial ROI Calculator projecting token expenses vs. labor hours saved.",
-      "Working MVP prototype tested against real team data.",
-      "Security Risk & Governance Compliance Checklist.",
+      "Current-state workflow map with owners, systems, and handoffs.",
+      "Feasibility and risk review with approval boundaries.",
+      "Implementation-ready plan for a bounded next build.",
+      "Written pilot go / no-go / revise recommendation.",
     ],
     features: [
-      "Rapid 14-Day Delivery",
-      "Interactive MVP Demonstration",
-      "Executive Leadership Roadmap Presentation",
+      "10-business-day discovery",
+      "Planning-signal pricing, scoped in writing",
+      "No guaranteed ROI or fictional case metrics",
     ],
     process: [
       {
-        title: "Week 1: Discovery & Scoping",
-        desc: "Identify top candidate workflows, evaluate data readiness, and map security constraints.",
+        title: "Days 1–3: Workflow mapping",
+        desc: "Name the repeated work, systems, owners, and where time or follow-through actually stalls.",
       },
       {
-        title: "Week 2: Prototyping & Delivery",
-        desc: "Build working prototype agent, calculate financial ROI, and present executive roadmap.",
+        title: "Days 4–7: Feasibility and risk",
+        desc: "Document approvals, data boundaries, and what should remain human-led.",
+      },
+      {
+        title: "Days 8–10: Plan and decision",
+        desc: "Deliver the implementation-ready plan and a written go / no-go / revise for a bounded pilot.",
+      },
+    ],
+    faqs: [
+      {
+        q: "Is the $7,500–$15,000 figure a quote?",
+        a: "No. It is a planning signal, not an instant quote. Actual price is confirmed in a written scope. It does not guarantee ROI or a specific business result.",
+      },
+      {
+        q: "How is this different from the $297 AI Workflow Diagnostic?",
+        a: "The diagnostic is a focused 90-minute session for one already-named task or journey. Escalate to the Workflow Opportunity Sprint when the work crosses systems, needs a written approvals map, or you need a go/no-go on a bounded pilot.",
+      },
+      {
+        q: "Will you build the system during the sprint?",
+        a: "No. The sprint produces the plan and the decision. A Recovery Pilot or custom build is scoped separately if the recommendation is to proceed.",
       },
     ],
   },
@@ -427,6 +456,8 @@ export function getServiceBySlug(slug: string): ServiceItem | undefined {
       ? "ministry-ai-implementation"
       : slug === "team-ai-workshop"
       ? "ai-workshop"
+      : slug === "workflow-opportunity-sprint"
+      ? "agent-strategy-sprint"
       : slug;
   return (
     FALLBACK_SERVICES.find((s) => s.slug === normalizedSlug) ??

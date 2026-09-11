@@ -20,13 +20,16 @@ import { funnelAttribution } from "@/components/funnel-attribution";
 
 export const Route = createFileRoute("/strategy-sprint")({
   beforeLoad: () => {
-    throw redirect({ to: "/work-with-us" });
+    throw redirect({
+      to: "/work-with-us",
+      hash: "workflow-opportunity-sprint",
+    });
   },
   head: () => ({
     ...buildSeoMeta({
-      title: "Agent Strategy Sprint | Melanated In Tech",
+      title: "Workflow Opportunity Sprint | Melanated In Tech",
       description:
-        "A focused strategy engagement that turns one important workflow into an implementation-ready AI agent plan.",
+        "A 10-business-day discovery that turns one costly workflow into a workflow map, feasibility and risk review, implementation-ready plan, and a pilot go/no-go/revise. The $7,500–$15,000 range is a planning signal, not an instant quote, and does not guarantee ROI.",
       url: "/strategy-sprint",
     }),
   }),
@@ -69,7 +72,7 @@ const DELIVERABLES = [
 const FAQS = [
   [
     "How much does it cost?",
-    "Pricing is custom based on organizational scope, team size, and workflow complexity. We provide a transparent scope quote upfront with zero hourly billing surprises.",
+    "The public planning signal is $7,500–$15,000. That is not an instant quote and does not guarantee ROI. Actual price is confirmed in a written scope before work begins.",
   ],
   [
     "Do we need a technical team?",
@@ -110,14 +113,16 @@ function StrategySprint() {
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-4xl">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
-              Agent Strategy Sprint
+              Workflow Opportunity Sprint
             </p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-tight sm:text-6xl">
               Turn one important workflow into a plan your team can actually approve and build.
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
-              A focused two-week engagement for teams that see the opportunity in AI agents but need
-              clarity on scope, risk, ownership, and expected value before they invest.
+              A focused 10-business-day engagement for teams that see the opportunity but need
+              clarity on scope, risk, ownership, and a written pilot go / no-go / revise before they
+              invest. The $7,500–$15,000 range is a planning signal, not an instant quote, and does
+              not guarantee ROI.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button size="lg" onClick={() => scrollToApplication("hero")}>
@@ -129,10 +134,10 @@ function StrategySprint() {
             </div>
             <div className="mt-8 flex flex-wrap gap-x-7 gap-y-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-2 font-semibold text-foreground">
-                <CheckCircle2 className="h-4 w-4 text-primary" /> Custom scope pricing
+                <CheckCircle2 className="h-4 w-4 text-primary" /> Planning-signal pricing
               </span>
               <span className="inline-flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-primary" /> Two weeks
+                <CalendarDays className="h-4 w-4 text-primary" /> 10 business days
               </span>
               <span className="inline-flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" /> 2–5 stakeholder sessions
@@ -298,7 +303,7 @@ function StrategySprint() {
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-            <ContactForm defaultTopic="Strategy Sprint application" />
+            <ContactForm defaultTopic="Workflow Opportunity Sprint inquiry" />
           </div>
         </div>
       </section>

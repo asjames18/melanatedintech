@@ -16,9 +16,11 @@ type CampaignAttribution = {
 
 export function ContactForm({
   defaultTopic = "",
+  defaultMessage = "",
   campaign,
 }: {
   defaultTopic?: string;
+  defaultMessage?: string;
   campaign?: CampaignAttribution;
 }) {
   const [form, setForm] = useState({
@@ -26,7 +28,7 @@ export function ContactForm({
     email: "",
     organization: "",
     topic: defaultTopic,
-    message: "",
+    message: defaultMessage,
   });
   const [hp, setHp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -70,7 +72,10 @@ export function ContactForm({
         },
       });
       setDone(true);
-      if (form.topic === "Strategy Sprint application") {
+      if (
+        form.topic === "Strategy Sprint application" ||
+        form.topic === "Workflow Opportunity Sprint inquiry"
+      ) {
         trackEvent("strategy_sprint_application_submitted", { surface: "strategy_sprint" });
       } else {
         trackEvent("contact_submission_completed", { surface: "contact" });
@@ -94,7 +99,8 @@ export function ContactForm({
       <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-sm text-muted-foreground">
         <p className="font-display text-lg font-semibold text-foreground">Message received.</p>
         <p className="mt-1">
-          {form.topic === "Strategy Sprint application"
+          {form.topic === "Strategy Sprint application" ||
+          form.topic === "Workflow Opportunity Sprint inquiry"
             ? "We read every application and will reply within two business days."
             : "We read every message and will reply within two business days."}
         </p>

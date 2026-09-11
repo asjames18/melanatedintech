@@ -59,6 +59,7 @@ const SERVICE_TYPES = [
   "AI Clarity Session",
   "AI Workflow Diagnostic",
   "Website Launch Sprint",
+  "Workflow Opportunity Sprint",
   "Custom AI System",
   "Custom Website or Application",
   "Custom Training or Presentation",

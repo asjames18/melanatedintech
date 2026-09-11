@@ -25,27 +25,52 @@ import {
 } from "@/components/system-sections";
 import { listAgents, listArticles, listProducts } from "@/lib/public.functions";
 import { SOLUTIONS } from "@/lib/service-systems";
+import { WORKFLOW_OPPORTUNITY_SPRINT as SPRINT } from "@/lib/workflow-opportunity-sprint";
 import { buildSeoMeta, organizationLd, websiteLd, ldScript } from "@/lib/seo";
 
-const agentsQO = queryOptions({ queryKey: ["agents"], queryFn: () => listAgents() });
-const articlesQO = queryOptions({ queryKey: ["articles"], queryFn: () => listArticles() });
-const productsQO = queryOptions({ queryKey: ["products"], queryFn: () => listProducts() });
+const agentsQO = queryOptions({
+  queryKey: ["agents"],
+  queryFn: async () => {
+    try {
+      return await listAgents();
+    } catch {
+      return [];
+    }
+  },
+});
+const articlesQO = queryOptions({
+  queryKey: ["articles"],
+  queryFn: async () => {
+    try {
+      return await listArticles();
+    } catch {
+      return [];
+    }
+  },
+});
+const productsQO = queryOptions({
+  queryKey: ["products"],
+  queryFn: async () => {
+    try {
+      return await listProducts();
+    } catch {
+      return [];
+    }
+  },
+});
 
 export const Route = createFileRoute("/")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Practical AI Education, Tools Workbench & Business Systems | Melanated In Tech",
+      title: "One Costly Workflow. A Fixed-Scope Next Step. | Melanated In Tech",
       description:
-        "Learn AI, improve a business workflow, launch a credible website, or build a more tailored system with clear human boundaries.",
+        "Name one repeated workflow and choose a useful next step. The Workflow Opportunity Sprint is a 10-business-day discovery with a workflow map, feasibility and risk review, implementation-ready plan, and a pilot go/no-go/revise. Training, tools, and resources remain available.",
       url: "/",
     });
     return {
       meta: seo.meta,
       links: seo.links,
-      scripts: [
-        ldScript(organizationLd()),
-        ldScript(websiteLd()),
-      ],
+      scripts: [ldScript(organizationLd()), ldScript(websiteLd())],
     };
   },
   loader: async ({ context }) => {
@@ -69,17 +94,19 @@ function Home() {
   return (
     <SiteLayout>
       <Hero />
-      <PlatformOverview />
 
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">Work with us</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Work with us
+            </p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
               Choose the practical next step for your team.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Start with a clear outcome. We offer focused support for the work in front of you, then scope more complex projects before implementation begins.
+              Start with a clear outcome. We offer focused support for the work in front of you,
+              then scope more complex projects before implementation begins.
             </p>
           </div>
           <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -114,7 +141,8 @@ function Home() {
                 <h3 className="mt-4 font-display text-lg font-semibold">{title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                  Find your starting point <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  Find your starting point{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </Link>
             ))}
@@ -146,10 +174,12 @@ function Home() {
               </div>
               <h3 className="mt-5 font-display text-2xl font-semibold">Work with our team.</h3>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
-                Choose practical AI training, a workflow diagnostic, a focused website, or a more tailored project scope that fits where you are today.
+                Choose practical AI training, a workflow diagnostic, a focused website, or a more
+                tailored project scope that fits where you are today.
               </p>
               <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Explore services <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Explore services{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
             <Link
@@ -159,13 +189,16 @@ function Home() {
               <div className="grid h-11 w-11 place-items-center rounded-2xl bg-primary/10 text-primary">
                 <HandHeart className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 font-display text-2xl font-semibold">Build the open commons with us.</h3>
+              <h3 className="mt-5 font-display text-2xl font-semibold">
+                Build the open commons with us.
+              </h3>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Help shape public AI tools, policy patterns, examples, and test fixtures that make
                 useful technology more understandable and accountable.
               </p>
               <span className="mt-6 inline-flex items-center gap-1 text-sm font-semibold text-primary">
-                Explore Open Commons <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                Explore Open Commons{" "}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </div>
@@ -175,10 +208,10 @@ function Home() {
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-            Specialized revenue recovery
+            Examples of workflow types
           </p>
           <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
-            Recovery systems for service businesses with a measurable follow-up problem.
+            Follow-up leaks are one kind of costly workflow—not the whole product story.
           </h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {SOLUTIONS.map((solution) => (
@@ -206,15 +239,15 @@ function Home() {
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Revenue is already leaking
+              Local credibility, nationwide work
             </p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              The opportunity is often in the follow-up.
+              Based in Sebring. Built for operators who need a clear next step.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Advertising creates demand. Recovery systems help your team act on it—without asking
-              staff to remember every missed call, estimate, renewal, cancellation, or rebooking
-              window.
+              We serve Highlands County and Florida first, with qualified engagements across the
+              U.S. Follow-up leaks are one workflow type we map. The product is still one costly
+              process and a bounded decision—not a platform pitch.
             </p>
           </div>
           <CommercialTrust />
@@ -225,10 +258,10 @@ function Home() {
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-              Four focused systems
+              When follow-up is the leak
             </p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Start with the revenue leak you can measure.
+              Recovery systems remain available as bounded examples—not the homepage hero.
             </h2>
           </div>
           <div className="mt-10">
@@ -247,7 +280,8 @@ function Home() {
               See the handoffs before we touch your software.
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Choose a scenario and step through the customer, system, and team experience.
+              These demos show workflow types we often map—missed follow-up, estimates, retention,
+              and rebooking. They are examples, not the only offer.
             </p>
           </div>
           <SystemDemo compact />
@@ -256,6 +290,20 @@ function Home() {
 
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+          <div className="mb-8 max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              A separate implementation SKU
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              If discovery points to one measurable leak, a Recovery Pilot is one bounded next
+              build.
+            </h2>
+            <p className="mt-3 text-muted-foreground">
+              The $1,500 30-Day Recovery Pilot is not the {SPRINT.name}, not the $297 AI Workflow
+              Diagnostic, and not the $997 Website Launch Sprint. It is a later implementation
+              option when the workflow is already defined.
+            </p>
+          </div>
           <PilotOffer />
         </div>
       </section>
@@ -272,19 +320,21 @@ function Home() {
         </div>
       </section>
 
+      <PlatformOverview />
+
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-primary">
-                The broader platform
+                Resources behind the work
               </p>
               <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-                Tools and knowledge behind the work.
+                Guides, tools, and agents—when you want to keep going.
               </h2>
               <p className="mt-3 max-w-2xl text-muted-foreground">
-                Explore the existing agent marketplace, practical field guides, and digital products
-                that make Melanated In Tech more than a services landing page.
+                Education and the marketplace are still here. They sit after the workflow
+                conversation, not beside it on the first screen.
               </p>
             </div>
             <Link
@@ -359,14 +409,15 @@ function Home() {
                   Tell us what you are trying to make better.
                 </h2>
                 <p className="mt-3 max-w-2xl text-background/70">
-                  Start with practical AI training, a business workflow, a focused website, or a scoped implementation conversation.
+                  Start by naming one repeated workflow. Training, a $297 diagnostic, a website
+                  launch, or a {SPRINT.name} are separate next steps—not aliases for each other.
                 </p>
               </div>
               <Link
-                to="/work-with-us"
+                to="/start-small"
                 className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-background px-6 text-sm font-semibold text-foreground"
               >
-                Find your starting point <ArrowRight className="h-4 w-4" />
+                Name your workflow <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>

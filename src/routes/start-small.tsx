@@ -15,13 +15,14 @@ import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
+import { HUB_LEARN_ARTICLES } from "@/lib/workflow-opportunity-sprint";
 
 export const Route = createFileRoute("/start-small")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Find Your First Useful AI Agent | Melanated In Tech",
+      title: "Start Small | Name One Repeated Workflow | Melanated In Tech",
       description:
-        "Choose one useful workflow, get a practical recommendation, and leave with a personalized AI agent starter kit.",
+        "Name the repeated workflow in one sentence, then choose a DIY lane or a conversation about that workflow.",
       url: "/start-small",
     }),
   }),
@@ -87,13 +88,13 @@ function StartSmall() {
             </h1>
             <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
               You do not need an AI transformation plan. You need one repeated task, a clear human
-              owner, and a useful first result. The Fit Finder will help you choose it in about
-              three minutes.
+              owner, and a useful first result. The Fit Finder asks you to name that workflow in one
+              sentence.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild size="lg">
                 <Link to="/fit-finder" onClick={() => begin("start_small_hero")}>
-                  Find my first useful agent <ArrowRight className="h-4 w-4" />
+                  Name your workflow <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
@@ -176,13 +177,13 @@ function StartSmall() {
           {[
             [
               "1",
-              "Answer five questions",
-              "Tell us your role, first goal, risk level, tools, and timeline.",
+              "Name the workflow",
+              "Write the repeated work in one sentence, then answer a few questions about role, risk, tools, and timeline.",
             ],
             [
               "2",
-              "See matched resources",
-              "Get agents, articles, and a next step selected around your answers.",
+              "See two lanes",
+              "Lane A is articles and a starter kit. Lane B’s primary next step is “Tell us this workflow.”",
             ],
             [
               "3",
@@ -205,14 +206,27 @@ function StartSmall() {
             Leave with a better first move—not another list of AI tools.
           </h2>
           <p className="mt-3 max-w-2xl text-sm text-background/70">
-            The Fit Finder is free. If the workflow is complex or high-risk, we will also show you
-            when an Agent Strategy Sprint is the safer next step.
+            The Fit Finder is free. Name the repeated workflow in one sentence. If the work is
+            complex or high-risk, we will also show you when a Workflow Opportunity Sprint is the
+            safer next step—not an Agent Strategy Sprint or ROI sprint.
           </p>
           <Button asChild size="lg" variant="secondary" className="mt-7">
             <Link to="/fit-finder" onClick={() => begin("start_small_final")}>
               Start the Fit Finder <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          <div className="mt-6 flex flex-col gap-2 text-sm text-background/75">
+            {HUB_LEARN_ARTICLES.map((article) => (
+              <Link
+                key={article.slug}
+                to="/knowledge/$slug"
+                params={{ slug: article.slug }}
+                className="inline-flex items-center gap-1 font-medium text-background hover:underline"
+              >
+                {article.title} <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </SiteLayout>

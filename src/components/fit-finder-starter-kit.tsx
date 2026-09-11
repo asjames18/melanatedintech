@@ -14,9 +14,16 @@ type Props = {
   agentNames: string[];
   productName?: string | null;
   highIntent: boolean;
+  hideServiceCta?: boolean;
 };
 
-export function FitFinderStarterKit({ answers, agentNames, productName, highIntent }: Props) {
+export function FitFinderStarterKit({
+  answers,
+  agentNames,
+  productName,
+  highIntent,
+  hideServiceCta = false,
+}: Props) {
   const [email, setEmail] = useState("");
   const [captured, setCaptured] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -115,7 +122,7 @@ export function FitFinderStarterKit({ answers, agentNames, productName, highInte
         </form>
       )}
 
-      {highIntent && (
+      {highIntent && !hideServiceCta && (
         <div className="mt-6 border-t border-primary/20 pt-5">
           <p className="flex items-center gap-2 font-medium">
             <Zap className="h-4 w-4 text-accent2" /> This workflow may benefit from a focused
@@ -150,22 +157,23 @@ function buildStarterKit(
   productName: string | null | undefined,
   highIntent: boolean,
 ) {
-  const workflow = answers.goal || "Choose one repeated, low-risk workflow";
+  const workflow = answers.workflow || answers.goal || "Choose one repeated, low-risk workflow";
   return `# My First Useful Agent Starter Kit
 
 Prepared by Melanated In Tech
 
 ## My starting point
 
+- Repeated workflow: ${answers.workflow || "Not specified"}
 - Role: ${answers.role || "Not specified"}
-- First goal: ${workflow}
+- First goal: ${answers.goal || "Not specified"}
 - Risk level: ${answers.risk || "Not specified"}
 - Tools involved: ${answers.tools || "Not specified"}
 - Desired timeline: ${answers.timeline || "Not specified"}
 
 ## Recommended first-agent brief
 
-**Job:** Help with ${workflow.toLowerCase()} while keeping a named human accountable for the final outcome.
+**Job:** Help with ${workflow} while keeping a named human accountable for the final outcome.
 
 **Inputs to gather:** 5–10 representative examples, the current checklist or policy, a list of common exceptions, and the name of the workflow owner.
 
@@ -192,7 +200,7 @@ ${productName ? `- Product: ${productName}` : ""}
 
 ${
   highIntent
-    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider a focused AI Workflow Diagnostic before implementation: https://melanatedintech.com/work-with-us"
+    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider a focused AI Workflow Diagnostic before implementation: https://melanatedintech.com/work-with-us. If the work crosses systems or needs a written go/no-go, ask about the Workflow Opportunity Sprint—not an Agent Strategy Sprint or ROI sprint."
     : "Run a small internal test, then repeat the Fit Finder when the team has evidence from real examples."
 }
 

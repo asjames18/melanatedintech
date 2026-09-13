@@ -59,10 +59,15 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "start_small_viewed",
   "starter_kit_downloaded",
   "starter_kit_email_captured",
+  // Legacy Strategy Sprint names: accepted for continuity, no longer fired by the app.
   "strategy_sprint_application_started",
   "strategy_sprint_application_submitted",
   "strategy_sprint_clicked",
   "strategy_sprint_viewed",
+  "workflow_opportunity_sprint_application_started",
+  "workflow_opportunity_sprint_application_submitted",
+  "workflow_opportunity_sprint_clicked",
+  "workflow_opportunity_sprint_viewed",
   "systems_page_viewed",
   "team_ai_workshop_application_started",
   "team_ai_workshop_viewed",
@@ -296,7 +301,12 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         else if (status === "invalid") leadQuality.invalid++;
       }
 
-      if (e.name === "demo_requested" || e.name === "strategy_sprint_application_submitted" || e.name === "contact_submission_completed") {
+      if (
+        e.name === "demo_requested" ||
+        e.name === "strategy_sprint_application_submitted" ||
+        e.name === "workflow_opportunity_sprint_application_submitted" ||
+        e.name === "contact_submission_completed"
+      ) {
         funnel.demosRequested++;
         dayBucket.conversions++;
       }

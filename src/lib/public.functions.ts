@@ -3,6 +3,10 @@ import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  canonicalizeContactTopic,
+  WORKFLOW_OPPORTUNITY_SPRINT,
+} from "@/lib/workflow-opportunity-sprint";
 
 function publicClient() {
   return createClient<Database>(getSupabaseUrl()!, getSupabasePublishableKey()!, {
@@ -416,7 +420,8 @@ export type ServiceInquiryType =
   | "presentation_support";
 
 export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
-  switch (topic) {
+  const canonicalTopic = canonicalizeContactTopic(topic) ?? topic;
+  switch (canonicalTopic) {
     case "AI Clarity Session inquiry":
       return "ai_training";
     case "AI Workflow Diagnostic inquiry":
@@ -425,7 +430,7 @@ export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
     case "Website Launch Sprint inquiry":
       return "website_launch_sprint";
     case "Custom AI system inquiry":
-    case "Workflow Opportunity Sprint inquiry":
+    case WORKFLOW_OPPORTUNITY_SPRINT.inquiryTopic:
       return "custom_ai_system";
     case "Custom website or application inquiry":
       return "custom_website_application";
@@ -449,13 +454,14 @@ export const submitContact = createServerFn({ method: "POST" })
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const topic = canonicalizeContactTopic(data.topic) ?? data.topic;
     const base = {
       name: data.name,
       email: data.email.toLowerCase(),
       organization: data.organization ?? null,
-      topic: data.topic ?? null,
+      topic: topic ?? null,
       message: data.message,
-      inquiry_type: classifyServiceInquiry(data.topic),
+      inquiry_type: classifyServiceInquiry(topic),
       utm_source: data.utm_source ?? null,
       utm_medium: data.utm_medium ?? null,
       utm_campaign: data.utm_campaign ?? null,
@@ -472,11 +478,11 @@ export const submitContact = createServerFn({ method: "POST" })
       name: data.name,
       email: data.email,
       organization: data.organization,
-      topic: data.topic,
+      topic,
       message: data.message,
     });
 
-    return { ok: true, inquiryType: classifyServiceInquiry(data.topic) };
+    return { ok: true, inquiryType: classifyServiceInquiry(topic) };
   });
 
 export const getPublicSeller = createServerFn({ method: "GET" })

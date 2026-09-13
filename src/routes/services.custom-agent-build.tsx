@@ -236,12 +236,15 @@ function CustomAgentBuildPage() {
             </ul>
 
             <div className="mt-6 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
-              <p className="font-medium text-foreground">Need a strategy sprint before building?</p>
+              <p className="font-medium text-foreground">Need a Workflow Opportunity Sprint before building?</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                If your team needs to map workflows and calculate financial ROI first, explore our 2-Week Strategy Sprint.
+                If your team needs a workflow map, feasibility and risk review, and a written
+                go / no-go before a build, start with the Workflow Opportunity Sprint.
               </p>
               <Button asChild variant="outline" className="mt-4">
-                <Link to="/strategy-sprint">Explore Strategy Sprint</Link>
+                <Link to="/work-with-us" hash="workflow-opportunity-sprint">
+                  Explore Workflow Opportunity Sprint
+                </Link>
               </Button>
             </div>
           </div>

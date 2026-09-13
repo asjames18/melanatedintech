@@ -180,30 +180,39 @@ Whether you need an automated customer support agent with database write access,
   {
     id: "agent-strategy-sprint",
     slug: "agent-strategy-sprint",
-    name: "2-Week Agent Strategy Sprint",
-    tagline: "Intensive 2-week sprint to evaluate, scope, architect, and prototype your team's first AI agent.",
+    name: "Workflow Opportunity Sprint",
+    tagline:
+      "A 10-business-day discovery that turns one costly, repeated workflow into a written go / no-go plan.",
     starting_price_cents: null,
     category: "Strategy & Advisory",
-    description: `Turn AI hype into a clear, actionable implementation blueprint. Over 14 days, we work directly with your leadership and engineering teams to identify high-ROI workflows, design the system architecture, and deliver a working MVP prototype.`,
+    description: `The Workflow Opportunity Sprint is a 10-business-day discovery for one costly, repeated workflow. You leave with a workflow map, a feasibility and risk review, an implementation-ready plan, and a written pilot go / no-go / revise—before anyone starts a build.
+
+The $7,500–$15,000 range is a planning signal, not an instant quote. Actual price is confirmed in a written scope before work begins. It does not guarantee ROI, recovered revenue, or a specific business result.
+
+This is not the $297 AI Workflow Diagnostic, the $997 Website Launch Sprint, or a Recovery Pilot. Those remain separate offers.`,
     outcomes: [
-      "Complete Architectural Blueprint & Sequence Diagrams.",
-      "Financial ROI Calculator projecting token expenses vs. labor hours saved.",
-      "Working MVP prototype tested against real team data.",
-      "Security Risk & Governance Compliance Checklist.",
+      "Workflow map of the repeated work, handoffs, systems, and owners.",
+      "Feasibility and risk review: what is viable now and what needs a human approval.",
+      "Implementation-ready plan with scope, sequence, dependencies, and a defined done.",
+      "Written pilot go / no-go / revise—not a promise that the pilot will run.",
     ],
     features: [
-      "Rapid 14-Day Delivery",
-      "Interactive MVP Demonstration",
-      "Executive Leadership Roadmap Presentation",
+      "10-business-day discovery",
+      "Planning signal, not an instant quote",
+      "Written go / no-go / revise",
     ],
     process: [
       {
-        title: "Week 1: Discovery & Scoping",
-        desc: "Identify top candidate workflows, evaluate data readiness, and map security constraints.",
+        title: "Map the workflow",
+        desc: "Document the repeated work, handoffs, systems, owners, and where time or revenue stalls.",
       },
       {
-        title: "Week 2: Prototyping & Delivery",
-        desc: "Build working prototype agent, calculate financial ROI, and present executive roadmap.",
+        title: "Review feasibility and risk",
+        desc: "Name what is viable now, what needs a human approval, and what should not be automated yet.",
+      },
+      {
+        title: "Decide go / no-go / revise",
+        desc: "Leave with an implementation-ready plan and a written recommendation before a build starts.",
       },
     ],
   },

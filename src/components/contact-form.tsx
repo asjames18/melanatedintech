@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
+import {
+  canonicalizeContactTopic,
+  isWorkflowOpportunitySprintTopic,
+} from "@/lib/workflow-opportunity-sprint";
 
 type CampaignAttribution = {
   source?: string;
@@ -27,7 +31,7 @@ export function ContactForm({
     name: "",
     email: "",
     organization: "",
-    topic: defaultTopic,
+    topic: canonicalizeContactTopic(defaultTopic) ?? defaultTopic,
     message: defaultMessage,
   });
   const [hp, setHp] = useState("");
@@ -42,6 +46,15 @@ export function ContactForm({
 
   function markServiceInquiryStarted() {
     if (started) return;
+    if (isWorkflowOpportunitySprintTopic(defaultTopic) || isWorkflowOpportunitySprintTopic(form.topic)) {
+      setStarted(true);
+      trackEvent("workflow_opportunity_sprint_application_started", {
+        surface: "contact",
+        source: campaign?.source ?? "direct_or_other",
+        campaign: campaign?.campaign,
+      });
+      return;
+    }
     const inquiryType = classifyServiceInquiry(defaultTopic);
     if (inquiryType === "general") return;
 
@@ -63,7 +76,7 @@ export function ContactForm({
           name: form.name,
           email: form.email,
           organization: form.organization || undefined,
-          topic: form.topic || undefined,
+          topic: canonicalizeContactTopic(form.topic) || form.topic || undefined,
           message: form.message,
           utm_source: campaign?.source,
           utm_medium: campaign?.medium,
@@ -72,11 +85,10 @@ export function ContactForm({
         },
       });
       setDone(true);
-      if (
-        form.topic === "Strategy Sprint application" ||
-        form.topic === "Workflow Opportunity Sprint inquiry"
-      ) {
-        trackEvent("strategy_sprint_application_submitted", { surface: "strategy_sprint" });
+      if (isWorkflowOpportunitySprintTopic(form.topic)) {
+        trackEvent("workflow_opportunity_sprint_application_submitted", {
+          surface: "workflow_opportunity_sprint",
+        });
       } else {
         trackEvent("contact_submission_completed", { surface: "contact" });
         if (result.inquiryType !== "general") {
@@ -99,8 +111,7 @@ export function ContactForm({
       <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-6 text-sm text-muted-foreground">
         <p className="font-display text-lg font-semibold text-foreground">Message received.</p>
         <p className="mt-1">
-          {form.topic === "Strategy Sprint application" ||
-          form.topic === "Workflow Opportunity Sprint inquiry"
+          {isWorkflowOpportunitySprintTopic(form.topic)
             ? "We read every application and will reply within two business days."
             : "We read every message and will reply within two business days."}
         </p>

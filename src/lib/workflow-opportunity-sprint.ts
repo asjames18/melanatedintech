@@ -74,6 +74,30 @@ export const HUB_LEARN_ARTICLES = [
 export const PLANNING_SIGNAL_DISCLAIMER =
   "The $7,500–$15,000 range is a planning signal, not an instant quote. Actual price is confirmed in a written scope before work begins. It does not guarantee ROI, recovered revenue, or a specific business result.";
 
+/** Deep-link / leftover topic strings that still mean the Workflow Opportunity Sprint. */
+export const LEGACY_WORKFLOW_OPPORTUNITY_SPRINT_TOPICS = [
+  "Strategy Sprint application",
+  "Strategy Sprint inquiry",
+  "Agent Strategy Sprint application",
+  "Agent Strategy Sprint inquiry",
+  "2-Week Agent Strategy Sprint",
+] as const;
+
+export function canonicalizeContactTopic(topic?: string): string | undefined {
+  if (!topic) return topic;
+  if (
+    topic === WORKFLOW_OPPORTUNITY_SPRINT.inquiryTopic ||
+    (LEGACY_WORKFLOW_OPPORTUNITY_SPRINT_TOPICS as readonly string[]).includes(topic)
+  ) {
+    return WORKFLOW_OPPORTUNITY_SPRINT.inquiryTopic;
+  }
+  return topic;
+}
+
+export function isWorkflowOpportunitySprintTopic(topic?: string): boolean {
+  return canonicalizeContactTopic(topic) === WORKFLOW_OPPORTUNITY_SPRINT.inquiryTopic;
+}
+
 export function workflowInquiryMessage(answers: {
   workflow?: string;
   role?: string;

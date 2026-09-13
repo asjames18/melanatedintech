@@ -494,7 +494,7 @@ function FitFinderResults({
               to="/contact"
               search={sprintSearch}
               onClick={() => {
-                trackEvent("strategy_sprint_clicked", {
+                trackEvent("workflow_opportunity_sprint_clicked", {
                   surface: "fit_finder_results",
                   ...funnelAttribution(),
                 });

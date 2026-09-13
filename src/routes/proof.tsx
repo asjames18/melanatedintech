@@ -108,7 +108,8 @@ function Proof() {
               Need help applying this to your team?
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Pair the checklist with a learning path, or bring the workflow into a strategy sprint.
+              Pair the checklist with a learning path, or bring the workflow into a Workflow
+              Opportunity Sprint.
             </p>
           </div>
           <div className="flex gap-2">
@@ -116,7 +117,9 @@ function Proof() {
               <Link to="/paths">View paths</Link>
             </Button>
             <Button asChild>
-              <Link to="/strategy-sprint">Explore Strategy Sprint</Link>
+              <Link to="/work-with-us" hash="workflow-opportunity-sprint">
+                Explore Workflow Opportunity Sprint
+              </Link>
             </Button>
           </div>
         </div>

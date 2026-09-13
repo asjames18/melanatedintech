@@ -38,7 +38,16 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const BOOT_TIMEOUT_MS = 120_000;
 
 /** Routes that must render without any backing service. */
-const ROUTES = ["/tools", "/privacy", "/terms", "/start-small", "/work-with-us", "/governance"];
+const ROUTES = [
+  "/",
+  "/tools",
+  "/privacy",
+  "/terms",
+  "/start-small",
+  "/work-with-us",
+  "/governance",
+  "/strategy-sprint",
+];
 
 /** Live Knowledge Hub articles linked from this package — do not re-insert in SQL. */
 const LIVE_HUB_SLUGS = [

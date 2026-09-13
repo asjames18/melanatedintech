@@ -27,9 +27,9 @@ high-stakes budget decisions.
 | `fit_finder_recommendation_clicked`     | A recommended resource is selected   | item type, slug, attribution                    | Result-card click           | Learn which recommendations create action  |
 | `starter_kit_email_captured`            | Email capture succeeds               | role, high-intent flag, attribution             | Starter-kit form success    | Measure result-to-lead conversion          |
 | `starter_kit_downloaded`                | Personalized file is downloaded      | role, high-intent flag, attribution             | Download action             | Measure lead-to-value completion           |
-| `strategy_sprint_clicked`               | High-intent CTA is selected          | surface, attribution                            | Fit Finder results CTA      | Measure assisted-service intent            |
-| `strategy_sprint_application_started`   | Visitor moves to the application     | surface, attribution                            | Sprint CTA                  | Find page-to-application drop-off          |
-| `strategy_sprint_application_submitted` | Application is stored                | fixed surface only                              | Application success         | Count qualified sprint leads               |
+| `workflow_opportunity_sprint_clicked`               | High-intent CTA is selected          | surface, attribution                            | Fit Finder results CTA      | Measure assisted-service intent            |
+| `workflow_opportunity_sprint_application_started`   | Visitor moves to the application     | surface, attribution                            | Sprint CTA                  | Find page-to-application drop-off          |
+| `workflow_opportunity_sprint_application_submitted` | Application is stored                | fixed surface only                              | Application success         | Count qualified sprint leads               |
 | `contact_submission_completed`          | General contact is stored            | fixed surface only                              | Contact success             | Count general inbound leads                |
 | `agent_clicked`                         | Agent detail is selected             | slug, surface                                   | Agent card click            | Identify agent interest                    |
 | `product_clicked`                       | Product detail is selected           | slug, surface                                   | Product card click          | Identify product interest                  |
@@ -47,7 +47,7 @@ No email address, name, organization, message, or other free-text form field is 
 | Fit Finder completion | `fit_finder_completed`                  | Every completed recommendation request | Growth, content   |
 | Starter-kit download  | `starter_kit_downloaded`                | Every explicit download                | Growth            |
 | Contact lead          | `contact_submission_completed`          | Successful stored submission           | Sales             |
-| Sprint application    | `strategy_sprint_application_submitted` | Successful stored application          | Sales, leadership |
+| Sprint application    | `workflow_opportunity_sprint_application_submitted` | Successful stored application          | Sales, leadership |
 | Purchase              | `purchase_completed`                    | Confirmed paid unlock                  | Revenue           |
 
 ## Attribution links
@@ -68,3 +68,19 @@ Use lowercase UTMs and preserve the route as the landing page:
 6. Test consent behavior against the production privacy policy and deployment region requirements.
 
 Owner: site operator. Review this plan whenever a funnel step, form, or analytics destination changes.
+
+## Workflow Opportunity Sprint event rename
+
+Primary public naming is **Workflow Opportunity Sprint**. The app now fires the new event names
+only. Legacy `strategy_sprint_*` names remain allowlisted so cached clients can still record, and
+the operator dashboard still counts both submitted events as a conversion. Do not dual-fire.
+
+| Old name (no longer fired)              | New name                                              |
+| --------------------------------------- | ----------------------------------------------------- |
+| `strategy_sprint_clicked`               | `workflow_opportunity_sprint_clicked`                 |
+| `strategy_sprint_application_started`   | `workflow_opportunity_sprint_application_started`     |
+| `strategy_sprint_application_submitted` | `workflow_opportunity_sprint_application_submitted`   |
+| `strategy_sprint_viewed`                | `workflow_opportunity_sprint_viewed`                  |
+
+Historical rows keep their original names. Compare pre/post cutover with both columns, then retire
+the legacy allowlist once cached clients are gone.

@@ -134,24 +134,26 @@ export const Route = createRootRouteWithContext<{
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { title: "Melanated In Tech — AI Education, Agents & Workflows" },
+      { title: "Melanated In Tech — AI Solutions, Agents & Automation" },
       {
         name: "description",
         content:
-          "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
+          "Practical AI solutions helping business owners, teams, and developers put AI to work — agents, automation, and revenue recovery systems.",
       },
       { name: "author", content: "Melanated In Tech" },
-      { property: "og:title", content: "Melanated In Tech — AI Education, Agents & Workflows" },
+      { property: "og:title", content: "Melanated In Tech — AI Solutions, Agents & Automation" },
       {
         property: "og:description",
-        content: "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
+        content:
+          "Practical AI solutions helping business owners, teams, and developers put AI to work — agents, automation, and revenue recovery systems.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Melanated In Tech — AI Education, Agents & Workflows" },
+      { name: "twitter:title", content: "Melanated In Tech — AI Solutions, Agents & Automation" },
       {
         name: "twitter:description",
-        content: "Practical AI education platform helping beginners, business owners, and developers build, deploy, and benefit from AI agents.",
+        content:
+          "Practical AI solutions helping business owners, teams, and developers put AI to work — agents, automation, and revenue recovery systems.",
       },
       {
         property: "og:image",

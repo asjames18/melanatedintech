@@ -963,7 +963,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
               </div>
 
               <div className="mt-6 pt-4 border-t border-slate-800 text-[11px] text-slate-500">
-                Admin Role Verified · Melanated In Tech
+                Admin Role Verified · Melanated in Tech
               </div>
             </div>
           </div>
@@ -1280,7 +1280,7 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   };
   const row = (cells: (string | number)[]) => cells.map(esc).join(",");
 
-  lines.push(`Melanated In Tech — Executive Analytics & User Intelligence Export (${days} Days)`);
+  lines.push(`Melanated in Tech — Executive Analytics & User Intelligence Export (${days} Days)`);
   lines.push("");
   lines.push("Platform Totals");
   lines.push(row(["Telemetry Events", data.totals.events]));
@@ -1335,7 +1335,7 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
 
 function downloadExecutiveBriefMd(data: Summary, days: number) {
   const lines: string[] = [];
-  lines.push(`# Melanated In Tech — Executive Intelligence Brief (${days} Days)`);
+  lines.push(`# Melanated in Tech — Executive Intelligence Brief (${days} Days)`);
   lines.push(`*Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}*`);
   lines.push("");
   lines.push("## Executive Summary");

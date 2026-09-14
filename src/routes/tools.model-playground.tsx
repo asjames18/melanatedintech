@@ -41,7 +41,7 @@ export const Route = createFileRoute("/tools/model-playground")({
   validateSearch: zodValidator(searchSchema),
   head: () => {
     const seo = buildSeoMeta({
-      title: "Model Playground — Melanated In Tech",
+      title: "Model Playground — Melanated in Tech",
       description:
         "Compare prompt outputs, generation speed, and token counts side-by-side across free AI models.",
       url: "/tools/model-playground",

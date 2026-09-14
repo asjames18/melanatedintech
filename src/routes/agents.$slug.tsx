@@ -41,9 +41,9 @@ export const Route = createFileRoute("/agents/$slug")({
   head: ({ params, loaderData }) => {
     const a = loaderData?.agent;
     const path = `/agents/${params.slug}`;
-    if (!a) return { meta: [{ title: "Agent — Melanated In Tech" }] };
+    if (!a) return { meta: [{ title: "Agent — Melanated in Tech" }] };
     const seo = buildSeoMeta({
-      title: `${a.name} — AI Agent | Melanated In Tech`,
+      title: `${a.name} — AI Agent | Melanated in Tech`,
       description: a.tagline,
       url: path,
       type: "product",

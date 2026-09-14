@@ -18,7 +18,7 @@ export const Route = createFileRoute("/t/$tag")({
   head: ({ params }) => ({
     ...buildSeoMeta({
       title: `#${params.tag} — Community`,
-      description: `Posts tagged #${params.tag} on Melanated In Tech.`,
+      description: `Posts tagged #${params.tag} on Melanated in Tech.`,
       url: `/t/${params.tag}`,
     }),
     scripts: [
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/t/$tag")({
         collectionLd({
           name: `#${params.tag}`,
           url: `/t/${params.tag}`,
-          description: `Posts tagged #${params.tag} on Melanated In Tech.`,
+          description: `Posts tagged #${params.tag} on Melanated in Tech.`,
         }),
       ),
     ],

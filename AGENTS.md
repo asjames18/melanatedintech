@@ -1,8 +1,8 @@
-# Agent Guidance for Melanated In Tech
+# Agent Guidance for Melanated in Tech
 
 ## Repository scope
 
-This repository contains the Melanated In Tech web application and its supporting public assets, server functions, Supabase migrations, and Cloudflare Worker deployment configuration. Preserve the existing product direction: practical AI tools, responsible automation, revenue-recovery systems, education, and open contribution.
+This repository contains the Melanated in Tech web application and its supporting public assets, server functions, Supabase migrations, and Cloudflare Worker deployment configuration. Preserve the existing product direction: practical AI tools, responsible automation, revenue-recovery systems, education, and open contribution.
 
 Treat the application as a production system. Before changing behavior, identify the affected route, server function, database migration, external integration, and user-facing privacy or consent implications. Keep changes focused and avoid unrelated refactors.
 
@@ -53,7 +53,7 @@ For mobile work, test at narrow phone widths as well as a standard phone and tab
 
 Report suspected vulnerabilities privately according to [`SECURITY.md`](SECURITY.md), not through public issues or pull requests. Follow [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) for community participation. Before proposing a substantial change, open or comment on an issue with the problem, intended scope, user impact, and data-handling implications.
 
-The MIT License applies to the software code. It does not grant permission to use Melanated In Tech branding, official domains, logos, social-preview artwork, or an implication of endorsement. Forks and derivative deployments must adopt a distinct identity and follow [`TRADEMARKS.md`](TRADEMARKS.md), [`BRAND_ASSETS.md`](BRAND_ASSETS.md), and [`NOTICE`](NOTICE).
+The MIT License applies to the software code. It does not grant permission to use Melanated in Tech branding, official domains, logos, social-preview artwork, or an implication of endorsement. Forks and derivative deployments must adopt a distinct identity and follow [`TRADEMARKS.md`](TRADEMARKS.md), [`BRAND_ASSETS.md`](BRAND_ASSETS.md), and [`NOTICE`](NOTICE).
 
 ## Change checklist
 

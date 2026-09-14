@@ -21,11 +21,11 @@ export const Route = createFileRoute("/sellers/$slug")({
     return r;
   },
   head: ({ params, loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Seller — Melanated In Tech" }] };
+    if (!loaderData) return { meta: [{ title: "Seller — Melanated in Tech" }] };
     const { seller } = loaderData;
     const path = `/sellers/${params.slug}`;
     const seo = buildSeoMeta({
-      title: `${seller.display_name} — Creator Profile | Melanated In Tech`,
+      title: `${seller.display_name} — Creator Profile | Melanated in Tech`,
       description: seller.bio ?? `Explore AI agents, templates, and services by ${seller.display_name}.`,
       url: path,
       type: "profile",

@@ -51,7 +51,7 @@ export const Route = createFileRoute("/community/$id")({
   },
   head: ({ loaderData }) => {
     const t = loaderData?.thread;
-    if (!t) return { meta: [{ title: "Thread - Melanated In Tech" }] };
+    if (!t) return { meta: [{ title: "Thread - Melanated in Tech" }] };
     const seo = buildSeoMeta({
       title: t.post.title ? `${t.post.title} - Community` : "Community thread",
       description: t.post.body.slice(0, 160),

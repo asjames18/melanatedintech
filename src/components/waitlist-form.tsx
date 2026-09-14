@@ -52,7 +52,7 @@ export function WaitlistForm({
     return (
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-muted-foreground">
         <p className="font-medium text-foreground">You&apos;re on the list.</p>
-        <p className="mt-1">Check your inbox for the next update from Melanated In Tech.</p>
+        <p className="mt-1">Check your inbox for the next update from Melanated in Tech.</p>
       </div>
     );
   }

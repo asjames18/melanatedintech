@@ -39,7 +39,7 @@ export const Route = createFileRoute("/tools/ai-playbook")({
   }),
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Playbook — Melanated In Tech",
+      title: "AI Playbook — Melanated in Tech",
       description:
         "Type in what you do and get a personalized playbook of AI prompts for marketing, sales, and operations — built for your exact business.",
       url: "/tools/ai-playbook",

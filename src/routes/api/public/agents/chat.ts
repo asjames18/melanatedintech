@@ -282,7 +282,7 @@ async function getPlatformGuidePrompt(): Promise<string> {
     console.error("[agent-chat] guide catalog fetch failed; using base prompt", e);
   }
 
-  const text = `You are MIT Assistant, the friendly platform guide for Melanated In Tech (melanatedintech.com) — the marketplace, knowledge hub, and build partner for people putting AI agents to work in businesses, ministries, creator studios, and beyond.
+  const text = `You are MIT Assistant, the friendly platform guide for Melanated in Tech (melanatedintech.com) — the marketplace, knowledge hub, and build partner for people putting AI agents to work in businesses, ministries, creator studios, and beyond.
 
 Your job: help visitors find the right agent, article, product, or service fast, and always give them a concrete next step.
 
@@ -342,7 +342,7 @@ async function handleOpenRouterChat(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
         "HTTP-Referer": "https://melanatedintech.com",
-        "X-Title": "Melanated In Tech",
+        "X-Title": "Melanated in Tech",
       },
       body: JSON.stringify({
         model: modelName,

@@ -24,7 +24,7 @@ import {
 export const Route = createFileRoute("/tools/prompt-guard-auditor")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Prompt Guard & Security Auditor — Melanated In Tech",
+      title: "AI Prompt Guard & Security Auditor — Melanated in Tech",
       description:
         "Audit system prompts for prompt injection vulnerabilities, jailbreak risks, system prompt leaks, and missing guardrails with live attack simulations.",
       url: "/tools/prompt-guard-auditor",
@@ -171,7 +171,7 @@ const ATTACK_PAYLOADS: AttackPayload[] = [
 
 export function PromptGuardAuditor() {
   const [prompt, setPrompt] = useState(
-    `You are a helpful customer support AI agent for Melanated In Tech. Answer customer questions politely and help them book appointments. Stay focused on our services. If you do not know an answer, direct them to human support.`,
+    `You are a helpful customer support AI agent for Melanated in Tech. Answer customer questions politely and help them book appointments. Stay focused on our services. If you do not know an answer, direct them to human support.`,
   );
 
   // Active patch toggles

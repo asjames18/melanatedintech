@@ -48,8 +48,8 @@ export const Route = createFileRoute("/u/$userId")({
   head: ({ loaderData }) => {
     const p = loaderData?.profile;
     const seo = buildSeoMeta({
-      title: p ? `${p.display_name ?? "Someone"} — Melanated In Tech` : "Profile",
-      description: p?.bio ?? `Community profile on Melanated In Tech.`,
+      title: p ? `${p.display_name ?? "Someone"} — Melanated in Tech` : "Profile",
+      description: p?.bio ?? `Community profile on Melanated in Tech.`,
       url: p ? `/u/${p.id}` : undefined,
       type: "profile",
     });

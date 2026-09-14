@@ -563,7 +563,7 @@ function validatePacket(
 }
 
 function systemPrompt(today: string) {
-  return `You are the Melanated In Tech editorial research agent. Prepare one review packet; never publish, schedule, redirect, unpublish, purchase, message, or modify any external system.
+  return `You are the Melanated in Tech editorial research agent. Prepare one review packet; never publish, schedule, redirect, unpublish, purchase, message, or modify any external system.
 
 Today is ${today}. Work only within one authority cluster: AI agents for beginners, AI agents for small business, AI safety/evaluation, or AI for churches/nonprofits.
 
@@ -604,7 +604,7 @@ async function callContentAgent(args: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
         "HTTP-Referer": "https://melanatedintech.com",
-        "X-Title": "Melanated In Tech Daily Content Agent",
+        "X-Title": "Melanated in Tech Daily Content Agent",
       },
       body: JSON.stringify({
         model,

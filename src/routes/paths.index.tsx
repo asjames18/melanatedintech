@@ -17,7 +17,7 @@ const pathsQo = queryOptions({
 export const Route = createFileRoute("/paths/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Learning Paths - Melanated In Tech",
+      title: "Learning Paths - Melanated in Tech",
       description:
         "Ordered learning paths for building, securing, evaluating, and launching AI agents.",
       url: "/paths",

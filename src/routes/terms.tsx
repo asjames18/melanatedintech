@@ -5,9 +5,9 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Terms of Service — Melanated In Tech",
+      title: "Terms of Service — Melanated in Tech",
       description:
-        "Read the Terms of Service for using the Melanated In Tech platform, tools, and community.",
+        "Read the Terms of Service for using the Melanated in Tech platform, tools, and community.",
       url: "/terms",
     }),
   }),
@@ -26,7 +26,7 @@ function TermsOfService() {
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="prose prose-slate dark:prose-invert max-w-none">
           <p>
-            Welcome to Melanated In Tech! These Terms of Service (&ldquo;Terms&rdquo;) govern your
+            Welcome to Melanated in Tech! These Terms of Service (&ldquo;Terms&rdquo;) govern your
             access to and use of our website, tools, digital products, community features, Recovery
             Pilots, managed automation, and related professional services provided by Melanated In
             Tech (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;). By accessing or using
@@ -148,17 +148,17 @@ function TermsOfService() {
             <li>
               <strong>Our Content:</strong> Except for software source code expressly released
               under the MIT License in our public repository, the design, layout, assets, logos,
-              Marks, and materials on the platform are owned by Melanated In Tech and protected by
+              Marks, and materials on the platform are owned by Melanated in Tech and protected by
               applicable intellectual-property laws.
             </li>
             <li>
-              <strong>Melanated In Tech Marks and Forks:</strong> The MIT License for the public
-              source code does not grant permission to use the Melanated In Tech name, logos,
+              <strong>Melanated in Tech Marks and Forks:</strong> The MIT License for the public
+              source code does not grant permission to use the Melanated in Tech name, logos,
               domains, favicons, visual identity, or official accounts as the identity of another
               product, service, deployment, organization, or fork. Any public fork or derivative
               must use a distinct name, replace official branding and contact information, use its
               own domains and credentials, and not imply affiliation with or endorsement by
-              Melanated In Tech. The full policy is available in our public repository.
+              Melanated in Tech. The full policy is available in our public repository.
             </li>
             <li>
               <strong>Your Contributions:</strong> You retain ownership of the prompts, text, files,
@@ -227,7 +227,7 @@ function TermsOfService() {
 
           <h2>14. Indemnification</h2>
           <p>
-            You agree to defend and indemnify Melanated In Tech from third-party claims arising from
+            You agree to defend and indemnify Melanated in Tech from third-party claims arising from
             your unlawful use of the services, your content or contact data, communications sent on
             your behalf, your products or services, or your violation of these Terms or applicable
             law. This obligation does not apply to the extent a claim results from our willful

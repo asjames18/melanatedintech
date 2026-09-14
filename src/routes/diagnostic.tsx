@@ -30,7 +30,7 @@ import { validateLeadContact, fetchUserLocationGeo, UserGeoLocation } from "@/li
 export const Route = createFileRoute("/diagnostic")({
   head: () => ({
     ...buildSeoMeta({
-      title: "AI Workflow Diagnostic ($297) | Melanated In Tech",
+      title: "AI Workflow Diagnostic ($297) | Melanated in Tech",
       description:
         "Pinpoint missed leads, estimate follow-up bottlenecks, and get an actionable 30-day revenue recovery roadmap.",
       url: "/diagnostic",

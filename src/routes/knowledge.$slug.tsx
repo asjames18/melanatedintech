@@ -49,9 +49,9 @@ export const Route = createFileRoute("/knowledge/$slug")({
   head: ({ params, loaderData }) => {
     const a = loaderData?.article;
     const path = `/knowledge/${params.slug}`;
-    if (!a) return { meta: [{ title: "Article — Melanated In Tech" }] };
+    if (!a) return { meta: [{ title: "Article — Melanated in Tech" }] };
     const seo = buildSeoMeta({
-      title: `${a.title} — Melanated In Tech`,
+      title: `${a.title} — Melanated in Tech`,
       description: a.excerpt,
       url: path,
       type: "article",
@@ -88,7 +88,7 @@ export const Route = createFileRoute("/knowledge/$slug")({
           rel: "alternate",
           type: "application/rss+xml",
           href: `${SITE_URL}/knowledge/feed.xml`,
-          title: "Melanated In Tech — Knowledge Hub",
+          title: "Melanated in Tech — Knowledge Hub",
         },
       ],
       scripts: [

@@ -104,7 +104,7 @@ export const Route = createFileRoute("/knowledge/")({
   search: { middlewares: [stripSearchParams(SEARCH_DEFAULTS)] },
   head: () => {
     const seo = buildSeoMeta({
-      title: "Agent Knowledge Hub - Melanated In Tech",
+      title: "Agent Knowledge Hub - Melanated in Tech",
       description:
         "Practical AI agent playbooks for builders, operators, community learners, and teams deciding what to ship next.",
       url: "/knowledge",
@@ -117,7 +117,7 @@ export const Route = createFileRoute("/knowledge/")({
           rel: "alternate",
           type: "application/rss+xml",
           href: `${SITE_URL}/knowledge/feed.xml`,
-          title: "Melanated In Tech — Knowledge Hub",
+          title: "Melanated in Tech — Knowledge Hub",
         },
       ],
     };

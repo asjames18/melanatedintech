@@ -35,7 +35,7 @@ export const Route = createFileRoute("/products/")({
   search: { middlewares: [stripSearchParams(SEARCH_DEFAULTS)] },
   head: () => ({
     ...buildSeoMeta({
-      title: "Agent Digital Products — Melanated In Tech",
+      title: "Agent Digital Products — Melanated in Tech",
       description:
         "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
       url: "/products",

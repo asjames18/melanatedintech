@@ -25,7 +25,7 @@ export const Route = createFileRoute("/podcast/feed.xml")({
       GET: () => {
         if (PODCAST_RETIRED) {
           return new Response(
-            "The Melanated In Tech podcast feed has been retired. Current writing lives at https://melanatedintech.com/knowledge",
+            "The Melanated in Tech podcast feed has been retired. Current writing lives at https://melanatedintech.com/knowledge",
             {
               status: 410,
               headers: {

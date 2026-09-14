@@ -13,7 +13,7 @@ import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
 export const Route = createFileRoute("/systems/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Revenue Recovery Systems for Service Businesses | Melanated In Tech",
+      title: "Revenue Recovery Systems for Service Businesses | Melanated in Tech",
       description:
         "Explore lead, estimate, route, and client recovery automation built around measurable service-business outcomes.",
       url: "/systems",

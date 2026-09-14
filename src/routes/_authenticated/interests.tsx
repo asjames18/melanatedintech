@@ -21,7 +21,7 @@ const CONTENT_TYPES = [
 ];
 
 export const Route = createFileRoute("/_authenticated/interests")({
-  head: () => ({ meta: [{ title: "Interests — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Interests — Melanated in Tech" }] }),
   component: InterestsPage,
 });
 

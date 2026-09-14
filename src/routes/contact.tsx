@@ -42,7 +42,7 @@ export const Route = createFileRoute("/contact")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Work With Melanated In Tech | Training, AI & Websites",
+      title: "Work With Melanated in Tech | Training, AI & Websites",
       description:
         "Tell us about your AI training, workflow, website, presentation, or custom implementation needs.",
       url: "/contact",

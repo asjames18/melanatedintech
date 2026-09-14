@@ -65,7 +65,7 @@ const radarQuery = queryOptions({
 export const Route = createFileRoute("/radar/")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI & Agent Radar — Real-time Intelligence, Models & Updates | Melanated In Tech",
+      title: "AI & Agent Radar — Real-time Intelligence, Models & Updates | Melanated in Tech",
       description:
         "Live aggregated radar tracking breakthroughs in AI models, autonomous agents, open weights, developer tooling, and research preprints from free APIs and open RSS feeds.",
       url: "/radar",
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/radar/")({
           rel: "alternate",
           type: "application/rss+xml",
           href: `${SITE_URL}/radar/feed.xml`,
-          title: "Melanated In Tech — AI & Agent Radar",
+          title: "Melanated in Tech — AI & Agent Radar",
         },
       ],
       scripts: [

@@ -3,11 +3,11 @@
 export const SITE_URL = "https://melanatedintech.com";
 
 export const SITE = {
-  name: "Melanated In Tech",
+  name: "Melanated in Tech",
   short: "MIT",
   tagline: "Practical AI tools, open infrastructure, and revenue recovery systems.",
   description:
-    "Melanated In Tech equips people and small organizations to build practical economic power with AI through useful tools, accountable systems, and open infrastructure.",
+    "Melanated in Tech equips people and small organizations to build practical economic power with AI through useful tools, accountable systems, and open infrastructure.",
 };
 
 // Community is intentionally out of NAV until the feed has real activity —

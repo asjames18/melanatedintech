@@ -31,7 +31,7 @@ export const Route = createFileRoute("/services/custom-agent-build")({
   head: () => {
     const path = "/services/custom-agent-build";
     const seo = buildSeoMeta({
-      title: "Custom Autonomous Agent Build | Melanated In Tech",
+      title: "Custom Autonomous Agent Build | Melanated in Tech",
       description:
         "End-to-end custom AI agent design, MCP server database integration, prompt guardrails, and production deployment.",
       url: path,

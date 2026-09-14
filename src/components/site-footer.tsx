@@ -12,7 +12,7 @@ export function SiteFooter() {
               <source srcSet="/brand/mit-logo-horizontal-276.webp" type="image/webp" />
               <img
                 src="/brand/mit-logo-horizontal.png"
-                alt="Melanated In Tech"
+                alt="Melanated in Tech"
                 width={176}
                 height={36}
                 loading="lazy"

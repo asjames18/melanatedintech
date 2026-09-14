@@ -17,9 +17,9 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/open-commons")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Open Commons — Community-Built AI Infrastructure | Melanated In Tech",
+      title: "Open Commons — Community-Built AI Infrastructure | Melanated in Tech",
       description:
-        "Melanated In Tech Open Commons is where practical AI tools, examples, policy patterns, and community contributions become shared infrastructure.",
+        "Melanated in Tech Open Commons is where practical AI tools, examples, policy patterns, and community contributions become shared infrastructure.",
       url: "/open-commons",
     }),
   }),
@@ -74,7 +74,7 @@ function OpenCommons() {
       <PageHeader
         eyebrow="Open Commons"
         title="Build practical AI infrastructure together."
-        description="Open Commons is where Melanated In Tech turns reusable lessons from real-world work into public tools, examples, and practices that more people can understand, improve, and own."
+        description="Open Commons is where Melanated in Tech turns reusable lessons from real-world work into public tools, examples, and practices that more people can understand, improve, and own."
         actions={
           <div className="flex flex-wrap gap-3">
             <Link

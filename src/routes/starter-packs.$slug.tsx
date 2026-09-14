@@ -17,7 +17,7 @@ export const Route = createFileRoute("/starter-packs/$slug")({
     const pack = loaderData!;
     return {
       ...buildSeoMeta({
-        title: `${pack.title} | Melanated In Tech`,
+        title: `${pack.title} | Melanated in Tech`,
         description: pack.description,
         url: `/starter-packs/${pack.id}`,
       }),

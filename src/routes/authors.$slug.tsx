@@ -16,11 +16,11 @@ export const Route = createFileRoute("/authors/$slug")({
     return r;
   },
   head: ({ params, loaderData }) => {
-    if (!loaderData) return { meta: [{ title: "Author — Melanated In Tech" }] };
+    if (!loaderData) return { meta: [{ title: "Author — Melanated in Tech" }] };
     const { author } = loaderData;
     const path = `/authors/${params.slug}`;
     const seo = buildSeoMeta({
-      title: `${author.name} — Melanated In Tech`,
+      title: `${author.name} — Melanated in Tech`,
       description: author.bio ?? `Articles by ${author.name}.`,
       url: path,
       type: "profile",

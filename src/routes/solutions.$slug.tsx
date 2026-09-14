@@ -37,7 +37,7 @@ export const Route = createFileRoute("/solutions/$slug")({
     ];
     return {
       ...buildSeoMeta({
-        title: `${solution.title} Automation Solutions | Melanated In Tech`,
+        title: `${solution.title} Automation Solutions | Melanated in Tech`,
         description: solution.description,
         url: `/solutions/${solution.slug}`,
       }),

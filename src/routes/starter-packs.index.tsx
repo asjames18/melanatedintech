@@ -7,7 +7,7 @@ import { buildSeoMeta, breadcrumbLd, collectionLd, ldScript } from "@/lib/seo";
 export const Route = createFileRoute("/starter-packs/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "AI Agent Starter Packs | Melanated In Tech",
+      title: "AI Agent Starter Packs | Melanated in Tech",
       description:
         "Free prompt libraries, MCP server configurations, and standard operating procedures for trades, ministry, technical, and campus IT teams.",
       url: "/starter-packs",

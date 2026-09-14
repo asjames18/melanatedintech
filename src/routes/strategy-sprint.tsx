@@ -21,7 +21,7 @@ export const Route = createFileRoute("/strategy-sprint")({
   },
   head: () => ({
     ...buildSeoMeta({
-      title: `${SPRINT.name} | Melanated In Tech`,
+      title: `${SPRINT.name} | Melanated in Tech`,
       description:
         `A ${SPRINT.duration} discovery for one costly, repeated workflow: map, feasibility and risk, implementation-ready plan, and a pilot go / no-go / revise. The $7,500–$15,000 range is a planning signal, not an instant quote or guaranteed ROI.`,
       url: "/strategy-sprint",

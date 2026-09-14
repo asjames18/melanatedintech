@@ -20,7 +20,7 @@ import {
 export const Route = createFileRoute("/tools/token-cost-calculator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "OpenRouter AI API Cost & Token Budget Estimator — Melanated In Tech",
+      title: "OpenRouter AI API Cost & Token Budget Estimator — Melanated in Tech",
       description:
         "Calculate monthly API costs across 200+ up-to-date AI models fetched live from OpenRouter (DeepSeek R1, GPT-4o, Claude 3.5, Gemini 2.0, Llama 3.3).",
       url: "/tools/token-cost-calculator",

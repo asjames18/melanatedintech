@@ -43,7 +43,7 @@ import { toast } from "sonner";
 import { checkAdminStatus } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/account")({
-  head: () => ({ meta: [{ title: "Account — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Account — Melanated in Tech" }] }),
   component: Account,
 });
 
@@ -289,8 +289,8 @@ function Account() {
                   </div>
                   <p className="mt-1 font-display text-base font-bold text-foreground">
                     {entitlements.data && entitlements.data.length > 0
-                      ? "Melanated In Tech Pro"
-                      : "Melanated In Tech Builder"}
+                      ? "Melanated in Tech Pro"
+                      : "Melanated in Tech Builder"}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
                     {entitlements.data && entitlements.data.length > 0

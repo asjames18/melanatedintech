@@ -21,11 +21,11 @@ export const Route = createFileRoute("/challenges/$slug")({
     const c = loaderData as { title: string; excerpt: string | null } | undefined;
     if (!c) {
       return {
-        meta: [{ title: "Builder Challenge — Melanated In Tech" }],
+        meta: [{ title: "Builder Challenge — Melanated in Tech" }],
       };
     }
     const seo = buildSeoMeta({
-      title: `${c.title} — Builder Challenge | Melanated In Tech`,
+      title: `${c.title} — Builder Challenge | Melanated in Tech`,
       description: c.excerpt ?? "A weekly prompt for trying and sharing AI agent workflows.",
       url: `/challenges/${params.slug}`,
     });

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/podcast/")({
   },
   head: () => {
     const seo = buildSeoMeta({
-      title: "Melanated In Tech Podcast — Weekly AI Audio Deep Dives",
+      title: "Melanated in Tech Podcast — Weekly AI Audio Deep Dives",
       description:
         "Weekly audio deep dives into building, deploying, and benefiting from AI agents in plain English.",
       url: "/podcast",
@@ -94,7 +94,7 @@ function PodcastIndex() {
     <SiteLayout>
       <PageHeader
         eyebrow="Weekly Audio Podcast"
-        title="Melanated In Tech Podcast."
+        title="Melanated in Tech Podcast."
         description="Weekly audio deep dives into building, deploying, and benefiting from AI agents in plain English."
       />
 

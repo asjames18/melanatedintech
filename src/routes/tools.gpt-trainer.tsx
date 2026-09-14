@@ -55,7 +55,7 @@ export const Route = createFileRoute("/tools/gpt-trainer")({
   validateSearch: zodValidator(searchSchema),
   head: () => {
     const seo = buildSeoMeta({
-      title: "GPT Trainer — Melanated In Tech",
+      title: "GPT Trainer — Melanated in Tech",
       description:
         "Build custom GPT system instructions using role, tone, knowledge, and style examples.",
       url: "/tools/gpt-trainer",

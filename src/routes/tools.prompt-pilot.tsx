@@ -65,7 +65,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/prompt-pilot")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Prompt Pilot — Melanated In Tech",
+      title: "Prompt Pilot — Melanated in Tech",
       description: "Interactive drag-and-drop prompt builder and template catalog.",
       url: "/tools/prompt-pilot",
     });

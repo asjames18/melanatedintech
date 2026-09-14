@@ -55,9 +55,9 @@ export const Route = createFileRoute("/products/$slug")({
   head: ({ params, loaderData }) => {
     const p = loaderData?.product;
     const path = `/products/${params.slug}`;
-    if (!p) return { meta: [{ title: "Product — Melanated In Tech" }] };
+    if (!p) return { meta: [{ title: "Product — Melanated in Tech" }] };
     const seo = buildSeoMeta({
-      title: `${p.name} — Digital Product | Melanated In Tech`,
+      title: `${p.name} — Digital Product | Melanated in Tech`,
       description: p.tagline,
       url: path,
       type: "product",

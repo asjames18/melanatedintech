@@ -20,7 +20,7 @@ import { HUB_LEARN_ARTICLES } from "@/lib/workflow-opportunity-sprint";
 export const Route = createFileRoute("/start-small")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Start Small | Name One Repeated Workflow | Melanated In Tech",
+      title: "Start Small | Name One Repeated Workflow | Melanated in Tech",
       description:
         "Name the repeated workflow in one sentence, then choose a DIY lane or a conversation about that workflow.",
       url: "/start-small",

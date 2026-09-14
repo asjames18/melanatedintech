@@ -27,7 +27,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/mcp-builder")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "MCP Config & Server Builder — Melanated In Tech",
+      title: "MCP Config & Server Builder — Melanated in Tech",
       description:
         "Visual Model Context Protocol (MCP) server & config generator. Export claude_desktop_config.json, Cursor mcp.json, Roo Code, Python and TS code.",
       url: "/tools/mcp-builder",

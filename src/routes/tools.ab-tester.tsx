@@ -25,7 +25,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/ab-tester")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Prompt A/B Split Tester — Melanated In Tech",
+      title: "Prompt A/B Split Tester — Melanated in Tech",
       description:
         "Side-by-side system prompt A/B testing studio. Compare responses, latency, and instruction following with AI rubric scoring.",
       url: "/tools/ab-tester",

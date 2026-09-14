@@ -16,9 +16,9 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/roadmap")({
   head: () => ({
     ...buildSeoMeta({
-      title: "One-Year Roadmap - Melanated In Tech",
+      title: "One-Year Roadmap - Melanated in Tech",
       description:
-        "A focused one-year development roadmap for practical AI services, the Community, Open Commons, and responsible growth at Melanated In Tech.",
+        "A focused one-year development roadmap for practical AI services, the Community, Open Commons, and responsible growth at Melanated in Tech.",
       url: "/roadmap",
     }),
   }),
@@ -124,7 +124,7 @@ function Roadmap() {
       <PageHeader
         eyebrow="One-year roadmap"
         title="Build what becomes more useful with time."
-        description="This is a focused development path for Melanated In Tech: practical AI services, an owned Community, an open commons, and responsible systems that earn the right to grow."
+        description="This is a focused development path for Melanated in Tech: practical AI services, an owned Community, an open commons, and responsible systems that earn the right to grow."
         actions={
           <div className="flex flex-wrap gap-3">
             <Link
@@ -151,7 +151,7 @@ function Roadmap() {
               One connected system, not a pile of disconnected features.
             </h2>
             <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-              The next year should make Melanated In Tech easier to understand and more useful to
+              The next year should make Melanated in Tech easier to understand and more useful to
               return to. A business owner should be able to learn something practical, get help with a
               bounded problem, or bring a real workflow into a safer open conversation.
             </p>

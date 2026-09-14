@@ -372,7 +372,7 @@ export function ServiceLeadForm({
           className="mt-1 h-4 w-4 shrink-0 accent-primary"
         />
         <span>
-          I agree that Melanated In Tech may contact me about this request by email or phone.
+          I agree that Melanated in Tech may contact me about this request by email or phone.
           Consent is not a condition of purchase, and I can ask not to be contacted again.
         </span>
       </label>

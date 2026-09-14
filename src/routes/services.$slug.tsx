@@ -72,9 +72,9 @@ export const Route = createFileRoute("/services/$slug")({
   head: ({ params, loaderData }) => {
     const s = loaderData?.service;
     const path = `/services/${params.slug}`;
-    if (!s) return { meta: [{ title: "Service — Melanated In Tech" }] };
+    if (!s) return { meta: [{ title: "Service — Melanated in Tech" }] };
     const seo = buildSeoMeta({
-      title: `${s.name} — AI Services | Melanated In Tech`,
+      title: `${s.name} — AI Services | Melanated in Tech`,
       description: s.tagline,
       url: path,
     });

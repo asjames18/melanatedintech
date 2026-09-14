@@ -26,7 +26,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/sop-generator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Workflow SOP Generator — Melanated In Tech",
+      title: "AI Workflow SOP Generator — Melanated in Tech",
       description:
         "Generate Standard Operating Procedure (SOP) documents for teams collaborating with AI agents.",
       url: "/tools/sop-generator",
@@ -95,7 +95,7 @@ ${escalationTriggers.split(",").map((t) => `- 🚨 **Trigger:** ${t.trim()}`).jo
 5. **Resolution & Logging:** Interaction is completed and logged to database for weekly quality audit.
 
 ---
-*Generated via Melanated In Tech AI SOP Generator.*
+*Generated via Melanated in Tech AI SOP Generator.*
 `;
   }, [workflowTitle, teamName, humanRoles, agentName, agentTasks, escalationTriggers]);
 

@@ -15,7 +15,7 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/website-launch-checklist")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Website Launch Readiness Checklist - Melanated In Tech",
+      title: "Website Launch Readiness Checklist - Melanated in Tech",
       description:
         "Get a practical checklist for deciding whether your small-business website is ready to help the right people find and contact you.",
       url: "/website-launch-checklist",

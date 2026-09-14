@@ -6,9 +6,9 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/about")({
   head: () => ({
     ...buildSeoMeta({
-      title: "About — Melanated In Tech",
+      title: "About — Melanated in Tech",
       description:
-        "Melanated In Tech builds practical revenue-recovery automation for service businesses while making AI knowledge, tools, and opportunity more accessible.",
+        "Melanated in Tech builds practical revenue-recovery automation for service businesses while making AI knowledge, tools, and opportunity more accessible.",
       url: "/about",
     }),
   }),
@@ -36,7 +36,7 @@ function About() {
             </div>
             <div>
               <p className="font-display text-lg font-semibold">Antonio James</p>
-              <p className="text-sm text-muted-foreground">Founder, Melanated In Tech</p>
+              <p className="text-sm text-muted-foreground">Founder, Melanated in Tech</p>
             </div>
           </div>
           <div className="prose prose-slate dark:prose-invert mt-6 max-w-none text-[15px] leading-relaxed">
@@ -46,7 +46,7 @@ function About() {
               impressive it sounds. It is measured by whether it solves a real operating problem.
             </p>
             <p>
-              I built Melanated In Tech to help owner-led service businesses put automation to work
+              I built Melanated in Tech to help owner-led service businesses put automation to work
               where revenue is commonly lost: unanswered inquiries, unfinished estimates, route
               customers who never become recurring customers, and clients who do not rebook.
             </p>
@@ -60,7 +60,7 @@ function About() {
               The larger mission remains the same: the people and communities usually left out of
               technology waves should be able to build, own, and benefit from this one. That is why
               the marketplace, knowledge hub, podcast, products, and interactive tools remain part
-              of Melanated In Tech.
+              of Melanated in Tech.
             </p>
           </div>
         </div>

@@ -62,7 +62,7 @@ const productsQO = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "One Costly Workflow. A Fixed-Scope Next Step. | Melanated In Tech",
+      title: "One Costly Workflow. A Fixed-Scope Next Step. | Melanated in Tech",
       description:
         "Name one repeated workflow and choose a useful next step. The Workflow Opportunity Sprint is a 10-business-day discovery with a workflow map, feasibility and risk review, implementation-ready plan, and a pilot go/no-go/revise. Training, tools, and resources remain available.",
       url: "/",
@@ -160,7 +160,7 @@ function Home() {
               Start with a useful next step—or help improve the shared tools behind it.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Melanated In Tech combines practical learning, accountable business systems, and open
+              Melanated in Tech combines practical learning, accountable business systems, and open
               infrastructure. Choose the path that fits where you are today.
             </p>
           </div>

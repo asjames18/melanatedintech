@@ -2,13 +2,13 @@
 
 ## Supported version
 
-Security fixes are made on the current `main` branch of the Melanated In Tech repository and deployed production application.
+Security fixes are made on the current `main` branch of the Melanated in Tech repository and deployed production application.
 
 ## Reporting a vulnerability
 
 Please **do not** report suspected security vulnerabilities in a public GitHub issue, discussion, pull request, review comment, or community post.
 
-Report concerns privately to **hello@melanatedintech.com** with the subject line `Security Report: Melanated In Tech`. Include, when available:
+Report concerns privately to **hello@melanatedintech.com** with the subject line `Security Report: Melanated in Tech`. Include, when available:
 
 - A clear description of the issue and the affected page, feature, or component.
 - Steps to reproduce the issue safely.

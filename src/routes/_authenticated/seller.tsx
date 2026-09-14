@@ -50,7 +50,7 @@ import {
 } from "@/lib/seller.functions";
 
 export const Route = createFileRoute("/_authenticated/seller")({
-  head: () => ({ meta: [{ title: "Seller Dashboard — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Seller Dashboard — Melanated in Tech" }] }),
   component: SellerDashboard,
 });
 

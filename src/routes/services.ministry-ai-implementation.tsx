@@ -27,7 +27,7 @@ export const Route = createFileRoute("/services/ministry-ai-implementation")({
   head: () => {
     const path = "/services/ministry-ai-implementation";
     const seo = buildSeoMeta({
-      title: "Ministry & Non-Profit AI Implementation | Melanated In Tech",
+      title: "Ministry & Non-Profit AI Implementation | Melanated in Tech",
       description:
         "Welcoming, high-trust AI agent workflows designed specifically for volunteer intake, donor care, and community outreach.",
       url: path,

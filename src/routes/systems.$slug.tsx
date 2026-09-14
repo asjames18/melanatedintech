@@ -33,7 +33,7 @@ export const Route = createFileRoute("/systems/$slug")({
     ];
     return {
       ...buildSeoMeta({
-        title: `${system.title} | Melanated In Tech`,
+        title: `${system.title} | Melanated in Tech`,
         description: system.summary,
         url: `/systems/${system.slug}`,
       }),

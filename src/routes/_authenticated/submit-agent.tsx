@@ -15,7 +15,7 @@ import { CheckCircle2, Clock, XCircle, ArrowLeft, Save, ExternalLink } from "luc
 export const Route = createFileRoute("/_authenticated/submit-agent")({
   head: () => ({
     meta: [
-      { title: "Submit an agent — Melanated In Tech" },
+      { title: "Submit an agent — Melanated in Tech" },
       {
         name: "description",
         content: "Submit your AI agent for review and listing on the marketplace.",

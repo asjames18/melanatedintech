@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { ArrowLeft, CheckCircle2, Clock, XCircle, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/submissions/$id")({
-  head: () => ({ meta: [{ title: "Edit submission — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Edit submission — Melanated in Tech" }] }),
   component: SubmissionEditor,
 });
 

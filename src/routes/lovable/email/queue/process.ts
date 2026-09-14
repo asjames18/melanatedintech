@@ -8,7 +8,7 @@ const DEFAULT_SEND_DELAY_MS = 200;
 const DEFAULT_AUTH_TTL_MINUTES = 15;
 const DEFAULT_TRANSACTIONAL_TTL_MINUTES = 60;
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
-const DEFAULT_FROM_EMAIL = "Melanated In Tech <hello@melanatedintech.com>";
+const DEFAULT_FROM_EMAIL = "Melanated in Tech <hello@melanatedintech.com>";
 
 type EmailPayload = Record<string, unknown> & {
   from?: string;

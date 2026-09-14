@@ -31,7 +31,7 @@ export const Route = createFileRoute("/services/ai-workshop")({
   head: () => {
     const path = "/services/ai-workshop";
     const seo = buildSeoMeta({
-      title: "Hands-On Team AI & Agent Workshop | Melanated In Tech",
+      title: "Hands-On Team AI & Agent Workshop | Melanated in Tech",
       description:
         "Interactive live training workshop equipping your leadership, developers, or staff to build and operate AI agents.",
       url: path,

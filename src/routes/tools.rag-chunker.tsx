@@ -27,7 +27,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/rag-chunker")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "RAG & Knowledge Base Chunker — Melanated In Tech",
+      title: "RAG & Knowledge Base Chunker — Melanated in Tech",
       description:
         "Split long documents into optimized text chunks for RAG vector databases. Preview token counts and export JSON/CSV.",
       url: "/tools/rag-chunker",

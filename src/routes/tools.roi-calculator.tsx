@@ -27,7 +27,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/roi-calculator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Token & Business ROI Calculator — Melanated In Tech",
+      title: "AI Token & Business ROI Calculator — Melanated in Tech",
       description:
         "Calculate AI agent API cost vs. business ROI. Estimate monthly token expenditure and annual labor savings for your team.",
       url: "/tools/roi-calculator",
@@ -133,7 +133,7 @@ function RoiCalculatorPage() {
 - Monthly Hours Saved: ${metrics.monthlyHoursSaved} hrs
 - Monthly Labor Value: $${metrics.monthlyLaborSavingsDollars.toLocaleString()}
 - Annual Net ROI: $${metrics.netAnnualSavings.toLocaleString()} (${metrics.roiMultiplier}x ROI)
-Calculated via Melanated In Tech ROI Tool.`;
+Calculated via Melanated in Tech ROI Tool.`;
 
     navigator.clipboard.writeText(summaryText).then(
       () => {

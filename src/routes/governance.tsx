@@ -28,7 +28,7 @@ import {
 export const Route = createFileRoute("/governance")({
   head: () => ({
     ...buildSeoMeta({
-      title: "AI Governance, Ethics & Policy Starter Kit — Melanated In Tech",
+      title: "AI Governance, Ethics & Policy Starter Kit — Melanated in Tech",
       description:
         "Downloadable customizable AI acceptable use policy templates, data privacy guidelines, vendor risk frameworks, and ethical AI deployment checklists for businesses, nonprofits, higher ed, and ministries.",
       url: "/governance",
@@ -188,7 +188,7 @@ const COMPLIANCE_CHECKLIST = [
 
 export function GovernanceKit() {
   const [selectedId, setSelectedId] = useState<string>("acceptable_use");
-  const [orgName, setOrgName] = useState<string>("Melanated In Tech Enterprise");
+  const [orgName, setOrgName] = useState<string>("Melanated in Tech Enterprise");
   const [officerEmail, setOfficerEmail] = useState<string>("compliance@melanatedintech.com");
   const [effectiveDate, setEffectiveDate] = useState<string>(new Date().toISOString().split("T")[0]);
 
@@ -251,7 +251,7 @@ export function GovernanceKit() {
               Practical AI needs clear boundaries—and people who can help improve them.
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Open Commons is Melanated In Tech’s public home for shared tools, examples, and
+              Open Commons is Melanated in Tech’s public home for shared tools, examples, and
               contribution paths. This governance hub explains the responsible practices behind that work.
             </p>
           </div>

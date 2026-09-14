@@ -23,7 +23,7 @@ import {
 export const Route = createFileRoute("/tools/ai-readiness-assessment")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Interactive AI Readiness & Operational Maturity Assessment — Melanated In Tech",
+      title: "Interactive AI Readiness & Operational Maturity Assessment — Melanated in Tech",
       description:
         "Evaluate your organization's AI readiness across 5 core pillars: SOPs, Data Structure, Tooling Access, Team Literacy, and Security Governance.",
       url: "/tools/ai-readiness-assessment",

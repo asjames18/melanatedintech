@@ -27,7 +27,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/policy-generator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Acceptable AI Use Policy Generator — Melanated In Tech",
+      title: "Acceptable AI Use Policy Generator — Melanated in Tech",
       description:
         "Generate formal Acceptable AI Use Policy documents for small businesses, non-profits, ministries, and technology teams.",
       url: "/tools/policy-generator",
@@ -97,7 +97,7 @@ ${requireDisclosure ? "Team members must disclose when published content or cust
 Violations of this policy will be reviewed by organizational leadership and may result in revocation of AI tool access.
 
 ---
-*Generated via Melanated In Tech Acceptable AI Policy Generator.*
+*Generated via Melanated in Tech Acceptable AI Policy Generator.*
 `;
     return doc;
   }, [orgName, orgType, effectiveDate, allowPublicLlm, allowCodeGenerators, requireHumanReview, banPiiInput, requireDisclosure, requireDataRetentionOptOut]);

@@ -24,8 +24,8 @@ export const Route = createFileRoute("/search")({
   validateSearch: zodValidator(searchSchema),
   head: () => {
     const seo = buildSeoMeta({
-      title: "Search — Melanated In Tech",
-      description: "Search agents, knowledge, and digital products across Melanated In Tech.",
+      title: "Search — Melanated in Tech",
+      description: "Search agents, knowledge, and digital products across Melanated in Tech.",
       url: "/search",
       canonical: false,
     });

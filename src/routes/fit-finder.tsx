@@ -100,9 +100,9 @@ const catalogQo = queryOptions({
 export const Route = createFileRoute("/fit-finder")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Fit Finder | Name One Repeated Workflow | Melanated In Tech",
+      title: "Fit Finder | Name One Repeated Workflow | Melanated in Tech",
       description:
-        "Name the repeated workflow in one sentence, answer a few questions, and get a DIY lane or a next step with Melanated In Tech.",
+        "Name the repeated workflow in one sentence, answer a few questions, and get a DIY lane or a next step with Melanated in Tech.",
       url: "/fit-finder",
     }),
   }),

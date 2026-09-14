@@ -39,8 +39,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: (search) => authSearchSchema.parse(search),
   head: () => {
     const seo = buildSeoMeta({
-      title: "Sign in — Melanated In Tech",
-      description: "Sign in or create your Melanated In Tech account to save agents and access the builder community.",
+      title: "Sign in — Melanated in Tech",
+      description: "Sign in or create your Melanated in Tech account to save agents and access the builder community.",
       url: "/auth",
     });
     return {
@@ -89,7 +89,7 @@ function AuthPage() {
         // P0 FIX: If auto-confirm is enabled or session is returned immediately,
         // do NOT show "Check your email". Treat user as signed in & navigate directly!
         if (data.session || data.user?.email_confirmed_at) {
-          toast.success("Account created — welcome to Melanated In Tech.");
+          toast.success("Account created — welcome to Melanated in Tech.");
           const dest = redirectTarget ?? "/account";
           navigate({ to: dest, replace: true });
           return;

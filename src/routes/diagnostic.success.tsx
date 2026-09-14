@@ -25,7 +25,7 @@ export const Route = createFileRoute("/diagnostic/success")({
   }),
   head: () => {
     const seo = buildSeoMeta({
-      title: "Diagnostic Payment Received | Melanated In Tech",
+      title: "Diagnostic Payment Received | Melanated in Tech",
       description:
         "Your $297 Revenue Leak Diagnostic payment is confirmed. Schedule your 45-minute audit session.",
       url: "/diagnostic/success",

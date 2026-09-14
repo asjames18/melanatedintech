@@ -22,7 +22,7 @@ import {
 export const Route = createFileRoute("/tools/revenue-leak-calculator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Lead Revenue Leak & Follow-Up Calculator — Melanated In Tech",
+      title: "Lead Revenue Leak & Follow-Up Calculator — Melanated in Tech",
       description:
         "Calculate how much revenue your service business loses every year to missed calls, slow response times, and un-followed up estimates.",
       url: "/tools/revenue-leak-calculator",
@@ -243,7 +243,7 @@ function downloadRevenueLeakReport(
   monthlyLost: number,
   annualLost: number
 ) {
-  const md = `# Melanated In Tech — Lead Revenue Leakage Audit Report
+  const md = `# Melanated in Tech — Lead Revenue Leakage Audit Report
 *Generated on ${new Date().toLocaleDateString()}*
 
 ## Your Operating Metrics

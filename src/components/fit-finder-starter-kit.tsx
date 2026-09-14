@@ -160,7 +160,7 @@ function buildStarterKit(
   const workflow = answers.workflow || answers.goal || "Choose one repeated, low-risk workflow";
   return `# My First Useful Agent Starter Kit
 
-Prepared by Melanated In Tech
+Prepared by Melanated in Tech
 
 ## My starting point
 

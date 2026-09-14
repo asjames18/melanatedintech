@@ -22,7 +22,7 @@ import {
 export const Route = createFileRoute("/tools/workflow-spec-builder")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Automation Workflow Spec Builder — Melanated In Tech",
+      title: "AI Automation Workflow Spec Builder — Melanated in Tech",
       description:
         "Visually build AI automation workflows and export ready-to-import blueprints for Zapier, Make.com, n8n, and webhooks.",
       url: "/tools/workflow-spec-builder",

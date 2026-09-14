@@ -107,7 +107,7 @@ import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.f
 import { listClientInvoices } from "@/lib/invoices.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
-  head: () => ({ meta: [{ title: "Admin — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Admin — Melanated in Tech" }] }),
   component: AdminPage,
 });
 

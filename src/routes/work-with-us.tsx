@@ -97,7 +97,7 @@ export const Route = createFileRoute("/work-with-us")({
   head: () => ({
     ...buildSeoMeta({
       title:
-        "Work With Us | Workflow Opportunity Sprint, Diagnostic & Websites | Melanated In Tech",
+        "Work With Us | Workflow Opportunity Sprint, Diagnostic & Websites | Melanated in Tech",
       description:
         "Start with practical AI training, a $297 AI Workflow Diagnostic, a $997 Website Launch Sprint, or a 10-business-day Workflow Opportunity Sprint. The $7,500–$15,000 range is a planning signal, not an instant quote, and does not guarantee ROI.",
       url: "/work-with-us",

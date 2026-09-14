@@ -5,7 +5,7 @@ export const WEBSITE_LAUNCH_SEQUENCE_KEY = "website_launch_sprint_v1";
 // Step 0 is the requested checklist delivery. Steps 1–3 are the paused-by-default marketing follow-up.
 export const WEBSITE_LAUNCH_NURTURE_STEPS = [1, 2, 3] as const;
 
-const FROM = "Antonio at Melanated In Tech <hello@melanatedintech.com>";
+const FROM = "Antonio at Melanated in Tech <hello@melanatedintech.com>";
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CONFIRMATION_TTL_MS = 48 * 60 * 60 * 1000;
 const CHECKLIST_PATH = "/website-launch-readiness-checklist.pdf";
@@ -31,7 +31,7 @@ function emailLayout(email: NurtureEmail, unsubscribeUrl: string, mailingAddress
   const link = (href: string, label: string) =>
     `<a href="${escapeHtml(href)}" style="color:#8a5a2b;font-weight:700;">${escapeHtml(label)}</a>`;
   const body = email.html;
-  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="color:#8b7a68;font-size:12px">${escapeHtml(email.preheader)}</p>${body}<p style="margin-top:28px">— Antonio<br><span style="color:#8b7a68;font-size:13px">Melanated In Tech · melanatedintech.com</span></p><p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px">You received this because you requested the Website Launch Readiness Checklist. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a5a2b">Unsubscribe</a> from these updates.<br>${escapeHtml(mailingAddress)}</p></div>`;
+  return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="color:#8b7a68;font-size:12px">${escapeHtml(email.preheader)}</p>${body}<p style="margin-top:28px">— Antonio<br><span style="color:#8b7a68;font-size:13px">Melanated in Tech · melanatedintech.com</span></p><p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px">You received this because you requested the Website Launch Readiness Checklist. <a href="${escapeHtml(unsubscribeUrl)}" style="color:#8a5a2b">Unsubscribe</a> from these updates.<br>${escapeHtml(mailingAddress)}</p></div>`;
 }
 
 function stepEmail(step: number): NurtureEmail {
@@ -150,8 +150,8 @@ export function buildWebsiteLaunchConfirmationPayload(params: { email: string; c
     to: params.email,
     from: FROM,
     subject: "Confirm your Website Launch Readiness Checklist request",
-    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="font-size:18px;font-weight:700">Confirm your email to receive the checklist.</p><p>You asked Melanated In Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Please confirm that request before we send anything further.</p><p><a href="${escapeHtml(confirmationUrl)}" style="display:inline-block;padding:12px 18px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700">Confirm my request</a></p><p style="color:#8b7a68;font-size:12px">This confirmation link expires in 48 hours. If you did not request this, no action is needed.</p></div>`,
-    text: `You asked Melanated In Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Confirm your request: ${confirmationUrl}\n\nThis link expires in 48 hours. If you did not request this, no action is needed.`,
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6"><p style="font-size:18px;font-weight:700">Confirm your email to receive the checklist.</p><p>You asked Melanated in Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Please confirm that request before we send anything further.</p><p><a href="${escapeHtml(confirmationUrl)}" style="display:inline-block;padding:12px 18px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700">Confirm my request</a></p><p style="color:#8b7a68;font-size:12px">This confirmation link expires in 48 hours. If you did not request this, no action is needed.</p></div>`,
+    text: `You asked Melanated in Tech to send the Website Launch Readiness Checklist and related Website Launch Sprint updates. Confirm your request: ${confirmationUrl}\n\nThis link expires in 48 hours. If you did not request this, no action is needed.`,
     label: "website_launch_confirmation",
     purpose: "transactional",
     message_id: messageId,

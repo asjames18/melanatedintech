@@ -38,7 +38,7 @@ export const Route = createFileRoute("/community/")({
   validateSearch: zodValidator(searchSchema),
   head: () => ({
     ...buildSeoMeta({
-      title: "Community - Melanated In Tech",
+      title: "Community - Melanated in Tech",
       description: "An AI and AI-agent builder network for discussions, showcases, questions, and resources.",
       url: "/community",
     }),
@@ -119,7 +119,7 @@ function Community() {
                       <Sparkles className="h-5 w-5" />
                     </div>
                     <div>
-                      <h3 className="font-display text-sm font-bold text-foreground">Join the Melanated In Tech Builder Network</h3>
+                      <h3 className="font-display text-sm font-bold text-foreground">Join the Melanated in Tech Builder Network</h3>
                       <p className="text-xs text-muted-foreground">Share builds, showcase agents, unlock starter templates, and collaborate with builders.</p>
                     </div>
                   </div>

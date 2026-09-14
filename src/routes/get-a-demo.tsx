@@ -11,7 +11,7 @@ export const Route = createFileRoute("/get-a-demo")({
   validateSearch: z.object({ system: serviceModelSchema.optional() }),
   head: () => ({
     ...buildSeoMeta({
-      title: "Get a Service Business Recovery Demo | Melanated In Tech",
+      title: "Get a Service Business Recovery Demo | Melanated in Tech",
       description:
         "Tell us where revenue gets stuck and see the lead, estimate, route, or client recovery workflow that matches your business.",
       url: "/get-a-demo",

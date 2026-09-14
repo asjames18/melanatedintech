@@ -2,7 +2,7 @@
 
 ## Our commitment
 
-Melanated In Tech is a welcoming, constructive space for people with different backgrounds, experiences, roles, and levels of technical confidence. We are committed to participation that is respectful, useful, and grounded in care for the people affected by technology.
+Melanated in Tech is a welcoming, constructive space for people with different backgrounds, experiences, roles, and levels of technical confidence. We are committed to participation that is respectful, useful, and grounded in care for the people affected by technology.
 
 ## Expected behavior
 
@@ -27,7 +27,7 @@ The following behavior is not acceptable:
 
 ## Reporting and enforcement
 
-If you experience or witness a concern, please report it privately to **hello@melanatedintech.com** with the subject line `Melanated In Tech Code of Conduct`. Do not post sensitive reports publicly.
+If you experience or witness a concern, please report it privately to **hello@melanatedintech.com** with the subject line `Melanated in Tech Code of Conduct`. Do not post sensitive reports publicly.
 
 The project steward will review reports as promptly and fairly as possible. Responses may include clarification, a warning, content removal, a temporary restriction, or removal from project spaces depending on the situation. Retaliation against a person who raises a good-faith concern is not acceptable.
 

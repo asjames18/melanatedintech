@@ -35,11 +35,11 @@ export const Route = createFileRoute("/paths/$slug")({
     const p = loaderData as { title: string; excerpt: string | null } | undefined;
     if (!p) {
       return {
-        meta: [{ title: "Learning Path — Melanated In Tech" }],
+        meta: [{ title: "Learning Path — Melanated in Tech" }],
       };
     }
     const seo = buildSeoMeta({
-      title: `${p.title} — Learning Path | Melanated In Tech`,
+      title: `${p.title} — Learning Path | Melanated in Tech`,
       description: p.excerpt ?? "A guided AI agent builder learning path.",
       url: `/paths/${params.slug}`,
     });

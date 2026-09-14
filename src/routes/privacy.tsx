@@ -5,8 +5,8 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Privacy Policy — Melanated In Tech",
-      description: "Learn how Melanated In Tech collects, uses, and safeguards your personal data.",
+      title: "Privacy Policy — Melanated in Tech",
+      description: "Learn how Melanated in Tech collects, uses, and safeguards your personal data.",
       url: "/privacy",
     }),
   }),
@@ -25,7 +25,7 @@ function PrivacyPolicy() {
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="prose prose-slate dark:prose-invert max-w-none">
           <p>
-            At Melanated In Tech, we respect your privacy and are committed to protecting the
+            At Melanated in Tech, we respect your privacy and are committed to protecting the
             personal data you share with us. This Privacy Policy explains how we collect, use,
             disclose, and safeguard your information when you visit our website, utilize our
             interactive AI tools, purchase digital products, engage with our community, request a
@@ -217,7 +217,7 @@ function PrivacyPolicy() {
 
           <h2>11. United States Processing</h2>
           <p>
-            Melanated In Tech is based in Florida, and information may be processed and stored in
+            Melanated in Tech is based in Florida, and information may be processed and stored in
             the United States or other locations where our service providers operate. Those
             locations may have data-protection rules different from those where you live.
           </p>
@@ -232,7 +232,7 @@ function PrivacyPolicy() {
           <p>
             If you have questions, requests, or concerns about this policy or our data practices,
             email <a href="mailto:hello@melanatedintech.com">hello@melanatedintech.com</a> or visit
-            our <a href="/contact">Contact Page</a>. Melanated In Tech is based in Sebring, Florida.
+            our <a href="/contact">Contact Page</a>. Melanated in Tech is based in Sebring, Florida.
           </p>
         </div>
       </section>

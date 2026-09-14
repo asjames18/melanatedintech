@@ -43,7 +43,7 @@ const GUIDE_DATA = {
 export const Route = createFileRoute("/tools/voice-agent-builder")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Voice AI Agent Call-Flow Builder — Melanated In Tech",
+      title: "Voice AI Agent Call-Flow Builder — Melanated in Tech",
       description:
         "Design, rehearse, and export starter phone voice AI agent call flows for Vapi and Retell AI.",
       url: "/tools/voice-agent-builder",

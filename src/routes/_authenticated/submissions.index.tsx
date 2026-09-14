@@ -8,7 +8,7 @@ import { listMySubmissions } from "@/lib/submissions.functions";
 import { CheckCircle2, Clock, XCircle, Plus, ExternalLink, FileText } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/submissions/")({
-  head: () => ({ meta: [{ title: "My submissions — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "My submissions — Melanated in Tech" }] }),
   component: SubmissionsList,
 });
 

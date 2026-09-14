@@ -23,7 +23,7 @@ import {
 export const Route = createFileRoute("/tools/")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Interactive AI Tools Workbench & Generators — Melanated In Tech",
+      title: "Interactive AI Tools Workbench & Generators — Melanated in Tech",
       description:
         "Free interactive AI tools for builders and teams: Prompt Pilot, MCP Server Builder, Model Playground, Agent Architect, Token Cost Estimator, and SOP Generator.",
       url: "/tools",

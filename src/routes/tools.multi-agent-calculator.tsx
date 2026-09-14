@@ -20,7 +20,7 @@ import {
 export const Route = createFileRoute("/tools/multi-agent-calculator")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Multi-Agent Team Cost & Labor Savings Estimator — Melanated In Tech",
+      title: "Multi-Agent Team Cost & Labor Savings Estimator — Melanated in Tech",
       description:
         "Calculate financial ROI, labor hours saved per month, and API infrastructure costs when deploying a multi-agent AI team.",
       url: "/tools/multi-agent-calculator",

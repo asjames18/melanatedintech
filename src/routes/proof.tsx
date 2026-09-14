@@ -8,7 +8,7 @@ import { ReferenceWorkflows } from "@/components/reference-workflows";
 export const Route = createFileRoute("/proof")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Agent Implementation Proof - Melanated In Tech",
+      title: "Agent Implementation Proof - Melanated in Tech",
       description:
         "Practical proof, risk checks, and field notes for trustworthy AI agent implementation.",
       url: "/proof",

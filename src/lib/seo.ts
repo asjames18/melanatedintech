@@ -14,7 +14,7 @@ export type SeoInput = {
   canonical?: boolean;
 };
 
-const DEFAULT_SITE = "Melanated In Tech";
+const DEFAULT_SITE = "Melanated in Tech";
 
 function absoluteUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;

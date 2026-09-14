@@ -22,9 +22,9 @@ import { funnelAttribution } from "@/components/funnel-attribution";
 export const Route = createFileRoute("/legal-intake")({
   head: () => ({
     ...buildSeoMeta({
-      title: "24/7 AI Client Intake for Small Law Firms | Melanated In Tech",
+      title: "24/7 AI Client Intake for Small Law Firms | Melanated in Tech",
       description:
-        "Melanated In Tech answers every call your firm can't — nights, weekends, busy weekdays. AI intake that qualifies the matter, captures conflict-check details, and books consultations straight into your calendar. Start with a free 7-Day Missed-Case Audit.",
+        "Melanated in Tech answers every call your firm can't — nights, weekends, busy weekdays. AI intake that qualifies the matter, captures conflict-check details, and books consultations straight into your calendar. Start with a free 7-Day Missed-Case Audit.",
       url: "/legal-intake",
     }),
     scripts: [
@@ -115,7 +115,7 @@ function LegalIntake() {
             Never miss another case.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-background/70 sm:text-xl">
-            Melanated In Tech answers every call your firm can&apos;t — nights, weekends, and busy
+            Melanated in Tech answers every call your firm can&apos;t — nights, weekends, and busy
             weekdays. Our AI intake qualifies the matter, captures conflict-check details, and books
             the consultation straight into your calendar.
           </p>
@@ -321,7 +321,7 @@ function LegalIntake() {
               {[
                 [
                   "Disclosure by default.",
-                  "The AI identifies itself as an AI assistant at the start of every call — the standard Florida, Utah, and California guidance expects.",
+                  "The AI identifies itself as an AI assistant at the start of every call — the standard Florida, Texas, and Arizona guidance expects.",
                 ],
                 [
                   "Intake only.",

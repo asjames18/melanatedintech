@@ -48,7 +48,7 @@ import {
 } from "@/lib/prompts.functions";
 
 export const Route = createFileRoute("/_authenticated/prompts")({
-  head: () => ({ meta: [{ title: "Prompt Library — Melanated In Tech" }] }),
+  head: () => ({ meta: [{ title: "Prompt Library — Melanated in Tech" }] }),
   component: PromptsPage,
 });
 

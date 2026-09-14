@@ -1,5 +1,5 @@
 /**
- * Single source of truth helper for identifying test records in Melanated In Tech admin dashboard.
+ * Single source of truth helper for identifying test records in Melanated in Tech admin dashboard.
  */
 
 export function isTestEmail(email?: string | null): boolean {

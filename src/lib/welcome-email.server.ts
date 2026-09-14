@@ -4,11 +4,11 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { SITE_URL } from "@/lib/site";
 
-const FROM = "Antonio at Melanated In Tech <hello@melanatedintech.com>";
+const FROM = "Antonio at Melanated in Tech <hello@melanatedintech.com>";
 
 function welcomeText() {
   return [
-    "Hey — Antonio here, founder of Melanated In Tech.",
+    "Hey — Antonio here, founder of Melanated in Tech.",
     "",
     "You're on the list. Here's what that means: when something genuinely worth your time drops — a new agent, a playbook, an early price — you hear about it first. No spam, no daily blasts.",
     "",
@@ -24,7 +24,7 @@ function welcomeText() {
     "Got a question or a workflow you're wrestling with? Just reply — I read these.",
     "",
     "— Antonio",
-    "Melanated In Tech · melanatedintech.com",
+    "Melanated in Tech · melanatedintech.com",
     "",
     "Don't want emails from us? Reply with \"unsubscribe\" and you're out, no hard feelings.",
   ].join("\n");
@@ -35,7 +35,7 @@ function welcomeHtml() {
     `<a href="${href}" style="color:#8a5a2b;font-weight:600;">${label}</a>`;
   return `
   <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6;">
-    <p style="font-size:18px;font-weight:700;">Hey — Antonio here, founder of Melanated In Tech.</p>
+    <p style="font-size:18px;font-weight:700;">Hey — Antonio here, founder of Melanated in Tech.</p>
     <p>You're on the list. Here's what that means: when something genuinely worth your time drops — a new agent, a playbook, an early price — you hear about it first. No spam, no daily blasts.</p>
     <p style="font-weight:600;">While you're here, three free things people get the most out of:</p>
     <ol style="padding-left:20px;">
@@ -45,7 +45,7 @@ function welcomeHtml() {
     </ol>
     <p>When you're ready for focused help, explore ${link(`${SITE_URL}/work-with-us`, "AI training, a workflow diagnostic, or a Website Launch Sprint")}. Larger work is scoped in writing before implementation.</p>
     <p>Got a question or a workflow you're wrestling with? Just reply — I read these.</p>
-    <p style="margin-top:24px;">— Antonio<br/><span style="color:#8b7a68;font-size:13px;">Melanated In Tech · melanatedintech.com</span></p>
+    <p style="margin-top:24px;">— Antonio<br/><span style="color:#8b7a68;font-size:13px;">Melanated in Tech · melanatedintech.com</span></p>
     <p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px;">Don't want emails from us? Reply with "unsubscribe" and you're out, no hard feelings.</p>
   </div>`;
 }
@@ -102,7 +102,7 @@ export async function enqueueContactNotification(contact: {
     const messageId = `contact_notification:${Date.now()}:${contact.email}`;
 
     const textContent = [
-      `New contact submission on Melanated In Tech:`,
+      `New contact submission on Melanated in Tech:`,
       ``,
       `Name: ${contact.name}`,
       `Email: ${contact.email}`,
@@ -301,12 +301,12 @@ export async function sendInvoiceDeliveryEmail(params: {
     "",
     `Review the invoice and complete payment: ${invoiceUrl}`,
     params.customerNote ? "" : null,
-    params.customerNote ? "A note from Melanated In Tech:" : null,
+    params.customerNote ? "A note from Melanated in Tech:" : null,
     params.customerNote || null,
     "",
     "Third-party software and usage costs are billed separately unless the invoice states otherwise. No revenue outcome is guaranteed.",
     "",
-    "— Melanated In Tech",
+    "— Melanated in Tech",
   ]
     .filter(Boolean)
     .join("\n");
@@ -325,7 +325,7 @@ export async function sendInvoiceDeliveryEmail(params: {
       </div>
       <p><a href="${invoiceUrl}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700">Review invoice and pay ${safe(params.paymentLabel)}</a></p>
       <p style="margin:10px 0 24px;color:#75685c;font-size:12px">If the button does not open, copy this link:<br/><a href="${invoiceUrl}" style="color:#8a5a2b;word-break:break-all">${invoiceUrl}</a></p>
-      ${params.customerNote ? `<div style="margin:24px 0;padding:16px;border-left:4px solid #8a5a2b;background:#faf8f5"><strong>Additional note from Melanated In Tech</strong><p style="margin:8px 0 0;white-space:pre-wrap">${safe(params.customerNote)}</p></div>` : ""}
+      ${params.customerNote ? `<div style="margin:24px 0;padding:16px;border-left:4px solid #8a5a2b;background:#faf8f5"><strong>Additional note from Melanated in Tech</strong><p style="margin:8px 0 0;white-space:pre-wrap">${safe(params.customerNote)}</p></div>` : ""}
       <p style="margin-top:24px;color:#75685c;font-size:12px">Third-party software and usage costs are billed separately unless the invoice states otherwise. No revenue outcome is guaranteed.</p>
     </div>`;
   const payload = {

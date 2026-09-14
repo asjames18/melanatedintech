@@ -378,7 +378,7 @@ const PRESETS: Record<
         nodeId: "optimizer",
         title: "Draft 2 Refined",
         description: "Optimizer applies the edits to draft the second version.",
-        log: "Applying feedback. Rewriting v2:\n'FOR IMMEDIATE RELEASE: Melanated In Tech proudly launches the new AI Agent Marketplace, an educational repository of custom agents. Discover and configure starter templates to automate operations. Visit melanatedintech.com/agents to launch today.'",
+        log: "Applying feedback. Rewriting v2:\n'FOR IMMEDIATE RELEASE: Melanated in Tech proudly launches the new AI Agent Marketplace, an educational repository of custom agents. Discover and configure starter templates to automate operations. Visit melanatedintech.com/agents to launch today.'",
         dataPassed: "Press Release v2 (Formal tone, CTA included, 44 words)",
       },
       {
@@ -403,7 +403,7 @@ const AVAILABLE_TOOLS = [
 export const Route = createFileRoute("/tools/agent-architect")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "AI Agent Architect — Melanated In Tech",
+      title: "AI Agent Architect — Melanated in Tech",
       description:
         "Design multi-agent architectures and workflows visually, generate code boilerplate, and simulate executions.",
       url: "/tools/agent-architect",

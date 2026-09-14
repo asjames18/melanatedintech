@@ -18,9 +18,9 @@ export const Route = createFileRoute("/ai-playbook-for/$niche")({
   head: ({ params, loaderData }) => {
     const entry = loaderData?.entry;
     const path = `/ai-playbook-for/${params.niche}`;
-    if (!entry) return { meta: [{ title: "AI Playbook — Melanated In Tech" }] };
+    if (!entry) return { meta: [{ title: "AI Playbook — Melanated in Tech" }] };
     const seo = buildSeoMeta({
-      title: `AI Prompts for ${entry.plural} — Free AI Playbook | Melanated In Tech`,
+      title: `AI Prompts for ${entry.plural} — Free AI Playbook | Melanated in Tech`,
       description: `${PLAYBOOK.reduce((n, c) => n + c.prompts.length, 0)} free copy-paste AI prompts written for ${entry.plural.toLowerCase()} — marketing, customer replies, reviews, operations, and growth. No signup required.`,
       url: path,
     });

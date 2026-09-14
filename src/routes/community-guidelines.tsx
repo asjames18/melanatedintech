@@ -5,8 +5,8 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/community-guidelines")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Community Guidelines - Melanated In Tech",
-      description: "Participation, attribution, privacy, and reporting expectations for the Melanated In Tech Community.",
+      title: "Community Guidelines - Melanated in Tech",
+      description: "Participation, attribution, privacy, and reporting expectations for the Melanated in Tech Community.",
       url: "/community-guidelines",
     }),
   }),
@@ -47,7 +47,7 @@ function CommunityGuidelines() {
           <div>
             <h2 className="font-display text-xl font-semibold text-foreground">Report concerns privately</h2>
             <p className="mt-3">
-              If you experience or witness a concern, email <a className="font-semibold text-primary hover:underline" href="mailto:hello@melanatedintech.com?subject=Melanated%20In%20Tech%20Code%20of%20Conduct">hello@melanatedintech.com</a> with the subject line <span className="font-mono text-sm text-foreground">Melanated In Tech Code of Conduct</span>. Please do not post sensitive reports publicly. Good-faith reports are reviewed as promptly and fairly as possible, and retaliation is not acceptable.
+              If you experience or witness a concern, email <a className="font-semibold text-primary hover:underline" href="mailto:hello@melanatedintech.com?subject=Melanated%20In%20Tech%20Code%20of%20Conduct">hello@melanatedintech.com</a> with the subject line <span className="font-mono text-sm text-foreground">Melanated in Tech Code of Conduct</span>. Please do not post sensitive reports publicly. Good-faith reports are reviewed as promptly and fairly as possible, and retaliation is not acceptable.
             </p>
           </div>
 

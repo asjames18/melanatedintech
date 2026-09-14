@@ -14,7 +14,7 @@ const qo = queryOptions({
 export const Route = createFileRoute("/challenges/")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Builder Challenges - Melanated In Tech",
+      title: "Builder Challenges - Melanated in Tech",
       description:
         "Weekly AI agent builder prompts for learning, trying, and sharing in community.",
       url: "/challenges",

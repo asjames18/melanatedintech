@@ -19,7 +19,7 @@ import {
 export const Route = createFileRoute("/tools/json-schema-studio")({
   head: () => {
     const seo = buildSeoMeta({
-      title: "Structured Output & JSON Schema Studio — Melanated In Tech",
+      title: "Structured Output & JSON Schema Studio — Melanated in Tech",
       description:
         "Visually build and export JSON Schema, Zod TypeScript, and Pydantic Python schemas for OpenAI Function Calling & Structured AI Outputs.",
       url: "/tools/json-schema-studio",

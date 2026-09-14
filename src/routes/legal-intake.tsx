@@ -140,7 +140,7 @@ function LegalIntake() {
           </div>
           <div className="mt-14 grid gap-6 border-t border-background/15 pt-8 sm:grid-cols-3">
             {[
-              ["78%", "of legal clients hire the first attorney who responds"],
+              ["8×", "higher conversion when a new lead is contacted within 5 minutes"],
               ["~40%", "of small firms actually answer the phone"],
               ["7 min", "response converts 80% better than 30+ minutes"],
             ].map(([stat, label]) => (

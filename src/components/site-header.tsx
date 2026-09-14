@@ -44,6 +44,7 @@ const groups = [
 ] as const;
 
 const directLinks = [
+  ["24/7 Legal Intake", "/legal-intake"],
   ["Marketplace", "/agents"],
   ["Roadmap", "/roadmap"],
   ["About", "/about"],
@@ -141,15 +142,21 @@ export function SiteHeader() {
             </div>
           ))}
 
-          {directLinks.map(([label, to]) => (
-            <Link
-              key={to}
-              to={to}
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              {label}
-            </Link>
-          ))}
+          {directLinks.map(([label, to]) => {
+            const isFeatured = to === "/legal-intake";
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
+                  isFeatured ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground"
+                }`}
+              >
+                {label}
+                {isFeatured && <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right Desktop Action Bar */}

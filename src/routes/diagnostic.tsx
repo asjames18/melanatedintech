@@ -30,7 +30,7 @@ import { validateLeadContact, fetchUserLocationGeo, UserGeoLocation } from "@/li
 export const Route = createFileRoute("/diagnostic")({
   head: () => ({
     ...buildSeoMeta({
-      title: "Revenue Leak Diagnostic ($297) | Melanated In Tech",
+      title: "AI Workflow Diagnostic ($297) | Melanated In Tech",
       description:
         "Pinpoint missed leads, estimate follow-up bottlenecks, and get an actionable 30-day revenue recovery roadmap.",
       url: "/diagnostic",
@@ -39,12 +39,12 @@ export const Route = createFileRoute("/diagnostic")({
       ldScript(
         breadcrumbLd([
           { name: "Home", path: "/" },
-          { name: "Revenue Leak Diagnostic", path: "/diagnostic" },
+          { name: "AI Workflow Diagnostic", path: "/diagnostic" },
         ]),
       ),
     ],
   }),
-  component: RevenueLeakDiagnostic,
+  component: AiWorkflowDiagnostic,
 });
 
 const DELIVERABLES = [
@@ -89,7 +89,7 @@ const FAQS = [
   ],
 ];
 
-function RevenueLeakDiagnostic() {
+function AiWorkflowDiagnostic() {
   const [leadEmail, setLeadEmail] = useState("");
   const [userGeo, setUserGeo] = useState<UserGeoLocation | null>(null);
   const [validationResult, setValidationResult] = useState<{
@@ -244,7 +244,7 @@ function RevenueLeakDiagnostic() {
                   <p className="text-xs font-semibold uppercase tracking-wider text-primary">
                     Paid Audit Engagement
                   </p>
-                  <h3 className="mt-1 font-display text-2xl font-semibold">Revenue Leak Diagnostic</h3>
+                  <h3 className="mt-1 font-display text-2xl font-semibold">AI Workflow Diagnostic</h3>
                 </div>
                 <div className="text-right">
                   <p className="font-display text-4xl font-bold text-foreground">$297</p>
@@ -272,7 +272,7 @@ function RevenueLeakDiagnostic() {
                 <UnlockButton
                   kind="product"
                   slug="revenue-leak-diagnostic"
-                  itemName="Revenue Leak Diagnostic ($297)"
+                  itemName="AI Workflow Diagnostic ($297)"
                   priceCents={29700}
                   tier="premium"
                 />
@@ -328,7 +328,7 @@ function RevenueLeakDiagnostic() {
                   Zero risk when you decide to build.
                 </h2>
                 <p className="mt-4 text-muted-foreground leading-relaxed">
-                  We built the $297 Revenue Leak Diagnostic to remove friction. If you decide after the diagnostic that you want us to install and configure your 30-Day Recovery Pilot ($1,500), your full $297 purchase is applied directly to the pilot deposit.
+                  We built the $297 AI Workflow Diagnostic to remove friction. If you decide after the diagnostic that you want us to install and configure your 30-Day Recovery Pilot ($1,500), your full $297 purchase is applied directly to the pilot deposit.
                 </p>
               </div>
 

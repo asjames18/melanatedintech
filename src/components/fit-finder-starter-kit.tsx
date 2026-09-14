@@ -200,7 +200,7 @@ ${productName ? `- Product: ${productName}` : ""}
 
 ${
   highIntent
-    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider a focused AI Workflow Diagnostic before implementation: https://melanatedintech.com/work-with-us. If the work crosses systems or needs a written go/no-go, ask about the Workflow Opportunity Sprint—not an Agent Strategy Sprint or ROI sprint."
+    ? "Because this appears time-sensitive, leadership-owned, or higher risk, consider a focused AI Workflow Diagnostic before implementation: https://melanatedintech.com/work-with-us. If the work crosses systems or needs a written go/no-go, ask about the Workflow Opportunity Sprint."
     : "Run a small internal test, then repeat the Fit Finder when the team has evidence from real examples."
 }
 

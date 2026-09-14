@@ -836,7 +836,7 @@ export function SystemDemo({
               }
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-foreground px-5 py-3.5 text-sm font-semibold text-background hover:opacity-90"
             >
-              Get my 30-day recovery plan <ChevronRight className="h-4 w-4" />
+              See my recovery demo <ChevronRight className="h-4 w-4" />
             </a>
           ) : null}
           <p className="mt-3 text-center text-[11px] leading-relaxed text-muted-foreground">

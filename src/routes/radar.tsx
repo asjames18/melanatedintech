@@ -27,6 +27,7 @@ import {
   Flame,
   Clock,
   Radio,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -61,6 +62,7 @@ const CATEGORIES: Array<{
   description: string;
 }> = [
   { id: "all", label: "All Radar", icon: Radio, description: "All real-time updates across the AI stack" },
+  { id: "briefings", label: "Executive Briefings", icon: Sparkles, description: "Curated daily executive briefs & analysis" },
   { id: "models", label: "Models & Weights", icon: Cpu, description: "LLMs, vision models, weights, and benchmarks" },
   { id: "agents", label: "Autonomous Agents", icon: Bot, description: "MCP servers, tool-use, and agent frameworks" },
   { id: "developer", label: "Dev & Code", icon: Code2, description: "Hands-on tutorials, implementations, and tooling" },
@@ -89,6 +91,11 @@ function timeAgo(isoString: string): string {
 
 function getCategoryBadge(cat: AiRadarItem["category"]) {
   switch (cat) {
+    case "briefings":
+      return {
+        label: "Executive Briefing",
+        className: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+      };
     case "models":
       return {
         label: "Model / Weights",
@@ -159,7 +166,6 @@ function RadarPage() {
     }
   };
 
-  const items = data?.items || [];
   const sources = useMemo(() => {
     const list = data?.sources || [];
     return ["All", ...list];
@@ -167,6 +173,7 @@ function RadarPage() {
 
   // Client-side filtering
   const filteredItems = useMemo(() => {
+    const items = data?.items || [];
     const now = Date.now();
     return items.filter((item) => {
       // Category filter
@@ -203,7 +210,7 @@ function RadarPage() {
 
       return true;
     });
-  }, [items, selectedCategory, selectedSource, timeframe, searchQuery]);
+  }, [data?.items, selectedCategory, selectedSource, timeframe, searchQuery]);
 
   return (
     <SiteLayout>
@@ -215,6 +222,158 @@ function RadarPage() {
 
       {/* Main Content Area */}
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Featured Executive AI Briefing Hero */}
+        {data?.briefing && selectedCategory === "all" && !searchQuery.trim() && (
+          <div className="mb-8 overflow-hidden rounded-3xl border border-amber-500/30 bg-gradient-to-br from-card via-card to-amber-500/5 p-6 shadow-xl sm:p-8">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                  <Sparkles className="h-3.5 w-3.5" /> Today's Executive Briefing
+                </span>
+                <span className="text-xs text-muted-foreground">{data.briefing.date}</span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-md border border-border bg-background/80 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  Aggregated with <strong className="text-foreground ml-0.5">The AI Report</strong>
+                </span>
+                <a
+                  href={data.briefing.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  Source Issue <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+
+            {/* Headline */}
+            <div className="mt-4">
+              <h2 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                {data.briefing.headline}
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground sm:text-base leading-relaxed">
+                {data.briefing.tagline}
+              </p>
+            </div>
+
+            {/* Three Key Shifts Grid */}
+            <div className="mt-6 grid gap-4 md:grid-cols-3">
+              {data.briefing.takeaways.map((takeaway, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col justify-between rounded-2xl border border-border/80 bg-background/60 p-4 backdrop-blur-xs transition hover:border-amber-500/40"
+                >
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+                      <span className="font-mono text-xs">0{idx + 1}</span>
+                      <span>{takeaway.title}</span>
+                    </div>
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      {takeaway.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Relevance Bar */}
+            <div className="mt-4 rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
+              <strong className="text-foreground">Why It Matters for Enterprise:</strong>{" "}
+              {data.briefing.relevance}
+            </div>
+
+            {/* Dual Feature Rows: Steal This Workflow + Daily Tool Drop */}
+            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+              {/* Steal This Workflow Card */}
+              <div className="flex flex-col justify-between rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                      <Zap className="h-3 w-3" /> Steal This Workflow
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">Field-Tested Automation</span>
+                  </div>
+                  <h3 className="mt-3 text-base font-semibold text-foreground">
+                    {data.briefing.stealThisWorkflow.title}
+                  </h3>
+                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                    {data.briefing.stealThisWorkflow.description}
+                  </p>
+                  <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
+                    {data.briefing.stealThisWorkflow.playbook.map((step, sIdx) => (
+                      <li key={sIdx} className="flex items-start gap-1.5">
+                        <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="mt-5 pt-3 border-t border-border/60">
+                  <Link
+                    to={data.briefing.stealThisWorkflow.actionUrl}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-xs transition hover:opacity-90"
+                  >
+                    {data.briefing.stealThisWorkflow.actionText}
+                  </Link>
+                </div>
+              </div>
+
+              {/* Daily Tool Drop Card */}
+              <div className="flex flex-col justify-between rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                      <Flame className="h-3 w-3" /> Daily Tool Radar Drop
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">5 Vetted Additions</span>
+                  </div>
+
+                  <div className="mt-3 divide-y divide-border/60">
+                    {data.briefing.toolDrop.map((tool, tIdx) => (
+                      <div key={tIdx} className="py-2 first:pt-0 last:pb-0 flex items-center justify-between gap-3 text-xs">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <a
+                              href={tool.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold text-foreground hover:text-primary truncate"
+                            >
+                              {tool.name}
+                            </a>
+                            <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground font-mono">
+                              {tool.category}
+                            </span>
+                          </div>
+                          <p className="truncate text-[11px] text-muted-foreground">{tool.tagline}</p>
+                        </div>
+
+                        {tool.mitAlternative && (
+                          <Link
+                            to={tool.mitAlternative.path}
+                            className="shrink-0 rounded-lg border border-primary/30 bg-primary/10 px-2 py-1 text-[11px] font-medium text-primary hover:bg-primary/20 transition"
+                          >
+                            {tool.mitAlternative.name}
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-5 pt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Compare all 50+ enterprise tools</span>
+                  <Link to="/compare" className="font-semibold text-foreground hover:text-primary inline-flex items-center gap-1">
+                    Open Comparison Matrix <ArrowRight className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Top Control Bar: Live status, search, and refresh */}
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:flex-row md:items-center md:justify-between">
           <div className="relative flex-1">
@@ -461,6 +620,18 @@ function RadarPage() {
                         <span>{item.title}</span>
                       </a>
                     </h3>
+
+                    {/* Thumbnail Image if present */}
+                    {item.thumbnail && (
+                      <div className="mt-3 overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+                        <img
+                          src={item.thumbnail}
+                          alt={item.title}
+                          loading="lazy"
+                          className="h-36 w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      </div>
+                    )}
 
                     {/* Summary */}
                     <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">

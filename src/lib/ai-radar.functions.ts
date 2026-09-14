@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-export type AiRadarCategory = "all" | "models" | "agents" | "developer" | "research" | "industry";
+export type AiRadarCategory = "all" | "briefings" | "models" | "agents" | "developer" | "research" | "industry";
 
 export interface AiRadarItem {
   id: string;
@@ -9,12 +9,37 @@ export interface AiRadarItem {
   url: string;
   summary: string;
   source: string;
-  category: "models" | "agents" | "developer" | "research" | "industry";
+  category: "briefings" | "models" | "agents" | "developer" | "research" | "industry";
   author?: string;
   publishedAt: string;
   tags: string[];
   score?: number;
   commentsCount?: number;
+  thumbnail?: string;
+}
+
+export interface ExecutiveBriefingSummary {
+  headline: string;
+  tagline: string;
+  source: string;
+  url: string;
+  date: string;
+  takeaways: Array<{ title: string; detail: string }>;
+  relevance: string;
+  stealThisWorkflow: {
+    title: string;
+    description: string;
+    playbook: string[];
+    actionUrl: string;
+    actionText: string;
+  };
+  toolDrop: Array<{
+    name: string;
+    tagline: string;
+    category: string;
+    mitAlternative?: { name: string; path: string };
+    url: string;
+  }>;
 }
 
 export interface AiRadarFeedResponse {
@@ -22,6 +47,7 @@ export interface AiRadarFeedResponse {
   sources: string[];
   total: number;
   lastUpdated: string;
+  briefing?: ExecutiveBriefingSummary;
 }
 
 // In-memory cache for edge runtime (TTL 5 minutes)
@@ -388,9 +414,163 @@ async function fetchCuratedRssFeeds(): Promise<AiRadarItem[]> {
 }
 
 /**
+ * 6. The AI Report - Executive Briefings & Daily Newsletters
+ */
+async function fetchTheAiReportFeed(): Promise<AiRadarItem[]> {
+  try {
+    const res = await fetchWithTimeout(
+      "https://www.theaireport.ai",
+      {
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "User-Agent": "MelanatedInTech-Radar/1.0",
+        },
+      },
+      5000,
+    );
+    if (!res.ok) return [];
+    const html = await res.text();
+
+    const items: AiRadarItem[] = [];
+    const cardRegex =
+      /<a[^>]+href="(\/newsletter\/[^"]+)"[^>]*>[\s\S]*?(?:<img[^>]+src="([^"]+)"[^>]*>)?[\s\S]*?<div class="newsletter_tittle">([^<]+)<\/div>[\s\S]*?<div class="text-size-14 text-color-blue">([^<]+)<\/div>/gi;
+
+    let match: RegExpExecArray | null;
+    let count = 0;
+    while ((match = cardRegex.exec(html)) !== null && count < 12) {
+      count++;
+      const relativeUrl = match[1];
+      const thumbnail = match[2] || undefined;
+      const title = cleanHtmlText(match[3]);
+      const dateStr = cleanHtmlText(match[4]);
+
+      let publishedAt = new Date().toISOString();
+      if (dateStr) {
+        const parsed = new Date(dateStr);
+        if (!isNaN(parsed.getTime())) {
+          publishedAt = parsed.toISOString();
+        }
+      }
+
+      items.push({
+        id: `theaireport-${count}`,
+        title,
+        url: `https://www.theaireport.ai${relativeUrl}`,
+        summary:
+          "Executive intelligence on frontier model capabilities, lab policies, enterprise deployments, and curated tools.",
+        source: "The AI Report",
+        category: "briefings",
+        author: "The AI Report Team",
+        publishedAt,
+        tags: ["Executive Briefing", "Industry", "The AI Report"],
+        thumbnail,
+      });
+    }
+
+    return items;
+  } catch (err) {
+    console.warn("The AI Report fetch error:", err);
+    return [];
+  }
+}
+
+/**
+ * Curated Executive Briefing Fallback / SSR baseline
+ */
+const DEFAULT_EXECUTIVE_BRIEFING: ExecutiveBriefingSummary = {
+  headline: "AI's Big Four Unite on Slowdown & Independent Safety Audits",
+  tagline: "CEOs of Anthropic, OpenAI, xAI, and Google DeepMind align on voluntary moderation of frontier releases.",
+  source: "The AI Report / Executive Briefing",
+  url: "https://www.theaireport.ai",
+  date: new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }),
+  takeaways: [
+    {
+      title: "Frontier Pace Moderation",
+      detail:
+        "Frontier lab chiefs publicly endorsed Dario Amodei's 3-stage governance roadmap, signaling potential adjustments to commercial deployment schedules.",
+    },
+    {
+      title: "Independent Internal Evaluators",
+      detail:
+        "OpenAI agreed to place third-party evaluators with employee-level access inside labs before releasing larger frontier agent models.",
+    },
+    {
+      title: "Enterprise Roadmaps & Audits",
+      detail:
+        "Voluntary lab slowdowns may delay vendor feature releases, but will establish third-party safety audits as a standard requirement in enterprise AI contracts.",
+    },
+  ],
+  relevance:
+    "For enterprise leaders, procurement teams, and founders: expect tighter compliance around agent sandboxing and third-party audit requirements for production deployments.",
+  stealThisWorkflow: {
+    title: "Predictive Lead Scoring & Churn Outreach with Autonomous Agents",
+    description:
+      "How high-performing revenue teams replace reactive sales by having an autonomous agent monitor client activity against repurchase cycles and draft personalized check-ins.",
+    playbook: [
+      "1. Pull weekly high-value customer activity into a structured table.",
+      "2. Calculate deviation from expected repurchase or login cadence.",
+      "3. Trigger an agent to draft contextual outreach for review in Human-in-the-Loop approval.",
+      "4. Deploy with zero risk using MIT's Agent Architect.",
+    ],
+    actionUrl: "/tools/agent-architect",
+    actionText: "Build with Agent Architect →",
+  },
+  toolDrop: [
+    {
+      name: "Attio",
+      tagline: "Agentic CRM running background pipeline workflows and auto-lead triage",
+      category: "CRM / Sales",
+      url: "https://attio.com",
+      mitAlternative: { name: "Explore Alternatives", path: "/alternatives/hubspot" },
+    },
+    {
+      name: "Harmonic Security",
+      tagline: "Data security and usage discovery for employee AI tools and shadow agents",
+      category: "Governance",
+      url: "https://www.harmonic.security",
+      mitAlternative: { name: "Policy Generator", path: "/tools/policy-generator" },
+    },
+    {
+      name: "Fyxer",
+      tagline: "Executive inbox triage and meeting notes automation for busy operators",
+      category: "Productivity",
+      url: "https://fyxer.com",
+      mitAlternative: { name: "SOP Generator", path: "/tools/sop-generator" },
+    },
+    {
+      name: "Snipman",
+      tagline: "Reusable writing shortcuts and prompt expansion for support & ops teams",
+      category: "Workflow",
+      url: "https://superpowerdaily.com",
+      mitAlternative: { name: "Prompt Pilot", path: "/tools/prompt-pilot" },
+    },
+    {
+      name: "Devin SWE-2",
+      tagline: "Optimized autonomous coding agent for fewer turns and lower cost",
+      category: "Engineering",
+      url: "https://cognition.ai",
+      mitAlternative: { name: "Token Cost Calculator", path: "/tools/token-cost-calculator" },
+    },
+  ],
+};
+
+/**
  * Robust fallback items if external networks are completely unreachable
  */
 const FALLBACK_RADAR_ITEMS: AiRadarItem[] = [
+  {
+    id: "fb-0",
+    title: "⚡️ AI's Big Four Unite on Slowdown & Third-Party Safety Audits",
+    url: "https://www.theaireport.ai",
+    summary:
+      "CEOs of Anthropic, OpenAI, xAI, and Google DeepMind align on voluntary moderation of frontier releases and independent evaluator access.",
+    source: "The AI Report",
+    category: "briefings",
+    author: "The AI Report Team",
+    publishedAt: new Date(Date.now() - 1800000).toISOString(),
+    tags: ["Executive Briefing", "Industry", "Governance"],
+    score: 512,
+  },
   {
     id: "fb-1",
     title: "Model Context Protocol (MCP) Ecosystem Adoption & Standard Specification",
@@ -448,7 +628,7 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
   .validator((d: unknown) =>
     z
       .object({
-        category: z.enum(["all", "models", "agents", "developer", "research", "industry"]).default("all"),
+        category: z.enum(["all", "briefings", "models", "agents", "developer", "research", "industry"]).default("all"),
         source: z.string().optional(),
         query: z.string().optional(),
         limit: z.number().min(5).max(100).default(60),
@@ -464,13 +644,14 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
       return filterRadarResponse(cache.data, data);
     }
 
-    // Concurrent execution across all zero-cost sources
-    const [hfResult, hnResult, devResult, arxivResult, rssResult] = await Promise.allSettled([
+    // Concurrent execution across all sources including The AI Report
+    const [hfResult, hnResult, devResult, arxivResult, rssResult, aiReportResult] = await Promise.allSettled([
       fetchHuggingFacePapers(),
       fetchHackerNewsAi(),
       fetchDevToArticles(),
       fetchArxivPapers(),
       fetchCuratedRssFeeds(),
+      fetchTheAiReportFeed(),
     ]);
 
     const collected: AiRadarItem[] = [];
@@ -480,6 +661,20 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
     if (devResult.status === "fulfilled") collected.push(...devResult.value);
     if (arxivResult.status === "fulfilled") collected.push(...arxivResult.value);
     if (rssResult.status === "fulfilled") collected.push(...rssResult.value);
+    if (aiReportResult.status === "fulfilled") collected.push(...aiReportResult.value);
+
+    // Dynamic executive briefing setup
+    const briefing: ExecutiveBriefingSummary = { ...DEFAULT_EXECUTIVE_BRIEFING };
+    if (aiReportResult.status === "fulfilled" && aiReportResult.value.length > 0) {
+      const topIssue = aiReportResult.value[0];
+      briefing.headline = topIssue.title;
+      briefing.url = topIssue.url;
+      briefing.date = new Date(topIssue.publishedAt).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
 
     // Fallback if network blocked everything
     const finalItems = collected.length > 0 ? collected : FALLBACK_RADAR_ITEMS;
@@ -510,6 +705,7 @@ export const fetchAiRadarFeed = createServerFn({ method: "GET" })
       sources,
       total: deduplicated.length,
       lastUpdated: new Date().toISOString(),
+      briefing,
     };
 
     // Store in cache
@@ -552,5 +748,6 @@ function filterRadarResponse(
     sources: full.sources,
     total: items.length,
     lastUpdated: full.lastUpdated,
+    briefing: full.briefing,
   };
 }

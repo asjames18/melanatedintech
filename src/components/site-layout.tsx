@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { SiteHeader } from "./site-header";
 import { SiteFooter } from "./site-footer";
 import { PaymentTestModeBanner } from "./payment-test-mode-banner";
@@ -6,15 +7,28 @@ import { FunnelAttribution } from "./funnel-attribution";
 
 import { MobileAppDock } from "./mobile-app-dock";
 
+// Conversion landing pages where the bottom app dock would compete with the
+// page's single call to action.
+const DOCK_HIDDEN_PREFIXES = ["/legal-intake"];
+
 export function SiteLayout({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const hideDock = DOCK_HIDDEN_PREFIXES.some(
+    (prefix) =>
+      location.pathname === prefix || location.pathname.startsWith(prefix + "/"),
+  );
   return (
-    <div className="flex min-h-screen flex-col pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div
+      className={`flex min-h-screen flex-col ${
+        hideDock ? "" : "pb-[calc(5.5rem+env(safe-area-inset-bottom))]"
+      } md:pb-0`}
+    >
       <FunnelAttribution />
       <PaymentTestModeBanner />
       <SiteHeader />
       <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
       <SiteFooter />
-      <MobileAppDock />
+      {!hideDock && <MobileAppDock />}
     </div>
   );
 }

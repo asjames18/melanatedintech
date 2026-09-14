@@ -13,6 +13,7 @@ export const SITE = {
 // Community is intentionally out of NAV until the feed has real activity —
 // an empty feed hurts trust more than a missing link. Route stays live.
 export const NAV = [
+  { to: "/legal-intake", label: "24/7 Legal Intake" },
   { to: "/solutions/recurring-property-services", label: "Solutions" },
   { to: "/systems", label: "Systems" },
   { to: "/agents", label: "Marketplace" },

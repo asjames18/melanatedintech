@@ -208,7 +208,7 @@ function StartSmall() {
           <p className="mt-3 max-w-2xl text-sm text-background/70">
             The Fit Finder is free. Name the repeated workflow in one sentence. If the work is
             complex or high-risk, we will also show you when a Workflow Opportunity Sprint is the
-            safer next step—not an Agent Strategy Sprint or ROI sprint.
+            safer next step.
           </p>
           <Button asChild size="lg" variant="secondary" className="mt-7">
             <Link to="/fit-finder" onClick={() => begin("start_small_final")}>

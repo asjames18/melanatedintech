@@ -23,6 +23,7 @@ import { Route as FitFinderRouteImport } from './routes/fit-finder'
 import { Route as GetADemoRouteImport } from './routes/get-a-demo'
 import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
+import { Route as LegalIntakeRouteImport } from './routes/legal-intake'
 import { Route as OpenCommonsRouteImport } from './routes/open-commons'
 import { Route as PathsRouteImport } from './routes/paths'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -192,6 +193,11 @@ const GovernanceRoute = GovernanceRouteImport.update({
 const KnowledgeRoute = KnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalIntakeRoute = LegalIntakeRouteImport.update({
+  id: '/legal-intake',
+  path: '/legal-intake',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OpenCommonsRoute = OpenCommonsRouteImport.update({
@@ -739,6 +745,7 @@ export interface FileRoutesByFullPath {
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/legal-intake': typeof LegalIntakeRoute
   '/open-commons': typeof OpenCommonsRoute
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -851,6 +858,7 @@ export interface FileRoutesByTo {
   '/fit-finder': typeof FitFinderRoute
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
+  '/legal-intake': typeof LegalIntakeRoute
   '/open-commons': typeof OpenCommonsRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
@@ -965,6 +973,7 @@ export interface FileRoutesById {
   '/get-a-demo': typeof GetADemoRoute
   '/governance': typeof GovernanceRoute
   '/knowledge': typeof KnowledgeRouteWithChildren
+  '/legal-intake': typeof LegalIntakeRoute
   '/open-commons': typeof OpenCommonsRoute
   '/paths': typeof PathsRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -1083,6 +1092,7 @@ export interface FileRouteTypes {
     | '/get-a-demo'
     | '/governance'
     | '/knowledge'
+    | '/legal-intake'
     | '/open-commons'
     | '/paths'
     | '/privacy'
@@ -1195,6 +1205,7 @@ export interface FileRouteTypes {
     | '/fit-finder'
     | '/get-a-demo'
     | '/governance'
+    | '/legal-intake'
     | '/open-commons'
     | '/privacy'
     | '/proof'
@@ -1308,6 +1319,7 @@ export interface FileRouteTypes {
     | '/get-a-demo'
     | '/governance'
     | '/knowledge'
+    | '/legal-intake'
     | '/open-commons'
     | '/paths'
     | '/privacy'
@@ -1426,6 +1438,7 @@ export interface RootRouteChildren {
   GetADemoRoute: typeof GetADemoRoute
   GovernanceRoute: typeof GovernanceRoute
   KnowledgeRoute: typeof KnowledgeRouteWithChildren
+  LegalIntakeRoute: typeof LegalIntakeRoute
   OpenCommonsRoute: typeof OpenCommonsRoute
   PathsRoute: typeof PathsRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -1590,6 +1603,13 @@ declare module '@tanstack/react-router' {
       path: '/knowledge'
       fullPath: '/knowledge'
       preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal-intake': {
+      id: '/legal-intake'
+      path: '/legal-intake'
+      fullPath: '/legal-intake'
+      preLoaderRoute: typeof LegalIntakeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/open-commons': {
@@ -2491,6 +2511,7 @@ const rootRouteChildren: RootRouteChildren = {
   GetADemoRoute: GetADemoRoute,
   GovernanceRoute: GovernanceRoute,
   KnowledgeRoute: KnowledgeRouteWithChildren,
+  LegalIntakeRoute: LegalIntakeRoute,
   OpenCommonsRoute: OpenCommonsRoute,
   PathsRoute: PathsRouteWithChildren,
   PrivacyRoute: PrivacyRoute,

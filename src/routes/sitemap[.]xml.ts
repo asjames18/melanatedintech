@@ -38,6 +38,7 @@ const STATIC_PATHS = [
   },
   { path: "/solutions/beauty-personal-care", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/get-a-demo", changefreq: "monthly" as const, priority: "0.9" },
+  { path: "/legal-intake", changefreq: "monthly" as const, priority: "0.9" },
   { path: "/paths", changefreq: "weekly" as const, priority: "0.9" },
   { path: "/knowledge", changefreq: "daily" as const, priority: "0.9" },
   { path: "/radar", changefreq: "daily" as const, priority: "0.8" },

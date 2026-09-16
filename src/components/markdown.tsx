@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 
-// Inline formatting: **bold**, `code`, and [text](url). Parsed in one pass so the
-// three can't overlap-collide. Anything unmatched is emitted as plain text.
-const INLINE = /(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\))/g;
+// Inline formatting: **bold**, *italic*, `code`, and [text](url). Parsed in one
+// pass so the four can't overlap-collide. Anything unmatched is emitted as
+// plain text.
+const INLINE = /(\*\*([^*]+)\*\*|`([^`]+)`|\[([^\]]+)\]\(([^)\s]+)\)|\*([^*]+)\*)/g;
 
 /** URL schemes a link in pack, article, prompt, or model-authored text may use. */
 const ALLOWED_SCHEMES = new Set(["http", "https", "mailto"]);
@@ -84,6 +85,12 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       } else {
         nodes.push(m[4]);
       }
+    } else if (m[7] !== undefined) {
+      nodes.push(
+        <em key={`${keyPrefix}-i${i}`} className="italic">
+          {m[7]}
+        </em>,
+      );
     }
     last = m.index + m[0].length;
     i++;
@@ -94,8 +101,9 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
 
 /**
  * Minimal but correct Markdown renderer for article bodies. Supports headings
- * (#, ##, ###), unordered (-) and ordered (1.) lists, blockquotes (>), and the
- * inline formatting above. Intentionally tiny - no external dependency.
+ * (#, ##, ###), unordered (-) and ordered (1.) lists, blockquotes (>),
+ * horizontal rules (---), tables, fenced code blocks, and the inline
+ * formatting above. Intentionally tiny - no external dependency.
  */
 function splitTableRow(line: string): string[] {
   return line
@@ -170,6 +178,12 @@ export function Markdown({ md }: { md: string }) {
     const line = raw.trimEnd();
     if (!line.trim()) {
       flush();
+      continue;
+    }
+    // Horizontal rule: ---, ***, or ___ on its own line.
+    if (/^(-{3,}|\*{3,}|_{3,})$/.test(line.trim())) {
+      flush();
+      out.push(<hr key={out.length} className="my-6 border-border" />);
       continue;
     }
     // Table: a |pipe| header row followed by a |---|---| separator row.

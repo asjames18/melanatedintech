@@ -85,14 +85,21 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
       } else {
         nodes.push(m[4]);
       }
-    } else if (m[7] !== undefined) {
+    } else if (m[6] !== undefined) {
+      // Recurse so links inside emphasis still resolve; the inner text can't
+      // contain asterisks (guaranteed by [^*]+), so this always terminates.
+      const innerKey = `${keyPrefix}-i${i}`;
       nodes.push(
-        <em key={`${keyPrefix}-i${i}`} className="italic">
-          {m[7]}
+        <em key={innerKey} className="italic">
+          {renderInline(m[6], innerKey)}
         </em>,
       );
     }
     last = m.index + m[0].length;
+    // renderInline can recurse (e.g. a link inside *emphasis*); the shared
+    // INLINE regex's lastIndex would be clobbered by the inner scan, so
+    // restore it to keep the outer loop advancing instead of re-matching.
+    INLINE.lastIndex = last;
     i++;
   }
   if (last < text.length) nodes.push(text.slice(last));

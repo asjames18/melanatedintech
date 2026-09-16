@@ -10,7 +10,6 @@ import { ogImage } from "@/lib/og";
 import { SaveArticleButton } from "@/components/save-article-button";
 import { RecommendationItem } from "@/components/recommendation-item";
 import { Markdown } from "@/components/markdown";
-import { ExplainerMediaBanner } from "@/components/explainer-media-banner";
 import { getArticle, listArticles, listAgents } from "@/lib/public.functions";
 import { getArticleAuthor } from "@/lib/authors.functions";
 import { useInterests } from "@/hooks/use-interests";
@@ -320,20 +319,6 @@ function ArticleView() {
           <SaveArticleButton articleId={article.id} />
         </div>
         <div className="mt-8">
-          {(article.slug.includes("agent") ||
-            article.slug.includes("workflow") ||
-            article.slug.includes("plain-english")) && (
-            <ExplainerMediaBanner
-              title={`${article.title} — Video Explainer`}
-              subtitle="Generated with NotebookLM — Interactive Video Overview & Master Source Pack"
-              videoUrl="/videos/Melanated_in_Tech.mp4"
-              sourcePackText={`# Master Knowledge Source Pack: ${article.title}
-
-> **NotebookLM Optimization Notice:** Engineered for Google NotebookLM source ingestion.
-
-${article.excerpt}`}
-            />
-          )}
           <Markdown md={article.body} />
         </div>
         <div className="mt-12 rounded-2xl border border-border bg-card p-5">

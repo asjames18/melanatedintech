@@ -176,6 +176,16 @@ export const joinWaitlist = createServerFn({ method: "POST" })
       throw new Error("Could not join waitlist. Please try again.");
     }
 
+    // Respect a prior unsubscribe without disclosing it: still accept the
+    // signup, but never send the welcome email to a suppressed address.
+    const { data: suppression, error: suppressionError } = await supabaseAdmin
+      .from("suppressed_emails")
+      .select("id")
+      .eq("email", data.email.toLowerCase())
+      .maybeSingle();
+    if (suppressionError) throw new Error("Could not join waitlist. Please try again.");
+    if (suppression) return { ok: true };
+
     const { enqueueWelcomeEmail } = await import("@/lib/welcome-email.server");
     await enqueueWelcomeEmail(data.email);
 
@@ -297,11 +307,8 @@ export const confirmWebsiteLaunchChecklist = createServerFn({ method: "POST" })
       waitlistSignupId: tokenRow.waitlist_signup_id,
     });
     if (tokenRow.confirmed_at) {
-      const { error: replayQueueError } = await supabaseAdmin.rpc("enqueue_email", {
-        queue_name: "transactional_emails",
-        payload: checklistPayload,
-      });
-      if (replayQueueError) throw new Error("Could not prepare your checklist delivery. Please try again.");
+      // Already confirmed: acknowledge idempotently WITHOUT re-sending the
+      // delivery email. Replaying a confirmation link must never re-fire mail.
       return { ok: true, alreadyConfirmed: true };
     }
 
@@ -443,47 +450,58 @@ export function classifyServiceInquiry(topic?: string): ServiceInquiryType {
 
 export const submitContact = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => contactSchema.parse(d))
-  .handler(async ({ data }) => {
-    // Silently accept honeypot hits so bots can't distinguish a rejection.
-    if (data.hp) return { ok: true };
+  .handler(async ({ data }) => processContactSubmission(data));
 
-    const { getClientIpHash, tooManyRecent } = await import("@/lib/rate-limit.server");
-    const ipHash = await getClientIpHash();
-    if (ipHash && (await tooManyRecent("contact_messages", ipHash, 10, 5))) {
-      throw new Error("Too many messages from this network. Please try again later.");
-    }
+// Stricter schema for the legal-intake audit form: consent is a server-side
+// requirement there (the generic contact form has no consent checkbox, so the
+// base contactSchema intentionally stays consent-free).
+const legalIntakeContactSchema = contactSchema.extend({ consent: z.literal(true) });
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const topic = canonicalizeContactTopic(data.topic) ?? data.topic;
-    const base = {
-      name: data.name,
-      email: data.email.toLowerCase(),
-      organization: data.organization ?? null,
-      topic: topic ?? null,
-      message: data.message,
-      inquiry_type: classifyServiceInquiry(topic),
-      utm_source: data.utm_source ?? null,
-      utm_medium: data.utm_medium ?? null,
-      utm_campaign: data.utm_campaign ?? null,
-    };
-    // Try with ip_hash; degrade to the bare row if the column isn't there yet.
-    let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
-    if (error && /ip_hash|column/i.test(error.message)) {
-      ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
-    }
-    if (error) throw new Error("Could not send message. Please try again.");
+export const submitLegalIntakeAudit = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => legalIntakeContactSchema.parse(d))
+  .handler(async ({ data }) => processContactSubmission(data));
 
-    const { enqueueContactNotification } = await import("@/lib/welcome-email.server");
-    await enqueueContactNotification({
-      name: data.name,
-      email: data.email,
-      organization: data.organization,
-      topic,
-      message: data.message,
-    });
+async function processContactSubmission(data: z.infer<typeof contactSchema>) {
+  // Silently accept honeypot hits so bots can't distinguish a rejection.
+  if (data.hp) return { ok: true };
 
-    return { ok: true, inquiryType: classifyServiceInquiry(topic) };
+  const { getClientIpHash, tooManyRecent } = await import("@/lib/rate-limit.server");
+  const ipHash = await getClientIpHash();
+  if (ipHash && (await tooManyRecent("contact_messages", ipHash, 10, 5))) {
+    throw new Error("Too many messages from this network. Please try again later.");
+  }
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const topic = canonicalizeContactTopic(data.topic) ?? data.topic;
+  const base = {
+    name: data.name,
+    email: data.email.toLowerCase(),
+    organization: data.organization ?? null,
+    topic: topic ?? null,
+    message: data.message,
+    inquiry_type: classifyServiceInquiry(topic),
+    utm_source: data.utm_source ?? null,
+    utm_medium: data.utm_medium ?? null,
+    utm_campaign: data.utm_campaign ?? null,
+  };
+  // Try with ip_hash; degrade to the bare row if the column isn't there yet.
+  let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
+  if (error && /ip_hash|column/i.test(error.message)) {
+    ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
+  }
+  if (error) throw new Error("Could not send message. Please try again.");
+
+  const { enqueueContactNotification } = await import("@/lib/welcome-email.server");
+  await enqueueContactNotification({
+    name: data.name,
+    email: data.email,
+    organization: data.organization,
+    topic,
+    message: data.message,
   });
+
+  return { ok: true, inquiryType: classifyServiceInquiry(topic) };
+}
 
 export const getPublicSeller = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))

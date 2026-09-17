@@ -28,6 +28,17 @@ async function assertAdmin(userId: string) {
   if (!data) throw new Error("Forbidden: admin role required.");
 }
 
+/**
+ * Per-user sliding-window throttle for community write actions (30/min).
+ * Throws a user-facing error when exceeded.
+ */
+async function enforceCommunityWriteLimit(userId: string): Promise<void> {
+  const { allowPersistentRequest } = await import("@/lib/request-guard.server");
+  if (!(await allowPersistentRequest(`community:${userId}`, 30, 60_000))) {
+    throw new Error("You're doing that too quickly. Please wait a minute and try again.");
+  }
+}
+
 type AuthorMap = Map<string, Author>;
 
 async function getAuthorMap(userIds: string[]): Promise<AuthorMap> {
@@ -501,6 +512,7 @@ export const createPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => createPostSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     const { data: row, error } = await (context.supabase as any)
       .from("discussion_posts")
       .insert({
@@ -527,6 +539,7 @@ export const replyToPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => replySchema.parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     const { data: post } = await (context.supabase as any)
       .from("discussion_posts")
       .select("locked, user_id")
@@ -568,6 +581,7 @@ export const reactPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => reactSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     const supabase = context.supabase as any;
     // 1. Delete any existing reactions by this user on this post first
     await supabase
@@ -657,6 +671,7 @@ export const toggleFollow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => followSchema.parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     if (data.followee_id === context.userId) throw new Error("You can't follow yourself.");
     // Try delete first (toggle off); if no row matched, insert (toggle on).
     const { count: deleted, error: deleteError } = await (context.supabase as any)
@@ -811,6 +826,7 @@ export const sharePost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => postIdSchema.extend({ channel: z.string().max(40).default("copy") }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     const { error } = await (context.supabase as any).from("post_shares").insert({
       user_id: context.userId,
       post_id: data.post_id,
@@ -824,6 +840,7 @@ export const reportPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => postIdSchema.extend({ reason: z.string().max(80).default("other"), note: z.string().max(500).optional() }).parse(d))
   .handler(async ({ data, context }) => {
+    await enforceCommunityWriteLimit(context.userId);
     const { error } = await (context.supabase as any).from("post_reports").upsert({
       user_id: context.userId,
       post_id: data.post_id,

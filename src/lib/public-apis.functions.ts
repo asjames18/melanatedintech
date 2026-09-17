@@ -115,6 +115,17 @@ export const validateLeadContact = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
+    // Public endpoint: dampen automated abuse before doing any work.
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { allowPersistentRequest, getClientIp } = await import("@/lib/request-guard.server");
+    const headers = getRequest()?.headers;
+    if (
+      headers &&
+      !(await allowPersistentRequest(`validate-lead:${getClientIp(headers)}`, 10, 60_000))
+    ) {
+      throw new Error("Too many validation requests. Please wait a minute and try again.");
+    }
+
     const email = data.email.trim().toLowerCase();
     const parts = email.split("@");
 

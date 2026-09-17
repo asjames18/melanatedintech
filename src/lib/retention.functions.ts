@@ -233,13 +233,16 @@ export const updateLearningPathProgress = createServerFn({ method: "POST" })
     const nextItemId = itemIds.find((id) => !completed.has(id)) ?? null;
     const isComplete = itemIds.length > 0 && completedItemIds.length === itemIds.length;
 
-    const { error: upsertError } = await context.supabase.from("user_learning_progress").upsert({
-      user_id: context.userId,
-      path_id: path.id,
-      current_item_id: nextItemId ?? requestedItem,
-      completed_item_ids: completedItemIds,
-      completed_at: isComplete ? new Date().toISOString() : null,
-    });
+    const { error: upsertError } = await context.supabase.from("user_learning_progress").upsert(
+      {
+        user_id: context.userId,
+        path_id: path.id,
+        current_item_id: nextItemId ?? requestedItem,
+        completed_item_ids: completedItemIds,
+        completed_at: isComplete ? new Date().toISOString() : null,
+      },
+      { onConflict: "user_id,path_id" },
+    );
     if (upsertError) throw new Error(upsertError.message);
     return { ok: true, completed_item_ids: completedItemIds, current_item_id: nextItemId };
   });

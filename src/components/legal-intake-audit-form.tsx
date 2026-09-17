@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2 } from "lucide-react";
-import { submitContact } from "@/lib/public.functions";
+import { submitLegalIntakeAudit } from "@/lib/public.functions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,7 @@ export function LegalIntakeAuditForm() {
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const send = useServerFn(submitContact);
+  const send = useServerFn(submitLegalIntakeAudit);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -77,6 +77,7 @@ export function LegalIntakeAuditForm() {
           organization: form.firm || undefined,
           topic: "Legal intake audit request",
           message,
+          consent: true,
           utm_source: attribution.source,
           utm_campaign: attribution.campaign,
           hp: hp || undefined,

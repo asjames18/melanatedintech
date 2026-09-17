@@ -47,7 +47,15 @@ export type GrantResult =
   | { granted: true; kind: PremiumKind; slug: string }
   | {
       granted: false;
-      reason: "missing-metadata" | "not-paid" | "unknown-item" | "amount-mismatch" | "db-error";
+      reason: "missing-metadata" | "not-paid" | "unknown-item" | "db-error";
+    }
+  | {
+      granted: false;
+      reason: "amount-mismatch";
+      kind: PremiumKind;
+      slug: string;
+      expectedCents: number;
+      gotCents: number | null;
     };
 
 /**
@@ -113,7 +121,14 @@ export async function grantFromSession(
       currency: sessionObj?.currency,
       adaptivePricing: sessionObj?.currency_conversion != null,
     });
-    return { granted: false, reason: "amount-mismatch" };
+    return {
+      granted: false,
+      reason: "amount-mismatch",
+      kind,
+      slug,
+      expectedCents: entry.amountCents,
+      gotCents: amountPaid,
+    };
   }
   const priceId = entry.priceId || `dynamic_${kind}_${slug}`;
 

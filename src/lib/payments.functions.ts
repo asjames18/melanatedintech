@@ -102,6 +102,24 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
       }
 
       if (stripePrice) {
+        // Fail fast before charging: the Stripe price object must still match
+        // our catalog. If someone edited the price in the Stripe dashboard, a
+        // buyer could be charged an amount the fulfillment grant would refuse.
+        const priceAmount = stripePrice.unit_amount;
+        const priceCurrency = (stripePrice.currency ?? "").toLowerCase();
+        if (priceCurrency !== "usd" || priceAmount == null || priceAmount !== entry.amountCents) {
+          console.error("[createUnlockCheckout] Stripe price drifted from catalog", {
+            kind: data.kind,
+            slug: data.slug,
+            stripePriceId: stripePrice.id,
+            stripeAmount: priceAmount,
+            stripeCurrency: stripePrice.currency,
+            catalogAmountCents: entry.amountCents,
+          });
+          throw new Error(
+            "This item's checkout price is out of sync. Please contact support before paying.",
+          );
+        }
         const productId =
           typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
         const product = await stripe.products.retrieve(productId);

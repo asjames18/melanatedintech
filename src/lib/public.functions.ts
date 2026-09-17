@@ -503,6 +503,70 @@ async function processContactSubmission(data: z.infer<typeof contactSchema>) {
   return { ok: true, inquiryType: classifyServiceInquiry(topic) };
 }
 
+const toolReportSchema = z.object({
+  email: z.string().email().max(254),
+  tool: z.literal("revenue-leak-calculator"),
+  reportBody: z.string().min(1).max(4000),
+});
+
+// Server function: deliver the Revenue Leak Audit report to the visitor's
+// inbox, and store the request as a tool lead for the founder. The email is
+// explicitly requested transactional delivery (not marketing follow-up).
+export const sendToolReportEmail = createServerFn({ method: "POST" })
+  .inputValidator((d: unknown) => toolReportSchema.parse(d))
+  .handler(async ({ data }) => {
+    // Public endpoint: dampen automated abuse before doing any work.
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const { allowPersistentRequest, getClientIp } = await import("@/lib/request-guard.server");
+    const headers = getRequest()?.headers;
+    if (
+      headers &&
+      !(await allowPersistentRequest(`tool-report:${getClientIp(headers)}`, 5, 600_000))
+    ) {
+      throw new Error("Too many report requests. Please wait a few minutes and try again.");
+    }
+
+    const email = data.email.trim().toLowerCase();
+    const topic = "Tool lead: Revenue Leak Audit";
+    const message = "Revenue Leak Audit report requested.\n\n" + data.reportBody;
+
+    const { getClientIpHash } = await import("@/lib/rate-limit.server");
+    const ipHash = await getClientIpHash();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const base = {
+      name: "Report requester",
+      email,
+      organization: null,
+      topic,
+      message,
+      inquiry_type: classifyServiceInquiry(topic),
+    };
+    // Try with ip_hash; degrade to the bare row if the column isn't there yet.
+    let { error } = await supabaseAdmin.from("contact_messages").insert({ ...base, ip_hash: ipHash });
+    if (error && /ip_hash|column/i.test(error.message)) {
+      ({ error } = await supabaseAdmin.from("contact_messages").insert(base));
+    }
+    if (error) throw new Error("Could not save your request. Please try again.");
+
+    const { enqueueContactNotification, enqueueToolReportEmail } = await import(
+      "@/lib/welcome-email.server"
+    );
+    await enqueueContactNotification({
+      name: "Report requester",
+      email,
+      organization: null,
+      topic,
+      message,
+    });
+    await enqueueToolReportEmail({
+      email,
+      toolName: "Revenue Leak Audit",
+      reportBody: data.reportBody,
+    });
+
+    return { ok: true };
+  });
+
 export const getPublicSeller = createServerFn({ method: "GET" })
   .inputValidator((d: unknown) => z.object({ slug: z.string().min(1) }).parse(d))
   .handler(async ({ data }) => {

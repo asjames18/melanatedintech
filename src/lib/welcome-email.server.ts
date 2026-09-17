@@ -547,3 +547,68 @@ export async function enqueuePaymentMismatchAlert(params: {
     console.error("Payment mismatch alert enqueue failed", e);
   }
 }
+
+/**
+ * Delivers a tool-generated report the visitor explicitly requested (currently
+ * the Revenue Leak Audit report). This is a one-to-one transactional delivery
+ * of requested content, not marketing — no postal address needed. One per
+ * address per day, so double-clicks cannot duplicate sends.
+ */
+export async function enqueueToolReportEmail(params: {
+  email: string;
+  toolName: string;
+  reportBody: string;
+}): Promise<void> {
+  try {
+    const email = params.email.trim().toLowerCase();
+    if (!email) return;
+    const day = new Date().toISOString().slice(0, 10);
+    const messageId = `tool_report:revenue-leak-calculator:${email}:${day}`;
+    const subject = `Your ${params.toolName} report — Melanated in Tech`.replace(/[\r\n]+/g, " ");
+
+    const text = [
+      params.reportBody,
+      "",
+      `Book a $297 Revenue Leak Diagnostic to identify your exact response bottlenecks: ${SITE_URL}/diagnostic`,
+      `Your free AI starter resource — the AI Playbook: ${SITE_URL}/tools/ai-playbook`,
+      "",
+      "You requested this report from melanatedintech.com.",
+    ].join("\n");
+
+    const html = `
+      <div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#2b2118;line-height:1.6;">
+        <h2 style="margin-bottom:16px;">Your ${safe(params.toolName)} Report</h2>
+        <p style="white-space:pre-wrap;background:#f5f2ee;padding:16px;border-radius:8px;">${safe(params.reportBody)}</p>
+        <p><a href="${SITE_URL}/diagnostic" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700;margin-top:16px;">Book a $297 Revenue Leak Diagnostic</a></p>
+        <p>Identify your exact response bottlenecks — and get your free AI starter resource, the <a href="${SITE_URL}/tools/ai-playbook" style="color:#8a5a2b;font-weight:600;">AI Playbook</a>.</p>
+        <p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px;">You requested this report from melanatedintech.com.</p>
+      </div>
+    `;
+
+    const { error } = await supabaseAdmin.rpc(
+      "enqueue_email" as never,
+      {
+        queue_name: "transactional_emails",
+        payload: {
+          to: email,
+          from: FROM,
+          subject,
+          html,
+          text,
+          label: "tool_report",
+          purpose: "transactional",
+          message_id: messageId,
+          idempotency_key: messageId,
+          queued_at: new Date().toISOString(),
+        },
+      } as never,
+    );
+    if (error) {
+      console.error("Tool report email enqueue failed", error);
+      throw new Error("Could not send your report email. Please try again.");
+    }
+  } catch (e) {
+    if (e instanceof Error && e.message.startsWith("Could not send your report email")) throw e;
+    console.error("Tool report email enqueue failed", e);
+  }
+}

@@ -15,6 +15,8 @@ type StripeErrorLike = {
 
 export type StripeEventLike = {
   type: string;
+  /** Present on genuine Stripe events; may be absent on normalized/provider events. */
+  livemode?: boolean;
   data: {
     object: Stripe.Checkout.Session | Record<string, unknown>;
   };

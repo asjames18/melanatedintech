@@ -6,6 +6,13 @@ import { SITE_URL } from "@/lib/site";
 
 const FROM = "Antonio at Melanated in Tech <hello@melanatedintech.com>";
 
+function safe(value: unknown) {
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!,
+  );
+}
+
 function welcomeText() {
   return [
     "Hey — Antonio here, founder of Melanated in Tech.",
@@ -65,6 +72,10 @@ export async function enqueueWelcomeEmail(rawEmail: string): Promise<void> {
       .maybeSingle();
     if (existing) return;
 
+    // TODO(owner): this is now sent as marketing (purpose "marketing" below) so the
+    // queue processor's suppression gate applies. A marketing email footer needs the
+    // real business postal address — add it to welcomeHtml()/welcomeText() and get
+    // owner approval before sending broadly. Do NOT invent an address.
     const { error } = await supabaseAdmin.rpc(
       "enqueue_email" as never,
       {
@@ -76,7 +87,7 @@ export async function enqueueWelcomeEmail(rawEmail: string): Promise<void> {
           html: welcomeHtml(),
           text: welcomeText(),
           label: "waitlist_welcome",
-          purpose: "transactional",
+          purpose: "marketing",
           message_id: messageId,
           idempotency_key: messageId,
           queued_at: new Date().toISOString(),
@@ -118,13 +129,13 @@ export async function enqueueContactNotification(contact: {
     const htmlContent = `
       <div style="font-family:sans-serif;max-width:560px;padding:16px;">
         <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${contact.name}</p>
-        <p><strong>Email:</strong> <a href="mailto:${contact.email}">${contact.email}</a></p>
-        ${contact.organization ? `<p><strong>Organization:</strong> ${contact.organization}</p>` : ""}
-        ${contact.topic ? `<p><strong>Topic:</strong> ${contact.topic}</p>` : ""}
+        <p><strong>Name:</strong> ${safe(contact.name)}</p>
+        <p><strong>Email:</strong> <a href="mailto:${safe(contact.email)}">${safe(contact.email)}</a></p>
+        ${contact.organization ? `<p><strong>Organization:</strong> ${safe(contact.organization)}</p>` : ""}
+        ${contact.topic ? `<p><strong>Topic:</strong> ${safe(contact.topic)}</p>` : ""}
         <hr style="margin:16px 0;border:none;border-top:1px solid #ddd;" />
         <p><strong>Message:</strong></p>
-        <p style="white-space:pre-wrap;background:#f5f2ee;padding:12px;border-radius:6px;">${contact.message}</p>
+        <p style="white-space:pre-wrap;background:#f5f2ee;padding:12px;border-radius:6px;">${safe(contact.message)}</p>
       </div>
     `;
 
@@ -135,7 +146,7 @@ export async function enqueueContactNotification(contact: {
         payload: {
           to: adminEmail,
           from: FROM,
-          subject: `[Contact Form] ${contact.name} - ${contact.topic || "Inquiry"}`,
+          subject: `[Contact Form] ${contact.name} - ${contact.topic || "Inquiry"}`.replace(/[\r\n]+/g, " "),
           html: htmlContent,
           text: textContent,
           label: "contact_notification",
@@ -170,11 +181,6 @@ export async function enqueueServiceLeadNotification(lead: {
   budget_range: string;
 }): Promise<void> {
   try {
-    const safe = (value: unknown) =>
-      String(value ?? "").replace(
-        /[&<>"']/g,
-        (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!,
-      );
     const adminEmail =
       process.env.ADMIN_EMAILS?.split(",")[0]?.trim() || "melanatedintech@proton.me";
     const messageId = `service_lead:${lead.leadId}`;
@@ -472,5 +478,72 @@ export async function enqueueInvoicePaymentNotifications(params: {
     );
   } catch (e) {
     console.error("Invoice payment notification failed", e);
+  }
+}
+
+/**
+ * Admin alert for a paid Stripe session whose amount could not be reconciled
+ * against the catalog price. Money came in but the entitlement was refused —
+ * needs human review (refund or manual grant). Follows the same admin-alert
+ * email path as the invoice payment notifications.
+ */
+export async function enqueuePaymentMismatchAlert(params: {
+  sessionId: string | null;
+  kind: string;
+  slug: string;
+  expectedCents: number;
+  gotCents: number | null;
+  currency?: string | null;
+}): Promise<void> {
+  try {
+    const adminEmail =
+      process.env.ADMIN_EMAILS?.split(",")[0]?.trim() || "melanatedintech@proton.me";
+    const money = (cents: number | null) =>
+      cents == null
+        ? "unknown"
+        : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
+    const messageId = `payment_mismatch_alert:${params.sessionId ?? "unknown"}:${Date.now()}`;
+    const subject = `⚠️ Paid but not fulfilled: ${params.kind}/${params.slug} (expected ${money(params.expectedCents)}, got ${money(params.gotCents)})`.replace(/[\r\n]+/g, " ");
+    const text = [
+      "A paid Stripe checkout session was refused fulfillment because the amount",
+      "paid does not match the catalog price. Review and either refund or grant",
+      "the entitlement manually.",
+      "",
+      `Stripe session: ${params.sessionId ?? "unknown"}`,
+      `Item: ${params.kind}/${params.slug}`,
+      `Expected (catalog): ${money(params.expectedCents)}`,
+      `Actually paid: ${money(params.gotCents)}${params.currency ? ` (${params.currency})` : ""}`,
+    ].join("\n");
+    const html = `
+      <div style="font-family:sans-serif;max-width:560px;padding:16px;">
+        <h2>⚠️ Paid but not fulfilled</h2>
+        <p>A paid Stripe checkout session was refused fulfillment because the amount paid does not match the catalog price. Review and either refund or grant the entitlement manually.</p>
+        <p><strong>Stripe session:</strong> ${safe(params.sessionId ?? "unknown")}</p>
+        <p><strong>Item:</strong> ${safe(params.kind)}/${safe(params.slug)}</p>
+        <p><strong>Expected (catalog):</strong> ${safe(money(params.expectedCents))}</p>
+        <p><strong>Actually paid:</strong> ${safe(money(params.gotCents))}${params.currency ? ` (${safe(params.currency)})` : ""}</p>
+      </div>
+    `;
+
+    const { error } = await supabaseAdmin.rpc(
+      "enqueue_email" as never,
+      {
+        queue_name: "transactional_emails",
+        payload: {
+          to: adminEmail,
+          from: FROM,
+          subject,
+          html,
+          text,
+          label: "payment_mismatch_alert",
+          purpose: "transactional",
+          message_id: messageId,
+          queued_at: new Date().toISOString(),
+        },
+      } as never,
+    );
+    if (error) console.error("Payment mismatch alert enqueue failed", error);
+  } catch (e) {
+    console.error("Payment mismatch alert enqueue failed", e);
   }
 }

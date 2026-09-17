@@ -159,6 +159,17 @@ export const sellerUpsertAgent = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
 
+    if (data.id) {
+      const { data: existing } = await supabaseAdmin
+        .from("agents")
+        .select("seller_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (!existing || existing.seller_id !== profile.id) {
+        throw new Error("Not found or not authorized");
+      }
+    }
+
     const unlock_content = data.unlock_content?.trim() ? data.unlock_content : null;
     const row = {
       ...data,
@@ -194,6 +205,17 @@ export const sellerUpsertService = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const profile = await getOrCreateSellerProfile(context.userId);
+
+    if (data.id) {
+      const { data: existing } = await supabaseAdmin
+        .from("services")
+        .select("seller_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (!existing || existing.seller_id !== profile.id) {
+        throw new Error("Not found or not authorized");
+      }
+    }
 
     const row = {
       ...data,

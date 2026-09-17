@@ -84,18 +84,30 @@ export const upsertPrompt = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const row = {
-      ...data,
-      user_id: context.userId,
-    };
+    if (data.id) {
+      // Update path: verify the caller owns the row before touching it, and
+      // use .update() so a forged id can never overwrite someone else's row
+      // (or resurrect a deleted one) via upsert-with-onConflict.
+      const { data: existing } = await supabaseAdmin
+        .from("prompts")
+        .select("user_id")
+        .eq("id", data.id)
+        .maybeSingle();
+      if (!existing) throw new Error("Prompt not found.");
+      if (existing.user_id !== context.userId) throw new Error("Not your prompt.");
 
-    if (!row.id) {
-      delete (row as Record<string, unknown>).id;
+      const { error } = await supabaseAdmin
+        .from("prompts")
+        .update({ ...data, user_id: context.userId } as never)
+        .eq("id", data.id);
+      if (error) throw new Error(error.message);
+      return { ok: true };
     }
 
+    const { id: _ignored, ...newRow } = data;
     const { error } = await supabaseAdmin
       .from("prompts")
-      .upsert(row as never, { onConflict: "id" });
+      .insert({ ...newRow, user_id: context.userId } as never);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

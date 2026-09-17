@@ -75,7 +75,10 @@ export const listPublicMcpServers = createServerFn({ method: "GET" })
 export const listMyMcpServers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const sb = publicClient();
+    // Read through the service role (not the anon client): the anon client's
+    // RLS only exposes approved+public rows, so owners could never see their
+    // own pending submissions. Ownership is enforced in code via submitted_by.
+    const sb = supabaseAdmin();
     const { data: rows, error } = await sb
       .from("mcp_servers")
       .select(

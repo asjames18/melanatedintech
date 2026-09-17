@@ -253,11 +253,7 @@ function AdminInvoices() {
     setClientName(inv.client_name);
     setClientEmail(inv.client_email);
     setClientOrg(inv.client_organization || "");
-    setServiceType(
-      inv.service_type && SERVICE_TYPES.includes(inv.service_type)
-        ? inv.service_type
-        : SERVICE_TYPES[0],
-    );
+    setServiceType(inv.service_type || SERVICE_TYPES[0]);
     setTitle(inv.title);
     setDescription(inv.description || "");
     setOriginalTotal(inv.original_total_cents ? String(inv.original_total_cents / 100) : "");
@@ -434,6 +430,11 @@ function AdminInvoices() {
                             {type}
                           </SelectItem>
                         ))}
+                        {serviceType && !SERVICE_TYPES.includes(serviceType) && (
+                          <SelectItem key={serviceType} value={serviceType}>
+                            {serviceType} (legacy)
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

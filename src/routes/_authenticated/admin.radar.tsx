@@ -17,6 +17,7 @@ import { PageHeader, SiteLayout } from "@/components/site-layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   adminListRadarQueue,
   adminReviewRadarItem,
@@ -206,6 +207,7 @@ function ModerationCard({
   onReview: (action: "approve" | "reject") => void;
   disabled: boolean;
 }) {
+  const [pendingAction, setPendingAction] = useState<"approve" | "reject" | null>(null);
   return (
     <article className="rounded-2xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-center gap-2 text-[11px]">
@@ -248,19 +250,39 @@ function ModerationCard({
           className="h-9 text-xs"
         />
         <div className="flex shrink-0 gap-2">
-          <Button size="sm" disabled={disabled} onClick={() => onReview("approve")}>
+          <Button size="sm" disabled={disabled} onClick={() => setPendingAction("approve")}>
             <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Publish
           </Button>
           <Button
             size="sm"
             variant="outline"
             disabled={disabled}
-            onClick={() => onReview("reject")}
+            onClick={() => setPendingAction("reject")}
           >
             <XCircle className="mr-1.5 h-3.5 w-3.5" /> Reject
           </Button>
         </div>
       </div>
+      <ConfirmDialog
+        open={pendingAction !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingAction(null);
+        }}
+        title={
+          pendingAction === "approve" ? "Publish this item to the Radar?" : "Reject this item?"
+        }
+        description={
+          pendingAction === "approve"
+            ? `"${row.title}" will become visible on the public Radar.`
+            : `"${row.title}" will be removed from the review queue and not published.`
+        }
+        confirmLabel={pendingAction === "approve" ? "Publish" : "Reject"}
+        destructive={pendingAction === "reject"}
+        onConfirm={() => {
+          if (pendingAction) onReview(pendingAction);
+          setPendingAction(null);
+        }}
+      />
     </article>
   );
 }

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getAdminDb, type UntypedDb } from "@/lib/admin-db";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | JsonObject;
 type JsonObject = { [key: string]: JsonValue };
@@ -175,24 +176,6 @@ const PRIMARY_SOURCE_DOMAINS = [
   "supabase.com",
   "openrouter.ai",
 ];
-
-type UntypedDb = {
-  from: (table: string) => any;
-};
-
-async function getAdminDb(userId: string): Promise<UntypedDb> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const db = supabaseAdmin as unknown as UntypedDb;
-  const { data, error } = await db
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden: admin role required.");
-  return db;
-}
 
 function readServerEnv(keys: string[]): string | undefined {
   for (const key of keys) {

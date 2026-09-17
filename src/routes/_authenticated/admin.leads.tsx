@@ -117,8 +117,8 @@ function AdminLeads() {
         <div className="mb-6 space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">
-              Customer contact details stay in this authenticated view and are never sent to
-              analytics.
+              Contact details (name, email, phone) stay in this authenticated view and are never
+              sent to analytics.
             </p>
             <div className="flex items-center gap-2">
               <Button

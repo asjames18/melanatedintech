@@ -1,4 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import {
   isTestPurchase,
   isTestEmail,
@@ -106,10 +108,39 @@ import {
 import { adminListSubmissions, adminReviewSubmission } from "@/lib/submissions.functions";
 import { listClientInvoices } from "@/lib/invoices.functions";
 
+/** Revenue-first landing: the owner opens the portal to check money, not listings. */
+const DEFAULT_ADMIN_TAB = "purchases";
+
+const adminSearchSchema = z.object({
+  tab: fallback(z.string(), DEFAULT_ADMIN_TAB).default(DEFAULT_ADMIN_TAB),
+});
+
+/** Mirrors the schema default above; both must stay in step. */
+const ADMIN_SEARCH_DEFAULTS = { tab: DEFAULT_ADMIN_TAB } as const;
+
 export const Route = createFileRoute("/_authenticated/admin/")({
+  validateSearch: zodValidator(adminSearchSchema),
+  // Without this, a bare GET of /admin answers 307 -> ?tab=purchases: the
+  // schema's .default() makes validateSearch produce a key the URL does not
+  // carry, and the router rewrites the URL to match. Stripping the default
+  // keeps the clean URL clean (same pattern as agents.index.tsx).
+  search: { middlewares: [stripSearchParams(ADMIN_SEARCH_DEFAULTS)] },
   head: () => ({ meta: [{ title: "Admin — Melanated in Tech" }] }),
   component: AdminPage,
 });
+
+const ADMIN_TAB_IDS = [
+  "agents",
+  "products",
+  "articles",
+  "services",
+  "submissions",
+  "waitlist",
+  "messages",
+  "purchases",
+  "community",
+  "analytics",
+] as const;
 
 function AdminPage() {
   const check = useServerFn(checkAdminStatus);
@@ -166,13 +197,14 @@ function AdminPage() {
     queryFn: () => getAnalyticsFn({ data: { days: 30 } }),
     enabled: isAdmin,
   });
-  const [activeTab, setActiveTab] = useState("agents");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const { tab: tabParam } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
 
   if (status.isLoading) {
     return (
       <SiteLayout>
-        <div className="p-12 text-sm text-muted-foreground">Loadingâ€¦</div>
+        <div className="p-12 text-sm text-muted-foreground">Loading…</div>
       </SiteLayout>
     );
   }
@@ -201,7 +233,13 @@ function AdminPage() {
     community: "Community Moderation",
     analytics: "Recommendations",
   };
+  const activeTab =
+    (ADMIN_TAB_IDS as readonly string[]).includes(tabParam) ? tabParam : DEFAULT_ADMIN_TAB;
   const activeTabDisplayName = TAB_NAMES[activeTab] || activeTab;
+  const setActiveTab = (val: string) => {
+    void navigate({ search: (prev) => ({ ...prev, tab: val }), replace: true });
+    setSheetOpen(false);
+  };
 
   // Calculate Metrics
   const pendingSubmissions = (submissionsQuery.data ?? []).filter(
@@ -236,7 +274,10 @@ function AdminPage() {
     return sum;
   }, 0);
 
+  // Only paid invoices can carry real monthly retainers; pending or cancelled
+  // invoices with selected add-ons would inflate the number.
   const monthlyRetainerMRRCents = liveInvoices.reduce((sum, inv) => {
+    if (inv.status !== "deposit_paid" && inv.status !== "fully_paid") return sum;
     if (!inv.selected_add_ons || inv.selected_add_ons.length === 0) return sum;
     let invSum = 0;
     for (const addon of inv.selected_add_ons) {
@@ -295,7 +336,7 @@ function AdminPage() {
               <Link to="/admin/invoices">
                 <Button className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm">
                   <FileText className="h-4 w-4" />
-                  <span>Invoice Manager ({invoices.length})</span>
+                  <span>Invoice Manager ({liveInvoices.length})</span>
                 </Button>
               </Link>
             </div>
@@ -340,7 +381,7 @@ function AdminPage() {
             {/* MONTHLY RETAINERS (MRR) */}
             <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4">
               <div className="flex items-center justify-between text-xs text-purple-700 dark:text-purple-300 font-semibold uppercase tracking-wider">
-                <span>Monthly Retainers (MRR)</span>
+                <span>Monthly Retainers (est.)</span>
                 <CreditCard className="h-4 w-4 text-purple-500" />
               </div>
               <div className="mt-2 font-mono text-3xl font-extrabold text-foreground">
@@ -448,10 +489,7 @@ function AdminPage() {
         {/* SIDEBAR NAVIGATION GRID */}
         <Tabs
           value={activeTab}
-          onValueChange={(val) => {
-            setActiveTab(val);
-            setSheetOpen(false);
-          }}
+          onValueChange={setActiveTab}
           className="w-full"
         >
           {/* MOBILE NAVIGATION BAR (Visible on mobile/tablet, hidden on desktop) */}
@@ -598,6 +636,16 @@ function AdminPage() {
                     >
                       <Link to="/admin/content-agent" onClick={() => setSheetOpen(false)}>
                         Content review queue
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start rounded-xl animate-none"
+                    >
+                      <Link to="/admin/radar" onClick={() => setSheetOpen(false)}>
+                        AI Radar review queue
                       </Link>
                     </Button>
                     <Button
@@ -843,7 +891,7 @@ function NoAccess({ adminCount, onClaimed }: { adminCount: number; onClaimed: ()
               No admins exist yet. Claim the first admin seat for this workspace.
             </p>
             <Button className="mt-6" onClick={() => mut.mutate()} disabled={mut.isPending}>
-              {mut.isPending ? "Claimingâ€¦" : "Claim admin access"}
+              {mut.isPending ? "Claiming…" : "Claim admin access"}
             </Button>
           </>
         ) : (
@@ -1066,7 +1114,7 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
               />
             </Field>
           </div>
-          <Field label="System prompt (optional â€” used as the agent's instructions when buyers chat)">
+          <Field label="System prompt (optional — used as the agent's instructions when buyers chat)">
             <Textarea
               rows={4}
               value={form.system_prompt}
@@ -1075,10 +1123,10 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             />
           </Field>
           <FulfillmentField
-            label="Unlock pack (markdown) â€” delivered to buyers only"
+            label="Unlock pack (markdown) — delivered to buyers only"
             value={form.unlock_content}
             onChange={(v) => setForm({ ...form, unlock_content: v })}
-            hint="Premium agents need a pack here or they show â€œComing soonâ€ instead of a buy button."
+            hint="Premium agents need a pack here or they show “Coming soon” instead of a buy button."
           />
           <PublishControls
             status={form.status}
@@ -1091,7 +1139,7 @@ function AgentEditor({ existing, trigger }: { existing?: AgentRow; trigger: Reac
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1252,7 +1300,7 @@ function ArticleEditor({ existing, trigger }: { existing?: ArticleRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1305,7 +1353,7 @@ function ProductsPanel() {
           },
           {
             header: "Price",
-            cell: (r) => (r.price_cents ? `$${(r.price_cents / 100).toFixed(2)}` : "â€”"),
+            cell: (r) => (r.price_cents ? `$${(r.price_cents / 100).toFixed(2)}` : "—"),
           },
           {
             header: "Tier",
@@ -1445,7 +1493,7 @@ function ProductEditor({ existing, trigger }: { existing?: ProductRow; trigger: 
               <Input
                 value={form.image_url ?? ""}
                 onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="https://â€¦"
+                placeholder="https://…"
               />
             </Field>
           </div>
@@ -1497,7 +1545,7 @@ function ProductEditor({ existing, trigger }: { existing?: ProductRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1653,7 +1701,7 @@ function ServiceEditor({ existing, trigger }: { existing?: ServiceRow; trigger: 
             Cancel
           </Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending}>
-            {mut.isPending ? "Savingâ€¦" : saveLabel(form.status)}
+            {mut.isPending ? "Saving…" : saveLabel(form.status)}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1876,11 +1924,11 @@ function WaitlistPanel() {
           { header: "Email", cell: (r) => <span className="font-medium">{r.email}</span> },
           {
             header: "Source",
-            cell: (r) => <span className="text-muted-foreground">{r.source ?? "â€”"}</span>,
+            cell: (r) => <span className="text-muted-foreground">{r.source ?? "—"}</span>,
           },
           {
             header: "Interest",
-            cell: (r) => <span className="text-muted-foreground">{r.interest ?? "â€”"}</span>,
+            cell: (r) => <span className="text-muted-foreground">{r.interest ?? "—"}</span>,
           },
           {
             header: "When",
@@ -2187,7 +2235,7 @@ function SubmissionsPanel() {
     }) => review({ data: { id: args.id, status: args.status, review_notes: args.notes || null } }),
     onSuccess: (res) => {
       if (res?.publishedSlug) {
-        toast.success(`Approved â€” published as /agents/${res.publishedSlug}`);
+        toast.success(`Approved — published as /agents/${res.publishedSlug}`);
       } else {
         toast.success("Submission updated.");
       }
@@ -2279,7 +2327,7 @@ function SubmissionCard({
         <div>
           <p className="font-display text-base font-semibold">{submission.name}</p>
           <p className="text-xs text-muted-foreground">
-            {submission.category} Â· {submission.contact_email} Â·{" "}
+            {submission.category} · {submission.contact_email} ·{" "}
             {new Date(submission.created_at).toLocaleDateString()}
           </p>
         </div>
@@ -2310,7 +2358,7 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Website â†—
+              Website ↗
             </a>
           )}
           {submission.demo_url && (
@@ -2320,7 +2368,7 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Demo â†—
+              Demo ↗
             </a>
           )}
           {submission.repo_url && (
@@ -2330,12 +2378,12 @@ function SubmissionCard({
               rel="noreferrer"
               className="text-primary hover:underline"
             >
-              Repo â†—
+              Repo ↗
             </a>
           )}
           {submission.published_agent_id && (
             <Link to="/agents" className="text-emerald-700 hover:underline">
-              Live agent â†—
+              Live agent ↗
             </Link>
           )}
         </div>
@@ -2380,11 +2428,13 @@ function formatCents(cents: number | null | undefined) {
 function downloadCsv(name: string, headers: string[], rows: (string | number)[][]) {
   const esc = (v: string | number) => {
     const s = String(v ?? "");
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    // Defend against spreadsheet formula injection: neutralize cells that
+    // start with a formula trigger character.
+    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
   const csv = [headers, ...rows].map((r) => r.map(esc).join(",")).join("\r\n");
-  // eslint-disable-next-line no-irregular-whitespace
-  const blob = new Blob([`ï»¿${csv}`], { type: "text/csv;charset=utf-8" });
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -2432,7 +2482,7 @@ function DataTable<T extends { id: string }>({
   actions?: (r: T) => React.ReactNode;
   loading?: boolean;
 }) {
-  if (loading) return <p className="mt-6 text-sm text-muted-foreground">Loadingâ€¦</p>;
+  if (loading) return <p className="mt-6 text-sm text-muted-foreground">Loading…</p>;
   if (rows.length === 0) {
     return (
       <div className="mt-4 rounded-2xl border border-dashed border-border p-10 text-center text-sm text-muted-foreground">
@@ -2585,7 +2635,7 @@ function downloadAnalyticsCsv(data: SummaryData, days: number) {
       .map((c) => "," + esc(c))
       .join("");
 
-  lines.push(`# Recommendation analytics â€” last ${days} days`);
+  lines.push(`# Recommendation analytics — last ${days} days`);
   lines.push("");
   lines.push("Metric,Value");
   lines.push(row(["Impressions", data.totals.impressions]));
@@ -2680,7 +2730,7 @@ function FulfillmentField({
           rows={8}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="# Pack title&#10;&#10;Markdown the buyer sees after purchaseâ€¦"
+          placeholder="# Pack title&#10;&#10;Markdown the buyer sees after purchase…"
           className="font-mono text-xs"
         />
       )}
@@ -2703,17 +2753,6 @@ function ToggleField({
       <Switch checked={checked} onCheckedChange={onChange} />
       {label}
     </label>
-  );
-}
-
-function StatusDot({ active, label }: { active: boolean; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs">
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${active ? "bg-accent2" : "bg-muted-foreground/40"}`}
-      />
-      {label}
-    </span>
   );
 }
 
@@ -2804,9 +2843,9 @@ function PublishControls({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Draft â€” hidden</SelectItem>
+              <SelectItem value="draft">Draft — hidden</SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
-              <SelectItem value="published">Published â€” live</SelectItem>
+              <SelectItem value="published">Published — live</SelectItem>
             </SelectContent>
           </Select>
         </Field>
@@ -2857,7 +2896,7 @@ function PublishBadge({
         ? scheduledAt
           ? live
             ? "Live (scheduled)"
-            : `Scheduled Â· ${new Date(scheduledAt).toLocaleDateString()}`
+            : `Scheduled · ${new Date(scheduledAt).toLocaleDateString()}`
           : "Scheduled"
         : "Draft";
   return (
@@ -2965,7 +3004,7 @@ function AdminPostsPanel() {
         columns={[
           {
             header: "Author",
-            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "â€”"}</span>,
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
           },
           {
             header: "Post",
@@ -3054,7 +3093,7 @@ function AdminRepliesPanel() {
         columns={[
           {
             header: "Author",
-            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "â€”"}</span>,
+            cell: (r) => <span className="font-medium">{r.author?.display_name ?? "—"}</span>,
           },
           {
             header: "Reply",
@@ -3208,7 +3247,7 @@ function AnalyticsPanel() {
             <BarChart3 className="h-5 w-5 text-primary" /> Recommendation Analytics
           </h3>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {`Last ${data?.days} days Â· ${data?.totals.events ?? 0} recommendation events recorded`}
+            {`Last ${data?.days} days · ${data?.totals.events ?? 0} recommendation events recorded`}
           </p>
         </div>
         <div className="flex items-center gap-2">

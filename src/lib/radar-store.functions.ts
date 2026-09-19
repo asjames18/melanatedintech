@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { getAdminDb, type UntypedDb } from "@/lib/admin-db";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/integrations/supabase/env";
 import { rankItem } from "@/lib/radar";
 import {
@@ -216,22 +217,6 @@ export const fetchRadarForPage = createServerFn({ method: "GET" })
 // ---------------------------------------------------------------------------
 // Admin moderation
 // ---------------------------------------------------------------------------
-
-type UntypedDb = { from: (table: string) => any };
-
-async function getAdminDb(userId: string): Promise<UntypedDb> {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const db = supabaseAdmin as unknown as UntypedDb;
-  const { data, error } = await db
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId)
-    .eq("role", "admin")
-    .maybeSingle();
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Forbidden: admin role required.");
-  return db;
-}
 
 export interface RadarModerationRow {
   id: string;

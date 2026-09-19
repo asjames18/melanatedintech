@@ -72,10 +72,9 @@ function AdminAnalytics() {
   const [iframeKey, setIframeKey] = useState(0);
   const [customEmbedUrl, setCustomEmbedUrl] = useState("");
   const [showEmbedSettings, setShowEmbedSettings] = useState(false);
-  const [livePings, setLivePings] = useState<Array<{ name: string; time: string; props: string }>>([
-    { name: "page_view", time: "Just now", props: "path: /admin/analytics" },
-    { name: "ga4_stream_active", time: "1m ago", props: "property: G-5YKK7V75YL" },
-  ]);
+  const [livePings, setLivePings] = useState<Array<{ name: string; time: string; props: string }>>(
+    [],
+  );
 
   const summary = useServerFn(adminAnalyticsSummary);
   const q = useQuery({
@@ -630,20 +629,26 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                     </div>
 
                     <div className="space-y-2">
-                      {livePings.map((p, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between p-3 rounded-lg border border-slate-800/80 bg-slate-900/60 text-xs font-mono"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                            <span className="font-bold text-violet-300">{p.name}</span>
-                            <span className="text-slate-500">|</span>
-                            <span className="text-slate-400">{p.props}</span>
+                      {livePings.length === 0 ? (
+                        <p className="rounded-lg border border-slate-800/80 bg-slate-900/60 p-4 text-xs text-slate-400">
+                          No events yet — interact with the site or send a test ping.
+                        </p>
+                      ) : (
+                        livePings.map((p, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-3 rounded-lg border border-slate-800/80 bg-slate-900/60 text-xs font-mono"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                              <span className="font-bold text-violet-300">{p.name}</span>
+                              <span className="text-slate-500">|</span>
+                              <span className="text-slate-400">{p.props}</span>
+                            </div>
+                            <span className="text-slate-500 text-[11px]">{p.time}</span>
                           </div>
-                          <span className="text-slate-500 text-[11px]">{p.time}</span>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -1276,7 +1281,10 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   const lines: string[] = [];
   const esc = (v: string | number) => {
     const s = String(v ?? "");
-    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    // Defend against spreadsheet formula injection: neutralize cells that
+    // start with a formula trigger character.
+    const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+    return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
   const row = (cells: (string | number)[]) => cells.map(esc).join(",");
 
@@ -1331,6 +1339,7 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 function downloadExecutiveBriefMd(data: Summary, days: number) {

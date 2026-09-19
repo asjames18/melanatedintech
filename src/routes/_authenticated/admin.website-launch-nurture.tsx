@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { adminGetWebsiteLaunchNurture, adminSetWebsiteLaunchNurture } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/website-launch-nurture")({
@@ -18,6 +19,7 @@ function WebsiteLaunchNurtureAdmin() {
   const update = useServerFn(adminSetWebsiteLaunchNurture);
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const query = useQuery({ queryKey: ["admin-website-launch-nurture"], queryFn: () => list(), retry: false });
   const mutation = useMutation({
     mutationFn: (enabled: boolean) => update({ data: { enabled } }),
@@ -55,7 +57,22 @@ function WebsiteLaunchNurtureAdmin() {
       <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div><p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">Campaign status</p><p className="mt-2 text-2xl font-semibold">{enabled ? "Active" : "Paused"}</p><p className="mt-1 text-sm text-muted-foreground">Only already confirmed checklist requests can receive the paused three-email follow-up. The checklist itself is delivered only after a recipient confirms their email. No external list is used.</p></div>
-          <Button onClick={toggle} disabled={busy || mutation.isPending} className="gap-2">{busy || mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : enabled ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}{enabled ? "Pause nurture" : "Activate nurture"}</Button>
+          <Button onClick={() => setConfirmOpen(true)} disabled={busy || mutation.isPending} className="gap-2">{busy || mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : enabled ? <PauseCircle className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}{enabled ? "Pause nurture" : "Activate nurture"}</Button>
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title={enabled ? "Pause the Website Launch nurture?" : "Activate the Website Launch nurture?"}
+          description={
+            enabled
+              ? "The three marketing follow-ups will stop sending. Already-confirmed checklist deliveries are unaffected."
+              : "The paused three-email follow-up becomes eligible for already-confirmed checklist requests. Activation never adds historical signups or releases pending confirmations."
+          }
+          confirmLabel={enabled ? "Pause nurture" : "Activate nurture"}
+          onConfirm={() => {
+            setConfirmOpen(false);
+            void toggle();
+          }}
+        />
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-4"><Metric label="Total requests" value={String(enrollments.length)} /><Metric label="Awaiting confirmation" value={String(counts.pending_confirmation ?? 0)} /><Metric label="Active follow-up" value={String(counts.active ?? 0)} /><Metric label="Completed / stopped" value={String((counts.completed ?? 0) + (counts.unsubscribed ?? 0) + (counts.suppressed ?? 0))} /></div>
       </div>

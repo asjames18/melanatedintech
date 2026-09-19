@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   Select,
   SelectContent,
@@ -85,6 +87,14 @@ function formatDate(dateString?: string | null) {
   }
 }
 
+const STATUS_LABELS: Record<ClientInvoiceRecord["status"], string> = {
+  draft: "Draft",
+  deposit_pending: "Deposit Pending",
+  deposit_paid: "Deposit Paid",
+  fully_paid: "Paid in Full",
+  cancelled: "Cancelled",
+};
+
 function AdminInvoices() {
   const queryClient = useQueryClient();
   const getInvoicesFn = useServerFn(listClientInvoices);
@@ -97,6 +107,11 @@ function AdminInvoices() {
   const [editingInvoiceNumber, setEditingInvoiceNumber] = useState<string | null>(null);
   const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [statusConfirm, setStatusConfirm] = useState<{
+    invoiceNumber: string;
+    from: ClientInvoiceRecord["status"];
+    to: ClientInvoiceRecord["status"];
+  } | null>(null);
 
   // Form State
   const [clientName, setClientName] = useState("");
@@ -238,7 +253,7 @@ function AdminInvoices() {
     setClientName(inv.client_name);
     setClientEmail(inv.client_email);
     setClientOrg(inv.client_organization || "");
-    setServiceType(inv.service_type || "Web Design");
+    setServiceType(inv.service_type || SERVICE_TYPES[0]);
     setTitle(inv.title);
     setDescription(inv.description || "");
     setOriginalTotal(inv.original_total_cents ? String(inv.original_total_cents / 100) : "");
@@ -279,11 +294,17 @@ function AdminInvoices() {
     return sum + (isNaN(val) ? 0 : Math.round(val * 100));
   }, 0);
 
-  const copyInvoiceLink = (invoiceNumber: string, accessToken: string) => {
+  const copyInvoiceLink = async (invoiceNumber: string, accessToken: string) => {
     const url = `${SITE_URL}/invoice/${encodeURIComponent(invoiceNumber)}?token=${encodeURIComponent(accessToken)}`;
-    navigator.clipboard.writeText(url);
-    setCopiedNumber(invoiceNumber);
-    setTimeout(() => setCopiedNumber(null), 2500);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedNumber(invoiceNumber);
+      setTimeout(() => setCopiedNumber(null), 2500);
+      toast.success("Invoice link copied to clipboard.");
+    } catch {
+      toast.error("Could not copy automatically — the link is shown below instead.");
+      window.prompt("Copy the invoice link:", url);
+    }
   };
 
   return (
@@ -292,6 +313,28 @@ function AdminInvoices() {
         eyebrow="Admin Invoicing"
         title="Client Invoice Manager"
         description="Create, send, and manage 50/50 deposit invoices for fixed-scope services and approved custom project scopes."
+      />
+      <ConfirmDialog
+        open={statusConfirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setStatusConfirm(null);
+        }}
+        title={`Change invoice ${statusConfirm?.invoiceNumber ?? ""} status?`}
+        description={
+          statusConfirm
+            ? `From ${STATUS_LABELS[statusConfirm.from]} to ${STATUS_LABELS[statusConfirm.to]}.`
+            : undefined
+        }
+        confirmLabel="Change status"
+        onConfirm={() => {
+          if (statusConfirm) {
+            updateStatusMutation.mutate({
+              invoiceNumber: statusConfirm.invoiceNumber,
+              status: statusConfirm.to,
+            });
+          }
+          setStatusConfirm(null);
+        }}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -387,6 +430,11 @@ function AdminInvoices() {
                             {type}
                           </SelectItem>
                         ))}
+                        {serviceType && !SERVICE_TYPES.includes(serviceType) && (
+                          <SelectItem key={serviceType} value={serviceType}>
+                            {serviceType} (legacy)
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -648,12 +696,15 @@ function AdminInvoices() {
                       <td className="py-4 px-6">
                         <Select
                           value={inv.status}
-                          onValueChange={(value) =>
-                            updateStatusMutation.mutate({
+                          onValueChange={(value) => {
+                            const next = value as ClientInvoiceRecord["status"];
+                            if (next === inv.status) return;
+                            setStatusConfirm({
                               invoiceNumber: inv.invoice_number,
-                              status: value as ClientInvoiceRecord["status"],
-                            })
-                          }
+                              from: inv.status,
+                              to: next,
+                            });
+                          }}
                         >
                           <SelectTrigger className="h-7 text-xs w-36">
                             <SelectValue />

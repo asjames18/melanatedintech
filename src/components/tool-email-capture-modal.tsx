@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,6 +10,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { trackEvent } from "@/lib/analytics";
+import { sendToolReportEmail } from "@/lib/public.functions";
 import { toast } from "sonner";
 import { Mail, CheckCircle2, Sparkles, Send } from "lucide-react";
 
@@ -17,6 +19,7 @@ interface ToolEmailCaptureModalProps {
   onOpenChange: (open: boolean) => void;
   toolName: string;
   summaryText: string;
+  reportBody: string;
 }
 
 export function ToolEmailCaptureModal({
@@ -24,25 +27,30 @@ export function ToolEmailCaptureModal({
   onOpenChange,
   toolName,
   summaryText,
+  reportBody,
 }: ToolEmailCaptureModalProps) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const send = useServerFn(sendToolReportEmail);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes("@")) {
       toast.error("Please enter a valid email address.");
       return;
     }
     setLoading(true);
-    trackEvent("starter_kit_email_captured", { tool: toolName, emailDomain: email.split("@")[1] });
-
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await send({ data: { email, tool: "revenue-leak-calculator", reportBody } });
+      trackEvent("starter_kit_email_captured", { tool: toolName, emailDomain: email.split("@")[1] });
       setSubmitted(true);
       toast.success("Audit report & AI Starter Kit sent to your inbox!");
-    }, 600);
+    } catch {
+      toast.error("Couldn't send the report. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

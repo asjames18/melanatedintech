@@ -223,6 +223,7 @@ export function RevenueLeakCalculator() {
                   onOpenChange={setEmailModalOpen}
                   toolName="Revenue Leak Audit"
                   summaryText={`Estimated annual revenue leak of $${annualLostRevenue.toLocaleString()}/year (${recoverableConversionsMonthly} recoverable jobs/mo).`}
+                  reportBody={buildRevenueLeakReport(monthlyInquiries, avgJobValue, totalLeakingLeadsMonthly, recoverableConversionsMonthly, monthlyLostRevenue, annualLostRevenue)}
                 />
               </div>
             </div>
@@ -235,15 +236,15 @@ export function RevenueLeakCalculator() {
   );
 }
 
-function downloadRevenueLeakReport(
+function buildRevenueLeakReport(
   inquiries: number,
   avgValue: number,
   leakingLeads: number,
   recoverable: number,
   monthlyLost: number,
   annualLost: number
-) {
-  const md = `# Melanated in Tech — Lead Revenue Leakage Audit Report
+): string {
+  return `# Melanated in Tech — Lead Revenue Leakage Audit Report
 *Generated on ${new Date().toLocaleDateString()}*
 
 ## Your Operating Metrics
@@ -260,6 +261,17 @@ function downloadRevenueLeakReport(
 Book a $297 Revenue Diagnostic to identify exact response bottlenecks and configure an automated SMS/voice dispatch system.
 https://melanatedintech.com/diagnostic
 `;
+}
+
+function downloadRevenueLeakReport(
+  inquiries: number,
+  avgValue: number,
+  leakingLeads: number,
+  recoverable: number,
+  monthlyLost: number,
+  annualLost: number
+) {
+  const md = buildRevenueLeakReport(inquiries, avgValue, leakingLeads, recoverable, monthlyLost, annualLost);
 
   const blob = new Blob([md], { type: "text/markdown;charset=utf-8;" });
   const url = URL.createObjectURL(blob);

@@ -1,13 +1,14 @@
 /**
  * Workflow Opportunity Scorecard — Stripe commerce wiring.
  *
- * Live $1 smoke IDs are the defaults (Antonio clearance 2026-09-22).
- * Override via env so Commerce can swap to $19 without a code change.
+ * Live $19 IDs are the defaults (Antonio clearance 2026-09-22).
+ * Override via env if Commerce rotates price/link without a code change.
  * Do NOT route this SKU through pack entitlement grants.
  */
 
 export const SCORECARD_SKU = "workflow_opportunity_scorecard" as const;
-export const SCORECARD_LOOKUP_KEY_SMOKE = "sku_workflow_opportunity_scorecard_1" as const;
+export const SCORECARD_LOOKUP_KEY_SMOKE = "sku_workflow_opportunity_scorecard_1" as const; // retired $1 smoke
+export const SCORECARD_LOOKUP_KEY_LIVE = "sku_workflow_opportunity_scorecard_19" as const;
 export const SCORECARD_PDF_FILENAME = "MIT-Workflow-Opportunity-Scorecard.pdf" as const;
 export const SCORECARD_EMAIL_SUBJECT = "Your Workflow Opportunity Scorecard" as const;
 
@@ -19,7 +20,7 @@ type ScorecardStripeIds = {
   paymentLinkId: string;
   paymentLinkUrl: string;
   lookupKey: string;
-  /** Accepted settled USD amounts for this SKU (smoke $1; later $19). */
+  /** Accepted settled USD amounts for this SKU (live $19). */
   acceptedAmountCents: readonly number[];
 };
 
@@ -48,18 +49,18 @@ function parseAmountList(raw: string | undefined, fallback: readonly number[]): 
   return parsed.length ? parsed : fallback;
 }
 
-/** Live (primary smoke) — defaults match Commerce handoff 2026-09-22. */
+/** Live — defaults match Commerce $19 handoff 2026-09-22 (Antonio cleared). */
 export function getScorecardLiveIds(): ScorecardStripeIds {
   return {
     productId: envOr("SCORECARD_STRIPE_PRODUCT_ID", "prod_VJAhE7ilp34sJl"),
-    priceId: envOr("SCORECARD_STRIPE_PRICE_ID", "price_1UIYLl9upxllsVQBeyDPmjqR"),
-    paymentLinkId: envOr("SCORECARD_STRIPE_PAYMENT_LINK_ID", "plink_1UIYLs9upxllsVQBRjihsr8D"),
+    priceId: envOr("SCORECARD_STRIPE_PRICE_ID", "price_1UIYsF9upxllsVQBuHtIGpJy"),
+    paymentLinkId: envOr("SCORECARD_STRIPE_PAYMENT_LINK_ID", "plink_1UIYsm9upxllsVQBwCvsAkuQ"),
     paymentLinkUrl: envOr(
       "SCORECARD_STRIPE_PAYMENT_LINK_URL",
-      "https://buy.stripe.com/bJe9ANejh0zO0eP0Mu3gk00",
+      "https://buy.stripe.com/28E00d4IH5U87Hh9j03gk01",
     ),
-    lookupKey: envOr("SCORECARD_STRIPE_LOOKUP_KEY", SCORECARD_LOOKUP_KEY_SMOKE),
-    acceptedAmountCents: parseAmountList(process.env.SCORECARD_ACCEPTED_AMOUNT_CENTS, [100]),
+    lookupKey: envOr("SCORECARD_STRIPE_LOOKUP_KEY", "sku_workflow_opportunity_scorecard_19"),
+    acceptedAmountCents: parseAmountList(process.env.SCORECARD_ACCEPTED_AMOUNT_CENTS, [1900]),
   };
 }
 

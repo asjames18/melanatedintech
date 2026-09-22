@@ -30,6 +30,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ProofRouteImport } from './routes/proof'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
+import { Route as ScorecardRouteImport } from './routes/scorecard'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as StartSmallRouteImport } from './routes/start-small'
@@ -73,6 +74,7 @@ import { Route as ProductsIndexRouteImport } from './routes/products.index'
 import { Route as ProductsSlugRouteImport } from './routes/products.$slug'
 import { Route as RadarIndexRouteImport } from './routes/radar.index'
 import { Route as RadarFeedDotxmlRouteImport } from './routes/radar.feed[.]xml'
+import { Route as ScorecardThankYouRouteImport } from './routes/scorecard_.thank-you'
 import { Route as SellersSlugRouteImport } from './routes/sellers.$slug'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
@@ -228,6 +230,11 @@ const ProofRoute = ProofRouteImport.update({
 const RoadmapRoute = RoadmapRouteImport.update({
   id: '/roadmap',
   path: '/roadmap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScorecardRoute = ScorecardRouteImport.update({
+  id: '/scorecard',
+  path: '/scorecard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -450,6 +457,11 @@ const RadarIndexRoute = RadarIndexRouteImport.update({
 const RadarFeedDotxmlRoute = RadarFeedDotxmlRouteImport.update({
   id: '/radar/feed.xml',
   path: '/radar/feed.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScorecardThankYouRoute = ScorecardThankYouRouteImport.update({
+  id: '/scorecard_/thank-you',
+  path: '/scorecard/thank-you',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SellersSlugRoute = SellersSlugRouteImport.update({
@@ -752,6 +764,7 @@ export interface FileRoutesByFullPath {
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/roadmap': typeof RoadmapRoute
+  '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -787,6 +800,7 @@ export interface FileRoutesByFullPath {
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/radar/feed.xml': typeof RadarFeedDotxmlRoute
+  '/scorecard/thank-you': typeof ScorecardThankYouRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -863,6 +877,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
   '/roadmap': typeof RoadmapRoute
+  '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -896,6 +911,7 @@ export interface FileRoutesByTo {
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/radar/feed.xml': typeof RadarFeedDotxmlRoute
+  '/scorecard/thank-you': typeof ScorecardThankYouRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -980,6 +996,7 @@ export interface FileRoutesById {
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
   '/roadmap': typeof RoadmapRoute
+  '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/start-small': typeof StartSmallRoute
@@ -1015,6 +1032,7 @@ export interface FileRoutesById {
   '/podcast/feed.xml': typeof PodcastFeedDotxmlRoute
   '/products/$slug': typeof ProductsSlugRoute
   '/radar/feed.xml': typeof RadarFeedDotxmlRoute
+  '/scorecard_/thank-you': typeof ScorecardThankYouRoute
   '/sellers/$slug': typeof SellersSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/ai-workshop': typeof ServicesAiWorkshopRoute
@@ -1099,6 +1117,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/proof'
     | '/roadmap'
+    | '/scorecard'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1134,6 +1153,7 @@ export interface FileRouteTypes {
     | '/podcast/feed.xml'
     | '/products/$slug'
     | '/radar/feed.xml'
+    | '/scorecard/thank-you'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1210,6 +1230,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/proof'
     | '/roadmap'
+    | '/scorecard'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1243,6 +1264,7 @@ export interface FileRouteTypes {
     | '/podcast/feed.xml'
     | '/products/$slug'
     | '/radar/feed.xml'
+    | '/scorecard/thank-you'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1326,6 +1348,7 @@ export interface FileRouteTypes {
     | '/products'
     | '/proof'
     | '/roadmap'
+    | '/scorecard'
     | '/search'
     | '/sitemap.xml'
     | '/start-small'
@@ -1361,6 +1384,7 @@ export interface FileRouteTypes {
     | '/podcast/feed.xml'
     | '/products/$slug'
     | '/radar/feed.xml'
+    | '/scorecard_/thank-you'
     | '/sellers/$slug'
     | '/services/$slug'
     | '/services/ai-workshop'
@@ -1445,6 +1469,7 @@ export interface RootRouteChildren {
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
   RoadmapRoute: typeof RoadmapRoute
+  ScorecardRoute: typeof ScorecardRoute
   SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   StartSmallRoute: typeof StartSmallRoute
@@ -1459,6 +1484,7 @@ export interface RootRouteChildren {
   InvoiceNumberRoute: typeof InvoiceNumberRoute
   PodcastFeedDotxmlRoute: typeof PodcastFeedDotxmlRoute
   RadarFeedDotxmlRoute: typeof RadarFeedDotxmlRoute
+  ScorecardThankYouRoute: typeof ScorecardThankYouRoute
   SellersSlugRoute: typeof SellersSlugRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesAiWorkshopRoute: typeof ServicesAiWorkshopRoute
@@ -1652,6 +1678,13 @@ declare module '@tanstack/react-router' {
       path: '/roadmap'
       fullPath: '/roadmap'
       preLoaderRoute: typeof RoadmapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scorecard': {
+      id: '/scorecard'
+      path: '/scorecard'
+      fullPath: '/scorecard'
+      preLoaderRoute: typeof ScorecardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -1953,6 +1986,13 @@ declare module '@tanstack/react-router' {
       path: '/radar/feed.xml'
       fullPath: '/radar/feed.xml'
       preLoaderRoute: typeof RadarFeedDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scorecard_/thank-you': {
+      id: '/scorecard_/thank-you'
+      path: '/scorecard/thank-you'
+      fullPath: '/scorecard/thank-you'
+      preLoaderRoute: typeof ScorecardThankYouRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sellers/$slug': {
@@ -2518,6 +2558,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
   RoadmapRoute: RoadmapRoute,
+  ScorecardRoute: ScorecardRoute,
   SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   StartSmallRoute: StartSmallRoute,
@@ -2532,6 +2573,7 @@ const rootRouteChildren: RootRouteChildren = {
   InvoiceNumberRoute: InvoiceNumberRoute,
   PodcastFeedDotxmlRoute: PodcastFeedDotxmlRoute,
   RadarFeedDotxmlRoute: RadarFeedDotxmlRoute,
+  ScorecardThankYouRoute: ScorecardThankYouRoute,
   SellersSlugRoute: SellersSlugRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ServicesAiWorkshopRoute: ServicesAiWorkshopRoute,

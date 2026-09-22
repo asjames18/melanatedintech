@@ -45,6 +45,7 @@ const STATIC_PATHS = [
   { path: "/start-small", changefreq: "monthly" as const, priority: "0.9" },
   { path: "/fit-finder", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/diagnostic", changefreq: "weekly" as const, priority: "0.9" },
+  { path: "/scorecard", changefreq: "weekly" as const, priority: "0.9" },
   // Tools hub + every interactive tool page
   { path: "/tools", changefreq: "monthly" as const, priority: "0.8" },
   { path: "/tools/prompt-pilot", changefreq: "monthly" as const, priority: "0.7" },

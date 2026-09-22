@@ -77,6 +77,10 @@ const ALLOWED_PUBLIC_EVENTS = new Set([
   "waitlist_joined",
   "website_launch_checklist_opted_in",
   "work_with_us_viewed",
+  "scorecard_page_viewed",
+  "scorecard_pay_clicked",
+  "scorecard_thank_you_viewed",
+  "scorecard_submitted",
 ]);
 
 const SENSITIVE_PROP_KEYS = /(^|_)(email|phone|name|message|content|address)($|_)/i;

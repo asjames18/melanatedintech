@@ -199,6 +199,7 @@ export type SubmitScorecardResult =
       result: ScorecardResult;
       pdfBase64: string;
       pdfFilename: string;
+      emailSent: boolean;
     }
   | { ok: false; error: string };
 
@@ -243,6 +244,7 @@ export const submitScorecardQuestionnaire = createServerFn({ method: "POST" })
           result,
           pdfBase64: existing.pdf_base64,
           pdfFilename: SCORECARD_PDF_FILENAME,
+          emailSent: Boolean(existing.email_sent_at),
         };
       }
 
@@ -260,7 +262,7 @@ export const submitScorecardQuestionnaire = createServerFn({ method: "POST" })
         pdfBase64,
       });
 
-      await sendScorecardFulfillmentEmail({
+      const emailSent = await sendScorecardFulfillmentEmail({
         answers,
         result,
         pdfBase64,
@@ -272,6 +274,7 @@ export const submitScorecardQuestionnaire = createServerFn({ method: "POST" })
         result,
         pdfBase64,
         pdfFilename: SCORECARD_PDF_FILENAME,
+        emailSent,
       };
     } catch (error) {
       console.error("[scorecard] submit failed", error);

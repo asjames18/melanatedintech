@@ -35,7 +35,8 @@ function toWinAnsi(text: string): string {
     .replace(/[\u2022\u00B7\u2219]/g, "-")
     .replace(/\u2026/g, "...")
     .replace(/\u00A0/g, " ")
-    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, "?");
+    // Keep printable Latin-1 only (tab/CR/LF already collapsed by wrapLine).
+    .replace(/[^\x20-\x7E\xA0-\xFF]/g, "?");
 }
 
 function pdfEscape(text: string): string {

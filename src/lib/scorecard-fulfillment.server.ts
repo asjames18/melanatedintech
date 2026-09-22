@@ -227,13 +227,14 @@ export async function loadScorecardReport(sessionId: string): Promise<{
   pdf_base64: string | null;
   buyer_email: string;
   buyer_name: string;
+  email_sent_at: string | null;
 } | null> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("scorecard_reports" as never)
       .select(
-        "answers, opportunity_score, opportunity_band, sprint_fit, next_step, pdf_base64, buyer_email, buyer_name",
+        "answers, opportunity_score, opportunity_band, sprint_fit, next_step, pdf_base64, buyer_email, buyer_name, email_sent_at",
       )
       .eq("stripe_session_id" as never, sessionId)
       .maybeSingle();
@@ -244,14 +245,32 @@ export async function loadScorecardReport(sessionId: string): Promise<{
   }
 }
 
+async function stampScorecardEmailSent(sessionId: string): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const now = new Date().toISOString();
+    const { error } = await supabaseAdmin
+      .from("scorecard_reports" as never)
+      .update({ email_sent_at: now, updated_at: now } as never)
+      .eq("stripe_session_id" as never, sessionId);
+    if (error) console.error("[scorecard] email_sent_at stamp failed", error);
+  } catch (error) {
+    console.error("[scorecard] email_sent_at stamp failed", error);
+  }
+}
+
+/**
+ * Send Scorecard PDF via Resend (preferred) or enqueue without attachment.
+ * Returns true only when Resend accepted the message (email_sent_at stamped).
+ */
 export async function sendScorecardFulfillmentEmail(params: {
   answers: ScorecardAnswers;
   result: ScorecardResult;
   pdfBase64: string;
   sessionId: string;
-}): Promise<void> {
+}): Promise<boolean> {
   const to = params.answers.buyer_email.trim().toLowerCase();
-  if (!to) return;
+  if (!to) return false;
 
   const thankYouUrl = `${SITE_URL}/scorecard/thank-you?session_id=${encodeURIComponent(params.sessionId)}`;
   const subject = SCORECARD_EMAIL_SUBJECT;
@@ -322,7 +341,8 @@ export async function sendScorecardFulfillmentEmail(params: {
       if (!response.ok) {
         throw new Error(`Resend returned HTTP ${response.status}: ${(await response.text()).slice(0, 300)}`);
       }
-      return;
+      await stampScorecardEmailSent(params.sessionId);
+      return true;
     } catch (error) {
       console.error("[scorecard] direct Resend send failed; queueing without attachment", error);
     }
@@ -352,4 +372,5 @@ export async function sendScorecardFulfillmentEmail(params: {
   } catch (error) {
     console.error("[scorecard] fulfillment email enqueue failed", error);
   }
+  return false;
 }

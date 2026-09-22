@@ -38,6 +38,7 @@ type Props = {
     result: ScorecardResult;
     pdfBase64: string;
     pdfFilename: string;
+    emailSent: boolean;
   }) => void;
 };
 
@@ -66,6 +67,7 @@ export function ScorecardQuestionnaireForm({
     result: ScorecardResult;
     pdfBase64: string;
     pdfFilename: string;
+    emailSent: boolean;
   } | null>(null);
 
   const [form, setForm] = useState({
@@ -147,6 +149,7 @@ export function ScorecardQuestionnaireForm({
         result: response.result,
         pdfBase64: response.pdfBase64,
         pdfFilename: response.pdfFilename || SCORECARD_PDF_FILENAME,
+        emailSent: Boolean(response.emailSent),
       };
       setDone(payload);
       onCompleted?.(payload);
@@ -191,7 +194,10 @@ export function ScorecardQuestionnaireForm({
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          We also emailed this PDF to {form.buyer_email}. {done.result.scoreDisclaimer}
+          {done.emailSent
+            ? <>We also emailed this PDF to {form.buyer_email}. </>
+            : null}
+          {done.result.scoreDisclaimer}
         </p>
       </div>
     );

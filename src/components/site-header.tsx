@@ -24,6 +24,7 @@ const groups = [
     items: [
       ["All Systems", "/systems"],
       ["Revenue Diagnostic ($297)", "/diagnostic"],
+      ["Workflow Opportunity Scorecard", "/scorecard"],
       ["Revenue Recovery", "/systems/revenue-recovery"],
       ["Estimate Recovery", "/systems/estimate-recovery"],
       ["Route & Retention", "/systems/route-retention"],

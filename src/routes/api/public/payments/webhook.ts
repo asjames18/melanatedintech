@@ -60,11 +60,41 @@ async function settleGrantResult(result: GrantResult, obj: unknown): Promise<voi
   // missing-metadata / not-paid / unknown-item: nothing to fulfill; ack.
 }
 
+async function maybeFulfillScorecard(sessionObj: unknown, env: StripeEnv): Promise<boolean> {
+  const {
+    isScorecardCheckoutSession,
+    recordScorecardPurchase,
+    resolveScorecardLinePriceIds,
+  } = await import("@/lib/scorecard-fulfillment.server");
+  const raw = (sessionObj ?? {}) as {
+    id?: string;
+    metadata?: Record<string, string> | null;
+  };
+  let priceIds: string[] = [];
+  if (raw.id && typeof raw.id === "string") {
+    try {
+      priceIds = await resolveScorecardLinePriceIds(sessionObj as never, env);
+    } catch {
+      priceIds = [];
+    }
+  }
+  if (!isScorecardCheckoutSession(sessionObj as never, priceIds)) return false;
+  // NEW SKU branch: record purchase only — never grant pack entitlements.
+  const recorded = await recordScorecardPurchase(sessionObj as never, env);
+  console.log("[payments-webhook] scorecard purchase branch", {
+    sessionId: raw.id,
+    recorded: recorded.recorded,
+    reason: recorded.reason,
+  });
+  return true;
+}
+
 async function handleEvent(event: StripeEventLike, env: StripeEnv) {
   const obj = event.data.object;
   switch (event.type) {
     case "checkout.session.completed":
     case "checkout.session.async_payment_succeeded": {
+      if (await maybeFulfillScorecard(obj, env)) return;
       const result = await grantFromSession(obj, env);
       await settleGrantResult(result, obj);
       return;
@@ -87,6 +117,7 @@ async function handleEvent(event: StripeEventLike, env: StripeEnv) {
           });
           return;
         }
+        if (await maybeFulfillScorecard(session, env)) return;
         const result = await grantFromSession(session, env);
         await settleGrantResult(result, session);
       } catch (e) {

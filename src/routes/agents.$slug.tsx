@@ -378,6 +378,11 @@ function AgentDetail() {
                         priceCents={agent.price_cents}
                         tier={agent.tier}
                       />
+                      {!owned && getPremiumEntry("agent", agent.slug) && (
+                        <p className="mt-2 text-center text-xs text-muted-foreground">
+                          One payment, yours to keep — no subscription, no monthly fees.
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -55,7 +55,7 @@ const contributionPaths = [
     icon: GitPullRequest,
     title: "Contribute to the assurance kit",
     description:
-      "The first public project will invite documentation, test-fixture, accessibility, and code contributions—not only advanced engineering work.",
+      "The first public project invites documentation, test-fixture, accessibility, and code contributions—not only advanced engineering work.",
     action: "Read the contribution model",
     to: "/governance" as const,
   },

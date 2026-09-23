@@ -8,7 +8,7 @@ import {
   type ScorecardAnswers,
   type ScorecardResult,
   BUYER_ROLE_LABELS,
-  SCORECARD_SCORING_V1,
+  SCORECARD_SCORING_V2,
 } from "@/lib/scorecard-scoring";
 import { SCORECARD_PDF_FILENAME } from "@/lib/scorecard-commerce";
 import { SCORECARD_PDF_LOGO } from "@/lib/scorecard-pdf-logo";
@@ -162,7 +162,7 @@ function buildBlocks(answers: ScorecardAnswers, result: ScorecardResult): Conten
   // premium agent for the buyer's top leak theme. Fulfillment email stays
   // transactional — this is the on-page/in-PDF upsell surface.
   const topLeak = result.leakThemes[0]?.key;
-  const kit = topLeak ? SCORECARD_SCORING_V1.leakProductMap[topLeak] : undefined;
+  const kit = topLeak ? SCORECARD_SCORING_V2.leakProductMap[topLeak] : undefined;
   if (kit) {
     blocks.push({ kind: "space", h: 3 });
     body(`Recommended agent for your workflow: ${kit.name} — https://melanatedintech.com/agents/${kit.slug}`, {
@@ -272,7 +272,7 @@ function drawHeader(ops: string[], dateIso: string, logoName: string): void {
   ops.push("BT");
   ops.push("/F1 9 Tf");
   ops.push(`${titleX} ${(logoY + logoDisplayH - 26).toFixed(2)} Td`);
-  ops.push(`(${pdfEscape(`Melanated In Tech - ${dateIso}`)}) Tj`);
+  ops.push(`(${pdfEscape(`Melanated in Tech - ${dateIso}`)}) Tj`);
   ops.push("ET");
 
   // Copper accent rule under header

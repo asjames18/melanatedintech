@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Package } from "lucide-react";
-import { SCORECARD_SCORING_V1, type LeakSignal } from "@/lib/scorecard-scoring";
+import { SCORECARD_SCORING_V2, type LeakSignal } from "@/lib/scorecard-scoring";
 import { trackEvent } from "@/lib/analytics";
 
 interface Props {
@@ -23,7 +23,7 @@ function formatPrice(cents: number) {
  */
 export function ScorecardKitUpsell({ leakTheme, surface }: Props) {
   const shownRef = useRef(false);
-  const kit = leakTheme ? SCORECARD_SCORING_V1.leakProductMap[leakTheme] : undefined;
+  const kit = leakTheme ? SCORECARD_SCORING_V2.leakProductMap[leakTheme] : undefined;
 
   useEffect(() => {
     if (shownRef.current || !kit || !leakTheme) return;

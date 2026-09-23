@@ -295,7 +295,7 @@ export async function sendScorecardFulfillmentEmail(params: {
     "",
     "If something looks wrong with the file, reply to this email.",
     "",
-    "— Melanated In Tech",
+    "— Melanated in Tech",
   ].join("\n");
 
   const html = `
@@ -307,12 +307,12 @@ export async function sendScorecardFulfillmentEmail(params: {
       <p><strong>What this is not:</strong><br/>It is not the $297 AI Workflow Diagnostic and not the Workflow Opportunity Sprint.</p>
       <p><strong>Suggested next step from your results:</strong><br/>${safe(params.result.nextStepLine)}</p>
       <p><a href="${thankYouUrl}" style="display:inline-block;padding:12px 18px;border-radius:8px;background:#2b2118;color:#fff;text-decoration:none;font-weight:700;margin-top:8px;">Open thank-you page</a></p>
-      <p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px;">If something looks wrong with the file, reply to this email.<br/>— Melanated In Tech</p>
+      <p style="margin-top:24px;border-top:1px solid #e5dcd2;padding-top:12px;color:#8b7a68;font-size:12px;">If something looks wrong with the file, reply to this email.<br/>— Melanated in Tech</p>
     </div>
   `;
 
   const messageId = `scorecard_report:${params.sessionId}`;
-  const from = process.env.RESEND_FROM_EMAIL || "Melanated In Tech <hello@melanatedintech.com>";
+  const from = process.env.RESEND_FROM_EMAIL || "Melanated in Tech <hello@melanatedintech.com>";
   const resendApiKey = process.env.RESEND_API_KEY?.trim();
 
   if (resendApiKey) {

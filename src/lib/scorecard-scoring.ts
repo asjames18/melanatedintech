@@ -1,69 +1,75 @@
 /**
- * SCORECARD_SCORING_V1 — Product lock 2026-09-22.
+ * SCORECARD_SCORING_V2 — Product lock 2026-09-23.
  * Weights and copy live here so Product can tweak without redesigning the form.
  * Never include Sprint planning-signal dollar amounts ($7.5K–$15K) in PDF/email.
+ *
+ * V2 recalibration (2026-09-23): V1 maxed out too easily — ordinary answers
+ * scored 100/100, which made the score feel rigged. V2 weights are scaled so a
+ * minimal profile lands ~20 (Low), a typical buyer lands ~60s (Medium), a
+ * strong profile lands 80s–90s (High), and only a perfect-storm profile can
+ * touch 100. Bands unchanged: Low ≤39, Medium 40–69, High 70–100.
  */
 
-export const SCORECARD_SCORING_V1 = {
-  version: "v1",
+export const SCORECARD_SCORING_V2 = {
+  version: "v2",
   volumePoints: {
-    "1_5": 8,
-    "6_20": 14,
-    "21_50": 20,
-    "51_plus": 24,
-    unsure: 6,
+    "1_5": 4,
+    "6_20": 7,
+    "21_50": 11,
+    "51_plus": 15,
+    unsure: 3,
   } as const,
   frequencyPoints: {
-    daily: 16,
-    few_week: 14,
-    weekly: 10,
-    monthly: 6,
-    bursts: 8,
-    unsure: 4,
+    daily: 9,
+    few_week: 8,
+    weekly: 6,
+    monthly: 3,
+    bursts: 4,
+    unsure: 2,
   } as const,
   leakCountPoints: [
-    { min: 1, points: 4 },
-    { min: 2, points: 8 },
-    { min: 3, points: 12 },
-    { min: 4, points: 16 },
-    { min: 5, points: 20 },
+    { min: 1, points: 2 },
+    { min: 2, points: 5 },
+    { min: 3, points: 8 },
+    { min: 4, points: 12 },
+    { min: 5, points: 18 },
   ] as const,
   highWeightLeaks: {
-    missed_followup: 4,
-    rework: 4,
-    duplicate_entry: 4,
-    after_hours: 4,
+    missed_followup: 3,
+    rework: 3,
+    duplicate_entry: 3,
+    after_hours: 3,
   } as const,
   highWeightLeakCap: 12,
   systemsCountPoints: [
-    { min: 1, points: 2 },
-    { min: 2, points: 6 },
-    { min: 3, points: 10 },
-    { min: 4, points: 14 },
+    { min: 1, points: 1 },
+    { min: 2, points: 3 },
+    { min: 3, points: 6 },
+    { min: 4, points: 10 },
   ] as const,
   approvalPoints: {
-    every_item: 4,
-    exceptions: 10,
-    final_only: 8,
-    rarely: 6,
-    unsure: 3,
+    every_item: 2,
+    exceptions: 6,
+    final_only: 4,
+    rarely: 3,
+    unsure: 1,
   } as const,
-  painMultiplier: 4,
+  painMultiplier: 3,
   urgencyPoints: {
-    this_month: 10,
-    this_quarter: 7,
-    exploring: 3,
+    this_month: 6,
+    this_quarter: 4,
+    exploring: 2,
     not_urgent: 0,
   } as const,
   ownerPoints: {
-    yes: 6,
-    me: 6,
-    partial: 3,
+    yes: 4,
+    me: 4,
+    partial: 2,
     no: 0,
   } as const,
   budgetPoints: {
-    yes: 8,
-    maybe: 4,
+    yes: 5,
+    maybe: 2,
     no: 0,
     unsure: 0,
   } as const,
@@ -101,44 +107,61 @@ export const SCORECARD_SCORING_V1 = {
   leakThemes: {
     delays: {
       title: "Waiting and delays",
-      body: "Your answers point to wait time between steps. Inferred risk: work piles up while people chase status.",
+      body: "Your answers point to wait time between steps. Inferred risk: work piles up while people chase status. Worth naming: which single wait, if cut in half, would unblock the most revenue?",
     },
     rework: {
       title: "Rework and fixes",
-      body: "Your answers point to rework. Inferred risk: time spent correcting earlier mistakes instead of finishing new items.",
+      body: "Your answers point to rework. Inferred risk: time spent correcting earlier mistakes instead of finishing new items. Rework is the most expensive kind of work — you pay for the same outcome twice.",
     },
     missed_followup: {
       title: "Missed follow-ups",
-      body: "Your answers point to follow-ups falling through. Inferred risk: lost leads, stalled tickets, or unfinished loops.",
+      body: "Your answers point to follow-ups falling through. Inferred risk: lost leads, stalled tickets, or unfinished loops. Every missed follow-up is money you already earned the right to ask for.",
     },
     handoffs: {
       title: "Messy handoffs",
-      body: "Your answers point to handoff friction. Inferred risk: context lost when work changes owners.",
+      body: "Your answers point to handoff friction. Inferred risk: context lost when work changes owners. Each handoff is a place where context dies — write down what the next person needs, or it evaporates.",
     },
     inbox_friction: {
       title: "Inbox overload",
-      body: "Your answers point to inbox as a bottleneck. Inferred risk: important items buried in noise.",
+      body: "Your answers point to inbox as a bottleneck. Inferred risk: important items buried in noise. If the inbox is the system of record, nothing is the system of record.",
     },
     spreadsheet_friction: {
       title: "Manual tracking",
-      body: "Your answers point to spreadsheet/manual tracking drag. Inferred risk: slow updates and version confusion.",
+      body: "Your answers point to spreadsheet/manual tracking drag. Inferred risk: slow updates and version confusion. Manual tracking works until the week something expensive slips through it.",
     },
     no_visibility: {
       title: "Weak visibility",
-      body: "Your answers point to hard-to-see status. Inferred risk: firefighting instead of predictable flow.",
+      body: "Your answers point to hard-to-see status. Inferred risk: firefighting instead of predictable flow. You can't fix what you can't see — status should be glanceable, not archaeological.",
     },
     duplicate_entry: {
       title: "Duplicate data entry",
-      body: "Your answers point to entering the same data more than once. Inferred risk: wasted minutes and inconsistency.",
+      body: "Your answers point to entering the same data more than once. Inferred risk: wasted minutes and inconsistency. Enter it once, use it everywhere — every retyped field is a future inconsistency.",
     },
     after_hours: {
       title: "After-hours catch-up",
-      body: "Your answers point to nights/weekends catching up. Inferred risk: burnout and delayed response.",
+      body: "Your answers point to nights/weekends catching up. Inferred risk: burnout and delayed response. Nights and weekends are a capacity alarm, not a work-ethic badge.",
     },
     other_leak: {
       title: "Other friction",
       body: "You named additional friction: {leak_other}. Treated as an inferred leak theme from your input.",
     },
+  } as const,
+  /**
+   * The concrete bounded job named in "First AI-worker candidate", keyed to the
+   * buyer's top-priority leak theme. Names a real job (verb + object), not
+   * generic "draft / collect / route" filler.
+   */
+  boundedJobForLeak: {
+    missed_followup: "Draft the follow-up message",
+    duplicate_entry: "Carry the data across your systems",
+    inbox_friction: "Triage and sort the inbox",
+    spreadsheet_friction: "Keep the tracker current",
+    delays: "Nudge the waiting step",
+    rework: "Check the work before it ships",
+    handoffs: "Package the handoff brief",
+    no_visibility: "Post a daily status snapshot",
+    after_hours: "Clear the overnight queue",
+    other_leak: "Draft, collect, and route the work",
   } as const,
   whatThisIsNot:
     "The Workflow Opportunity Scorecard is a self-serve snapshot from your answers. It is not the $297 AI Workflow Diagnostic, not the Workflow Opportunity Sprint, not a custom build, and not a guarantee of savings or ROI.",
@@ -411,6 +434,19 @@ function pointsForCount(
   return points;
 }
 
+/**
+ * Truncate to a word boundary with an ellipsis — never mid-word.
+ * (V1 sliced at a fixed char count, which cut words like "send r…".)
+ */
+function truncWords(s: string, max: number): string {
+  const t = s.trim().replace(/\s+/g, " ");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  const base = lastSpace > 40 ? cut.slice(0, lastSpace) : cut;
+  return `${base.trimEnd()}…`;
+}
+
 export type LeakThemeLine = { key: LeakSignal; title: string; body: string };
 
 export type ScorecardResult = {
@@ -435,8 +471,8 @@ function clampScore(n: number): number {
 }
 
 function bandFor(score: number): OpportunityBand {
-  if (score <= SCORECARD_SCORING_V1.band.lowMax) return "Low";
-  if (score <= SCORECARD_SCORING_V1.band.mediumMax) return "Medium";
+  if (score <= SCORECARD_SCORING_V2.band.lowMax) return "Low";
+  if (score <= SCORECARD_SCORING_V2.band.mediumMax) return "Medium";
   return "High";
 }
 
@@ -478,10 +514,10 @@ function pickNextStep(band: OpportunityBand, sprintFit: SprintFit): NextStepId {
 
 export function selectLeakThemes(answers: ScorecardAnswers): LeakThemeLine[] {
   const selected = new Set(answers.leak_signals);
-  const ordered = SCORECARD_SCORING_V1.leakThemePriority.filter((key) => selected.has(key));
+  const ordered = SCORECARD_SCORING_V2.leakThemePriority.filter((key) => selected.has(key));
   const top = ordered.slice(0, 5);
   return top.map((key) => {
-    const theme = SCORECARD_SCORING_V1.leakThemes[key];
+    const theme = SCORECARD_SCORING_V2.leakThemes[key];
     const body =
       key === "other_leak"
         ? theme.body.replace("{leak_other}", answers.leak_other?.trim() || "not specified")
@@ -491,7 +527,7 @@ export function selectLeakThemes(answers: ScorecardAnswers): LeakThemeLine[] {
 }
 
 export function scoreScorecard(answers: ScorecardAnswers): ScorecardResult {
-  const V = SCORECARD_SCORING_V1;
+  const V = SCORECARD_SCORING_V2;
   const leakCount = answers.leak_signals.length;
 
   let total = 0;
@@ -519,11 +555,14 @@ export function scoreScorecard(answers: ScorecardAnswers): ScorecardResult {
   const band = bandFor(opportunityScore);
   const sprintFit = computeSprintFit(answers, band);
   const nextStep = pickNextStep(band, sprintFit);
+  const leakThemes = selectLeakThemes(answers);
 
-  const workflowTrunc = answers.workflow_one_liner.trim().slice(0, 120);
-  const aiWorkerCandidate = `Suggested bounded job: Draft / collect / route for "${workflowTrunc}" between "${answers.workflow_start.trim()}" and "${answers.workflow_end.trim()}", then pause for human approval.`;
+  const topLeakKey = leakThemes[0]?.key ?? "other_leak";
+  const boundedJob = V.boundedJobForLeak[topLeakKey];
+  const aiWorkerCandidate = `Suggested bounded job: ${boundedJob} for "${truncWords(answers.workflow_one_liner, 140)}" between "${answers.workflow_start.trim()}" and "${answers.workflow_end.trim()}", then pause for human approval.`;
 
-  const humanApprovalCallout = `A person still decides at: ${APPROVAL_LABELS[answers.approval_points]}. Example you gave: ${answers.approval_detail.trim()}. Any AI assist must stop for human approval on judgment calls — this Scorecard does not authorize autonomous action.`;
+  const approvalExample = answers.approval_detail.trim().replace(/[.]+$/, "");
+  const humanApprovalCallout = `A person still decides at: ${APPROVAL_LABELS[answers.approval_points]}. Example you gave: ${approvalExample}. Any AI assist must stop for human approval on judgment calls — this Scorecard does not authorize autonomous action.`;
 
   const systemLabels = answers.systems.slice(0, 4).map((s) => {
     if (s === "other_system" && answers.systems_other?.trim()) {
@@ -545,7 +584,7 @@ export function scoreScorecard(answers: ScorecardAnswers): ScorecardResult {
     nextStep,
     nextStepLine: V.nextStepCopy[nextStep],
     nextStepPath: V.nextStepPaths[nextStep],
-    leakThemes: selectLeakThemes(answers),
+    leakThemes,
     aiWorkerCandidate,
     humanApprovalCallout,
     systemHint,

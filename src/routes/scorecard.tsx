@@ -105,7 +105,7 @@ function ScorecardLandingPage() {
                     })
                   }
                 >
-                  Pay now <ArrowRight className="h-4 w-4" />
+                  Get my Scorecard — $1 <ArrowRight className="h-4 w-4" />
                 </a>
               </Button>
               <span className="text-sm text-muted-foreground">
@@ -141,12 +141,105 @@ function ScorecardLandingPage() {
         </div>
       </section>
 
+      <section className="border-b border-border bg-muted/30">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="font-display text-2xl font-semibold sm:text-3xl">See a sample</h2>
+            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+              Sample preview
+            </span>
+          </div>
+          <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
+            This is what your 2-page PDF looks like — illustrated with fictional answers. Yours is
+            personalized from your questionnaire: your workflow, your score, your leak themes.
+          </p>
+
+          <div className="mt-8 overflow-hidden rounded-3xl border border-[#e5dcd2] bg-[#f7f3ee] shadow-xl">
+            <div className="border-b border-[#e5dcd2] px-6 py-4 sm:px-8">
+              <p className="font-display text-lg font-semibold text-[#2b2118]">
+                Workflow Opportunity Scorecard
+              </p>
+              <p className="mt-1 text-sm text-[#8b7a68]">
+                Prepared for: Maya R. (Operations Manager) · Company: Brightpath Dental
+              </p>
+            </div>
+            <div className="space-y-6 px-6 py-6 sm:px-8">
+              <div className="rounded-2xl border border-[#8a5a2b]/40 border-l-4 border-l-[#8a5a2b] bg-[#faf3e8] p-5">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#8a5a2b]">
+                  Opportunity score
+                </p>
+                <p className="mt-2 font-display text-3xl font-semibold text-[#2b2118]">
+                  74 / 100 <span className="text-lg font-medium">· Band: High</span>
+                </p>
+                <p className="mt-1 text-sm text-[#8b7a68]">Sprint fit: Fit</p>
+              </div>
+
+              <div>
+                <h3 className="font-display text-base font-semibold text-[#2b2118]">1. The workflow</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#2b2118]">
+                  Every morning I reconcile yesterday&apos;s appointments against the schedule and
+                  call no-shows to rebook them.
+                </p>
+                <p className="mt-1 text-sm text-[#8b7a68]">
+                  Starts: When the front desk opens and I pull up yesterday&apos;s schedule.
+                </p>
+                <p className="text-sm text-[#8b7a68]">
+                  Ends: Every no-show is rebooked or marked lost for the day.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-display text-base font-semibold text-[#2b2118]">
+                  3. Time / money leak themes
+                </h3>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#2b2118]">Missed follow-ups</p>
+                    <p className="text-sm leading-relaxed text-[#2b2118]/80">
+                      Your answers point to follow-ups falling through. Inferred risk: lost leads,
+                      stalled tickets, or unfinished loops. Every missed follow-up is money you
+                      already earned the right to ask for.
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[#2b2118]">Inbox overload</p>
+                    <p className="text-sm leading-relaxed text-[#2b2118]/80">
+                      Your answers point to inbox as a bottleneck. Inferred risk: important items
+                      buried in noise. If the inbox is the system of record, nothing is the system
+                      of record.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-display text-base font-semibold text-[#2b2118]">
+                  4. First AI-worker candidate
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-[#2b2118]">
+                  Suggested bounded job: Draft the follow-up message for &ldquo;Every morning I
+                  reconcile yesterday&apos;s appointments against the schedule and call no-shows to
+                  rebook them&rdquo; between &ldquo;When the front desk opens&rdquo; and
+                  &ldquo;Every no-show is rebooked&rdquo;, then pause for human approval.
+                </p>
+              </div>
+            </div>
+            <div className="border-t border-[#e5dcd2] px-6 py-3 sm:px-8">
+              <p className="text-xs text-[#8b7a68]">
+                Page 1 of 2 · melanatedintech.com — the full PDF adds Sprint fit, your recommended
+                next step, and the human-approval callout.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="border-y border-border bg-muted/30">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
           <h2 className="font-display text-2xl font-semibold sm:text-3xl">How it works</h2>
           <ol className="mt-8 grid gap-6 sm:grid-cols-3">
             {[
-              ["Pay", "Secure Stripe checkout for the Scorecard."],
+              ["Pay $1", "Secure Stripe checkout — $1 one-time, then the questionnaire unlocks."],
               ["Answer", "Short questionnaire about one repeated workflow (~5–8 minutes)."],
               ["Download", "Scored PDF on the thank-you page + fulfillment email."],
             ].map(([title, body], i) => (
@@ -197,7 +290,7 @@ function ScorecardLandingPage() {
         <div className="mt-10 flex flex-wrap items-center gap-4">
           <Button asChild size="lg" className="gap-2">
             <a href={checkoutUrl}>
-              Pay now <ArrowRight className="h-4 w-4" />
+              Get my Scorecard — $1 <ArrowRight className="h-4 w-4" />
             </a>
           </Button>
           <Button asChild variant="outline">

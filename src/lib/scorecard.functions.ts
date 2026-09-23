@@ -158,10 +158,10 @@ export const verifyScorecardSession = createServerFn({ method: "POST" })
       const { email, name, amountCents } = await assertPaidScorecardSession(data.sessionId, env);
       const existing = await loadScorecardReport(data.sessionId);
       if (existing) {
-        const { SCORECARD_SCORING_V1, selectLeakThemes } = await import(
+        const { SCORECARD_SCORING_V2, selectLeakThemes } = await import(
           "@/lib/scorecard-scoring"
         );
-        const nextStep = existing.next_step as keyof typeof SCORECARD_SCORING_V1.nextStepCopy;
+        const nextStep = existing.next_step as keyof typeof SCORECARD_SCORING_V2.nextStepCopy;
         const topLeakTheme = selectLeakThemes(existing.answers)[0]?.key ?? null;
         return {
           ok: true,
@@ -174,8 +174,8 @@ export const verifyScorecardSession = createServerFn({ method: "POST" })
             band: existing.opportunity_band,
             sprintFit: existing.sprint_fit,
             nextStep: existing.next_step,
-            nextStepLine: SCORECARD_SCORING_V1.nextStepCopy[nextStep],
-            nextStepPath: SCORECARD_SCORING_V1.nextStepPaths[nextStep],
+            nextStepLine: SCORECARD_SCORING_V2.nextStepCopy[nextStep],
+            nextStepPath: SCORECARD_SCORING_V2.nextStepPaths[nextStep],
             topLeakTheme,
             pdfBase64: existing.pdf_base64,
             pdfFilename: SCORECARD_PDF_FILENAME,

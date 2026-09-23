@@ -89,7 +89,14 @@ function Home() {
   const { data: products } = useSuspenseQuery(productsQO);
   const featuredAgents = agents.filter((agent) => agent.featured).slice(0, 4);
   const topArticles = articles.slice(0, 3);
-  const topProducts = products.slice(0, 3);
+  // North-star merchandising: listProducts() returns products ordered by name, so
+  // slice(0, 3) was an arbitrary alphabetical pick that buried the paid kits behind
+  // the free listings. Surface priced kits first in the homepage teaser — free
+  // packs stay one click away on /products. Reversible, no pricing/funnel change.
+  const topProducts = [
+    ...products.filter((p) => p.tier !== "free"),
+    ...products.filter((p) => p.tier === "free"),
+  ].slice(0, 3);
 
   return (
     <SiteLayout>

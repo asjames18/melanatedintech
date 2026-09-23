@@ -55,7 +55,7 @@ export const Route = createFileRoute("/sellers/$slug")({
   },
   errorComponent: ({ error }) => (
     <SiteLayout>
-      <div className="p-12 text-sm text-destructive">{error.message}</div>
+      <div className="p-12 text-sm text-destructive">{error instanceof Error ? error.message : "Something went wrong."}</div>
     </SiteLayout>
   ),
   notFoundComponent: () => (

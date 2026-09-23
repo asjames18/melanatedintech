@@ -7,9 +7,11 @@ import { Button } from "@/components/ui/button";
 import { buildSeoMeta } from "@/lib/seo";
 import { verifyScorecardSession } from "@/lib/scorecard.functions";
 import { ScorecardQuestionnaireForm } from "@/components/scorecard/scorecard-questionnaire-form";
+import { ScorecardKitUpsell } from "@/components/scorecard/scorecard-kit-upsell";
 import { getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
 import { SCORECARD_PDF_FILENAME } from "@/lib/scorecard-commerce";
 import { trackEvent } from "@/lib/analytics";
+import type { LeakSignal } from "@/lib/scorecard-scoring";
 
 export const Route = createFileRoute("/scorecard_/thank-you")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -44,6 +46,8 @@ type GateState =
         sprintFit: string;
         nextStep: string;
         nextStepLine?: string;
+        nextStepPath?: string;
+        topLeakTheme: string | null;
         pdfBase64: string | null;
         pdfFilename: string;
         buyerName: string;
@@ -190,6 +194,17 @@ function ScorecardThankYouPage() {
                     Your report is on file. If the download is missing, reply to your fulfillment email.
                   </p>
                 )}
+                {gate.report.nextStepPath && (
+                  <div className="flex flex-wrap gap-3">
+                    <Button asChild variant="outline">
+                      <a href={gate.report.nextStepPath}>See recommended next step</a>
+                    </Button>
+                  </div>
+                )}
+                <ScorecardKitUpsell
+                  leakTheme={(gate.report.topLeakTheme as LeakSignal | null) ?? null}
+                  surface="return-visit"
+                />
               </div>
             )}
 

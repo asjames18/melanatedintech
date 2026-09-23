@@ -8,12 +8,190 @@ type CheckoutSessionLike = {
   amount_total?: number | null;
   currency?: string | null;
   /**
+   * Stripe-verified buyer email, collected at checkout. The ONLY identity
+   * source for guest purchases — never trust client-submitted email.
+   */
+  customer_details?: { email?: string | null } | null;
+  /**
    * Present when Stripe Adaptive Pricing charged the buyer in their local
    * currency. `amount_total` is then denominated in that currency, and this
    * object carries the original settlement amount.
    */
   currency_conversion?: { amount_total?: number | null } | null;
 };
+
+/**
+ * Guest checkout account provisioning (backlog #16, approved 2026-09-23).
+ *
+ * A guest buyer paid without a Supabase account. We provision one for them
+ * AFTER payment is verified, so the entitlement has an owner and the buyer
+ * can access their purchase:
+ *   1. Email comes ONLY from Stripe's verified customer_details — never the
+ *      client. No verified email → no grant.
+ *   2. Find-or-create: try admin.createUser (email pre-confirmed — payment
+ *      already verified the buyer's control of the checkout); on duplicate,
+ *      look up the existing user id.
+ *   3. The caller grants the entitlement to that user id (idempotent upsert).
+ *   4. A magic-link sign-in email goes out via the transactional queue so the
+ *      buyer can access their purchase. The email is transactional
+ *      fulfillment, not marketing.
+ *
+ * Returns the user id, or null when provisioning failed (caller must refuse
+ * the grant in that case — never grant to a null owner).
+ */
+/**
+ * Buyer-facing display name for the magic-link fulfillment email. The premium
+ * catalog (premium-catalog.ts) carries no display names, so read the listing
+ * row the same way the seller lookup does. Falls back to a prettified slug
+ * ("Lead Qualification Agent Sop") and finally to the kind — never the raw
+ * slug, which reads like a URL to the buyer.
+ */
+async function buyerFacingProductName(kind: string, slug: string): Promise<string> {
+  if (slug === "revenue-leak-diagnostic") return "Revenue Leak Diagnostic";
+  if (slug) {
+    try {
+      const admin = await getAdmin();
+      let name: string | null = null;
+      if (kind === "agent") {
+        const { data } = await admin
+          .from("agents")
+          .select("name")
+          .eq("slug", slug)
+          .maybeSingle();
+        name = (data as { name?: string | null } | null)?.name?.trim() ?? null;
+      } else if (kind === "product") {
+        const { data } = await admin
+          .from("products")
+          .select("name")
+          .eq("slug", slug)
+          .maybeSingle();
+        name = (data as { name?: string | null } | null)?.name?.trim() ?? null;
+      }
+      if (name) return name;
+    } catch {
+      // A name-lookup failure must not cost the buyer their sign-in email;
+      // fall through to the slug prettification below.
+    }
+    return slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  return kind;
+}
+
+async function provisionGuestBuyer(
+  session: CheckoutSessionLike,
+  env: StripeEnv,
+): Promise<string | null> {
+  const email = session.customer_details?.email?.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    console.error("[fulfillment-grant] guest session has no verified buyer email", {
+      sessionId: session.id,
+    });
+    return null;
+  }
+
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  let userId: string | null = null;
+
+  // createUser is idempotent-safe here: a duplicate email returns an error we
+  // handle by looking up the existing user instead of failing the grant.
+  const { data: created, error: createError } =
+    await supabaseAdmin.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { provisioned_via: "guest_checkout", stripe_session: session.id ?? null },
+    });
+  if (created?.user?.id) {
+    userId = created.user.id;
+  } else {
+    const msg = (createError?.message ?? "").toLowerCase();
+    if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+      // Existing account — find its id so the entitlement lands on the
+      // right owner. Paged lookup; the user table is small.
+      const perPage = 100;
+      let page = 1;
+      for (;;) {
+        const { data: pageData, error: listError } =
+          await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+        if (listError || !pageData?.users?.length) break;
+        const found = pageData.users.find(
+          (u) => u.email?.toLowerCase() === email,
+        );
+        if (found) {
+          userId = found.id;
+          break;
+        }
+        if (pageData.users.length < perPage) break;
+        page += 1;
+      }
+    } else {
+      console.error("[fulfillment-grant] guest account creation failed", {
+        sessionId: session.id,
+        error: createError?.message,
+      });
+      return null;
+    }
+  }
+
+  if (!userId) {
+    console.error("[fulfillment-grant] guest user id unresolved", { sessionId: session.id });
+    return null;
+  }
+
+  // Magic-link sign-in so the buyer can access their purchase. Transactional
+  // fulfillment — not a marketing message.
+  try {
+    const { data: linkData, error: linkError } =
+      await supabaseAdmin.auth.admin.generateLink({ type: "magiclink", email });
+    const actionLink = linkData?.properties?.action_link;
+    if (linkError || !actionLink) throw linkError ?? new Error("no action link");
+    const kind = session.metadata?.unlock_kind ?? "purchase";
+    const slug = session.metadata?.unlock_slug ?? "";
+    const productName = await buyerFacingProductName(kind, slug);
+    await supabaseAdmin.rpc("enqueue_email", {
+      queue_name: "transactional_emails",
+      payload: {
+        to: email,
+        subject: `Your ${productName} purchase — sign in to access it`,
+        html_body: [
+          `<p>Your payment went through. Here's your purchase:</p>`,
+          `<p><strong>${productName}</strong></p>`,
+          `<p><a href="${actionLink}">Sign in to access your purchase</a></p>`,
+          `<p>This link expires soon and can only be used once. If it expires, request a new one from the sign-in page.</p>`,
+          `<p>— Melanated in Tech</p>`,
+        ].join("\n"),
+        text_body: [
+          `Your payment went through. Here's your purchase:`,
+          ``,
+          productName,
+          ``,
+          `Sign in to access your purchase: ${actionLink}`,
+          ``,
+          `This link expires soon and can only be used once.`,
+          ``,
+          `— Melanated in Tech`,
+        ].join("\n"),
+        metadata: {
+          source: "guest_checkout_account_setup",
+          user_id: userId,
+          stripe_session: session.id ?? null,
+          unlock_kind: kind,
+          unlock_slug: slug,
+        },
+      },
+    });
+  } catch (error) {
+    // Non-fatal: the entitlement is granted below and the buyer can always
+    // use password reset / request a fresh magic link. Log loudly.
+    console.error("[fulfillment-grant] guest magic-link email failed", {
+      sessionId: session.id,
+      userId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+
+  return userId;
+}
 
 /**
  * The amount actually settled in our own currency (USD), or null when the
@@ -83,15 +261,12 @@ export async function grantFromSession(
     }
   }
 
-  const userId = meta.userId;
+  const userIdFromMeta = meta.userId;
   const kind = meta.unlock_kind as PremiumKind | undefined;
   const slug = meta.unlock_slug;
   const sessionId = sessionObj?.id ?? null;
 
-  if (!userId || !kind || !slug) {
-    console.warn("[fulfillment-grant] skipping: missing metadata", { sessionId });
-    return { granted: false, reason: "missing-metadata" };
-  }
+  // Payment must be confirmed BEFORE any guest account provisioning.
   if (sessionObj?.payment_status && sessionObj.payment_status !== "paid") {
     console.log("[fulfillment-grant] not paid yet", {
       sessionId,
@@ -100,9 +275,19 @@ export async function grantFromSession(
     return { granted: false, reason: "not-paid" };
   }
 
+  // kind/slug must be present before catalog validation below. (userId is
+  // resolved separately: authed buyers carry it in metadata, guests get
+  // provisioned after validation passes.)
+  if (!kind || !slug) {
+    console.warn("[fulfillment-grant] skipping: missing metadata", { sessionId });
+    return { granted: false, reason: "missing-metadata" };
+  }
+
   // Never trust metadata for what was purchased: resolve (kind, slug) against the
   // catalog, and confirm the amount actually paid matches the catalog price before
-  // granting. This defeats a forged/mismatched checkout.
+  // granting. This defeats a forged/mismatched checkout — and it runs BEFORE any
+  // side effects (account creation, magic-link emails), so a session we are about
+  // to refuse never triggers them.
   const { resolvePremiumEntry } = await import("@/lib/premium-catalog");
   const entry = await resolvePremiumEntry(kind, slug);
   if (!entry) {
@@ -131,6 +316,42 @@ export async function grantFromSession(
     };
   }
   const priceId = entry.priceId || `dynamic_${kind}_${slug}`;
+
+  // Guest checkout (backlog #16, approved 2026-09-23): no userId in metadata
+  // because the buyer had no account at purchase time. Provision one from
+  // Stripe's verified buyer email — only AFTER payment confirmation AND the
+  // catalog/amount validation above have passed. Refuse the grant if
+  // provisioning fails — never grant to a null owner.
+  let userId = userIdFromMeta;
+  if (meta.guest === "1" && !userId) {
+    // Idempotency: the return page AND the webhook can both trigger this
+    // grant. If this session was already granted, skip re-provisioning and
+    // the duplicate magic-link email.
+    if (sessionId) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: alreadyGranted } = await supabaseAdmin
+        .from("user_entitlements")
+        .select("user_id")
+        .eq("stripe_session_id", sessionId)
+        .maybeSingle();
+      if (alreadyGranted?.user_id) {
+        return { granted: true, kind, slug };
+      }
+    }
+    const provisioned = await provisionGuestBuyer(sessionObj, env);
+    if (!provisioned) {
+      console.warn("[fulfillment-grant] guest provisioning failed, refusing grant", {
+        sessionId,
+      });
+      return { granted: false, reason: "missing-metadata" };
+    }
+    userId = provisioned;
+  }
+
+  if (!userId) {
+    console.warn("[fulfillment-grant] skipping: missing user id", { sessionId });
+    return { granted: false, reason: "missing-metadata" };
+  }
 
   const admin = await getAdmin();
 

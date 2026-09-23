@@ -4,9 +4,10 @@ import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { SiteLayout } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
-import { confirmCheckoutSession } from "@/lib/payments.functions";
+import { confirmCheckoutSession, confirmGuestCheckoutSession } from "@/lib/payments.functions";
 import { getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
 import { getPremiumEntry } from "@/lib/premium-catalog";
+import { supabase } from "@/integrations/supabase/client";
 import { trackEvent } from "@/lib/analytics";
 
 export const Route = createFileRoute("/checkout/return")({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/checkout/return")({
   component: CheckoutReturn,
 });
 
-type Unlocked = { kind: "agent" | "product"; slug: string };
+type Unlocked = { kind: "agent" | "product"; slug: string; guest: boolean };
 type Status = "confirming" | "unlocked" | "pending";
 
 function CheckoutReturn() {
@@ -27,6 +28,7 @@ function CheckoutReturn() {
   const router = useRouter();
   const navigate = useNavigate();
   const confirmFn = useServerFn(confirmCheckoutSession);
+  const confirmGuestFn = useServerFn(confirmGuestCheckoutSession);
 
   const [status, setStatus] = useState<Status>(session_id ? "confirming" : "pending");
   const [unlocked, setUnlocked] = useState<Unlocked | null>(null);
@@ -45,18 +47,28 @@ function CheckoutReturn() {
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     (async () => {
+      // Guests have no session: try the authenticated confirm first, fall
+      // back to the guest confirm. The guest path verifies payment_status and
+      // the guest flag server-side before granting.
+      const { data: { user } } = await supabase.auth.getUser();
+      const isGuest = !user;
+
       // Grant directly from the paid session so delivery does not wait on the webhook.
       // Retry a few times to cover the rare case where the payment is still settling.
       for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
         try {
-          const result = await confirmFn({
-            data: { sessionId: session_id, environment: getStripeEnvironment() },
-          });
+          const result = isGuest
+            ? await confirmGuestFn({
+                data: { sessionId: session_id, environment: getStripeEnvironment() },
+              })
+            : await confirmFn({
+                data: { sessionId: session_id, environment: getStripeEnvironment() },
+              });
           if (cancelled) return;
           if (result.owned) {
-            setUnlocked({ kind: result.kind, slug: result.slug });
+            setUnlocked({ kind: result.kind, slug: result.slug, guest: isGuest });
             setStatus("unlocked");
-            trackEvent("purchase_completed", { itemType: result.kind, itemSlug: result.slug });
+            trackEvent("purchase_completed", { itemType: result.kind, itemSlug: result.slug, guest: isGuest });
             // Refresh entitlement cache so the rest of the app sees the unlock.
             router.invalidate();
 
@@ -82,7 +94,7 @@ function CheckoutReturn() {
     return () => {
       cancelled = true;
     };
-  }, [session_id, confirmFn, router, navigate]);
+  }, [session_id, confirmFn, confirmGuestFn, router, navigate]);
 
   return (
     <SiteLayout>
@@ -103,22 +115,46 @@ function CheckoutReturn() {
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <h1 className="mt-6 font-display text-3xl font-semibold">You're unlocked.</h1>
-            <p className="mt-3 text-muted-foreground">
-              Your purchase is ready. Open it now to grab everything inside.
-            </p>
-            <div className="mt-8 flex justify-center gap-3">
-              <Button asChild>
-                <Link
-                  to={unlocked.kind === "product" ? "/products/$slug" : "/agents/$slug"}
-                  params={{ slug: unlocked.slug }}
-                >
-                  Open your purchase <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/account">Go to my account</Link>
-              </Button>
-            </div>
+            {unlocked.guest ? (
+              <>
+                <p className="mt-3 text-muted-foreground">
+                  Your payment went through. We just emailed your sign-in link — use it to
+                  access your purchase anytime.
+                </p>
+                <div className="mt-8 flex justify-center gap-3">
+                  <Button asChild>
+                    <Link
+                      to={unlocked.kind === "product" ? "/products/$slug" : "/agents/$slug"}
+                      params={{ slug: unlocked.slug }}
+                    >
+                      View your purchase <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/auth">Sign in</Link>
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-3 text-muted-foreground">
+                  Your purchase is ready. Open it now to grab everything inside.
+                </p>
+                <div className="mt-8 flex justify-center gap-3">
+                  <Button asChild>
+                    <Link
+                      to={unlocked.kind === "product" ? "/products/$slug" : "/agents/$slug"}
+                      params={{ slug: unlocked.slug }}
+                    >
+                      Open your purchase <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link to="/account">Go to my account</Link>
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         ) : (
           <>

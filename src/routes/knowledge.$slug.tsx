@@ -113,7 +113,7 @@ export const Route = createFileRoute("/knowledge/$slug")({
   },
   errorComponent: ({ error }) => (
     <SiteLayout>
-      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error instanceof Error ? error.message : "Something went wrong."}</div>
     </SiteLayout>
   ),
   notFoundComponent: () => (
@@ -298,6 +298,8 @@ function ArticleView() {
               <img
                 src={author.data.avatar_url}
                 alt=""
+                loading="lazy"
+                decoding="async"
                 className="h-7 w-7 rounded-full object-cover"
               />
             ) : (

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { Lock, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { createUnlockCheckout } from "@/lib/payments.functions";
+import { createUnlockCheckout, createGuestUnlockCheckout } from "@/lib/payments.functions";
 import { getStripe, getStripeEnvironment, hasPaymentsClientToken } from "@/lib/stripe";
 import { getPremiumEntry, type PremiumKind } from "@/lib/premium-catalog";
 import { useHasEntitlement } from "@/hooks/use-entitlement";
@@ -31,7 +31,6 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
   const staticEntry = getPremiumEntry(kind, slug);
   const entry = staticEntry || (priceCents && tier === "premium" ? { priceId: "", amountCents: priceCents } : null);
   const router = useRouter();
-  const navigate = useNavigate();
   const owned = useHasEntitlement(kind, slug);
 
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -40,6 +39,7 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
   const [loading, setLoading] = useState(false);
 
   const checkoutFn = useServerFn(createUnlockCheckout);
+  const guestCheckoutFn = useServerFn(createGuestUnlockCheckout);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -84,28 +84,27 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
       toast.error("Payments aren't configured for this build yet.");
       return;
     }
-    if (authed === false) {
-      const currentPath = window.location.pathname;
-      const redirect = `${currentPath}?checkout=true`;
-      navigate({ to: "/auth", search: { redirect } });
-      return;
-    }
+    // Guest checkout (backlog #16): no more auth gate. Authenticated buyers
+    // use their account; guests check out with an email and get an account
+    // provisioned after payment.
+    const useGuest = authed === false;
     setLoading(true);
     try {
       const returnUrl = `${window.location.origin}/checkout/return?session_id={CHECKOUT_SESSION_ID}`;
-      const result = await checkoutFn({
-        data: {
-          kind,
-          slug,
-          returnUrl,
-          environment: getStripeEnvironment(),
-        },
-      });
+      const payload = {
+        kind,
+        slug,
+        returnUrl,
+        environment: getStripeEnvironment(),
+      };
+      const result = useGuest
+        ? await guestCheckoutFn({ data: payload })
+        : await checkoutFn({ data: payload });
       if ("error" in result) throw new Error(result.error);
       if (!result.clientSecret) throw new Error("No client secret returned");
       setClientSecret(result.clientSecret);
       setOpen(true);
-      trackEvent("checkout_started", { itemType: kind, itemSlug: slug });
+      trackEvent("checkout_started", { itemType: kind, itemSlug: slug, guest: useGuest });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not start checkout");
     } finally {
@@ -133,7 +132,11 @@ export function UnlockButton({ kind, slug, itemName, priceCents, tier }: Props) 
         <DialogContent className="max-w-2xl p-0 overflow-hidden">
           <DialogHeader className="border-b border-border px-6 py-4">
             <DialogTitle>Unlock {itemName}</DialogTitle>
-            <DialogDescription>Complete payment to get instant access.</DialogDescription>
+            <DialogDescription>
+              {authed === false
+                ? "No account needed — pay with your email and we'll send your sign-in link after payment."
+                : "Complete payment to get instant access."}
+            </DialogDescription>
           </DialogHeader>
           <div className="max-h-[75vh] overflow-y-auto">
             {options && (

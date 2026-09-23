@@ -51,7 +51,7 @@ export const Route = createFileRoute("/agents/")({
   ),
   errorComponent: ({ error }) => (
     <SiteLayout>
-      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error instanceof Error ? error.message : "Something went wrong."}</div>
     </SiteLayout>
   ),
   notFoundComponent: () => (

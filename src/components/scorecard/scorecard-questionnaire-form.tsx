@@ -26,6 +26,7 @@ import {
 } from "@/lib/scorecard-scoring";
 import { SCORECARD_PDF_FILENAME } from "@/lib/scorecard-commerce";
 import { trackEvent } from "@/lib/analytics";
+import { ScorecardKitUpsell } from "@/components/scorecard/scorecard-kit-upsell";
 
 const selectClass =
   "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring";
@@ -199,6 +200,10 @@ export function ScorecardQuestionnaireForm({
             : null}
           {done.result.scoreDisclaimer}
         </p>
+        <ScorecardKitUpsell
+          leakTheme={done.result.leakThemes[0]?.key ?? null}
+          surface="completion"
+        />
       </div>
     );
   }

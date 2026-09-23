@@ -8,6 +8,7 @@ import {
   type ScorecardAnswers,
   type ScorecardResult,
   BUYER_ROLE_LABELS,
+  SCORECARD_SCORING_V1,
 } from "@/lib/scorecard-scoring";
 import { SCORECARD_PDF_FILENAME } from "@/lib/scorecard-commerce";
 import { SCORECARD_PDF_LOGO } from "@/lib/scorecard-pdf-logo";
@@ -157,6 +158,17 @@ function buildBlocks(answers: ScorecardAnswers, result: ScorecardResult): Conten
   body(result.nextStepLine);
   blocks.push({ kind: "space", h: 3 });
   body(`Learn more: https://melanatedintech.com${result.nextStepPath}`, { color: "copper" });
+  // Post-purchase agent upsell (backlog #13, option c): one matched $39–$47
+  // premium agent for the buyer's top leak theme. Fulfillment email stays
+  // transactional — this is the on-page/in-PDF upsell surface.
+  const topLeak = result.leakThemes[0]?.key;
+  const kit = topLeak ? SCORECARD_SCORING_V1.leakProductMap[topLeak] : undefined;
+  if (kit) {
+    blocks.push({ kind: "space", h: 3 });
+    body(`Recommended agent for your workflow: ${kit.name} — https://melanatedintech.com/agents/${kit.slug}`, {
+      color: "copper",
+    });
+  }
 
   section("7. What this Scorecard is not");
   body(result.whatThisIsNot);

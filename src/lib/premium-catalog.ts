@@ -30,22 +30,29 @@ export function isServiceEntry(entry: PremiumEntry | null | undefined): boolean 
 
 export const PREMIUM_CATALOG: Record<PremiumKind, Record<string, PremiumEntry>> = {
   agent: {
+    // Price trims applied 2026-09-23 (Antonio-approved): the three $49 agents
+    // and the $59 SEO agent move to $47; Inbox Zero holds at $39.
+    // These four use inline Stripe prices (priceId "") so the catalog is the
+    // single source of truth — checkout builds price_data from amountCents and
+    // fulfillment validates the settled amount against it. This avoids needing
+    // new immutable Stripe Price objects for a $2 trim; graduate back to
+    // lookup-key prices if dashboard-level price management is ever needed.
     "marketing-campaign-strategist": {
-      priceId: "agent_marketing_campaign_strategist_onetime",
-      amountCents: 4900,
+      priceId: "",
+      amountCents: 4700,
     },
     "pa-inbox-zero": { priceId: "agent_pa_inbox_zero_onetime", amountCents: 3900 },
     "marketing-seo-researcher": {
-      priceId: "agent_marketing_seo_researcher_onetime",
-      amountCents: 5900,
+      priceId: "",
+      amountCents: 4700,
     },
     "personal-chief-of-staff": {
-      priceId: "agent_personal_chief_of_staff_onetime",
-      amountCents: 4900,
+      priceId: "",
+      amountCents: 4700,
     },
     "customer-support-agent": {
-      priceId: "agent_customer_support_agent_onetime",
-      amountCents: 4900,
+      priceId: "",
+      amountCents: 4700,
     },
   },
   product: {

@@ -38,6 +38,28 @@ export function Hero() {
               See services &amp; the Sprint
             </Link>
           </div>
+          <p className="mt-4 text-sm">
+            <a
+              href="https://scan.melanatedintech.com"
+              className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+            >
+              Or run the free Revenue Recovery Scan <ArrowRight className="h-4 w-4" />
+            </a>
+            <span className="text-muted-foreground">
+              {" "}— see the headline number before you share your email.
+            </span>
+          </p>
+          <p className="mt-2 text-sm">
+            <Link
+              to="/scorecard"
+              className="inline-flex items-center gap-1 font-semibold text-primary hover:underline"
+            >
+              Or take the $1 Workflow Opportunity Scorecard <ArrowRight className="h-4 w-4" />
+            </Link>
+            <span className="text-muted-foreground">
+              {" "}— a self-serve scored snapshot of your costliest workflow.
+            </span>
+          </p>
           <div className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Discovery before a bounded build

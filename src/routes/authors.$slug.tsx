@@ -50,7 +50,7 @@ export const Route = createFileRoute("/authors/$slug")({
   },
   errorComponent: ({ error }) => (
     <SiteLayout>
-      <div className="p-12 text-sm text-destructive">{error.message}</div>
+      <div className="p-12 text-sm text-destructive">{error instanceof Error ? error.message : "Something went wrong."}</div>
     </SiteLayout>
   ),
   notFoundComponent: () => (
@@ -84,6 +84,8 @@ function AuthorPage() {
             <img
               src={author.avatar_url}
               alt=""
+              loading="lazy"
+              decoding="async"
               className="h-16 w-16 rounded-full object-cover ring-1 ring-border"
             />
           ) : (

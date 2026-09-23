@@ -110,6 +110,7 @@ export function ExplainerMediaBanner({
                 src={videoUrl}
                 poster={posterUrl}
                 controls
+                preload="metadata"
                 className="h-full w-full object-cover"
               />
             )}

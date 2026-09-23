@@ -154,6 +154,87 @@ export const SCORECARD_SCORING_V1 = {
     diagnostic: "/diagnostic",
     sprint_inquire: "/work-with-us#workflow-opportunity-sprint",
   } as const,
+  /**
+   * Post-purchase agent upsell (first-sale ladder: $1 Scorecard → $39–$47 agent →
+   * $297 Diagnostic → Sprint). Maps each leak signal to ONE matched premium agent
+   * from the live catalog. Only the three ops-flavored agents are used — mapping
+   * ops pain to the marketing agents would be dishonest copy, so those are
+   * excluded. Name/price mirror premium-catalog.ts; the agent page + Stripe
+   * remain the price source of truth.
+   * Approved 2026-09-23 (backlog #13, option c); prices trimmed 2026-09-23.
+   */
+  leakProductMap: {
+    missed_followup: {
+      kind: "agent",
+      slug: "customer-support-agent",
+      name: "Customer Support Agent",
+      priceCents: 4700,
+      blurb: "Answers, qualifies, and routes every inquiry — follow-ups stop slipping through the cracks.",
+    },
+    after_hours: {
+      kind: "agent",
+      slug: "customer-support-agent",
+      name: "Customer Support Agent",
+      priceCents: 4700,
+      blurb: "After-hours coverage for your inbox and inquiries — nothing waits until morning.",
+    },
+    delays: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "A chief-of-staff system that keeps work moving between steps instead of stalling.",
+    },
+    rework: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "Systems and runbooks so the work is done right the first time.",
+    },
+    handoffs: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "Keeps context intact when work changes owners — no more dropped balls.",
+    },
+    inbox_friction: {
+      kind: "agent",
+      slug: "pa-inbox-zero",
+      name: "Inbox Zero Assistant",
+      priceCents: 3900,
+      blurb: "Triage the inbox bottleneck — reach inbox zero without living in email.",
+    },
+    spreadsheet_friction: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "Replaces manual spreadsheet drag with an automated ops starting point.",
+    },
+    no_visibility: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "Makes status visible before it becomes a fire.",
+    },
+    duplicate_entry: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "Enter data once — the system carries it everywhere else.",
+    },
+    other_leak: {
+      kind: "agent",
+      slug: "personal-chief-of-staff",
+      name: "Personal Chief of Staff",
+      priceCents: 4700,
+      blurb: "The ops catch-all: your first AI chief of staff for the work nobody owns.",
+    },
+  } as const,
 } as const;
 
 export type OpportunityBand = "Low" | "Medium" | "High";
@@ -395,7 +476,7 @@ function pickNextStep(band: OpportunityBand, sprintFit: SprintFit): NextStepId {
   return "diagnostic";
 }
 
-function selectLeakThemes(answers: ScorecardAnswers): LeakThemeLine[] {
+export function selectLeakThemes(answers: ScorecardAnswers): LeakThemeLine[] {
   const selected = new Set(answers.leak_signals);
   const ordered = SCORECARD_SCORING_V1.leakThemePriority.filter((key) => selected.has(key));
   const top = ordered.slice(0, 5);

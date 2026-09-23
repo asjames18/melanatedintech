@@ -40,6 +40,101 @@ async function resolveOrCreateCustomer(
   return created.id;
 }
 
+/**
+ * Build the Stripe line items for an unlock purchase from OUR catalog —
+ * never from client input. Shared by the authenticated and guest checkout
+ * flows so both charge exactly the catalog price.
+ */
+type UnlockSessionCreateParams = Parameters<
+  ReturnType<typeof createStripeClient>["checkout"]["sessions"]["create"]
+>[0];
+
+async function buildUnlockLineItems(
+  stripe: ReturnType<typeof createStripeClient>,
+  kind: PremiumKind,
+  slug: string,
+  entry: { priceId: string; amountCents: number },
+): Promise<{
+  lineItems: NonNullable<NonNullable<UnlockSessionCreateParams>["line_items"]>;
+  paymentIntentDescription: string;
+}> {
+  let lineItems: NonNullable<NonNullable<UnlockSessionCreateParams>["line_items"]>;
+  let paymentIntentDescription = "";
+
+  let stripePrice = null;
+  if (entry.priceId) {
+    try {
+      const prices = await stripe.prices.list({ lookup_keys: [entry.priceId], limit: 1 });
+      if (prices.data.length) {
+        stripePrice = prices.data[0];
+      }
+    } catch (err) {
+      console.warn("Stripe price lookup key error, falling back to inline price:", err);
+    }
+  }
+
+  if (stripePrice) {
+    // Fail fast before charging: the Stripe price object must still match
+    // our catalog. If someone edited the price in the Stripe dashboard, a
+    // buyer could be charged an amount the fulfillment grant would refuse.
+    const priceAmount = stripePrice.unit_amount;
+    const priceCurrency = (stripePrice.currency ?? "").toLowerCase();
+    if (priceCurrency !== "usd" || priceAmount == null || priceAmount !== entry.amountCents) {
+      console.error("[unlockCheckout] Stripe price drifted from catalog", {
+        kind,
+        slug,
+        stripePriceId: stripePrice.id,
+        stripeAmount: priceAmount,
+        stripeCurrency: stripePrice.currency,
+        catalogAmountCents: entry.amountCents,
+      });
+      throw new Error(
+        "This item's checkout price is out of sync. Please contact support before paying.",
+      );
+    }
+    const productId =
+      typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
+    const product = await stripe.products.retrieve(productId);
+    paymentIntentDescription = product.name;
+
+    lineItems = [{ price: stripePrice.id, quantity: 1 }];
+  } else {
+    // Fallback to database/catalog inline price creation for Stripe checkout
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const table = kind === "agent" ? "agents" : "products";
+    const { data: itemData } = await supabaseAdmin
+      .from(table)
+      .select("name")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    const name =
+      slug === "revenue-leak-diagnostic"
+        ? "Revenue Leak Diagnostic ($297)"
+        : (itemData?.name || `${kind}: ${slug}`);
+    paymentIntentDescription = name;
+
+    lineItems = [
+      {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name,
+            metadata: {
+              unlock_kind: kind,
+              unlock_slug: slug,
+            },
+          },
+          unit_amount: entry.amountCents,
+        },
+        quantity: 1,
+      },
+    ];
+  }
+
+  return { lineItems, paymentIntentDescription };
+}
+
 export const createUnlockCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -86,79 +181,12 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
         userId,
       });
 
-      let lineItems;
-      let paymentIntentDescription = "";
-
-      let stripePrice = null;
-      if (entry.priceId) {
-        try {
-          const prices = await stripe.prices.list({ lookup_keys: [entry.priceId], limit: 1 });
-          if (prices.data.length) {
-            stripePrice = prices.data[0];
-          }
-        } catch (err) {
-          console.warn("Stripe price lookup key error, falling back to inline price:", err);
-        }
-      }
-
-      if (stripePrice) {
-        // Fail fast before charging: the Stripe price object must still match
-        // our catalog. If someone edited the price in the Stripe dashboard, a
-        // buyer could be charged an amount the fulfillment grant would refuse.
-        const priceAmount = stripePrice.unit_amount;
-        const priceCurrency = (stripePrice.currency ?? "").toLowerCase();
-        if (priceCurrency !== "usd" || priceAmount == null || priceAmount !== entry.amountCents) {
-          console.error("[createUnlockCheckout] Stripe price drifted from catalog", {
-            kind: data.kind,
-            slug: data.slug,
-            stripePriceId: stripePrice.id,
-            stripeAmount: priceAmount,
-            stripeCurrency: stripePrice.currency,
-            catalogAmountCents: entry.amountCents,
-          });
-          throw new Error(
-            "This item's checkout price is out of sync. Please contact support before paying.",
-          );
-        }
-        const productId =
-          typeof stripePrice.product === "string" ? stripePrice.product : stripePrice.product.id;
-        const product = await stripe.products.retrieve(productId);
-        paymentIntentDescription = product.name;
-
-        lineItems = [{ price: stripePrice.id, quantity: 1 }];
-      } else {
-        // Fallback to database/catalog inline price creation for Stripe checkout
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const table = data.kind === "agent" ? "agents" : "products";
-        const { data: itemData } = await supabaseAdmin
-          .from(table)
-          .select("name")
-          .eq("slug", data.slug)
-          .maybeSingle();
-
-        const name =
-          data.slug === "revenue-leak-diagnostic"
-            ? "Revenue Leak Diagnostic ($297)"
-            : (itemData?.name || `${data.kind}: ${data.slug}`);
-        paymentIntentDescription = name;
-
-        lineItems = [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: {
-                name,
-                metadata: {
-                  unlock_kind: data.kind,
-                  unlock_slug: data.slug,
-                },
-              },
-              unit_amount: entry.amountCents,
-            },
-            quantity: 1,
-          },
-        ];
-      }
+      const { lineItems, paymentIntentDescription } = await buildUnlockLineItems(
+        stripe,
+        data.kind,
+        data.slug,
+        entry,
+      );
 
       const session = await stripe.checkout.sessions.create({
         line_items: lineItems,
@@ -179,6 +207,107 @@ export const createUnlockCheckout = createServerFn({ method: "POST" })
     } catch (error) {
       console.error("createUnlockCheckout error", error);
       return { error: getStripeErrorMessage(error) };
+    }
+  });
+
+/**
+ * Guest checkout for unlock purchases (backlog #16, approved 2026-09-23).
+ *
+ * No authentication required: Stripe collects the buyer's email at checkout
+ * (the verified identity source). After payment, the fulfillment grant
+ * provisions a Supabase account from that verified email and emails the
+ * buyer a magic sign-in link.
+ *
+ * Security notes:
+ * - Price comes from OUR catalog via buildUnlockLineItems — never the client.
+ * - metadata carries guest: "1" and NO userId; the grant provisions the
+ *   owner from Stripe-verified customer_details.email only.
+ * - This is intentionally a SEPARATE function from createUnlockCheckout so
+ *   the authenticated flow is untouched.
+ */
+export const createGuestUnlockCheckout = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: { kind: PremiumKind; slug: string; returnUrl: string; environment: string }) => {
+      const parsed = z
+        .object({
+          kind: z.enum(["agent", "product"]),
+          slug: z.string().min(1).max(120),
+          returnUrl: z.string().url().max(500),
+          environment: envSchema,
+        })
+        .parse(data);
+      return parsed;
+    },
+  )
+  .handler(async ({ data }): Promise<CheckoutResult> => {
+    try {
+      // Source of truth: derive the Stripe price from our catalog, never the client.
+      const { resolvePremiumEntry } = await import("@/lib/premium-catalog");
+      const entry = await resolvePremiumEntry(data.kind, data.slug);
+      if (!entry) throw new Error("This item is not available for purchase.");
+
+      const stripe = createStripeClient(data.environment);
+
+      const { lineItems, paymentIntentDescription } = await buildUnlockLineItems(
+        stripe,
+        data.kind,
+        data.slug,
+        entry,
+      );
+
+      const session = await stripe.checkout.sessions.create({
+        line_items: lineItems,
+        mode: "payment",
+        ui_mode: "embedded_page" as never,
+        return_url: data.returnUrl,
+        // No customer: Stripe collects and verifies the buyer's email at checkout.
+        payment_intent_data: { description: paymentIntentDescription },
+        metadata: {
+          guest: "1",
+          unlock_kind: data.kind,
+          unlock_slug: data.slug,
+          price_id: entry.priceId || `dynamic_${data.kind}_${data.slug}`,
+        },
+      });
+
+      return { clientSecret: session.client_secret ?? "" };
+    } catch (error) {
+      console.error("createGuestUnlockCheckout error", error);
+      return { error: getStripeErrorMessage(error) };
+    }
+  });
+
+/**
+ * Guest counterpart to confirmCheckoutSession. No auth middleware — the
+ * buyer has no session yet. The Stripe session id is only known to the buyer
+ * (it comes from their own checkout redirect URL); we verify
+ * payment_status === "paid" AND the guest flag server-side before granting,
+ * and we never return PII beyond the purchased item.
+ */
+export const confirmGuestCheckoutSession = createServerFn({ method: "POST" })
+  .inputValidator((data: { sessionId: string; environment: string }) => {
+    const parsed = z
+      .object({
+        sessionId: z.string().min(1).max(200),
+        environment: envSchema,
+      })
+      .parse(data);
+    return parsed;
+  })
+  .handler(async ({ data }): Promise<ConfirmResult> => {
+    try {
+      const stripe = createStripeClient(data.environment);
+      const session = await stripe.checkout.sessions.retrieve(data.sessionId);
+      if (session.payment_status !== "paid") return { owned: false };
+      if (session.metadata?.guest !== "1") return { owned: false };
+      const result = await grantFromSession(session, data.environment);
+      if (result.granted) {
+        return { owned: true, kind: result.kind, slug: result.slug };
+      }
+      return { owned: false };
+    } catch (error) {
+      console.error("confirmGuestCheckoutSession error", error);
+      return { owned: false };
     }
   });
 

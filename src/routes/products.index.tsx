@@ -50,7 +50,7 @@ export const Route = createFileRoute("/products/")({
   ),
   errorComponent: ({ error }) => (
     <SiteLayout>
-      <div className="p-12 text-center text-sm text-muted-foreground">{error.message}</div>
+      <div className="p-12 text-center text-sm text-muted-foreground">{error instanceof Error ? error.message : "Something went wrong."}</div>
     </SiteLayout>
   ),
   notFoundComponent: () => (
@@ -87,9 +87,18 @@ function ProductsIndex() {
     return matchCat && matchTier && matchQ;
   });
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  // North star: paid kits ($19–$59) surface before free packs in the default
+  // listing (same paid-first ordering as the homepage teaser in
+  // src/routes/index.tsx). Filters and counts unchanged; a no-op when a tier
+  // filter is active.
+  const ordered = [
+    ...filtered.filter((p) => p.tier !== "free"),
+    ...filtered.filter((p) => p.tier === "free"),
+  ];
+
+  const pageCount = Math.max(1, Math.ceil(ordered.length / PAGE_SIZE));
   const safePage = Math.min(Math.max(1, page), pageCount);
-  const paged = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const paged = ordered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   useEffect(() => {
     navigate({

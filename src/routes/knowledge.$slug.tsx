@@ -367,6 +367,8 @@ function ArticleView() {
                   interest={article.category}
                   submitLabel="Subscribe"
                   pendingLabel="Subscribing…"
+                  successTitle="You're subscribed."
+                  successBody="One practical agent playbook a week — no hype, no daily AI news."
                 />
               </div>
             </div>

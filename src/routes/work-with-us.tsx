@@ -93,6 +93,57 @@ const scopedServices = [
   },
 ] as const;
 
+const offerGuide = [
+  {
+    situation: "You want a quick, free read on a possible revenue leak",
+    offer: "Free Revenue Recovery Scan",
+    detail: "See your headline number before sharing your email.",
+    href: "https://scan.melanatedintech.com",
+    external: true,
+    topic: "Revenue Recovery Scan",
+  },
+  {
+    situation: "You want a scored snapshot of your costliest workflow",
+    offer: "$1 Workflow Opportunity Scorecard",
+    detail: "A self-serve scored snapshot you can run yourself.",
+    href: "/scorecard",
+    external: false,
+    topic: "Workflow Opportunity Scorecard",
+  },
+  {
+    situation: "You want an expert to diagnose one workflow with you",
+    offer: "$297 AI Workflow Diagnostic",
+    detail: "A 90-minute diagnostic ending in an implementation recommendation.",
+    href: "/contact",
+    external: false,
+    topic: "AI Workflow Diagnostic inquiry",
+  },
+  {
+    situation: "You know the leak and want it fixed",
+    offer: "$1,500 30-Day Recovery Pilot",
+    detail: "One defined leak, one location, configured and monitored for 30 days.",
+    href: "/diagnostic",
+    external: false,
+    topic: "30-Day Recovery Pilot",
+  },
+  {
+    situation: "The work spans systems, teams, or locations",
+    offer: "Workflow Opportunity Sprint",
+    detail: "$7,500–$15,000 planning signal. Ten business days ending in a written plan.",
+    href: "/contact",
+    external: false,
+    topic: "Workflow Opportunity Sprint inquiry",
+  },
+  {
+    situation: "You came for a website",
+    offer: "$997 Website Launch Sprint",
+    detail: "A mobile-first one-page site that makes it easy to get in touch.",
+    href: "/contact",
+    external: false,
+    topic: "Website Launch Sprint inquiry",
+  },
+] as const;
+
 export const Route = createFileRoute("/work-with-us")({
   head: () => ({
     ...buildSeoMeta({
@@ -126,6 +177,68 @@ function WorkWithUs() {
         title="Build the next useful thing for your business."
         description="Start with the level of support that matches where you are today: learn AI, diagnose one workflow, launch a website, or run a Workflow Opportunity Sprint when the work is more complex."
       />
+
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+              Which starting point fits?
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
+              Start where you are.
+            </h2>
+            <p className="mt-4 leading-relaxed text-muted-foreground">
+              Pick the row that matches what you know today. Every path leads to the same
+              standard: one defined workflow, a written recommendation, and human approval where
+              it matters.
+            </p>
+          </div>
+          <div className="mt-9 grid gap-4 md:grid-cols-2">
+            {offerGuide.map(({ situation, offer, detail, href, external, topic }) => (
+              <div
+                key={offer}
+                className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-card p-5"
+              >
+                <div>
+                  <p className="text-sm text-muted-foreground">{situation}:</p>
+                  <p className="mt-1 font-display text-lg font-semibold">{offer}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{detail}</p>
+                </div>
+                {external ? (
+                  <a
+                    href={href}
+                    className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary"
+                    onClick={() =>
+                      trackEvent("service_offer_cta_clicked", {
+                        offer: topic,
+                        surface: "work_with_us_offer_guide",
+                        ...funnelAttribution(),
+                      })
+                    }
+                  >
+                    Start <ArrowRight className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <Link
+                    to={href}
+                    {...(href === "/contact" ? { search: { topic } } : {})}
+                    className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-primary"
+                    onClick={() =>
+                      trackEvent("service_offer_cta_clicked", {
+                        offer: topic,
+                        surface: "work_with_us_offer_guide",
+                        ...funnelAttribution(),
+                      })
+                    }
+                  >
+                    Start <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

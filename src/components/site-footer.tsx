@@ -93,7 +93,14 @@ export function SiteFooter() {
             Useful field guides, tools, and system updates - straight to your inbox.
           </p>
           <div className="mt-3">
-            <WaitlistForm source="footer" compact />
+            <WaitlistForm
+              source="footer"
+              compact
+              submitLabel="Subscribe"
+              pendingLabel="Subscribing…"
+              successTitle="You're subscribed."
+              successBody="Field guides, tools, and system updates are headed to your inbox."
+            />
           </div>
         </div>
       </div>

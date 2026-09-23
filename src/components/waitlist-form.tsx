@@ -13,6 +13,8 @@ export function WaitlistForm({
   compact = false,
   submitLabel = "Join waitlist",
   pendingLabel = "Joining…",
+  successTitle = "You're on the list.",
+  successBody = "Check your inbox for the next update from Melanated in Tech.",
 }: {
   source?: string;
   interest?: string;
@@ -20,6 +22,9 @@ export function WaitlistForm({
   /** Override when the form is a subscribe box rather than a launch waitlist. */
   submitLabel?: string;
   pendingLabel?: string;
+  /** Confirmation copy shown after signup; defaults to waitlist wording. */
+  successTitle?: string;
+  successBody?: string;
 }) {
   const [email, setEmail] = useState("");
   const [hp, setHp] = useState("");
@@ -40,7 +45,7 @@ export function WaitlistForm({
       setDone(true);
       setEmail("");
       trackEvent("waitlist_joined", { source, interest: interest ?? "general" });
-      toast.success("You're on the list.");
+      toast.success(successTitle);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
@@ -51,8 +56,8 @@ export function WaitlistForm({
   if (done) {
     return (
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm text-muted-foreground">
-        <p className="font-medium text-foreground">You&apos;re on the list.</p>
-        <p className="mt-1">Check your inbox for the next update from Melanated in Tech.</p>
+        <p className="font-medium text-foreground">{successTitle}</p>
+        <p className="mt-1">{successBody}</p>
       </div>
     );
   }

@@ -1,7 +1,34 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
-import { PILLARS } from "@/lib/site";
 import { buildSeoMeta } from "@/lib/seo";
+import { ArrowRight } from "lucide-react";
+
+const libraryResources = [
+  {
+    title: "Knowledge Hub",
+    href: "/knowledge",
+    blurb:
+      "Field guides and playbooks on the patterns behind our client work: workflow mapping, responsible automation, evaluation, and handoffs.",
+  },
+  {
+    title: "Tools workbench",
+    href: "/tools",
+    blurb:
+      "Interactive tools like Prompt Pilot and the SOP Generator for drafting, testing, and thinking through your own workflows.",
+  },
+  {
+    title: "Agent marketplace",
+    href: "/agents",
+    blurb:
+      "Production-grade AI agents and starter packs — the reusable pieces, ready when you want them.",
+  },
+  {
+    title: "AI, Translated",
+    href: "/podcast",
+    blurb:
+      "A weekly show translating AI news into plain language for business owners.",
+  },
+] as const;
 
 export const Route = createFileRoute("/about")({
   head: () => ({
@@ -20,8 +47,8 @@ function About() {
     <SiteLayout>
       <PageHeader
         eyebrow="About Melanated in Tech"
-        title="Helping people confidently understand, build, deploy, and benefit from AI Agents."
-        description="Melanated in Tech is a practical AI education platform, interactive tools workbench, operating library, agent marketplace, and bespoke implementation partner."
+        title="We redesign how your company works in the age of AI."
+        description="Melanated in Tech helps owner-led businesses find the workflows already costing them time and revenue — then rebuilds those workflows with practical, human-approved AI. Everything we learn doing that work goes into open guides, tools, and agents anyone can use."
       />
 
       <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
@@ -111,18 +138,34 @@ function About() {
           </Link>
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2">
-          {PILLARS.map((p) => (
-            <Link
-              key={p.title}
-              to={p.href}
-              className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
-            >
-              <p className="text-xs uppercase tracking-wider text-muted-foreground">{p.tag}</p>
-              <p className="mt-1 font-display text-lg font-semibold">{p.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{p.blurb}</p>
-            </Link>
-          ))}
+        <div className="mt-14">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            The library behind the work
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">
+            Learn it yourself, or hire us to build it.
+          </h2>
+          <p className="mt-3 max-w-2xl leading-relaxed text-muted-foreground">
+            Every engagement teaches us something reusable. We publish the patterns, keep the tools
+            open, and productize the pieces — so the knowledge doesn&apos;t stay locked inside
+            client work.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+            {libraryResources.map((r) => (
+              <Link
+                key={r.title}
+                to={r.href}
+                className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-foreground/20"
+              >
+                <p className="font-display text-lg font-semibold">{r.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{r.blurb}</p>
+                <p className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-primary">
+                  Explore{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
     </SiteLayout>

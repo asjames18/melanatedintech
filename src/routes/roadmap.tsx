@@ -3,12 +3,12 @@ import {
   ArrowRight,
   BookOpenCheck,
   CheckCircle2,
-  CircleGauge,
-  Code2,
-  HandHeart,
+  Compass,
+  PackageOpen,
+  Rocket,
   ShieldCheck,
   Sparkles,
-  UsersRound,
+  Telescope,
 } from "lucide-react";
 import { PageHeader, SiteLayout } from "@/components/site-layout";
 import { buildSeoMeta } from "@/lib/seo";
@@ -16,122 +16,85 @@ import { buildSeoMeta } from "@/lib/seo";
 export const Route = createFileRoute("/roadmap")({
   head: () => ({
     ...buildSeoMeta({
-      title: "One-Year Roadmap - Melanated in Tech",
+      title: "Roadmap - Melanated in Tech",
       description:
-        "A focused one-year development roadmap for practical AI services, the Community, Open Commons, and responsible growth at Melanated in Tech.",
+        "What Melanated in Tech is bringing to business owners: practical tools, honest guides, and reusable systems — shaped by real work, not guesses.",
       url: "/roadmap",
     }),
   }),
   component: Roadmap,
 });
 
-const quarters = [
+const horizons = [
   {
-    label: "Months 1–3",
-    title: "Make the foundation repeatable",
+    label: "Now",
+    title: "Useful things you can use today",
     description:
-      "Turn the current foundation into a dependable operating rhythm before adding more surface area.",
-    icon: CircleGauge,
-    accent: "Proof and operating discipline",
-    priorities: [
-      "Document repeatable delivery playbooks for AI Clarity Sessions, Workflow Diagnostics, and the Website Launch Sprint.",
-      "Publish the first anonymized proof notes and tighten the inquiry-to-scope handoff.",
-      "Run a consistent Community prompt rhythm and measure returning participation without collecting unnecessary personal data.",
-      "Keep the Agent Tool Assurance Kit contributor-ready with clear issues, security guidance, and release notes.",
+      "Everything here is live right now. Each one came out of real workflow problems, not a brainstorm.",
+    icon: Rocket,
+    accent: "Available today",
+    items: [
+      "Revenue Recovery Scan — find where your business is leaking revenue in a few minutes, free.",
+      "$1 Workflow Opportunity Scorecard — a one-dollar read on where AI could actually help your operations.",
+      "Knowledge Hub — free field guides on AI agents, automation, and workflow design, written in plain language.",
+      "Tools workbench — practical utilities you can use without creating an account.",
+      "Premium AI agents — one-payment tools built from real workflow patterns, yours to keep.",
+      "Agent Tool Assurance Kit — our open-source starter for declaring what an AI tool may and may not do.",
     ],
-    outcome: "A small set of offers and workflows that can be explained, delivered, and improved consistently.",
+    note: "If it's listed here, it works today. We don't announce things that aren't ready.",
   },
   {
-    label: "Months 4–6",
-    title: "Productize what people use",
+    label: "Next",
+    title: "What we're working on",
     description:
-      "Use real questions and delivery patterns to make the best ideas easier to learn, buy, and reuse.",
-    icon: Sparkles,
-    accent: "Useful tools and teaching",
-    priorities: [
-      "Refine a small collection of starter packs, workflow templates, and responsible-use guides around observed needs.",
-      "Create a lightweight education rhythm: practical lessons, office hours, and Community prompts that lead to action.",
-      "Release a meaningful Agent Tool Assurance Kit update with examples, synthetic fixtures, and contributor documentation.",
-      "Improve privacy-preserving funnel measurement for qualified inquiries, confirmed checklist requests, and completed engagements.",
+      "In progress now. These ship when they're genuinely useful — not on a marketing calendar.",
+    icon: Compass,
+    accent: "In the works",
+    items: [
+      "More workflow playbooks drawn from real client engagements — the patterns that keep showing up.",
+      "New agents built only from workflows that have proven themselves in practice first.",
+      "Expanded open-source examples, test fixtures, and guides in the Agent Tool Assurance Kit.",
+      "Deeper diagnostic tooling for owners who want a clearer picture before they spend anything.",
     ],
-    outcome: "A clearer path from learning to a bounded service, reusable tool, or public contribution.",
+    note: "The order follows what real owners teach us. Useful things ship; guesses don't.",
   },
   {
-    label: "Months 7–9",
-    title: "Grow the Community flywheel",
+    label: "Later",
+    title: "Where this is headed",
     description:
-      "Make the Community valuable because members learn, share, and find useful collaborators—not because it has more features.",
-    icon: UsersRound,
-    accent: "Participation and trust",
-    priorities: [
-      "Introduce recurring member-led prompts, small virtual sessions, and carefully chosen builder spotlights when participation supports them.",
-      "Add contribution pathways for documentation, testing, accessibility, and workflow examples—not only advanced code.",
-      "Develop a small partner and referral loop around organizations that need practical AI training or workflow clarity.",
-      "Review moderation, reporting, privacy, and notification patterns using real usage evidence before expanding social mechanics.",
+      "The direction, stated honestly. No dates, no promises — just where the work is pointing.",
+    icon: Telescope,
+    accent: "On the horizon",
+    items: [
+      "A fuller library of reusable workflow systems any small team can pick up and run.",
+      "More open tools and community-contributed examples in the Open Commons.",
+      "Clearer paths from learning a concept to actually running it inside your business.",
     ],
-    outcome: "A healthier owned learning and collaboration channel with visible, respectful paths to participate.",
-  },
-  {
-    label: "Months 10–12",
-    title: "Scale selectively—or deepen",
-    description:
-      "Use the evidence from the first nine months to choose what deserves a larger investment in year two.",
-    icon: Code2,
-    accent: "Evidence-led expansion",
-    priorities: [
-      "Package the strongest recurring workflow or service pattern into a clearer implementation offer or reusable product.",
-      "Publish a year-one review covering what was useful, what was paused, and what the Community helped reveal.",
-      "Expand open-source stewardship only where maintainers, contributors, security practices, and documentation can support it.",
-      "Choose a limited number of year-two bets; do not turn every promising idea into a permanent product commitment.",
-    ],
-    outcome: "A credible year-two investment case based on adoption, delivery quality, contribution, and trust—not guesses.",
-  },
-] as const;
-
-const successMeasures = [
-  {
-    icon: HandHeart,
-    label: "Business usefulness",
-    measure: "Qualified inquiries, completed scopes, repeatable delivery, and client-reported next steps.",
-  },
-  {
-    icon: UsersRound,
-    label: "Community health",
-    measure: "Returning members, useful discussions, prompt participation, and respectful moderation outcomes.",
-  },
-  {
-    icon: Code2,
-    label: "Open contribution",
-    measure: "Resolved issues, reviewed pull requests, contributor onboarding, release notes, and reusable examples.",
-  },
-  {
-    icon: ShieldCheck,
-    label: "Trust and safety",
-    measure: "Consent integrity, suppression handling, security response, accessibility, and privacy-preserving analytics.",
+    note: "We'll say more about each of these when there's something real to show.",
   },
 ] as const;
 
 const guardrails = [
-  "No anonymous marketing email, purchased lists, or campaign activation without explicit consent and a genuine mailing address.",
-  "No broad platform expansion before the current services, Community, and Open Commons show sustained usefulness.",
-  "No customer data, payment activity, or private member content in public examples or open-source fixtures.",
-  "No promise of a feature, partnership, revenue result, or hiring outcome until the evidence and scope support it.",
+  "No hype promises — we won't claim revenue results or outcomes the evidence doesn't support.",
+  "No customer data, payment activity, or private business details in public examples or open-source fixtures.",
+  "No announced feature or launch date until the work behind it is real.",
+  "No growth at the cost of trust: privacy, consent, and accessibility come before new surface area.",
 ] as const;
 
 function Roadmap() {
   return (
     <SiteLayout>
       <PageHeader
-        eyebrow="One-year roadmap"
-        title="Build what becomes more useful with time."
-        description="This is a focused development path for Melanated in Tech: practical AI services, an owned Community, an open commons, and responsible systems that earn the right to grow."
+        eyebrow="Roadmap"
+        title="What we're building for you."
+        description="A look at what Melanated in Tech is bringing to business owners: practical tools, honest guides, and reusable systems. It changes when real work teaches us something new."
         actions={
           <div className="flex flex-wrap gap-3">
             <Link
-              to="/community"
+              to="/tools"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Visit the Community <ArrowRight className="h-4 w-4" />
+              Explore the tools <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/open-commons"
@@ -146,19 +109,18 @@ function Roadmap() {
       <section className="border-b border-border bg-muted/25">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">The north star</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we decide what to build</p>
             <h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold sm:text-4xl">
-              One connected system, not a pile of disconnected features.
+              Built from real work, not brainstorms.
             </h2>
             <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-              The next year should make Melanated in Tech easier to understand and more useful to
-              return to. A business owner should be able to learn something practical, get help with a
-              bounded problem, or bring a real workflow into a safer open conversation.
+              Everything public we make starts as a real problem inside a real business. We teach
+              what we learn, test it in bounded experiments, deliver it as a focused service or
+              tool, and share the reusable lessons back openly.
             </p>
             <p className="mt-4 max-w-3xl leading-relaxed text-muted-foreground">
-              The sequence starts with repeatability, moves into productized learning, grows through
-              participation, and ends with an evidence-based decision about what deserves deeper
-              investment.
+              That means this roadmap is shaped by the people who use what we make. When owners show
+              us something important, the plan changes — and that's the point.
             </p>
           </div>
           <div className="rounded-3xl border border-primary/25 bg-card p-7 shadow-sm">
@@ -176,7 +138,7 @@ function Roadmap() {
                 ["Teach", "Make responsible AI and workflow decisions easier to understand."],
                 ["Test", "Use bounded experiments, synthetic examples, and human approval."],
                 ["Serve", "Deliver focused outcomes with clear scope, price, and handoff."],
-                ["Share", "Return reusable lessons to the Community and Open Commons."],
+                ["Share", "Return reusable lessons to the Knowledge Hub and Open Commons."],
               ].map(([title, description]) => (
                 <div key={title} className="flex gap-3">
                   <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -194,18 +156,19 @@ function Roadmap() {
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">The sequence</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-primary">The plan</p>
             <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Four quarters of deliberate progress.
+              Now, next, and later — no vaporware.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              Each quarter has a job. The priorities can change when evidence changes, but the order
-              protects the business from scaling complexity before it has earned demand.
+              Three horizons, no fixed dates. What's under "Now" works today. What's under "Next"
+              is being built. What's under "Later" is the honest direction. We'd rather
+              under-promise than publish a wish list.
             </p>
           </div>
-          <div className="mt-10 grid gap-5 lg:grid-cols-2">
-            {quarters.map(({ icon: Icon, label, title, description, accent, priorities, outcome }) => (
-              <article key={label} className="rounded-2xl border border-border bg-card p-6 sm:p-7">
+          <div className="mt-10 grid gap-5 lg:grid-cols-3">
+            {horizons.map(({ icon: Icon, label, title, description, accent, items, note }) => (
+              <article key={label} className="flex flex-col rounded-2xl border border-border bg-card p-6 sm:p-7">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wider text-primary">{label}</p>
@@ -218,17 +181,17 @@ function Roadmap() {
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p>
                 <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-primary">{accent}</p>
                 <ul className="mt-3 space-y-3">
-                  {priorities.map((priority) => (
-                    <li key={priority} className="flex gap-3 text-sm leading-relaxed">
+                  {items.map((item) => (
+                    <li key={item} className="flex gap-3 text-sm leading-relaxed">
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span className="text-muted-foreground">{priority}</span>
+                      <span className="text-muted-foreground">{item}</span>
                     </li>
                   ))}
                 </ul>
-                <div className="mt-6 border-t border-border pt-4">
-                  <p className="text-sm">
-                    <span className="font-semibold">Quarter outcome:</span>{" "}
-                    <span className="text-muted-foreground">{outcome}</span>
+                <div className="mt-6 border-t border-border pt-4 mt-auto">
+                  <p className="flex gap-2 text-sm">
+                    <PackageOpen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span className="text-muted-foreground">{note}</span>
                   </p>
                 </div>
               </article>
@@ -238,30 +201,6 @@ function Roadmap() {
       </section>
 
       <section className="border-b border-border bg-muted/25">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-primary">How we will know</p>
-            <h2 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">
-              Measure usefulness, not motion.
-            </h2>
-            <p className="mt-4 leading-relaxed text-muted-foreground">
-              These are working measures for decision-making, not promises of future results. They keep
-              growth connected to the people served, the contributors welcomed, and the trust maintained.
-            </p>
-          </div>
-          <div className="mt-9 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {successMeasures.map(({ icon: Icon, label, measure }) => (
-              <div key={label} className="rounded-2xl border border-border bg-card p-6">
-                <Icon className="h-5 w-5 text-primary" />
-                <h3 className="mt-4 font-display text-xl font-semibold">{label}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{measure}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="border-b border-border">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-primary">What we will not rush</p>
@@ -269,8 +208,8 @@ function Roadmap() {
               Restraint is part of the roadmap.
             </h2>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              A good roadmap makes tradeoffs visible. These guardrails protect the focus of the product,
-              the privacy of members, and the credibility of the services.
+              A good roadmap makes tradeoffs visible. These are the lines we don't cross, even when
+              it would be faster or louder not to.
             </p>
           </div>
           <div className="space-y-3">
@@ -292,14 +231,14 @@ function Roadmap() {
               <div className="max-w-2xl">
                 <div className="flex items-center gap-2 text-background/65">
                   <Sparkles className="h-4 w-4" />
-                  <p className="text-xs font-semibold uppercase tracking-wider">Help shape the next useful thing</p>
+                  <p className="text-xs font-semibold uppercase tracking-wider">Help shape what's next</p>
                 </div>
                 <h2 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-                  Bring a real problem, lesson, or contribution into the work.
+                  Bring a real problem into the work.
                 </h2>
                 <p className="mt-3 text-background/70">
                   The roadmap is a living commitment to focus. It should change when real people teach us
-                  something important, while keeping the boundaries that make the work trustworthy.
+                  something important — tell us what's actually slowing your business down.
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap gap-3">
@@ -323,11 +262,11 @@ function Roadmap() {
 
       <section className="border-t border-border bg-muted/25">
         <div className="mx-auto max-w-7xl px-4 py-10 text-sm text-muted-foreground sm:px-6 lg:px-8">
-          <p className="font-semibold text-foreground">Research behind the sequence</p>
+          <p className="font-semibold text-foreground">Why we work this way</p>
           <p className="mt-2 max-w-4xl leading-relaxed">
             The roadmap prioritizes skills, workflow fit, and responsible implementation because current
             SME research points to both the benefits and the adoption barriers of generative AI. Its open-source
-            milestones reflect established community-health guidance, while its Community milestones emphasize
+            milestones reflect established community-health guidance, while its community milestones emphasize
             useful participation and measurement before heavier social mechanics.
           </p>
           <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">

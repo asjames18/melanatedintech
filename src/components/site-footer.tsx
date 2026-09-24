@@ -106,10 +106,29 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-4 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:px-6 lg:px-8">
           <p>
             &copy; {new Date().getFullYear()} {SITE.name}. All rights reserved.
           </p>
+          <div className="flex items-center gap-3">
+            <span className="uppercase tracking-wider">As featured on</span>
+            <a
+              href="https://showmebest.ai"
+              target="_blank"
+              rel="noopener"
+              aria-label="Featured on ShowMeBestAI"
+            >
+              <img
+                src="https://showmebest.ai/badge/feature-badge-white.webp"
+                alt="Featured on ShowMeBestAI"
+                width={220}
+                height={60}
+                loading="lazy"
+                decoding="async"
+                className="h-auto w-[220px]"
+              />
+            </a>
+          </div>
           <p>Based in Sebring, Florida. Serving qualified teams nationwide.</p>
         </div>
       </div>

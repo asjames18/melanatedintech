@@ -107,12 +107,12 @@ export function SiteHeader() {
         </Link>
 
         {/* Primary Desktop Navigation */}
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+        <nav className="hidden items-center gap-0.5 xl:flex" aria-label="Primary navigation">
           {groups.map((group) => (
             <div key={group.label} className="group relative">
               <button
                 type="button"
-                className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:text-foreground"
+                className="flex items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground group-hover:text-foreground"
                 aria-haspopup="true"
               >
                 {group.label}
@@ -149,7 +149,7 @@ export function SiteHeader() {
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
+                className={`flex items-center gap-2 whitespace-nowrap rounded-lg px-2.5 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
                   isFeatured ? "bg-primary/10 font-semibold text-primary" : "text-muted-foreground"
                 }`}
               >
@@ -161,14 +161,14 @@ export function SiteHeader() {
         </nav>
 
         {/* Right Desktop Action Bar */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-2.5 xl:flex">
           <Link
             to="/search"
-            className="flex items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-muted/70 hover:text-foreground"
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-border/80 bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-primary/40 hover:bg-muted/70 hover:text-foreground"
             aria-label="Search AI Tools and Knowledge Base"
           >
-            <Search className="h-3.5 w-3.5 text-primary" />
-            <span className="hidden xl:inline">Search AI Tools...</span>
+            <Search className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="hidden whitespace-nowrap 2xl:inline">Search AI Tools...</span>
             <kbd className="rounded-md border border-border/80 bg-background px-1.5 py-0.5 text-[10px] font-mono font-bold text-muted-foreground shadow-2xs">
               ⌘K
             </kbd>
@@ -176,24 +176,26 @@ export function SiteHeader() {
 
           <Link
             to="/work-with-us"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 hover:shadow-md active:scale-[0.98]"
+            className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-xs transition-all hover:bg-primary/90 hover:shadow-md active:scale-[0.98]"
           >
             <span>Work With Us</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+            <ArrowRight className="h-3.5 w-3.5 shrink-0" />
           </Link>
 
-          {loadAuth ? (
-            <Suspense fallback={<HeaderAuthFallback />}>
-              <HeaderAuthButton />
-            </Suspense>
-          ) : (
-            <HeaderAuthFallback />
-          )}
+          <span className="shrink-0">
+            {loadAuth ? (
+              <Suspense fallback={<HeaderAuthFallback />}>
+                <HeaderAuthButton />
+              </Suspense>
+            ) : (
+              <HeaderAuthFallback />
+            )}
+          </span>
         </div>
 
         {/* Mobile Hamburger Button */}
         <button
-          className="rounded-lg p-2 text-foreground transition-colors hover:bg-muted lg:hidden"
+          className="rounded-lg p-2 text-foreground transition-colors hover:bg-muted xl:hidden"
           aria-expanded={open}
           aria-controls="mobile-navigation"
           aria-label="Toggle menu"
@@ -207,7 +209,7 @@ export function SiteHeader() {
       {open && (
         <div
           id="mobile-navigation"
-          className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background/98 p-4 shadow-2xl backdrop-blur-lg pb-28 lg:hidden"
+          className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-border bg-background/98 p-4 shadow-2xl backdrop-blur-lg pb-28 xl:hidden"
         >
           <div className="space-y-5">
             {/* Quick Search */}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -91,6 +91,24 @@ const FAQS = [
 
 function AiWorkflowDiagnostic() {
   const [leadEmail, setLeadEmail] = useState("");
+  // One precheck event per distinct email per page load — the onChange
+  // validator fires per keystroke, but analytics should record the check,
+  // not the typing.
+  const firedPrecheckEmails = useRef(new Set<string>());
+
+  const firePrecheckEvent = () => {
+    const email = leadEmail.trim().toLowerCase();
+    if (!email || !validationResult) return;
+    // Stale guard: only record when the shown result matches what's in the box.
+    if (validationResult.email.trim().toLowerCase() !== email) return;
+    if (firedPrecheckEmails.current.has(email)) return;
+    firedPrecheckEmails.current.add(email);
+    trackEvent("lead_qualified", {
+      status: validationResult.status,
+      domain: validationResult.domain,
+      source: "diagnostic_precheck",
+    });
+  };
   const [userGeo, setUserGeo] = useState<UserGeoLocation | null>(null);
   const [validationResult, setValidationResult] = useState<{
     valid: boolean;
@@ -183,6 +201,7 @@ function AiWorkflowDiagnostic() {
                         setValidationResult(null);
                       }
                     }}
+                    onBlur={firePrecheckEvent}
                     className="text-xs font-mono"
                   />
                 </div>

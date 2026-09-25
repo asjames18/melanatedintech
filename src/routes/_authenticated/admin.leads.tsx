@@ -233,7 +233,7 @@ function LeadCard({ lead }: { lead: ServiceLeadRecord }) {
         won: "pilot_launched",
       };
       const event = eventByStatus[status];
-      if (event) trackEvent(event, { service_model: lead.service_model, funnel_stage: status });
+      if (event) trackEvent(event, { service_model: lead.service_model, funnel_stage: status, source: "admin_console" });
       toast.success("Lead updated.");
     },
     onError: (error) =>

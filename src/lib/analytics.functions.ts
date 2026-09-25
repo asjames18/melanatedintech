@@ -239,21 +239,28 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
     // Daily trend buckets
     const dailyMap = new Map<string, { totalEvents: number; toolRuns: number; leadsChecked: number; conversions: number }>();
 
-    // Lead quality breakdown
+    // Lead quality breakdown — buckets only fill when the lead_qualified
+    // event carries a domain status (diagnostic pre-check). Events fired
+    // without one (e.g. admin-console qualification) count toward
+    // totalChecks and are surfaced as unlabeled instead of vanishing.
     const leadQuality = {
       totalChecks: 0,
       corporate: 0,
       personal: 0,
       inactive: 0,
       invalid: 0,
+      unlabeled: 0,
     };
 
-    // Funnel metrics
+    // Funnel metrics — every stage counts events from the analytics stream.
+    // Purchases intentionally come from live Stripe entitlements, not events,
+    // so test-mode checkouts and free grants can never masquerade as revenue.
     const funnel = {
       diagnosticViews: 0,
       leadsQualified: 0,
       demosRequested: 0,
       purchasesCompleted: 0,
+      testOrFreeGrants: 0,
     };
 
     const TOOL_EVENT_NAMES = new Set([
@@ -376,25 +383,24 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions)
       .slice(0, 10);
 
-    // Query database user account, community, and exact event counts in parallel
+    // Query database user account, community, purchase, and exact event counts in parallel.
+    // Purchase counts split live Stripe checkouts from test/free grants so the
+    // funnel can never show a test purchase as revenue.
     const [
       exactEventsRes,
-      leadPrechecksCountRes,
       profilesTotalRes,
       profilesNewRes,
       recentUsersRes,
       waitlistRes,
-      entitlementsRes,
+      livePaidPurchasesAllTimeRes,
+      livePaidPurchasesRes,
+      entitlementsWindowRes,
       postsRes,
       commentsRes,
       geoLeadsRes,
     ] = await Promise.all([
       (async () => {
         try { return await supabaseAdmin.from("analytics_events").select("id", { count: "exact", head: true }).gte("occurred_at", since); }
-        catch { return { count: null }; }
-      })(),
-      (async () => {
-        try { return await supabaseAdmin.from("service_system_lead_events" as never).select("id", { count: "exact", head: true }).gte("created_at", since); }
         catch { return { count: null }; }
       })(),
       (async () => {
@@ -414,8 +420,16 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         catch { return { count: 0 }; }
       })(),
       (async () => {
-        try { return await supabaseAdmin.from("user_entitlements").select("id"); }
-        catch { return { data: [] }; }
+        try { return await supabaseAdmin.from("user_entitlements").select("id", { count: "exact", head: true }).eq("environment", "live").not("stripe_session_id", "is", null); }
+        catch { return { count: null }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("user_entitlements").select("id", { count: "exact", head: true }).eq("environment", "live").not("stripe_session_id", "is", null).gte("created_at", since); }
+        catch { return { count: null }; }
+      })(),
+      (async () => {
+        try { return await supabaseAdmin.from("user_entitlements").select("id", { count: "exact", head: true }).gte("created_at", since); }
+        catch { return { count: null }; }
       })(),
       (async () => {
         try { return await supabaseAdmin.from("discussion_posts").select("id", { count: "exact", head: true }); }
@@ -431,16 +445,23 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
       })(),
     ]);
 
-    const totalPurchasesCount = (entitlementsRes as { data?: Array<unknown> }).data?.length ?? 0;
-    const dbLeadPrechecksCount = leadPrechecksCountRes.count ?? 0;
+    const livePaidPurchasesAllTime = livePaidPurchasesAllTimeRes.count ?? 0;
+    const livePaidPurchases = livePaidPurchasesRes.count ?? 0;
+    const entitlementsInWindow = entitlementsWindowRes.count ?? 0;
 
-    if (funnel.purchasesCompleted === 0 && totalPurchasesCount > 0) {
-      funnel.purchasesCompleted = totalPurchasesCount;
-    }
-    if (funnel.leadsQualified === 0 && dbLeadPrechecksCount > 0) {
-      funnel.leadsQualified = dbLeadPrechecksCount;
-      leadQuality.totalChecks = dbLeadPrechecksCount;
-    }
+    // Funnel stage 4 is money truth: live Stripe checkouts in the window.
+    // Anything else granted in the window (test-mode checkouts, free packs)
+    // is reported separately so it can never read as revenue.
+    funnel.purchasesCompleted = livePaidPurchases;
+    funnel.testOrFreeGrants = Math.max(0, entitlementsInWindow - livePaidPurchases);
+
+    // Leads the breakdown could not classify (e.g. admin-console
+    // qualifications, which carry no domain status) are unlabeled, not lost.
+    leadQuality.unlabeled = Math.max(
+      0,
+      leadQuality.totalChecks -
+        (leadQuality.corporate + leadQuality.personal + leadQuality.inactive + leadQuality.invalid),
+    );
 
     const userData = {
       totalUsers: profilesTotalRes.count ?? 0,
@@ -453,7 +474,7 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         createdAt: u.created_at,
       })),
       totalWaitlist: waitlistRes.count ?? 0,
-      totalPurchases: totalPurchasesCount,
+      totalPurchases: livePaidPurchasesAllTime,
       totalPosts: postsRes.count ?? 0,
       totalComments: commentsRes.count ?? 0,
       topCountries: [] as Array<{ country: string; count: number }>,
@@ -476,7 +497,7 @@ export const adminAnalyticsSummary = createServerFn({ method: "GET" })
         clicks: totalClicks,
         ctr: totalImpressions ? totalClicks / totalImpressions : 0,
         toolRuns: totalToolRuns,
-        leadChecks: leadQuality.totalChecks || dbLeadPrechecksCount,
+        leadChecks: leadQuality.totalChecks,
       },
       bySurface,
       topItems,

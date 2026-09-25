@@ -52,6 +52,7 @@ import {
   XCircle,
   CheckCircle2,
   Info,
+  HelpCircle,
   PlusCircle,
 } from "lucide-react";
 
@@ -152,6 +153,13 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
   const personalPct = ((data?.leadQuality.personal ?? 0) / leadTotals) * 100;
   const inactivePct = ((data?.leadQuality.inactive ?? 0) / leadTotals) * 100;
   const invalidPct = ((data?.leadQuality.invalid ?? 0) / leadTotals) * 100;
+  const unlabeledPct = ((data?.leadQuality.unlabeled ?? 0) / leadTotals) * 100;
+
+  // Stage-to-stage funnel rates. Each stage counts its own event source, so a
+  // stage can exceed the one before it — rates describe step conversion, not
+  // a strict subset. "—" means the previous step had zero to convert from.
+  const stageRate = (n: number, d: number) =>
+    d > 0 ? `${Math.round((n / d) * 100)}%` : "—";
 
   const handleTestGa4Stream = () => {
     setTestingGa(true);
@@ -432,7 +440,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                 </span>
               </div>
               <p className="text-xs text-slate-400 mb-6">
-                Step-by-step conversion progression from audit landing views to paid pilot conversions.
+                Step-by-step conversion progression from audit landing views to live paid purchases. Rates are step-to-step; each stage counts its own event source, so a stage can exceed the one before it.
               </p>
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -450,7 +458,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Ran lead score & DNS check"
                   count={data?.funnel.leadsQualified ?? 0}
                   color="emerald"
-                  conversionRate={`${Math.round(((data?.funnel.leadsQualified ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
+                  conversionRate={stageRate(data?.funnel.leadsQualified ?? 0, data?.funnel.diagnosticViews ?? 0)}
                 />
                 <FunnelStep
                   stepNumber={3}
@@ -458,18 +466,21 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   subtext="Submitted build request"
                   count={data?.funnel.demosRequested ?? 0}
                   color="violet"
-                  conversionRate={`${Math.round(((data?.funnel.demosRequested ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
+                  conversionRate={stageRate(data?.funnel.demosRequested ?? 0, data?.funnel.leadsQualified ?? 0)}
                 />
                 <FunnelStep
                   stepNumber={4}
-                  title="Paid Deployments"
-                  subtext="Completed checkout"
+                  title="Paid Purchases"
+                  subtext="Live Stripe checkouts in window"
                   count={data?.funnel.purchasesCompleted ?? 0}
                   color="emerald"
-                  conversionRate={`${Math.round(((data?.funnel.purchasesCompleted ?? 0) / Math.max(1, data?.funnel.diagnosticViews ?? 1)) * 100)}%`}
+                  conversionRate={stageRate(data?.funnel.purchasesCompleted ?? 0, data?.funnel.demosRequested ?? 0)}
                   highlight
                 />
               </div>
+              <p className="mt-4 text-[11px] text-slate-500">
+                Test-mode checkouts & free grants in window: <span className="font-mono font-bold text-slate-300">{data?.funnel.testOrFreeGrants ?? 0}</span> — excluded from Paid Purchases so tests never read as revenue.
+              </p>
             </div>
           </div>
         )}
@@ -621,17 +632,17 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   <div className="rounded-xl border border-slate-800 bg-slate-950/90 p-5 shadow-xl">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-emerald-400" /> Live GA4 Event Stream Console
+                        <Activity className="h-4 w-4 text-emerald-400" /> Console Test Pings (this session)
                       </h4>
                       <span className="text-[11px] font-mono text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                        {livePings.length} Events Dispatched
+                        {livePings.length} Test Pings Sent
                       </span>
                     </div>
 
                     <div className="space-y-2">
                       {livePings.length === 0 ? (
                         <p className="rounded-lg border border-slate-800/80 bg-slate-900/60 p-4 text-xs text-slate-400">
-                          No events yet — interact with the site or send a test ping.
+                          No test pings sent from this console yet this session. Visitor events stream to GA4 automatically via gtag.js — verify live traffic in the GA4 dashboard above.
                         </p>
                       ) : (
                         livePings.map((p, i) => (
@@ -736,9 +747,9 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                 Icon={UserPlus}
               />
               <UserSummaryCard
-                label="Purchased Licenses"
+                label="Live Paid Purchases"
                 value={data?.userData.totalPurchases ?? 0}
-                subtext="Active software entitlements"
+                subtext="Live Stripe checkouts, all time"
                 Icon={ShoppingBag}
               />
               <UserSummaryCard
@@ -852,7 +863,7 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                   </span>
                 </div>
                 <p className="text-xs text-slate-400 mb-6">
-                  Validation breakdown across lead email domains submitted to LeadFlow & Diagnostic audits.
+                  Domain classification from diagnostic pre-checks. Leads qualified in the admin console carry no domain status and show as unlabeled.
                 </p>
 
                 <div className="space-y-4">
@@ -909,6 +920,20 @@ function normalizeLookerEmbedUrl(rawUrl: string): string {
                     </div>
                     <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
                       <div className="h-full rounded-full bg-rose-500 transition-all duration-500" style={{ width: `${Math.max(2, invalidPct)}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-400 flex items-center gap-2">
+                        <HelpCircle className="h-4 w-4" /> Unlabeled (no domain check — e.g. admin-qualified)
+                      </span>
+                      <span className="font-mono font-bold text-white">
+                        {data?.leadQuality.unlabeled ?? 0} ({unlabeledPct.toFixed(1)}%)
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div className="h-full rounded-full bg-slate-500 transition-all duration-500" style={{ width: `${Math.max(2, unlabeledPct)}%` }} />
                     </div>
                   </div>
                 </div>
@@ -1295,7 +1320,7 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   lines.push(row(["Total Registered Accounts", data.userData.totalUsers]));
   lines.push(row(["New Users in Period", data.userData.newUsersPeriod]));
   lines.push(row(["Waitlist Signups", data.userData.totalWaitlist]));
-  lines.push(row(["Purchased Entitlements", data.userData.totalPurchases]));
+  lines.push(row(["Purchased Entitlements (live Stripe, all time)", data.userData.totalPurchases]));
   lines.push(row(["Interactive Tool Runs", data.totals.toolRuns ?? 0]));
   lines.push(row(["Lead Prechecks", data.totals.leadChecks ?? 0]));
   lines.push(row(["Impressions", data.totals.impressions]));
@@ -1309,6 +1334,7 @@ function downloadAnalyticsCsv(data: Summary, days: number) {
   lines.push(row(["Personal Account (@gmail.com)", data.leadQuality.personal]));
   lines.push(row(["Inactive / Unregistered", data.leadQuality.inactive]));
   lines.push(row(["Invalid Syntax", data.leadQuality.invalid]));
+  lines.push(row(["Unlabeled (no domain check)", data.leadQuality.unlabeled]));
   lines.push("");
 
   lines.push("Recent Member Registrations");
@@ -1356,16 +1382,19 @@ function downloadExecutiveBriefMd(data: Summary, days: number) {
   lines.push(`- **Overall Click-Through Rate (CTR)**: ${(data.totals.ctr * 100).toFixed(2)}%`);
   lines.push("");
   lines.push("## Platform Conversion Funnel");
+  const briefRate = (n: number, d: number) => (d > 0 ? `${Math.round((n / d) * 100)}% step-to-step` : "—");
   lines.push(`1. **Diagnostic Visitors**: ${data.funnel.diagnosticViews}`);
-  lines.push(`2. **Prechecked Leads**: ${data.funnel.leadsQualified} (${Math.round(((data.funnel.leadsQualified ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
-  lines.push(`3. **Demos & Sprints Requested**: ${data.funnel.demosRequested} (${Math.round(((data.funnel.demosRequested ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
-  lines.push(`4. **Paid Deployments**: ${data.funnel.purchasesCompleted} (${Math.round(((data.funnel.purchasesCompleted ?? 0) / Math.max(1, data.funnel.diagnosticViews ?? 1)) * 100)}% conversion rate)`);
+  lines.push(`2. **Prechecked Leads**: ${data.funnel.leadsQualified} (${briefRate(data.funnel.leadsQualified ?? 0, data.funnel.diagnosticViews ?? 0)})`);
+  lines.push(`3. **Demos & Sprints Requested**: ${data.funnel.demosRequested} (${briefRate(data.funnel.demosRequested ?? 0, data.funnel.leadsQualified ?? 0)})`);
+  lines.push(`4. **Paid Purchases**: ${data.funnel.purchasesCompleted} (${briefRate(data.funnel.purchasesCompleted ?? 0, data.funnel.demosRequested ?? 0)})`);
+  lines.push(`- Test-mode & free grants in window (excluded above): ${data.funnel.testOrFreeGrants ?? 0}`);
   lines.push("");
   lines.push("## Lead Quality Health");
   lines.push(`- **Corporate Domain Leads**: ${data.leadQuality.corporate}`);
   lines.push(`- **Personal Account Leads**: ${data.leadQuality.personal}`);
   lines.push(`- **Inactive / Unregistered Leads**: ${data.leadQuality.inactive}`);
   lines.push(`- **Invalid DNS / Bounced**: ${data.leadQuality.invalid}`);
+  lines.push(`- **Unlabeled (no domain check)**: ${data.leadQuality.unlabeled ?? 0}`);
   lines.push("");
   lines.push("## Top Interactive Tools");
   (data.topTools ?? []).forEach((t, i) => {

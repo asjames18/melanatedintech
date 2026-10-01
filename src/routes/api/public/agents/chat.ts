@@ -28,9 +28,16 @@ const RATE_AUTHED = { max: 30, windowMs: 60_000 };
  * (OpenAI, Anthropic, non-free OpenRouter) are reserved for callers with a
  * verified entitlement to the specific agent configured to use them.
  */
+// Bare OpenRouter ids for the models this endpoint routes between. The
+// paid bundle pair and the free-tier primary are named once here; every
+// "openrouter/..." string in this file derives from these.
+const BUNDLE_MODEL_ID = "deepseek/deepseek-v4.1-flash";
+const BUNDLE_FALLBACK_MODEL_ID = "z-ai/glm-5.3-flash";
+const FREE_MODEL_ID = "stealth/space-bunny-alpha";
+
 function isFreeModel(model: string): boolean {
   const id = model.startsWith("openrouter/") ? model.slice("openrouter/".length) : model;
-  return id === "openrouter/free" || id === "free" || id.endsWith(":free");
+  return id === "openrouter/free" || id === "free" || id === FREE_MODEL_ID || id.endsWith(":free");
 }
 
 // AppSumo bundle SKU: weekly conversation allowance for bundle redeemers.
@@ -38,15 +45,30 @@ function isFreeModel(model: string): boolean {
 // consume the allowance. Resets every Monday (America/New_York).
 const BUNDLE_WEEKLY_LIMIT = 200;
 
-// The paid model bundle redeemers run on within their weekly allowance.
-// Picked on measured merit, not brand: gpt-oss-20b scored perfect tool-call
-// consistency across repeated independent evals (the top capability for
-// agents), rides 12 OpenRouter providers, and costs ~7x less than GPT-4o Mini.
-// Reasoning effort stays low so per-conversation cost stays predictable —
-// reasoning tokens are billed, and unbounded thinking would break the
-// lifetime-deal economics.
-const BUNDLE_MODEL = "openrouter/openai/gpt-oss-20b";
-const BUNDLE_REASONING_EFFORT = "low";
+// The paid models bundle redeemers run on within their weekly allowance.
+// Picked by measurement, not brand: in the 2026-10-01 bake-off (the five
+// quality tasks, exact live prompts), DeepSeek V4.1 Flash and GLM 5.3 Flash
+// were the only models to pass all five. DeepSeek was also the fastest
+// passer and the cheapest paid input ($0.03/$0.50 per 1M tokens), so it is
+// the primary; GLM is slower (up to ~50s) but equally disciplined, so it is
+// the paid fallback — one retry when the primary errors or answers empty.
+// GPT-OSS 20B and 120B failed the same fabrication tasks across three
+// prompt revisions; quality, not price, decided this.
+// The free tier rides Space Bunny Alpha: free today and strong when it
+// answers, but a stealth preview (no SLA; can be repriced or pulled
+// without notice) with occasional empty replies. Free calls therefore fall
+// back to the OpenRouter free router on error or empty content, so a Bunny
+// outage is never user-visible. Watch item: confirm
+// stealth/space-bunny-alpha is still listed in the OpenRouter catalog from
+// time to time; the fallback makes its removal a non-event either way.
+const BUNDLE_MODEL = `openrouter/${BUNDLE_MODEL_ID}`;
+const BUNDLE_FALLBACK_MODEL = `openrouter/${BUNDLE_FALLBACK_MODEL_ID}`;
+const FREE_MODEL = `openrouter/${FREE_MODEL_ID}`;
+// Reply cap for the bundle pair and the free primary: 1,000 tokens
+// truncated real deliverables mid-sentence in testing; 4,000 completes
+// them (bake-off verified at 3,000+ headroom). Agent-configured models
+// keep the historical 1,000.
+const EXTENDED_MAX_TOKENS = 4000;
 
 /**
  * Record one conversation for weekly-allowance metering. Best-effort:
@@ -334,10 +356,11 @@ export const Route = createFileRoute("/api/public/agents/chat")({
           !isFreeModel(selectedModel) &&
           !(ownsAgent && selectedModel === fallbackModel)
         ) {
-          selectedModel = "openrouter/openrouter/free";
+          selectedModel = FREE_MODEL;
         }
 
-        // Bundle redeemers run on the bundle model (GPT-OSS 20B), not the
+        // Bundle redeemers run on the bundle model (DeepSeek V4.1 Flash,
+        // GLM 5.3 Flash fallback), not the
         // agent's default paid model. Direct buyers keep the model their agent
         // is configured with — their purchase terms don't change. A redeemer
         // who explicitly picks a free model rides it without spending
@@ -357,7 +380,7 @@ export const Route = createFileRoute("/api/public/agents/chat")({
               bundleReservationId = reservationId;
             } else {
               cappedToFree = true;
-              selectedModel = "openrouter/openrouter/free";
+              selectedModel = FREE_MODEL;
             }
           }
         }
@@ -540,88 +563,96 @@ async function handleOpenRouterChat(
     return Response.json({ error: "OpenRouter API key not configured" }, { status: 503 });
   }
 
-  const callOpenRouter = async (modelName: string) => {
-    return await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-        "HTTP-Referer": "https://melanatedintech.com",
-        "X-Title": "Melanated in Tech",
-      },
-      body: JSON.stringify({
-        model: modelName,
-        messages,
-        max_tokens: 1000,
-        temperature,
-        // The bundle model is a reasoning model: cap thinking effort so
-        // billed reasoning tokens can't inflate per-conversation cost.
-        // (Measured: low effort holds quality on this model.)
-        ...(modelName === BUNDLE_MODEL.slice("openrouter/".length)
-          ? { reasoning: { effort: BUNDLE_REASONING_EFFORT } }
-          : {}),
-      }),
-    });
+  // One resilience retry per chat. The paid bundle model fails over to the
+  // paid fallback model; every other model fails over to the OpenRouter
+  // free router (the free primary is a stealth preview that can be pulled
+  // without notice, and this keeps its removal invisible to users). A
+  // reply counts as usable only when the provider answered AND returned
+  // non-empty content: an empty 200 is a failure here, never something a
+  // customer sees or the weekly allowance pays for.
+  const fallbackFor = (modelName: string): string | null =>
+    modelName === BUNDLE_MODEL_ID
+      ? BUNDLE_FALLBACK_MODEL_ID
+      : modelName === "openrouter/free"
+        ? null
+        : "openrouter/free";
+
+  const maxTokensFor = (modelName: string): number =>
+    modelName === BUNDLE_MODEL_ID ||
+    modelName === BUNDLE_FALLBACK_MODEL_ID ||
+    modelName === FREE_MODEL_ID
+      ? EXTENDED_MAX_TOKENS
+      : 1000;
+
+  const callOpenRouter = async (
+    modelName: string,
+  ): Promise<{ ok: boolean; status: number; content: string; usage: unknown }> => {
+    try {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "https://melanatedintech.com",
+          "X-Title": "Melanated in Tech",
+        },
+        body: JSON.stringify({
+          model: modelName,
+          messages,
+          max_tokens: maxTokensFor(modelName),
+          temperature,
+        }),
+      });
+      if (!res.ok) {
+        console.error(
+          "[agent-chat] OpenRouter error",
+          modelName,
+          res.status,
+          await res.text().catch(() => ""),
+        );
+        return { ok: false, status: res.status, content: "", usage: null };
+      }
+      const data = await res.json();
+      return {
+        ok: true,
+        status: res.status,
+        content: data.choices?.[0]?.message?.content ?? "",
+        usage: data.usage ?? null,
+      };
+    } catch (e) {
+      console.error("[agent-chat] OpenRouter fetch error", modelName, e);
+      return { ok: false, status: 0, content: "", usage: null };
+    }
   };
 
-  try {
-    let res = await callOpenRouter(model);
-    let activeModel = model;
-
-    // Automatic fallback to openrouter/free if the specific free model fails (rate limits, service issues, etc.)
-    if (!res.ok && model !== "openrouter/free") {
+  let activeModel = model;
+  let result = await callOpenRouter(model);
+  if (!result.ok || !result.content.trim()) {
+    const fallback = fallbackFor(model);
+    if (fallback) {
       console.warn(
-        `[agent-chat] OpenRouter model ${model} failed (status ${res.status}). Falling back to openrouter/free...`,
+        `[agent-chat] OpenRouter model ${model} unusable (${result.ok ? "empty reply" : `status ${result.status}`}). Retrying on ${fallback}...`,
       );
-      res = await callOpenRouter("openrouter/free");
-      activeModel = "openrouter/free";
-    }
-
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("[agent-chat] OpenRouter error", res.status, err);
-      return Response.json({ error: "AI provider error (OpenRouter)" }, { status: 502 });
-    }
-
-    const data = await res.json();
-    const content = data.choices?.[0]?.message?.content ?? "";
-
-    return Response.json({
-      role: "assistant",
-      content,
-      message: { role: "assistant", content },
-      model: activeModel,
-      activeModel,
-      usage: data.usage ?? null,
-    });
-  } catch (e) {
-    // Attempt fallback on network fetch error
-    if (model !== "openrouter/free") {
-      try {
-        console.warn(
-          `[agent-chat] OpenRouter network error for ${model}. Falling back to openrouter/free...`,
-          e,
-        );
-        const res = await callOpenRouter("openrouter/free");
-        if (res.ok) {
-          const data = await res.json();
-          const content = data.choices?.[0]?.message?.content ?? "";
-          return Response.json({
-            role: "assistant",
-            content,
-            message: { role: "assistant", content },
-            model: "openrouter/free",
-            activeModel: "openrouter/free",
-            usage: data.usage ?? null,
-          });
-        }
-      } catch (fallbackErr) {
-        console.error("[agent-chat] OpenRouter fallback failed", fallbackErr);
+      const retry = await callOpenRouter(fallback);
+      if (retry.ok) {
+        activeModel = fallback;
+        result = retry;
       }
     }
-    console.error("[agent-chat] OpenRouter fetch error", e);
-    return Response.json({ error: "AI request failed (OpenRouter)" }, { status: 502 });
   }
+
+  if (!result.ok) {
+    return Response.json({ error: "AI provider error (OpenRouter)" }, { status: 502 });
+  }
+
+  return Response.json({
+    role: "assistant",
+    content: result.content,
+    message: { role: "assistant", content: result.content },
+    model: activeModel,
+    activeModel,
+    usage: result.usage,
+  });
 }
 
 async function handleOpenAIChat(

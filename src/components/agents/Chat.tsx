@@ -32,9 +32,10 @@ type ChatProps = {
 };
 
 /** Paid model included with the AppSumo bundle (matches BUNDLE_MODEL server-side). */
-const BUNDLE_MODEL_VALUE = "openrouter/openai/gpt-oss-20b";
+const BUNDLE_MODEL_VALUE = "openrouter/deepseek/deepseek-v4.1-flash";
 
 const AVAILABLE_MODELS = [
+  { value: "openrouter/stealth/space-bunny-alpha", label: "Space Bunny Alpha (Free)" },
   { value: "openrouter/openrouter/free", label: "Auto Free (OpenRouter)" },
   { value: "openrouter/meta-llama/llama-3.3-70b-instruct:free", label: "Llama 3.3 70B (Free)" },
   { value: "openrouter/google/gemini-2.5-flash:free", label: "Gemini 2.5 Flash (Free)" },
@@ -58,7 +59,7 @@ export function Chat({
   bundleAllowance = 200,
 }: ChatProps) {
   const models = bundleMode
-    ? [{ value: BUNDLE_MODEL_VALUE, label: "GPT-OSS 20B (Bundle)" }, ...AVAILABLE_MODELS]
+    ? [{ value: BUNDLE_MODEL_VALUE, label: "DeepSeek V4.1 Flash (Bundle)" }, ...AVAILABLE_MODELS]
     : AVAILABLE_MODELS;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -132,8 +133,11 @@ export function Chat({
       // leave the visible counter alone, matching the server-side count.
       if (bundleMode) {
         const returnedModel = typeof data.activeModel === "string" ? data.activeModel : data.model;
+        // Bare ids the server reports for the bundle pair (primary +
+        // paid fallback); either one spends a weekly conversation.
         const usedBundleModel =
-          returnedModel === BUNDLE_MODEL_VALUE || returnedModel === "openai/gpt-oss-20b";
+          returnedModel === "deepseek/deepseek-v4.1-flash" ||
+          returnedModel === "z-ai/glm-5.3-flash";
         if (data.weeklyAllowanceExhausted) {
           setRemaining(0);
         } else if (

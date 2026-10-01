@@ -42,11 +42,11 @@ import { trackEvent } from "@/lib/analytics";
 
 const GUIDE_DATA = {
   whatItIs: "A visual multi-agent architecture designer and code generator for multi-agent workflows (Router, Orchestrator-Worker, Evaluator-Optimizer).",
-  whyUseIt: "Visualizes complex agent graph topologies, generates production Python & TypeScript code, and simulates multi-agent execution.",
+  whyUseIt: "Visualizes complex agent graph topologies, generates Python & TypeScript starter code, and walks through a scripted multi-agent execution trace.",
   howToUse: [
-    "Select an architecture blueprint pattern (Sequential Pipeline, Router, Orchestrator, Evaluator-Optimizer).",
+    "Select an architecture blueprint pattern (Single Agent, Sequential Chain, Router, Orchestrator-Workers, or Evaluator-Optimizer).",
     "Configure individual agent nodes by assigning custom system prompts, specialist roles, and attached tools.",
-    "Click 'Run Live Agent Simulation' to trace data flow, or export complete Python/TypeScript code.",
+    "Click 'Run Simulation' to walk through a scripted execution trace, or export starter Python/TypeScript code.",
   ],
 };
 
@@ -1122,7 +1122,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
       <PageHeader
         eyebrow="AI Agent & Multi-Agent Planner"
         title="Agent Architect."
-        description="Design multi-agent workflows visually. Select patterns like router, orchestrator, or evaluator, configure custom instructions and tools for each node, and generate production-ready code."
+        description="Design multi-agent workflows visually. Select patterns like router, orchestrator, or evaluator, configure custom instructions and tools for each node, and generate starter code."
       />
 
       <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -1790,6 +1790,7 @@ export async function executeAgentWorkflow(query: string): Promise<AgentState> {
                 </CardTitle>
                 <CardDescription>
                   Walk through step-by-step to see how data flows and how agents communicate.
+                  A scripted walkthrough of a pre-built scenario — not a live AI run.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

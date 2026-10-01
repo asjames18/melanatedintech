@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { FileText, Copy, Download, ShieldCheck, Sparkles, Building, CheckCircle2 } from "lucide-react";
+import { FileText, Copy, Download, Building } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
@@ -72,24 +72,27 @@ function PolicyGeneratorPage() {
 
   // Derived Policy Document
   const compiledPolicy = useMemo(() => {
+    const safeOrgName = orgName.trim() || "Organization";
+    const privacyRules = `${banPiiInput ? "### 3.1 Strict PII Protection\nUnder no circumstances may team members enter Personally Identifiable Information (PII), social security numbers, private customer credentials, financial account details, or protected health information into public AI models.\n" : ""}${requireDataRetentionOptOut ? "\n### 3.2 Enterprise Privacy Settings\nTeam members must ensure that model data-sharing / training opt-out toggles are enabled for all public model accounts to prevent internal organization data from being used in model training sets.\n" : ""}`;
+    const humanReviewRules = requireHumanReview ? "### 4.1 Mandatory Verification\nAll AI-generated outputs (written reports, software code, customer responses, marketing material) must undergo mandatory review by a qualified human team member prior to external publication, deployment, or customer delivery.\n" : "";
     const doc = `# ACCEPTABLE AI USE POLICY
-**Organization:** ${orgName.trim() || "Organization"}
+**Organization:** ${safeOrgName}
 **Classification:** ${orgType}
 **Effective Date:** ${effectiveDate}
 
 ---
 
 ## 1. PURPOSE & SCOPE
-This Acceptable AI Use Policy establishes clear operational guidelines for employees, contractors, and team members of ${orgName} regarding the adoption and deployment of Artificial Intelligence (AI) software, Generative AI models, and AI Agent workflows.
+This Acceptable AI Use Policy establishes clear operational guidelines for employees, contractors, and team members of ${safeOrgName} regarding the adoption and deployment of Artificial Intelligence (AI) software, Generative AI models, and AI Agent workflows.
 
 ## 2. PERMITTED AI UTILITIES
 The following tools and AI platforms are approved for operational use:
 ${allowPublicLlm ? "- **Commercial Assistants:** ChatGPT, Claude, Gemini for drafting, research, and analysis.\n" : ""}${allowCodeGenerators ? "- **Developer Automation:** GitHub Copilot, Cursor, and code assistant agents.\n" : ""}- **Internal Tools:** Approved custom agents developed or deployed on official organization workspaces.
 
 ## 3. DATA PRIVACY & CONFIDENTIALITY BOUNDARIES
-${banPiiInput ? "### 3.1 Strict PII Protection\nUnder no circumstances may team members enter Personally Identifiable Information (PII), social security numbers, private customer credentials, financial account details, or protected health information into public AI models.\n" : ""}${requireDataRetentionOptOut ? "\n### 3.2 Enterprise Privacy Settings\nTeam members must ensure that model data-sharing / training opt-out toggles are enabled for all public model accounts to prevent internal organization data from being used in model training sets.\n" : ""}
+${privacyRules || "*No privacy rules selected — enable options on the left to populate this section.*\n"}
 ## 4. HUMAN-IN-THE-LOOP & VERIFICATION OVERSIGHT
-${requireHumanReview ? "### 4.1 Mandatory Verification\nAll AI-generated outputs (written reports, software code, customer responses, marketing material) must undergo mandatory review by a qualified human team member prior to external publication, deployment, or customer delivery.\n" : ""}
+${humanReviewRules || "*No verification rules selected — enable options on the left to populate this section.*\n"}
 ## 5. TRANSPARENCY & ATTRIBUTION
 ${requireDisclosure ? "Team members must disclose when published content or customer-facing material was substantially generated or assisted by AI utilities.\n" : "AI utilities are intended as productivity augmentation tools; final responsibility for quality and compliance rests entirely with human authors."}
 
@@ -113,7 +116,7 @@ Violations of this policy will be reviewed by organizational leadership and may 
   };
 
   const handleDownload = () => {
-    const filename = `${orgName.toLowerCase().replace(/\s+/g, "-")}-acceptable-ai-policy.md`;
+    const filename = `${orgName.trim().toLowerCase().replace(/\s+/g, "-") || "org"}-acceptable-ai-policy.md`;
     const blob = new Blob([compiledPolicy], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -216,6 +219,13 @@ Violations of this policy will be reviewed by organizational leadership and may 
                   <Checkbox checked={requireDataRetentionOptOut} onCheckedChange={(c) => setRequireDataRetentionOptOut(!!c)} className="mt-0.5" />
                   <span className="text-xs font-medium text-foreground">
                     Require Model Training Opt-Out Settings
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <Checkbox checked={allowPublicLlm} onCheckedChange={(c) => setAllowPublicLlm(!!c)} className="mt-0.5" />
+                  <span className="text-xs font-medium text-foreground">
+                    Allow Public AI Assistants (ChatGPT, Claude, Gemini)
                   </span>
                 </label>
 

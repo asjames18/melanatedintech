@@ -19,8 +19,8 @@ const GUIDE_DATA = {
   whyUseIt: "Provides data-driven financial projections comparing estimated LLM API token costs against labor hours saved for business cases and leadership approval.",
   howToUse: [
     "Adjust team size and average employee hourly wage sliders.",
-    "Select your target LLM API model (GPT-4o, Claude 3.5 Sonnet, Llama 3.3 70B, etc.) and estimated daily queries.",
-    "Review monthly API costs vs. labor savings to see your Net Annual ROI ($) and Payback Period.",
+    "Select your target LLM API model (GPT-4o, Claude Sonnet 4.5, Llama 3.3 70B, etc.) and estimated daily queries.",
+    "Review monthly API costs vs. labor savings to see your Net Annual ROI ($) and ROI multiplier.",
   ],
 };
 
@@ -49,13 +49,12 @@ export const Route = createFileRoute("/tools/roi-calculator")({
 });
 
 const FALLBACK_MODELS: LlmModelPricing[] = [
-  { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "GOOGLE", promptPricePerM: 0.15, completionPricePerM: 0.60, contextLength: 1000000 },
+  { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "GOOGLE", promptPricePerM: 0.30, completionPricePerM: 2.50, contextLength: 1048576 },
   { id: "openai/gpt-4o-mini", name: "GPT-4o mini", provider: "OPENAI", promptPricePerM: 0.15, completionPricePerM: 0.60, contextLength: 128000 },
-  { id: "anthropic/claude-3.5-haiku", name: "Claude 3.5 Haiku", provider: "ANTHROPIC", promptPricePerM: 0.80, completionPricePerM: 4.00, contextLength: 200000 },
+  { id: "anthropic/claude-sonnet-4.5", name: "Claude Sonnet 4.5", provider: "ANTHROPIC", promptPricePerM: 3.00, completionPricePerM: 15.00, contextLength: 1000000 },
   { id: "openai/gpt-4o", name: "GPT-4o", provider: "OPENAI", promptPricePerM: 2.50, completionPricePerM: 10.00, contextLength: 128000 },
-  { id: "anthropic/claude-3.7-sonnet", name: "Claude 3.7 Sonnet", provider: "ANTHROPIC", promptPricePerM: 3.00, completionPricePerM: 15.00, contextLength: 200000 },
-  { id: "deepseek/deepseek-chat", name: "DeepSeek V3", provider: "DEEPSEEK", promptPricePerM: 0.14, completionPricePerM: 0.28, contextLength: 64000 },
-  { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B", provider: "META", promptPricePerM: 0.35, completionPricePerM: 0.40, contextLength: 128000 },
+  { id: "deepseek/deepseek-chat", name: "DeepSeek V3", provider: "DEEPSEEK", promptPricePerM: 0.27, completionPricePerM: 1.10, contextLength: 163840 },
+  { id: "meta-llama/llama-3.3-70b-instruct", name: "Llama 3.3 70B", provider: "META", promptPricePerM: 0.10, completionPricePerM: 0.32, contextLength: 131072 },
 ];
 
 function RoiCalculatorPage() {
@@ -68,6 +67,7 @@ function RoiCalculatorPage() {
 
   const [liveModels, setLiveModels] = useState<LlmModelPricing[]>(FALLBACK_MODELS);
   const [isLoadingModels, setIsLoadingModels] = useState<boolean>(false);
+  const [liveLoaded, setLiveLoaded] = useState<boolean>(false);
 
   const loadModels = (query?: string) => {
     setIsLoadingModels(true);
@@ -75,6 +75,7 @@ function RoiCalculatorPage() {
       .then((res) => {
         if (res && res.length > 0) {
           setLiveModels(res as LlmModelPricing[]);
+          setLiveLoaded(true);
         }
       })
       .catch((err) => console.warn("Failed fetching live LLM prices:", err))
@@ -132,7 +133,8 @@ function RoiCalculatorPage() {
 - Monthly LLM API Cost: $${metrics.monthlyApiCost.toFixed(2)}
 - Monthly Hours Saved: ${metrics.monthlyHoursSaved} hrs
 - Monthly Labor Value: $${metrics.monthlyLaborSavingsDollars.toLocaleString()}
-- Annual Net ROI: $${metrics.netAnnualSavings.toLocaleString()} (${metrics.roiMultiplier}x ROI)
+- Annual Net ROI: $${metrics.netAnnualSavings.toLocaleString()}
+- Value per $1 of API spend: ${metrics.roiMultiplier}x (gross)
 Calculated via Melanated in Tech ROI Tool.`;
 
     navigator.clipboard.writeText(summaryText).then(
@@ -168,7 +170,7 @@ Calculated via Melanated in Tech ROI Tool.`;
               <CardContent className="space-y-4">
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-semibold">
-                    <Label htmlFor="team-size flex items-center gap-1">
+                    <Label htmlFor="team-size">
                       <Users className="h-3.5 w-3.5 inline mr-1 text-primary" /> Team Size
                     </Label>
                     <span className="font-mono text-primary">{teamSize} people</span>
@@ -237,9 +239,15 @@ Calculated via Melanated in Tech ROI Tool.`;
                     <Label htmlFor="model-select" className="text-xs font-semibold flex items-center gap-1.5">
                       <Cpu className="h-3.5 w-3.5 text-primary" /> AI Model & Live Pricing
                     </Label>
-                    <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                      <Globe className="h-3 w-3" /> Live OpenRouter API
-                    </span>
+                    {liveLoaded ? (
+                      <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Globe className="h-3 w-3" /> Live OpenRouter API
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-mono text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <Globe className="h-3 w-3" /> Reference pricing
+                      </span>
+                    )}
                   </div>
 
                   {/* Search Input for Models */}
@@ -360,7 +368,7 @@ Calculated via Melanated in Tech ROI Tool.`;
                     </div>
                   </div>
                   <p className="text-[11px] text-muted-foreground italic text-right pt-1">
-                    * Figures rounded for display; calculations use high-precision token and labor constants.
+                    * Figures rounded for display; assumes ~500 input and ~300 output tokens per query, 22 work days per month.
                   </p>
                 </div>
               </CardContent>

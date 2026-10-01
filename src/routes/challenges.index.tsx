@@ -36,7 +36,7 @@ function ChallengesIndex() {
 
       <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="space-y-4">
-          {challenges.map((challenge) => (
+          {challenges.map((challenge, idx) => (
             <Link
               key={challenge.id}
               to="/challenges/$slug"
@@ -46,7 +46,7 @@ function ChallengesIndex() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-wider text-muted-foreground">
-                    {challenge.related_category} / {statusFor(challenge)}
+                    {challenge.related_category} / {idx === 0 ? "Featured" : statusFor(challenge)}
                   </p>
                   <h2 className="mt-2 font-display text-2xl font-semibold">{challenge.title}</h2>
                   <p className="mt-2 text-sm text-muted-foreground">{challenge.excerpt}</p>

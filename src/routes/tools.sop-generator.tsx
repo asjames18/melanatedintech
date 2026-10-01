@@ -47,6 +47,14 @@ export const Route = createFileRoute("/tools/sop-generator")({
   component: SopGeneratorPage,
 });
 
+/** Split a comma-separated input into non-empty trimmed items (drops blanks from empty/trailing commas). */
+function listItems(csv: string) {
+  return csv
+    .split(",")
+    .map((t) => t.trim())
+    .filter((t) => t.length > 0);
+}
+
 function SopGeneratorPage() {
   const [workflowTitle, setWorkflowTitle] = useState("Inbound Customer Support & Lead Intake");
   const [teamName, setTeamName] = useState("Customer Operations Team");
@@ -75,7 +83,7 @@ The purpose of this SOP is to define clear operational boundaries between human 
 
 ### 2.1 AI Agent Scope (${agentName})
 The AI Agent is responsible for executing the following automated tasks:
-${agentTasks.split(",").map((t) => `- ${t.trim()}`).join("\n")}
+${listItems(agentTasks).map((t) => `- ${t}`).join("\n")}
 
 ### 2.2 Human Staff Scope (${humanRoles})
 Human team members are responsible for:
@@ -85,7 +93,7 @@ Human team members are responsible for:
 
 ## 3. ESCALATION TRIGGERS
 The AI Agent must immediately hand off execution to a human team member upon encountering any of the following conditions:
-${escalationTriggers.split(",").map((t) => `- 🚨 **Trigger:** ${t.trim()}`).join("\n")}
+${listItems(escalationTriggers).map((t) => `- 🚨 **Trigger:** ${t}`).join("\n")}
 
 ## 4. STEP-BY-STEP OPERATIONAL FLOW
 1. **Intake:** User query or task enters system via primary channel.
@@ -110,7 +118,8 @@ ${escalationTriggers.split(",").map((t) => `- 🚨 **Trigger:** ${t.trim()}`).jo
   };
 
   const handleDownload = () => {
-    const filename = `${workflowTitle.toLowerCase().replace(/\s+/g, "-")}-sop.md`;
+    const slug = workflowTitle.trim().toLowerCase().replace(/\s+/g, "-") || "sop";
+    const filename = `${slug}-sop.md`;
     const blob = new Blob([compiledSop], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");

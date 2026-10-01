@@ -63,6 +63,12 @@ const GUIDE_DATA = {
 };
 
 export const Route = createFileRoute("/tools/prompt-pilot")({
+  validateSearch: (search: Record<string, unknown>): { prompt?: string; title?: string } => ({
+    prompt:
+      typeof search.prompt === "string" && search.prompt.trim() ? search.prompt : undefined,
+    title:
+      typeof search.title === "string" && search.title.trim() ? search.title : undefined,
+  }),
   head: () => {
     const seo = buildSeoMeta({
       title: "Prompt Pilot — Melanated in Tech",
@@ -299,6 +305,18 @@ function PromptPilotPage() {
 
   // Local storage personal prompts
   const [localPrompts, setLocalPrompts] = useState<LocalPrompt[]>([]);
+
+  // Incoming prompt from the AI Playbook ("Edit in Pilot" handoff)
+  const { prompt: incomingPrompt, title: incomingTitle } = Route.useSearch();
+  useEffect(() => {
+    if (incomingPrompt && !promptContent) {
+      setPromptContent(incomingPrompt);
+      if (incomingTitle) setPromptName(incomingTitle);
+      toast.info(`Loaded prompt: ${incomingTitle ?? "AI Playbook"}`);
+    }
+    // Mount-only: never overwrite work-in-progress on later navigations.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Monitor Auth Session
   useEffect(() => {

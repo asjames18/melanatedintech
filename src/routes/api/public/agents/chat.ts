@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { StripeEnv } from "@/lib/stripe.server";
 
 type ChatMessage = {
@@ -30,6 +31,110 @@ const RATE_AUTHED = { max: 30, windowMs: 60_000 };
 function isFreeModel(model: string): boolean {
   const id = model.startsWith("openrouter/") ? model.slice("openrouter/".length) : model;
   return id === "openrouter/free" || id === "free" || id.endsWith(":free");
+}
+
+// AppSumo bundle SKU: weekly conversation allowance for bundle redeemers.
+// One API call = one conversation unit; free-tier fallback calls never
+// consume the allowance. Resets every Monday (America/New_York).
+const BUNDLE_WEEKLY_LIMIT = 200;
+
+// The paid model bundle redeemers run on within their weekly allowance.
+// Picked on measured merit, not brand: gpt-oss-20b scored perfect tool-call
+// consistency across repeated independent evals (the top capability for
+// agents), rides 12 OpenRouter providers, and costs ~7x less than GPT-4o Mini.
+// Reasoning effort stays low so per-conversation cost stays predictable —
+// reasoning tokens are billed, and unbounded thinking would break the
+// lifetime-deal economics.
+const BUNDLE_MODEL = "openrouter/openai/gpt-oss-20b";
+const BUNDLE_REASONING_EFFORT = "low";
+
+/**
+ * Record one conversation for weekly-allowance metering. Best-effort:
+ * failures are swallowed so metering can never break chat.
+ */
+async function logAgentUsage(
+  db: SupabaseClient,
+  userId: string,
+  agentSlug: string,
+  res: Response,
+): Promise<void> {
+  try {
+    const data = await res.clone().json();
+    const usage = data?.usage ?? {};
+    await db.from("agent_usage_log").insert({
+      user_id: userId,
+      agent_slug: agentSlug,
+      model: data?.activeModel ?? data?.model ?? "unknown",
+      input_tokens: usage?.prompt_tokens ?? usage?.input_tokens ?? null,
+      output_tokens: usage?.completion_tokens ?? usage?.output_tokens ?? null,
+    });
+  } catch {
+    // metering must never break chat
+  }
+}
+
+/**
+ * Atomically reserve one weekly-allowance conversation for a bundle
+ * redeemer (the reserve_bundle_conversation RPC counts + holds in a single
+ * transaction, so concurrent requests can't overshoot the limit). Returns
+ * the reservation id, or null when the allowance is exhausted or the
+ * reservation failed — either way the caller rides the free tier until the
+ * Monday reset.
+ */
+async function tryReserveBundleConversation(
+  db: SupabaseClient,
+  userId: string,
+  agentSlug: string,
+): Promise<string | null> {
+  try {
+    const { data: raw, error } = await db.rpc("reserve_bundle_conversation", {
+      p_user_id: userId,
+      p_agent_slug: agentSlug,
+      p_limit: BUNDLE_WEEKLY_LIMIT,
+    });
+    if (error) throw error;
+    const data = (raw ?? {}) as { allowed?: boolean; reservation_id?: string };
+    if (data.allowed === true && typeof data.reservation_id === "string") {
+      return data.reservation_id;
+    }
+    return null;
+  } catch (e) {
+    console.warn("[agent-chat] bundle reservation failed:", e);
+    return null;
+  }
+}
+
+/**
+ * Settle a bundle reservation after the provider responds. A usable
+ * assistant response finalizes the placeholder row with the real
+ * model/tokens (consuming one conversation); anything else deletes the row
+ * so a failed or empty response never consumes allowance.
+ */
+async function finalizeBundleReservation(
+  db: SupabaseClient,
+  reservationId: string,
+  res: Response,
+): Promise<void> {
+  try {
+    const data = await res.clone().json().catch(() => null);
+    const text = data?.content ?? data?.message?.content ?? "";
+    const usable = res.ok && typeof text === "string" && text.trim().length > 0;
+    if (!usable) {
+      await db.from("agent_usage_log").delete().eq("id", reservationId);
+      return;
+    }
+    const usage = data?.usage ?? {};
+    await db
+      .from("agent_usage_log")
+      .update({
+        model: data?.activeModel ?? data?.model ?? "unknown",
+        input_tokens: usage?.prompt_tokens ?? usage?.input_tokens ?? null,
+        output_tokens: usage?.completion_tokens ?? usage?.output_tokens ?? null,
+      })
+      .eq("id", reservationId);
+  } catch {
+    // metering must never break chat
+  }
 }
 
 export const Route = createFileRoute("/api/public/agents/chat")({
@@ -100,6 +205,20 @@ export const Route = createFileRoute("/api/public/agents/chat")({
         let fallbackModel = "openrouter/openrouter/free";
         // Only a verified owner of a premium agent may run that agent's paid model.
         let ownsAgent = false;
+        // AppSumo bundle: when the weekly conversation allowance is used up,
+        // the caller rides the free tier until the next Monday reset.
+        let cappedToFree = false;
+        // Reservation id from the atomic weekly-allowance hold (null unless
+        // this caller is a bundle redeemer inside their allowance). Settled
+        // after the provider responds: finalized on a usable response,
+        // released otherwise.
+        let bundleReservationId: string | null = null;
+        // Whether the caller redeemed the AppSumo bundle (drives the paid-model
+        // override below). Hoisted alongside cappedToFree.
+        let isBundleRedeemer = false;
+        // Metering: hoisted so usage can be logged after the provider responds.
+        let chatDb: SupabaseClient | null = null;
+        let logSlug: string | null = null;
 
         if (agent_slug === "platform-guide") {
           // MIT Assistant: the sitewide guide. Its prompt is built server-side
@@ -123,6 +242,7 @@ export const Route = createFileRoute("/api/public/agents/chat")({
           }
 
           const supabase = createClient(supabaseUrl, supabaseServiceKey);
+          chatDb = supabase;
 
           // Match the marketplace/detail-page visibility rule (published or
           // due-scheduled) rather than the legacy `active` flag, so any agent a
@@ -172,7 +292,23 @@ export const Route = createFileRoute("/api/public/agents/chat")({
             ownsAgent = true;
           }
 
+          // AppSumo bundle: redeemers are identified via
+          // redeem_codes.redeemed_by — the allowance applies only to them, not
+          // to direct one-time buyers, who keep the terms they purchased under.
+          if (ownsAgent && userId) {
+            const { data: bundleRow } = await supabase
+              .from("redeem_codes")
+              .select("code")
+              .eq("redeemed_by", userId)
+              .limit(1)
+              .maybeSingle();
+            if (bundleRow) {
+              isBundleRedeemer = true;
+            }
+          }
+
           agentName = agent.name;
+          logSlug = agent.slug;
           fallbackModel = agent.model ?? "openrouter/openrouter/free";
 
           // Build the system prompt. unlock_content is the PAID deliverable —
@@ -190,9 +326,40 @@ export const Route = createFileRoute("/api/public/agents/chat")({
         // Model policy: free-tier models for everyone; paid models (OpenAI,
         // Anthropic, non-free OpenRouter) only when the caller owns the agent
         // that is configured to use them — otherwise silently ride the free tier.
-        let selectedModel = model ?? fallbackModel;
-        if (!isFreeModel(selectedModel) && !(ownsAgent && selectedModel === fallbackModel)) {
+        // requestedModel is captured before the policy so the bundle branch
+        // below can tell an explicit bundle-model pick from a forced fallback.
+        const requestedModel = model ?? fallbackModel;
+        let selectedModel = requestedModel;
+        if (
+          !isFreeModel(selectedModel) &&
+          !(ownsAgent && selectedModel === fallbackModel)
+        ) {
           selectedModel = "openrouter/openrouter/free";
+        }
+
+        // Bundle redeemers run on the bundle model (GPT-OSS 20B), not the
+        // agent's default paid model. Direct buyers keep the model their agent
+        // is configured with — their purchase terms don't change. A redeemer
+        // who explicitly picks a free model rides it without spending
+        // allowance. The reservation is atomic (count + hold in one
+        // transaction), so concurrent requests can't overshoot the allowance;
+        // over the allowance, or if the reservation fails, the caller rides
+        // the free tier until the Monday reset: degraded, never a hard wall.
+        if (isBundleRedeemer && ownsAgent && chatDb && userId && logSlug) {
+          if (requestedModel === BUNDLE_MODEL || !isFreeModel(requestedModel)) {
+            selectedModel = BUNDLE_MODEL;
+            const reservationId = await tryReserveBundleConversation(
+              chatDb,
+              userId,
+              logSlug,
+            );
+            if (reservationId) {
+              bundleReservationId = reservationId;
+            } else {
+              cappedToFree = true;
+              selectedModel = "openrouter/openrouter/free";
+            }
+          }
         }
         const selectedTemperature =
           typeof temperature === "number" && Number.isFinite(temperature)
@@ -213,17 +380,55 @@ export const Route = createFileRoute("/api/public/agents/chat")({
         const isAnthropic = selectedModel.startsWith("claude");
         const isOpenRouter = selectedModel.startsWith("openrouter/") || (!isOpenAI && !isAnthropic);
 
-        if (isOpenAI) {
-          return await handleOpenAIChat(selectedModel, fullMessages, env, selectedTemperature);
-        }
-        if (isAnthropic) {
-          return await handleAnthropicChat(selectedModel, fullMessages, env, selectedTemperature);
-        }
-        if (isOpenRouter) {
-          const actualModel = selectedModel.startsWith("openrouter/")
-            ? selectedModel.substring("openrouter/".length)
-            : selectedModel;
-          return await handleOpenRouterChat(actualModel, fullMessages, env, selectedTemperature);
+        if (isOpenAI || isAnthropic || isOpenRouter) {
+          let providerRes: Response;
+          if (isOpenAI) {
+            providerRes = await handleOpenAIChat(
+              selectedModel,
+              fullMessages,
+              env,
+              selectedTemperature,
+            );
+          } else if (isAnthropic) {
+            providerRes = await handleAnthropicChat(
+              selectedModel,
+              fullMessages,
+              env,
+              selectedTemperature,
+            );
+          } else {
+            const actualModel = selectedModel.startsWith("openrouter/")
+              ? selectedModel.substring("openrouter/".length)
+              : selectedModel;
+            providerRes = await handleOpenRouterChat(
+              actualModel,
+              fullMessages,
+              env,
+              selectedTemperature,
+            );
+          }
+
+          // Metering: a bundle reservation settles now — finalized with the
+          // real model/tokens on a usable response, released otherwise so a
+          // failed or empty response never consumes allowance. Everyone else
+          // logs fire-and-forget. Either way, metering must never break chat.
+          if (bundleReservationId && chatDb) {
+            // Settle the hold before responding so the usage row reflects the
+            // real model (or is released) instead of lingering as __reserved__.
+            await finalizeBundleReservation(chatDb, bundleReservationId, providerRes);
+          } else if (chatDb && userId && logSlug) {
+            logAgentUsage(chatDb, userId, logSlug, providerRes).catch(() => {});
+          }
+
+          // Tell the UI when the weekly allowance is used up so it can say so
+          // honestly instead of silently answering on the free tier.
+          if (cappedToFree && providerRes.ok) {
+            const data = await providerRes.json().catch(() => null);
+            if (data && typeof data === "object") {
+              return Response.json({ ...data, weeklyAllowanceExhausted: true });
+            }
+          }
+          return providerRes;
         }
 
         return Response.json({ error: `Unsupported model: ${selectedModel}` }, { status: 400 });
@@ -349,6 +554,12 @@ async function handleOpenRouterChat(
         messages,
         max_tokens: 1000,
         temperature,
+        // The bundle model is a reasoning model: cap thinking effort so
+        // billed reasoning tokens can't inflate per-conversation cost.
+        // (Measured: low effort holds quality on this model.)
+        ...(modelName === BUNDLE_MODEL.slice("openrouter/".length)
+          ? { reasoning: { effort: BUNDLE_REASONING_EFFORT } }
+          : {}),
       }),
     });
   };

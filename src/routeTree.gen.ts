@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as CommunityRouteImport } from './routes/community'
@@ -29,6 +30,7 @@ import { Route as PathsRouteImport } from './routes/paths'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as ProofRouteImport } from './routes/proof'
+import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ScorecardRouteImport } from './routes/scorecard'
 import { Route as SearchRouteImport } from './routes/search'
@@ -147,6 +149,11 @@ const AgentsRoute = AgentsRouteImport.update({
   path: '/agents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApplyRoute = ApplyRouteImport.update({
+  id: '/apply',
+  path: '/apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -225,6 +232,11 @@ const ProductsRoute = ProductsRouteImport.update({
 const ProofRoute = ProofRouteImport.update({
   id: '/proof',
   path: '/proof',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedeemRoute = RedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RoadmapRoute = RoadmapRouteImport.update({
@@ -747,6 +759,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
@@ -763,6 +776,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/redeem': typeof RedeemRoute
   '/roadmap': typeof RoadmapRoute
   '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
@@ -865,6 +879,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/community-guidelines': typeof CommunityGuidelinesRoute
   '/contact': typeof ContactRoute
@@ -876,6 +891,7 @@ export interface FileRoutesByTo {
   '/open-commons': typeof OpenCommonsRoute
   '/privacy': typeof PrivacyRoute
   '/proof': typeof ProofRoute
+  '/redeem': typeof RedeemRoute
   '/roadmap': typeof RoadmapRoute
   '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
@@ -979,6 +995,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
   '/community': typeof CommunityRouteWithChildren
@@ -995,6 +1012,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/products': typeof ProductsRouteWithChildren
   '/proof': typeof ProofRoute
+  '/redeem': typeof RedeemRoute
   '/roadmap': typeof RoadmapRoute
   '/scorecard': typeof ScorecardRoute
   '/search': typeof SearchRoute
@@ -1100,6 +1118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/agents'
+    | '/apply'
     | '/auth'
     | '/challenges'
     | '/community'
@@ -1116,6 +1135,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/redeem'
     | '/roadmap'
     | '/scorecard'
     | '/search'
@@ -1218,6 +1238,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/apply'
     | '/auth'
     | '/community-guidelines'
     | '/contact'
@@ -1229,6 +1250,7 @@ export interface FileRouteTypes {
     | '/open-commons'
     | '/privacy'
     | '/proof'
+    | '/redeem'
     | '/roadmap'
     | '/scorecard'
     | '/search'
@@ -1331,6 +1353,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/agents'
+    | '/apply'
     | '/auth'
     | '/challenges'
     | '/community'
@@ -1347,6 +1370,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/products'
     | '/proof'
+    | '/redeem'
     | '/roadmap'
     | '/scorecard'
     | '/search'
@@ -1452,6 +1476,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRouteWithChildren
+  ApplyRoute: typeof ApplyRoute
   AuthRoute: typeof AuthRoute
   ChallengesRoute: typeof ChallengesRouteWithChildren
   CommunityRoute: typeof CommunityRouteWithChildren
@@ -1468,6 +1493,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   ProductsRoute: typeof ProductsRouteWithChildren
   ProofRoute: typeof ProofRoute
+  RedeemRoute: typeof RedeemRoute
   RoadmapRoute: typeof RoadmapRoute
   ScorecardRoute: typeof ScorecardRoute
   SearchRoute: typeof SearchRoute
@@ -1559,6 +1585,13 @@ declare module '@tanstack/react-router' {
       path: '/agents'
       fullPath: '/agents'
       preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apply': {
+      id: '/apply'
+      path: '/apply'
+      fullPath: '/apply'
+      preLoaderRoute: typeof ApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -1671,6 +1704,13 @@ declare module '@tanstack/react-router' {
       path: '/proof'
       fullPath: '/proof'
       preLoaderRoute: typeof ProofRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redeem': {
+      id: '/redeem'
+      path: '/redeem'
+      fullPath: '/redeem'
+      preLoaderRoute: typeof RedeemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/roadmap': {
@@ -2541,6 +2581,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRouteWithChildren,
+  ApplyRoute: ApplyRoute,
   AuthRoute: AuthRoute,
   ChallengesRoute: ChallengesRouteWithChildren,
   CommunityRoute: CommunityRouteWithChildren,
@@ -2557,6 +2598,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   ProductsRoute: ProductsRouteWithChildren,
   ProofRoute: ProofRoute,
+  RedeemRoute: RedeemRoute,
   RoadmapRoute: RoadmapRoute,
   ScorecardRoute: ScorecardRoute,
   SearchRoute: SearchRoute,

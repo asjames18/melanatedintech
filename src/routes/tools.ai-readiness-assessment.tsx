@@ -6,18 +6,9 @@ import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
-  BarChart3,
-  CheckCircle2,
-  AlertCircle,
-  HelpCircle,
   ArrowRight,
-  Sparkles,
-  Download,
   RotateCcw,
   ShieldCheck,
-  Zap,
-  TrendingUp,
-  FileCheck,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/ai-readiness-assessment")({
@@ -49,6 +40,7 @@ interface Question {
   pillar: string;
   question: string;
   options: { text: string; points: number; hint: string }[];
+  nextStep: string;
 }
 
 const QUESTIONS: Question[] = [
@@ -62,6 +54,7 @@ const QUESTIONS: Question[] = [
       { text: "Detailed step-by-step SOPs exist for 80%+ of key operations", points: 4, hint: "Ideal baseline for AI automation" },
       { text: "Workflows are mapped with clear inputs, outputs, and edge cases", points: 5, hint: "Ready for autonomous agent execution" },
     ],
+    nextStep: "Document one core workflow into a step-by-step SOP this week",
   },
   {
     id: "data",
@@ -73,6 +66,7 @@ const QUESTIONS: Question[] = [
       { text: "Organized in centralized databases/CRMs with structured fields", points: 4, hint: "High API query readiness" },
       { text: "Cleaned, indexed, with permissions and API access configured", points: 5, hint: "Production-ready knowledge base" },
     ],
+    nextStep: "Centralize your highest-value data into one structured source (CRM, shared drive, or knowledge base)",
   },
   {
     id: "tooling",
@@ -84,6 +78,7 @@ const QUESTIONS: Question[] = [
       { text: "Using low-code automation tools like Zapier, Make.com, or n8n", points: 4, hint: "Integrated workflow foundation" },
       { text: "API keys, webhooks, and custom model endpoints configured", points: 5, hint: "Full agentic orchestration capabilities" },
     ],
+    nextStep: "Connect one low-code automation (Zapier, Make, or n8n) to your most repetitive task",
   },
   {
     id: "literacy",
@@ -95,6 +90,7 @@ const QUESTIONS: Question[] = [
       { text: "Team regularly uses structured prompts and automated workflows", points: 4, hint: "Strong user adoption" },
       { text: "Dedicated AI champions build and refine custom agent workflows", points: 5, hint: "High internal innovation capacity" },
     ],
+    nextStep: "Run a 1-hour team session on structured prompting and AI collaboration",
   },
   {
     id: "governance",
@@ -106,6 +102,7 @@ const QUESTIONS: Question[] = [
       { text: "Official AI Acceptable Use Policy and vendor risk checklist in place", points: 4, hint: "Compliant & secure governance" },
       { text: "Strict zero-data-retention APIs, SOC2 compliance, and audit logs", points: 5, hint: "Enterprise security standard" },
     ],
+    nextStep: "Publish a one-page AI Acceptable Use Policy for the team",
   },
 ];
 
@@ -146,6 +143,16 @@ export function AIReadinessAssessment() {
     setSubmitted(true);
     trackEvent("tool_export", { tool: "ai_readiness_assessment", percentage, maturityLevel });
   };
+
+  // Per-pillar results drive the personalized breakdown on the scorecard.
+  // (submitted implies all 5 answered, so each entry is defined.)
+  const pillarResults = QUESTIONS.map((q) => ({
+    pillar: q.pillar,
+    points: answers[q.id] ?? 0,
+    nextStep: q.nextStep,
+  }));
+  const highestPillar = pillarResults.reduce((a, b) => (b.points > a.points ? b : a));
+  const lowestPillar = pillarResults.reduce((a, b) => (b.points < a.points ? b : a));
 
   const handleReset = () => {
     setAnswers({});
@@ -261,19 +268,19 @@ export function AIReadinessAssessment() {
                 <div className="rounded-xl border border-border bg-background p-4">
                   <p className="text-[11px] font-semibold uppercase text-muted-foreground">Highest Readiness Pillar</p>
                   <p className="mt-1 font-display text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                    Standardized Workflows & Knowledge
+                    {highestPillar.pillar}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-4">
                   <p className="text-[11px] font-semibold uppercase text-muted-foreground">Primary Bottleneck</p>
                   <p className="mt-1 font-display text-sm font-bold text-amber-600 dark:text-amber-400">
-                    API & Tool Orchestration Access
+                    {lowestPillar.pillar}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border bg-background p-4">
                   <p className="text-[11px] font-semibold uppercase text-muted-foreground">Next Action Step</p>
                   <p className="mt-1 font-display text-sm font-bold text-primary">
-                    Establish AI Governance & Policy
+                    {lowestPillar.nextStep}
                   </p>
                 </div>
               </div>
@@ -287,7 +294,7 @@ export function AIReadinessAssessment() {
                 <div className="flex flex-wrap gap-2">
                   <Link to="/diagnostic">
                     <Button className="gap-2 bg-emerald-600 text-xs font-bold text-white hover:bg-emerald-700">
-                      Book $297 Revenue Audit <ArrowRight className="h-4 w-4" />
+                      Book the $297 AI Workflow Diagnostic <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>
                   <Link to="/governance">

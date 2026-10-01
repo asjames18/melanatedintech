@@ -41,7 +41,7 @@ const GUIDE_DATA = {
   whatItIs: "A system instruction compiler for Custom GPTs, OpenAI Assistants, Claude Artifacts, and Ollama Modelfiles.",
   whyUseIt: "Enforces strict production safety guardrails (System Leak Protection, Scope Boundaries, PII Protection) and exports clean, structured instructions.",
   howToUse: [
-    "Define your agent's Role, Objective, Tone, and Knowledge Base context.",
+    "Define your agent's Role, Tone, Expertise areas, and Knowledge Base context.",
     "Enable Production Guardrail Presets to prevent prompt injection and unauthorized topic drift.",
     "Select your target export format (Markdown, OpenAI JSON, Claude, Ollama Modelfile) and click Copy or Download.",
   ],

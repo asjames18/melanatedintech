@@ -12,14 +12,12 @@ import { toast } from "sonner";
 import {
   PhoneCall,
   PhoneForwarded,
-  Volume2,
   Copy,
   Download,
+  FileText,
   Sparkles,
   Bot,
   Play,
-  CheckCircle2,
-  RefreshCw,
   Sliders,
   Code2,
 } from "lucide-react";
@@ -36,7 +34,7 @@ const GUIDE_DATA = {
     "Customize the Agent Name, Business Context, Voice Persona, and Primary Goal.",
     "Edit the Initial Greeting, Knowledge Rules, and Human Escalation/Transfer rules.",
     "Use the scripted call preview to walk through how your phone script handles each turn.",
-    "Export starter JSON configs for Vapi AI, Retell AI, or copy the plain text script.",
+    "Export starter JSON configs for Vapi AI, Retell AI, or OpenAI Realtime — or copy the plain text call script.",
   ],
 };
 
@@ -45,7 +43,7 @@ export const Route = createFileRoute("/tools/voice-agent-builder")({
     const seo = buildSeoMeta({
       title: "Voice AI Agent Call-Flow Builder — Melanated in Tech",
       description:
-        "Design, rehearse, and export starter phone voice AI agent call flows for Vapi and Retell AI.",
+        "Design, rehearse, and export starter phone voice AI agent call flows for Vapi AI, Retell AI, and OpenAI Realtime.",
       url: "/tools/voice-agent-builder",
     });
     return {
@@ -139,11 +137,19 @@ const PRESETS: Record<PresetKey, {
   },
 };
 
+type VoiceProvider = "vapi" | "retell" | "openai";
+
+const PROVIDER_META: Record<VoiceProvider, { label: string; account: string }> = {
+  vapi: { label: "VAPI", account: "ElevenLabs" },
+  retell: { label: "RETELL", account: "Retell" },
+  openai: { label: "OPENAI", account: "OpenAI" },
+};
+
 function VoiceAgentBuilderPage() {
   const [selectedPreset, setSelectedPreset] = useState<PresetKey>("ministry");
   const [agentName, setAgentName] = useState(PRESETS.ministry.agentName);
   const [businessName, setBusinessName] = useState(PRESETS.ministry.businessName);
-  const [voiceProvider, setVoiceProvider] = useState<"vapi" | "retell" | "openai">("vapi");
+  const [voiceProvider, setVoiceProvider] = useState<VoiceProvider>("vapi");
   const [voiceStyle, setVoiceStyle] = useState("Warm & Friendly");
   const [goal, setGoal] = useState(PRESETS.ministry.goal);
   const [greeting, setGreeting] = useState(PRESETS.ministry.greeting);
@@ -151,7 +157,6 @@ function VoiceAgentBuilderPage() {
   const [transferRule, setTransferRule] = useState(PRESETS.ministry.transferRule);
 
   // Simulator State
-  const [simIndex, setSimIndex] = useState(0);
   const [callActive, setCallActive] = useState(false);
   const [callLog, setCallLog] = useState<{ sender: "agent" | "caller"; text: string }[]>([]);
 
@@ -166,13 +171,11 @@ function VoiceAgentBuilderPage() {
     setTransferRule(p.transferRule);
     setCallActive(false);
     setCallLog([]);
-    setSimIndex(0);
     toast.success(`Loaded preset: ${p.name}`);
   };
 
   const startSimCall = () => {
     setCallActive(true);
-    setSimIndex(0);
     setCallLog([
       { sender: "agent", text: greeting },
     ]);
@@ -196,7 +199,6 @@ function VoiceAgentBuilderPage() {
 
     newLog.push({ sender: "agent", text: agentResponse });
     setCallLog(newLog);
-    setSimIndex((prev) => prev + 1);
   };
 
   const endSimCall = () => {
@@ -234,6 +236,42 @@ function VoiceAgentBuilderPage() {
     );
   }, [agentName, businessName, goal, voiceStyle, instructions, transferRule, greeting]);
 
+  // OpenAI Realtime API session starter payload
+  const openaiConfigJson = useMemo(() => {
+    return JSON.stringify(
+      {
+        model: "gpt-realtime",
+        instructions: `You are ${agentName}, a voice AI assistant calling on behalf of ${businessName}. Primary Goal: ${goal}. Tone/Persona: ${voiceStyle}. Instructions: ${instructions}. Escalation Rule: ${transferRule}`,
+        // Replace with a voice from your own OpenAI project before connecting.
+        voice: "REPLACE_WITH_YOUR_OPENAI_VOICE_ID",
+        modalities: ["audio", "text"],
+        input_audio_format: "pcm16",
+        output_audio_format: "pcm16",
+      },
+      null,
+      2
+    );
+  }, [agentName, businessName, goal, voiceStyle, instructions, transferRule]);
+
+  // Plain-text call script (the guide promises a plain script copy)
+  const callScript = useMemo(() => {
+    return [
+      `VOICE AGENT CALL SCRIPT — ${agentName} (${businessName})`,
+      "",
+      "GREETING",
+      greeting,
+      "",
+      "PRIMARY GOAL",
+      goal,
+      "",
+      "SYSTEM INSTRUCTIONS",
+      instructions,
+      "",
+      "HUMAN HANDOFF / TRANSFER RULE",
+      transferRule,
+    ].join("\n");
+  }, [agentName, businessName, greeting, goal, instructions, transferRule]);
+
   // Retell AI Configuration JSON Export
   const retellConfigJson = useMemo(() => {
     return JSON.stringify(
@@ -254,6 +292,10 @@ function VoiceAgentBuilderPage() {
       2
     );
   }, [agentName, businessName, goal, voiceStyle, instructions, transferRule, greeting]);
+
+  const providerMeta = PROVIDER_META[voiceProvider];
+  const exportConfigJson =
+    voiceProvider === "vapi" ? vapiConfigJson : voiceProvider === "retell" ? retellConfigJson : openaiConfigJson;
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -277,7 +319,7 @@ function VoiceAgentBuilderPage() {
       <PageHeader
         eyebrow="Interactive Voice Studio"
         title="Voice AI Agent Call-Flow Builder."
-        description="Design, rehearse, and export starter phone voice AI agent configs for Vapi AI and Retell AI, built for small businesses, ministries, and customer support."
+        description="Design, rehearse, and export starter phone voice AI agent configs for Vapi AI, Retell AI, and OpenAI Realtime, built for small businesses, ministries, and customer support."
       />
 
       <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
@@ -351,7 +393,7 @@ function VoiceAgentBuilderPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="provider">Target Platform</Label>
-                    <Select value={voiceProvider} onValueChange={(val: any) => setVoiceProvider(val)}>
+                    <Select value={voiceProvider} onValueChange={(val) => setVoiceProvider(val as VoiceProvider)}>
                       <SelectTrigger id="provider">
                         <SelectValue placeholder="Select platform" />
                       </SelectTrigger>
@@ -427,26 +469,33 @@ function VoiceAgentBuilderPage() {
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Code2 className="h-5 w-5 text-indigo-500" /> Platform Starter Config ({voiceProvider.toUpperCase()})
+                    <Code2 className="h-5 w-5 text-indigo-500" /> Platform Starter Config ({providerMeta.label})
                   </CardTitle>
                   <CardDescription>
                     A starting template. Replace every <code>REPLACE_WITH_*</code> value with an ID
-                    from your own {voiceProvider === "vapi" ? "ElevenLabs" : "Retell"} account before
+                    from your own {providerMeta.account} account before
                     importing.
                   </CardDescription>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(voiceProvider === "vapi" ? vapiConfigJson : retellConfigJson, `${voiceProvider.toUpperCase()} Config`)}
+                    onClick={() => copyToClipboard(exportConfigJson, `${providerMeta.label} Config`)}
                   >
                     <Copy className="h-4 w-4 mr-1" /> Copy JSON
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => downloadJson(voiceProvider === "vapi" ? vapiConfigJson : retellConfigJson, `${agentName.toLowerCase()}-${voiceProvider}-config.json`)}
+                    onClick={() => copyToClipboard(callScript, "call script")}
+                  >
+                    <FileText className="h-4 w-4 mr-1" /> Copy script
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadJson(exportConfigJson, `${(agentName.trim() || "agent").toLowerCase()}-${voiceProvider}-config.json`)}
                   >
                     <Download className="h-4 w-4 mr-1" /> Download
                   </Button>
@@ -454,7 +503,7 @@ function VoiceAgentBuilderPage() {
               </CardHeader>
               <CardContent>
                 <pre className="p-4 rounded-xl bg-slate-950 text-slate-100 font-mono text-xs overflow-x-auto max-h-56">
-                  {voiceProvider === "vapi" ? vapiConfigJson : retellConfigJson}
+                  {exportConfigJson}
                 </pre>
               </CardContent>
             </Card>

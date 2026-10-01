@@ -5,18 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
-import {
-  Calculator,
-  Users,
-  DollarSign,
-  TrendingUp,
-  Clock,
-  Zap,
-  Sparkles,
-  CheckCircle2,
-  HelpCircle,
-} from "lucide-react";
-
 export const Route = createFileRoute("/tools/multi-agent-calculator")({
   head: () => {
     const seo = buildSeoMeta({
@@ -51,7 +39,7 @@ export function MultiAgentCalculator() {
   const monthlyHumanHours = Math.round((tasksPerDay * (minutesPerHumanTask / 60) * 22)); // 22 working days
   const monthlyHumanCost = Math.round(monthlyHumanHours * humanHourlyRate);
 
-  // Estimated API token consumption (approx $0.02 per task execution)
+  // Estimated API token consumption (approx $0.05 per task execution per agent)
   const monthlyAgentApiCost = Math.round(tasksPerDay * 22 * 0.05 * agentCount);
   const monthlyHostingCost = 29; // Standard cloud worker hosting
   const totalMonthlyAgentCost = monthlyAgentApiCost + monthlyHostingCost;
@@ -86,6 +74,7 @@ export function MultiAgentCalculator() {
                   type="range"
                   min={1}
                   max={10}
+                  aria-label="Number of Active Agents"
                   value={agentCount}
                   onChange={(e) => setAgentCount(Number(e.target.value))}
                   className="mt-2 w-full accent-primary"
@@ -102,6 +91,7 @@ export function MultiAgentCalculator() {
                   min={10}
                   max={500}
                   step={10}
+                  aria-label="Automated Tasks per Day"
                   value={tasksPerDay}
                   onChange={(e) => setTasksPerDay(Number(e.target.value))}
                   className="mt-2 w-full accent-primary"
@@ -118,6 +108,7 @@ export function MultiAgentCalculator() {
                   min={20}
                   max={150}
                   step={5}
+                  aria-label="Estimated Human Staff Rate in dollars per hour"
                   value={humanHourlyRate}
                   onChange={(e) => setHumanHourlyRate(Number(e.target.value))}
                   className="mt-2 w-full accent-primary"
@@ -134,6 +125,7 @@ export function MultiAgentCalculator() {
                   min={5}
                   max={120}
                   step={5}
+                  aria-label="Human Time Per Task in minutes"
                   value={minutesPerHumanTask}
                   onChange={(e) => setMinutesPerHumanTask(Number(e.target.value))}
                   className="mt-2 w-full accent-primary"
@@ -185,6 +177,11 @@ export function MultiAgentCalculator() {
                   <span className="font-mono text-emerald-600 dark:text-emerald-400">+{roiPercentage}%</span>
                 </div>
               </div>
+              <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+                Modeling assumptions: 22 working days/month; ~$0.05 of API cost per
+                task execution per agent; ~$29/month hosting. These are estimates,
+                not your actual costs — adjust the inputs to match your setup.
+              </p>
             </div>
           </div>
         </div>

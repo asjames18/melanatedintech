@@ -26,9 +26,9 @@ const GUIDE_DATA = {
   whatItIs: "A side-by-side LLM sandbox for comparing responses, latency, and token cost economics across multiple AI models.",
   whyUseIt: "Enables objective benchmarking of model quality, generation speed, and API costs before deploying an agent to production.",
   howToUse: [
-    "Enter your System Prompt and User Test Query in the top control panel (or pick a Preset Benchmark).",
-    "Select different AI models for Column 1, Column 2, or Column 3 (e.g. Llama 3.3 70B, Gemini 2.0, Qwen 2.5).",
-    "Click 'Run Side-by-Side Comparison' to execute all models simultaneously and compare outputs and latency metrics.",
+    "Enter your System Prompt and User Test Query in the settings panel (or pick a Preset Benchmark).",
+    "Select different AI models for Column 1, Column 2, or Column 3 (e.g. Llama 3.3 70B, Gemini 2.5 Flash, Qwen 2.5 72B).",
+    "Click 'Run Comparison' to execute all models simultaneously and compare outputs and latency metrics.",
   ],
 };
 
@@ -74,7 +74,7 @@ export interface ModelSpec {
 const FREE_MODELS: ModelSpec[] = [
   { id: "google/gemini-2.5-flash:free", name: "Gemini 2.5 Flash", contextWindow: "1,000,000", speed: "~150 tok/s", pricing: "$0.15 / 1M tokens", specialty: "Fast Chat & Huge Context" },
   { id: "meta-llama/llama-3.3-70b-instruct:free", name: "Llama 3.3 70B", contextWindow: "128,000", speed: "~85 tok/s", pricing: "$0.40 / 1M tokens", specialty: "Open Source Generalist" },
-  { id: "deepseek/deepseek-chat:free", name: "DeepSeek V3", contextWindow: "64,000", speed: "~95 tok/s", pricing: "$0.14 / 1M tokens", specialty: "Coding & General Intelligence" },
+  { id: "deepseek/deepseek-chat:free", name: "DeepSeek V3", contextWindow: "64,000", speed: "~95 tok/s", pricing: "$0.27 in / $1.10 out", specialty: "Coding & General Intelligence" },
   { id: "deepseek/deepseek-r1:free", name: "DeepSeek R1", contextWindow: "64,000", speed: "~45 tok/s", pricing: "$0.55 / 1M tokens", specialty: "Chain of Thought Reasoning" },
   { id: "qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B", contextWindow: "128,000", speed: "~80 tok/s", pricing: "$0.35 / 1M tokens", specialty: "Multilingual & Complex Tasks" },
   { id: "openrouter/openrouter/free", name: "Auto Free Router", contextWindow: "Dynamic", speed: "Variable", pricing: "Free Auto-Selection", specialty: "Fallback Routing" },
@@ -548,6 +548,9 @@ function ModelPlaygroundPage() {
                   <h3 className="font-display text-lg font-bold text-foreground">Token Economics & Production Cost Estimator</h3>
                   <p className="text-xs text-muted-foreground">
                     Understand real-world production costs when scaling AI workflows from prototype to production.
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/80">
+                    Estimates assume ~100 input + ~100 output tokens per query.
                   </p>
                 </div>
               </div>

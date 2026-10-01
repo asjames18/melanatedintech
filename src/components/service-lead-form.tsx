@@ -39,10 +39,14 @@ const selectClass =
 export function ServiceLeadForm({
   initialSystem = "route-retention",
   showDemoOnSuccess = true,
+  submitLabel = "Request my demo",
+  eventName = "demo_requested",
   onSubmitted,
 }: {
   initialSystem?: ServiceSystemSlug;
   showDemoOnSuccess?: boolean;
+  submitLabel?: string;
+  eventName?: string;
   onSubmitted?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -97,7 +101,7 @@ export function ServiceLeadForm({
       });
       setDone(true);
       onSubmitted?.();
-      trackEvent("demo_requested", {
+      trackEvent(eventName, {
         service_model: form.service_model,
         industry_category: form.industry,
         source: attribution.source ?? "direct_or_other",
@@ -382,7 +386,7 @@ export function ServiceLeadForm({
         size="lg"
         className="w-full sm:w-auto"
       >
-        {loading ? "Submitting…" : "Request my demo"}
+        {loading ? "Submitting…" : submitLabel}
       </Button>
       <p className="text-xs leading-relaxed text-muted-foreground">
         We use this information to assess fit and prepare the relevant demonstration. We do not sell

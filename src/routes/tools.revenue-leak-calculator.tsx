@@ -89,6 +89,7 @@ export function RevenueLeakCalculator() {
                     min="10"
                     max="300"
                     step="5"
+                    aria-label="Monthly Inquiries (Calls / Forms)"
                     value={monthlyInquiries}
                     onChange={(e) => setMonthlyInquiries(Number(e.target.value))}
                     className="mt-2 w-full accent-primary"
@@ -105,6 +106,7 @@ export function RevenueLeakCalculator() {
                     min="100"
                     max="10000"
                     step="100"
+                    aria-label="Average Deal / Job Value ($)"
                     value={avgJobValue}
                     onChange={(e) => setAvgJobValue(Number(e.target.value))}
                     className="mt-2 w-full accent-primary"
@@ -123,6 +125,7 @@ export function RevenueLeakCalculator() {
                     min="5"
                     max="60"
                     step="5"
+                    aria-label="Missed Call / After-Hours Rate (%)"
                     value={missedCallRatePct}
                     onChange={(e) => setMissedCallRatePct(Number(e.target.value))}
                     className="mt-2 w-full accent-primary"
@@ -141,6 +144,7 @@ export function RevenueLeakCalculator() {
                     min="5"
                     max="60"
                     step="5"
+                    aria-label="Follow-Up Delay & Stale Quote Rate (%)"
                     value={slowFollowupPct}
                     onChange={(e) => setSlowFollowupPct(Number(e.target.value))}
                     className="mt-2 w-full accent-primary"
@@ -179,6 +183,11 @@ export function RevenueLeakCalculator() {
                   </p>
                 </div>
               </div>
+
+              <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+                Recoverable jobs assume 25% of leaking leads would convert with instant
+                follow-up — a modeling assumption, not your actual conversion rate.
+              </p>
 
               <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-5">
                 <div className="flex items-center gap-2">
@@ -258,7 +267,8 @@ function buildRevenueLeakReport(
 - **Annual Estimated Revenue Leak**: **$${annualLost.toLocaleString()} / year**
 
 ## Recommended Next Step
-Book a $297 Revenue Diagnostic to identify exact response bottlenecks and configure an automated SMS/voice dispatch system.
+Book the $297 Revenue Diagnostic to map your exact response friction — the fee is
+credited 100% toward a 30-Day Recovery Pilot that installs your recovery system.
 https://melanatedintech.com/diagnostic
 `;
 }

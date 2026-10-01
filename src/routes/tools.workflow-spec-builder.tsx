@@ -6,17 +6,15 @@ import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
-  Workflow,
   Sparkles,
   Copy,
   Check,
   Zap,
   ArrowRight,
-  Plus,
   Trash2,
-  Code2,
   FileJson,
   Layers,
+  Play,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/workflow-spec-builder")({
@@ -24,7 +22,7 @@ export const Route = createFileRoute("/tools/workflow-spec-builder")({
     const seo = buildSeoMeta({
       title: "AI Automation Workflow Spec Builder — Melanated in Tech",
       description:
-        "Visually build AI automation workflows and export ready-to-import blueprints for Zapier, Make.com, n8n, and webhooks.",
+        "Build AI automation workflow specs and export blueprint JSON to recreate in Zapier, Make.com, n8n, or webhooks.",
       url: "/tools/workflow-spec-builder",
     });
     return {
@@ -183,7 +181,7 @@ export function WorkflowSpecBuilder() {
       <PageHeader
         eyebrow="Interactive Workbench Tool"
         title="AI Automation Workflow Spec Builder"
-        description="Design visual AI automation pipelines and instantly export ready-to-import blueprints for Zapier, Make.com, n8n, or raw Webhooks."
+        description="Design AI automation pipelines and export spec blueprints for Zapier, Make.com, n8n, or raw Webhooks — recreate them in the platform or hand them to a builder."
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -191,10 +189,14 @@ export function WorkflowSpecBuilder() {
           {/* Builder Column */}
           <div className="space-y-6 lg:col-span-7">
             <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <label className="text-xs font-semibold uppercase tracking-wider text-primary">
+              <label
+                htmlFor="workflow-title"
+                className="text-xs font-semibold uppercase tracking-wider text-primary"
+              >
                 Workflow Title
               </label>
               <input
+                id="workflow-title"
                 type="text"
                 value={workflowName}
                 onChange={(e) => setWorkflowName(e.target.value)}
@@ -206,6 +208,14 @@ export function WorkflowSpecBuilder() {
                   Pipeline Steps ({steps.length})
                 </p>
                 <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addStep("trigger")}
+                    className="gap-1 text-xs"
+                  >
+                    <Play className="h-3.5 w-3.5 text-amber-500" /> + Trigger
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -261,7 +271,8 @@ export function WorkflowSpecBuilder() {
                       {steps.length > 1 && (
                         <button
                           onClick={() => removeStep(s.id)}
-                          className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                          aria-label="Remove step"
+                          className="text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -270,6 +281,7 @@ export function WorkflowSpecBuilder() {
 
                     <input
                       type="text"
+                      aria-label={`Step ${idx + 1} name`}
                       value={s.name}
                       onChange={(e) => updateStep(s.id, "name", e.target.value)}
                       className="mt-3 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-sm font-semibold focus:border-primary focus:outline-none"
@@ -277,6 +289,7 @@ export function WorkflowSpecBuilder() {
 
                     <textarea
                       rows={2}
+                      aria-label={`Step ${idx + 1} details`}
                       value={s.details}
                       onChange={(e) => updateStep(s.id, "details", e.target.value)}
                       className="mt-2 w-full rounded-lg border border-input bg-background px-3 py-1.5 text-xs text-muted-foreground focus:border-primary focus:outline-none"
@@ -302,6 +315,7 @@ export function WorkflowSpecBuilder() {
                   <button
                     key={p}
                     onClick={() => setPlatform(p)}
+                    aria-pressed={platform === p}
                     className={`rounded-lg border py-2 text-xs font-bold capitalize transition-colors ${
                       platform === p
                         ? "border-primary bg-primary/10 text-primary"
@@ -330,7 +344,7 @@ export function WorkflowSpecBuilder() {
               <div className="mt-6 rounded-xl border border-border bg-muted/30 p-4">
                 <h4 className="font-display text-sm font-semibold">Need Turnkey Setup?</h4>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Our team can deploy this exact workflow live for your business within a 30-Day Recovery Pilot.
+                  Our team can deploy a workflow like this live for your business within a 30-Day Recovery Pilot.
                 </p>
                 <Link
                   to="/diagnostic"

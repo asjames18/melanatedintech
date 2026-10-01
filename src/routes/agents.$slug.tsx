@@ -1,17 +1,25 @@
 import { useEffect, useMemo } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { SiteLayout } from "@/components/site-layout";
 import { AgentCard, ArticleCard, TierBadge } from "@/components/cards";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { SaveAgentButton } from "@/components/save-agent-button";
 import { UnlockButton } from "@/components/unlock-button";
 import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { getPremiumEntry } from "@/lib/premium-catalog";
 import { categoryVisual } from "@/lib/category-style";
 import { Markdown } from "@/components/markdown";
 import { AgentDelivery } from "@/components/product-delivery";
-import { useHasEntitlement } from "@/hooks/use-entitlement";
+import { useEntitlementState } from "@/hooks/use-entitlement";
+import { getBundleStatus } from "@/lib/redeem.functions";
 import { ShareBar } from "@/components/share-bar";
 import { trackEvent } from "@/lib/analytics";
 import { RecommendationItem } from "@/components/recommendation-item";
@@ -106,23 +114,37 @@ function AgentDetail() {
   const { data: allArticles } = useSuspenseQuery(allArticlesQO);
   const { interests, recordVisit } = useInterests("agent");
   const { interests: readingInterests } = useInterests("article");
-  const owned = useHasEntitlement("agent", slug);
+  const entitlementState = useEntitlementState("agent", slug);
+  const owned = entitlementState === "owned";
+  const entitlementPending = entitlementState === "unknown";
   const canChat = owned || agent?.tier === "free";
+  // Bundle redeemers get the chat-first pro layout: the picker defaults to
+  // the bundle model and the header shows their weekly allowance.
+  const getBundleStatusFn = useServerFn(getBundleStatus);
+  const { data: bundleStatus } = useQuery({
+    queryKey: ["bundle-status"],
+    queryFn: () => getBundleStatusFn(),
+    enabled: owned,
+    staleTime: 30_000,
+  });
+  const isBundleRedeemer = owned && bundleStatus?.isRedeemer === true;
   const comingSoon =
     !!agent &&
     agent.tier === "premium" &&
     !!getPremiumEntry("agent", agent.slug) &&
     !agent.has_fulfillment &&
-    !owned;
+    entitlementState === "not-owned";
   const statusLabel = !agent
     ? ""
     : owned
       ? "Unlocked"
-      : agent.tier === "custom"
-        ? "Built to order"
-        : comingSoon
-          ? "Coming soon"
-          : "Available now";
+      : entitlementPending && agent.tier === "premium"
+        ? "Checking access"
+        : agent.tier === "custom"
+          ? "Built to order"
+          : comingSoon
+            ? "Coming soon"
+            : "Available now";
 
   useEffect(() => {
     if (agent) recordVisit(agent.slug, agent.category);
@@ -188,6 +210,47 @@ function AgentDetail() {
 
   if (!agent) return null;
   const { Icon: CatIcon, className: catClass } = categoryVisual(agent.category, Bot);
+
+  // Page fragments: owners get the chat-first pro layout (details collapse
+  // into an accordion), everyone else keeps the pitch-then-chat layout.
+  const aboutBody = (
+    <div className="mt-3">
+      <Markdown md={agent.description} />
+    </div>
+  );
+  const capabilitiesBody =
+    agent.capabilities && agent.capabilities.length > 0 ? (
+      <>
+        <h2 className="mt-10 font-display text-xl font-semibold">Capabilities</h2>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          {agent.capabilities.map((c: string) => (
+            <li
+              key={c}
+              className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm"
+            >
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent2" />
+              <span>{c}</span>
+            </li>
+          ))}
+        </ul>
+      </>
+    ) : null;
+  const chatBody = canChat ? (
+    <div>
+      <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+        <Bot className="h-5 w-5" /> Chat with {agent.name}
+      </h2>
+      <Chat
+        agentId={agent.id}
+        agentSlug={agent.slug}
+        agentName={agent.name}
+        defaultModel={agent.model ?? "openrouter/openrouter/free"}
+        bundleMode={isBundleRedeemer}
+        bundleRemaining={bundleStatus?.remaining ?? null}
+        bundleAllowance={bundleStatus?.allowance ?? 200}
+      />
+    </div>
+  ) : null;
 
   return (
     <SiteLayout>
@@ -262,42 +325,39 @@ function AgentDetail() {
       <section className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
-            <h2 className="font-display text-xl font-semibold">About this agent</h2>
-            <div className="mt-3">
-              <Markdown md={agent.description} />
-            </div>
-
-            {agent.capabilities && agent.capabilities.length > 0 && (
-              <>
-                <h2 className="mt-10 font-display text-xl font-semibold">Capabilities</h2>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {agent.capabilities.map((c: string) => (
-                    <li
-                      key={c}
-                      className="flex items-start gap-2 rounded-lg border border-border bg-card p-3 text-sm"
-                    >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent2" />
-                      <span>{c}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            {owned && <AgentDelivery slug={agent.slug} />}
-
-            {canChat && (
-              <div className="mt-8">
-                <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                  <Bot className="h-5 w-5" /> Chat with {agent.name}
-                </h2>
-                <Chat
-                  agentId={agent.id}
-                  agentSlug={agent.slug}
-                  agentName={agent.name}
-                  defaultModel={agent.model ?? "openrouter/openrouter/free"}
-                />
+            {entitlementPending && agent.tier === "premium" ? (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm font-medium">Checking your access…</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  One moment while we confirm whether this agent is already unlocked on your
+                  account.
+                </p>
               </div>
+            ) : owned ? (
+              <>
+                {chatBody}
+                <div className="mt-8">
+                  <AgentDelivery slug={agent.slug} />
+                </div>
+                <Accordion type="single" collapsible className="mt-8">
+                  <AccordionItem value="about">
+                    <AccordionTrigger className="font-display text-xl font-semibold hover:no-underline">
+                      About this agent
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {aboutBody}
+                      {capabilitiesBody}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </>
+            ) : (
+              <>
+                <h2 className="font-display text-xl font-semibold">About this agent</h2>
+                {aboutBody}
+                {capabilitiesBody}
+                {chatBody && <div className="mt-8">{chatBody}</div>}
+              </>
             )}
           </div>
 
@@ -333,7 +393,14 @@ function AgentDetail() {
               )}
 
               {agent.tier === "premium" &&
-                (comingSoon ? (
+                (entitlementPending ? (
+                  <div className="rounded-2xl border border-border bg-card p-6">
+                    <p className="text-sm font-medium">Checking your access…</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Confirming whether this agent is already unlocked on your account.
+                    </p>
+                  </div>
+                ) : comingSoon ? (
                   <div className="rounded-2xl border border-border bg-card p-6">
                     <p className="text-sm font-medium">Coming soon</p>
                     <p className="mt-1 text-xs text-muted-foreground">

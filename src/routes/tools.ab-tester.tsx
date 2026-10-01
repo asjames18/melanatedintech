@@ -6,15 +6,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Trophy, Play, Loader2, Sparkles, CheckCircle2, Copy } from "lucide-react";
+import { Trophy, Play, Loader2, Sparkles } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
 import { trackEvent } from "@/lib/analytics";
 
 const GUIDE_DATA = {
-  whatItIs: "A side-by-side prompt testing studio for comparing two system prompt variants on real open-source LLMs.",
-  whyUseIt: "Quickly reveals which system prompt variant produces higher quality formatting, better instruction adherence, and faster response times.",
+  whatItIs: "A side-by-side prompt testing studio for comparing two system prompt variants on a real open-source LLM.",
+  whyUseIt: "Quickly reveals which system prompt variant produces better formatting, clearer structure, and faster response times.",
   howToUse: [
     "Enter System Prompt A (Baseline) and System Prompt B (Challenger).",
     "Enter a shared test query that representative users would ask your agent.",
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/tools/ab-tester")({
     const seo = buildSeoMeta({
       title: "Prompt A/B Split Tester — Melanated in Tech",
       description:
-        "Side-by-side system prompt A/B testing studio. Compare responses, latency, and instruction following with AI rubric scoring.",
+        "Side-by-side system prompt A/B testing studio. Compare responses, latency, and structure with transparent heuristic scoring.",
       url: "/tools/ab-tester",
     });
     return {
@@ -131,7 +131,7 @@ function AbTesterPage() {
         error: null,
         duration: resA.duration,
         score: scoreA,
-        reasoning: "Evaluated for instruction adherence & structure.",
+        reasoning: "Heuristic score: formatting structure & response length.",
       });
 
       setStateB({
@@ -140,18 +140,25 @@ function AbTesterPage() {
         error: null,
         duration: resB.duration,
         score: scoreB,
-        reasoning: "Evaluated for instruction adherence & structure.",
+        reasoning: "Heuristic score: formatting structure & response length.",
       });
 
       toast.success("A/B test completed successfully!");
     } catch (err: any) {
-      toast.error(err.message || "A/B test failed.");
+      const message = err?.message || "A/B test failed.";
+      toast.error(message);
+      setStateA((s) => ({ ...s, loading: false, error: message }));
+      setStateB((s) => ({ ...s, loading: false, error: message }));
     } finally {
       setRunning(false);
     }
   };
 
-  const winner = stateA.score && stateB.score ? (stateA.score >= stateB.score ? "A" : "B") : null;
+  const scoreA = stateA.score;
+  const scoreB = stateB.score;
+  const tied = scoreA !== null && scoreB !== null && scoreA === scoreB;
+  const winner: "A" | "B" | null =
+    scoreA !== null && scoreB !== null && scoreA !== scoreB ? (scoreA > scoreB ? "A" : "B") : null;
 
   return (
     <SiteLayout>
@@ -207,12 +214,18 @@ function AbTesterPage() {
                       <Trophy className="h-3.5 w-3.5 fill-current" /> Winner
                     </span>
                   )}
+                  {tied && (
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground border border-border">
+                      Tie
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase">System Prompt A</Label>
+                  <Label htmlFor="ab-prompt-a" className="text-xs font-semibold text-muted-foreground uppercase">System Prompt A</Label>
                   <Textarea
+                    id="ab-prompt-a"
                     value={promptA}
                     onChange={(e) => setPromptA(e.target.value)}
                     rows={4}
@@ -223,8 +236,21 @@ function AbTesterPage() {
                 <div className="pt-2 border-t border-border space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-muted-foreground">Response Output</span>
-                    {stateA.duration && <span className="font-mono text-muted-foreground">{stateA.duration} ms</span>}
+                    <span className="flex items-center gap-2">
+                      {stateA.score !== null && (
+                        <span className="font-semibold">
+                          Score {stateA.score}
+                          <span className="font-normal text-muted-foreground">/100</span>
+                        </span>
+                      )}
+                      {stateA.duration ? (
+                        <span className="font-mono text-muted-foreground">{stateA.duration} ms</span>
+                      ) : null}
+                    </span>
                   </div>
+                  {stateA.score !== null && stateA.reasoning && (
+                    <p className="text-[11px] text-muted-foreground -mt-1">{stateA.reasoning}</p>
+                  )}
 
                   <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed font-mono whitespace-pre-wrap min-h-[160px] max-h-[300px] overflow-y-auto">
                     {stateA.loading ? (
@@ -233,6 +259,8 @@ function AbTesterPage() {
                       </div>
                     ) : stateA.output ? (
                       stateA.output
+                    ) : stateA.error ? (
+                      <span className="text-destructive">{stateA.error}</span>
                     ) : (
                       <span className="text-muted-foreground italic">Click "Run Side-by-Side A/B Test" to compare.</span>
                     )}
@@ -253,12 +281,18 @@ function AbTesterPage() {
                       <Trophy className="h-3.5 w-3.5 fill-current" /> Winner
                     </span>
                   )}
+                  {tied && (
+                    <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground border border-border">
+                      Tie
+                    </span>
+                  )}
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-1">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase">System Prompt B</Label>
+                  <Label htmlFor="ab-prompt-b" className="text-xs font-semibold text-muted-foreground uppercase">System Prompt B</Label>
                   <Textarea
+                    id="ab-prompt-b"
                     value={promptB}
                     onChange={(e) => setPromptB(e.target.value)}
                     rows={4}
@@ -269,8 +303,21 @@ function AbTesterPage() {
                 <div className="pt-2 border-t border-border space-y-2">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-muted-foreground">Response Output</span>
-                    {stateB.duration && <span className="font-mono text-muted-foreground">{stateB.duration} ms</span>}
+                    <span className="flex items-center gap-2">
+                      {stateB.score !== null && (
+                        <span className="font-semibold">
+                          Score {stateB.score}
+                          <span className="font-normal text-muted-foreground">/100</span>
+                        </span>
+                      )}
+                      {stateB.duration ? (
+                        <span className="font-mono text-muted-foreground">{stateB.duration} ms</span>
+                      ) : null}
+                    </span>
                   </div>
+                  {stateB.score !== null && stateB.reasoning && (
+                    <p className="text-[11px] text-muted-foreground -mt-1">{stateB.reasoning}</p>
+                  )}
 
                   <div className="rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed font-mono whitespace-pre-wrap min-h-[160px] max-h-[300px] overflow-y-auto">
                     {stateB.loading ? (
@@ -279,6 +326,8 @@ function AbTesterPage() {
                       </div>
                     ) : stateB.output ? (
                       stateB.output
+                    ) : stateB.error ? (
+                      <span className="text-destructive">{stateB.error}</span>
                     ) : (
                       <span className="text-muted-foreground italic">Click "Run Side-by-Side A/B Test" to compare.</span>
                     )}

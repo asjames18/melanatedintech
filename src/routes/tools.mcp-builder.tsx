@@ -309,9 +309,17 @@ function McpBuilderPage() {
   // Derived Python Code
   const pythonCode = useMemo(() => {
     const selected = servers.filter((s) => selectedServers.includes(s.id));
-    let code = `import asyncio\nfrom mcp import ClientSession, StdioServerParameters\nfrom mcp.client.stdio import stdio_client\n\nasync function main():\n`;
+    let code = `import asyncio\nfrom mcp import ClientSession\nfrom mcp.client.stdio import StdioServerParameters, stdio_client\n\n\nasync def main():\n`;
     selected.forEach((s) => {
-      code += `    # Connected MCP Tool: ${s.name}\n    server_params_${s.id.replace(/-/g, "_")} = StdioServerParameters(\n        command="${s.command}",\n        args=${JSON.stringify(s.args)},\n    )\n`;
+      const varName = `server_params_${s.id.replace(/-/g, "_")}`;
+      const safeName = s.name.replace(/["\\\n\r]/g, "");
+      code += `    # ${safeName}: connect and list available tools\n`;
+      code += `    ${varName} = StdioServerParameters(\n        command="${s.command}",\n        args=${JSON.stringify(s.args)},\n    )\n`;
+      code += `    async with stdio_client(${varName}) as (read, write):\n`;
+      code += `        async with ClientSession(read, write) as session:\n`;
+      code += `            await session.initialize()\n`;
+      code += `            tools = await session.list_tools()\n`;
+      code += `            print(f"[${safeName}] tools:", [t.name for t in tools.tools])\n\n`;
     });
     code += `\nif __name__ == "__main__":\n    asyncio.run(main())\n`;
     return code;
@@ -530,7 +538,7 @@ function McpBuilderPage() {
                   </span>
                 </div>
                 <CardDescription className="text-xs">
-                  Discover, search, and 1-click import verified open-source MCP tools.
+                  Discover, search, and 1-click import open-source MCP tools from GitHub.
                 </CardDescription>
 
                 {/* Search Bar */}

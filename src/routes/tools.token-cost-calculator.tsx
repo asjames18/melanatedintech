@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tools/token-cost-calculator")({
     const seo = buildSeoMeta({
       title: "OpenRouter AI API Cost & Token Budget Estimator — Melanated in Tech",
       description:
-        "Calculate monthly API costs across 200+ up-to-date AI models fetched live from OpenRouter (DeepSeek R1, GPT-4o, Claude 3.5, Gemini 2.0, Llama 3.3).",
+        "Calculate monthly API costs across 200+ up-to-date AI models fetched live from OpenRouter (DeepSeek R1, GPT-4o, Claude Sonnet 4.5, Gemini 2.5, Llama 3.3).",
       url: "/tools/token-cost-calculator",
     });
     return {
@@ -50,15 +50,16 @@ export interface OpenRouterModel {
   contextLength: number;
 }
 
-// Fallback list of modern models
+// Fallback list of modern models (prices last verified live against
+// openrouter.ai/api/v1/models — refresh if the live fetch below stays down)
 const FALLBACK_MODELS: OpenRouterModel[] = [
   {
     id: "deepseek/deepseek-r1",
     name: "DeepSeek: R1 (Reasoning)",
     provider: "DeepSeek",
-    inputPer1M: 0.55,
-    outputPer1M: 2.19,
-    contextLength: 16384,
+    inputPer1M: 0.7,
+    outputPer1M: 2.5,
+    contextLength: 64000,
   },
   {
     id: "openai/gpt-4o-2024-11-20",
@@ -77,50 +78,50 @@ const FALLBACK_MODELS: OpenRouterModel[] = [
     contextLength: 128000,
   },
   {
-    id: "anthropic/claude-3.5-sonnet",
-    name: "Anthropic: Claude 3.5 Sonnet",
+    id: "anthropic/claude-sonnet-4.5",
+    name: "Anthropic: Claude Sonnet 4.5",
     provider: "Anthropic",
     inputPer1M: 3.0,
     outputPer1M: 15.0,
-    contextLength: 200000,
+    contextLength: 1000000,
   },
   {
-    id: "google/gemini-2.0-flash-001",
-    name: "Google: Gemini 2.0 Flash",
+    id: "google/gemini-2.5-flash-lite",
+    name: "Google: Gemini 2.5 Flash Lite",
     provider: "Google",
     inputPer1M: 0.1,
     outputPer1M: 0.4,
     contextLength: 1048576,
   },
   {
-    id: "google/gemini-1.5-pro",
-    name: "Google: Gemini 1.5 Pro",
+    id: "google/gemini-2.5-pro",
+    name: "Google: Gemini 2.5 Pro",
     provider: "Google",
     inputPer1M: 1.25,
-    outputPer1M: 5.0,
-    contextLength: 2000000,
+    outputPer1M: 10.0,
+    contextLength: 1048576,
   },
   {
     id: "meta-llama/llama-3.3-70b-instruct",
     name: "Meta: Llama 3.3 70B Instruct",
     provider: "Meta",
-    inputPer1M: 0.12,
-    outputPer1M: 0.3,
-    contextLength: 128000,
+    inputPer1M: 0.1,
+    outputPer1M: 0.32,
+    contextLength: 131072,
   },
   {
-    id: "mistralai/mistral-large-2411",
-    name: "Mistral: Mistral Large 2411",
+    id: "mistralai/mistral-large-2512",
+    name: "Mistral: Mistral Large 3 2512",
     provider: "Mistral",
-    inputPer1M: 2.0,
-    outputPer1M: 6.0,
-    contextLength: 128000,
+    inputPer1M: 0.5,
+    outputPer1M: 1.5,
+    contextLength: 262144,
   },
   {
     id: "qwen/qwen-2.5-72b-instruct",
     name: "Qwen: Qwen 2.5 72B Instruct",
     provider: "Qwen",
-    inputPer1M: 0.35,
+    inputPer1M: 0.36,
     outputPer1M: 0.4,
     contextLength: 32768,
   },
@@ -132,17 +133,19 @@ export function TokenCostCalculator() {
   const [avgOutputTokens, setAvgOutputTokens] = useState(300);
 
   const [models, setModels] = useState<OpenRouterModel[]>(FALLBACK_MODELS);
+  const [liveLoaded, setLiveLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(30);
 
   // Selected models to compare
   const [comparedModelIds, setComparedModelIds] = useState<string[]>([
     "deepseek/deepseek-r1",
     "openai/gpt-4o-2024-11-20",
     "openai/gpt-4o-mini",
-    "anthropic/claude-3.5-sonnet",
-    "google/gemini-2.0-flash-001",
+    "anthropic/claude-sonnet-4.5",
+    "google/gemini-2.5-flash-lite",
   ]);
 
   // Fetch live OpenRouter model info on load
@@ -171,6 +174,7 @@ export function TokenCostCalculator() {
 
         if (parsed.length > 0) {
           setModels(parsed);
+          setLiveLoaded(true);
           trackEvent("openrouter_models_fetched", { count: parsed.length });
         }
       }
@@ -234,7 +238,7 @@ export function TokenCostCalculator() {
       <PageHeader
         eyebrow="Interactive Benchmarking Tool"
         title="OpenRouter AI API Cost & Token Estimator"
-        description="Select and compare live API costs for 200+ models fetched in real time from OpenRouter (DeepSeek R1, GPT-4o, Claude 3.5, Gemini 2.0, Llama 3.3)."
+        description="Select and compare live API costs for 200+ models fetched in real time from OpenRouter (DeepSeek R1, GPT-4o, Claude Sonnet 4.5, Gemini 2.5, Llama 3.3)."
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -307,7 +311,9 @@ export function TokenCostCalculator() {
                 <div>
                   <h3 className="font-display text-sm font-bold">Pick Models to Compare</h3>
                   <p className="text-[11px] text-muted-foreground">
-                    Live OpenRouter catalog ({models.length} models)
+                    {liveLoaded
+                      ? `Live OpenRouter catalog (${models.length} models)`
+                      : `Reference model list (${models.length} models)`}
                   </p>
                 </div>
                 <Button
@@ -327,17 +333,25 @@ export function TokenCostCalculator() {
                   <input
                     type="text"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setVisibleCount(30);
+                    }}
                     placeholder="Search model (e.g. DeepSeek, Claude, Gemini)..."
+                    aria-label="Search models"
                     className="w-full rounded-lg border border-input bg-background pl-8 pr-3 py-1.5 text-xs text-foreground focus:border-primary focus:outline-none"
                   />
                 </div>
                 <select
                   value={selectedProvider}
-                  onChange={(e) => setSelectedProvider(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedProvider(e.target.value);
+                    setVisibleCount(30);
+                  }}
+                  aria-label="Filter by provider"
                   className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:border-primary focus:outline-none"
                 >
-                  {providers.slice(0, 10).map((p) => (
+                  {providers.map((p) => (
                     <option key={p} value={p}>
                       {p}
                     </option>
@@ -346,7 +360,7 @@ export function TokenCostCalculator() {
               </div>
 
               <div className="mt-3 max-h-[260px] space-y-1.5 overflow-y-auto pr-1">
-                {filteredModels.slice(0, 30).map((m) => {
+                {filteredModels.slice(0, visibleCount).map((m) => {
                   const isChecked = comparedModelIds.includes(m.id);
                   return (
                     <div
@@ -365,6 +379,29 @@ export function TokenCostCalculator() {
                     </div>
                   );
                 })}
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <p className="text-[11px] text-muted-foreground">
+                  Showing {Math.min(visibleCount, filteredModels.length)} of{" "}
+                  {filteredModels.length} models
+                </p>
+                {filteredModels.length > visibleCount ? (
+                  <button
+                    onClick={() => setVisibleCount(visibleCount + 30)}
+                    className="text-[11px] font-semibold text-primary hover:underline"
+                  >
+                    Show more
+                  </button>
+                ) : (
+                  visibleCount > 30 && (
+                    <button
+                      onClick={() => setVisibleCount(30)}
+                      className="text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      Show less
+                    </button>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -445,7 +482,7 @@ export function TokenCostCalculator() {
                   <Sparkles className="h-4 w-4" /> OpenRouter Routing Optimization
                 </div>
                 <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                  By using OpenRouter model routing, you can route routine tasks to low-cost fast models like <strong>Gemini 2.0 Flash ($0.10/1M)</strong> and complex reasoning to <strong>DeepSeek R1 ($0.55/1M)</strong> to save up to 80% on monthly LLM budgets.
+                  By using OpenRouter model routing, you can route routine tasks to low-cost fast models like <strong>Gemini 2.5 Flash Lite ($0.10/1M)</strong> and complex reasoning to <strong>DeepSeek R1 ($0.70/1M)</strong> to save up to 80% on monthly LLM budgets.
                 </p>
               </div>
             </div>

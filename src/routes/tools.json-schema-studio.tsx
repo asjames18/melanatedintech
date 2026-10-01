@@ -6,14 +6,11 @@ import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import {
-  Code2,
   Copy,
   Check,
   Plus,
   Trash2,
   FileCode,
-  Sparkles,
-  Layers,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/json-schema-studio")({
@@ -124,8 +121,8 @@ export function JsonSchemaStudio() {
       const fields = properties
         .map((p) => {
           let pyType = p.type === "string" ? "str" : p.type === "number" ? "float" : p.type === "boolean" ? "bool" : "List[str]";
-          if (!p.required) pyType = `Optional[${pyType}] = None`;
-          return `    ${p.name}: ${pyType} = Field(..., description="${p.description}")`;
+          if (!p.required) pyType = `Optional[${pyType}]`;
+          return `    ${p.name}: ${pyType} = Field(${p.required ? "..." : "None"}, description="${p.description}")`;
         })
         .join("\n");
       return `from pydantic import BaseModel, Field\nfrom typing import List, Optional\n\nclass ${schemaName}(BaseModel):\n${fields}`;
@@ -233,7 +230,7 @@ export function JsonSchemaStudio() {
                       {properties.length > 1 && (
                         <button
                           onClick={() => removeProperty(p.id)}
-                          className="ml-auto text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                          className="ml-auto text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>

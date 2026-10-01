@@ -142,18 +142,10 @@ export const listBuilderChallenges = createServerFn({ method: "GET" }).handler(a
     .order("starts_at", { ascending: false });
   if (error) throw new Error(error.message);
 
-  const now = Date.now();
-  const list = data ?? [];
-  return list.map((c, idx) => {
-    if (idx === 0) {
-      return {
-        ...c,
-        starts_at: new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        ends_at: new Date(now + 23 * 24 * 60 * 60 * 1000).toISOString(),
-      };
-    }
-    return c;
-  });
+  // Return real DB dates. (Previously the newest challenge's dates were
+  // rewritten to a rolling 30-day window here, which made /challenges label
+  // a past challenge "This week" while its detail page showed real dates.)
+  return data ?? [];
 });
 
 export const getBuilderChallenge = createServerFn({ method: "GET" })

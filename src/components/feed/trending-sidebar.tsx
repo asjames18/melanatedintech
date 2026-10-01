@@ -43,7 +43,7 @@ export function TrendingSidebar() {
         <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <div className="mb-3 flex items-center gap-2">
             <Trophy className="h-4 w-4 text-primary" />
-            <span className="text-xs font-semibold uppercase tracking-wider text-primary">Weekly Challenge</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-primary">Featured Challenge</span>
           </div>
           <h3 className="font-display text-sm font-semibold leading-snug text-foreground">{currentChallenge.title}</h3>
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{currentChallenge.excerpt}</p>

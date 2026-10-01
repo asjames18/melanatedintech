@@ -25,7 +25,14 @@ type ChatProps = {
   defaultModel: string;
   env?: "sandbox" | "live";
   overrideSystemPrompt?: string;
+  /** Bundle redeemer: list the bundle model first, default to it, show allowance. */
+  bundleMode?: boolean;
+  bundleRemaining?: number | null;
+  bundleAllowance?: number;
 };
+
+/** Paid model included with the AppSumo bundle (matches BUNDLE_MODEL server-side). */
+const BUNDLE_MODEL_VALUE = "openrouter/openai/gpt-oss-20b";
 
 const AVAILABLE_MODELS = [
   { value: "openrouter/openrouter/free", label: "Auto Free (OpenRouter)" },
@@ -46,13 +53,33 @@ export function Chat({
   defaultModel,
   env = "sandbox",
   overrideSystemPrompt,
+  bundleMode = false,
+  bundleRemaining = null,
+  bundleAllowance = 200,
 }: ChatProps) {
+  const models = bundleMode
+    ? [{ value: BUNDLE_MODEL_VALUE, label: "GPT-OSS 20B (Bundle)" }, ...AVAILABLE_MODELS]
+    : AVAILABLE_MODELS;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [model, setModel] = useState(() => {
+    if (bundleMode) return BUNDLE_MODEL_VALUE;
     const isFree = AVAILABLE_MODELS.some((m) => m.value === defaultModel);
     return isFree ? defaultModel : "openrouter/openrouter/free";
   });
+  // Bundle status resolves after mount; once it does, default the picker to the
+  // bundle model unless the user already picked something else.
+  const prevBundleMode = useRef(bundleMode);
+  useEffect(() => {
+    if (bundleMode && !prevBundleMode.current && model === "openrouter/openrouter/free") {
+      setModel(BUNDLE_MODEL_VALUE);
+    }
+    prevBundleMode.current = bundleMode;
+  }, [bundleMode, model]);
+  const [remaining, setRemaining] = useState<number | null>(bundleRemaining);
+  useEffect(() => {
+    setRemaining(bundleRemaining);
+  }, [bundleRemaining]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -100,14 +127,32 @@ export function Chat({
       const data = await res.json();
       setMessages((prev) => [...prev, { role: "assistant", content: data.content ?? "" }]);
 
+      // Bundle allowance meter: only a usable bundle-model response spends
+      // one conversation. Explicit free-model replies (and free fallbacks)
+      // leave the visible counter alone, matching the server-side count.
+      if (bundleMode) {
+        const returnedModel = typeof data.activeModel === "string" ? data.activeModel : data.model;
+        const usedBundleModel =
+          returnedModel === BUNDLE_MODEL_VALUE || returnedModel === "openai/gpt-oss-20b";
+        if (data.weeklyAllowanceExhausted) {
+          setRemaining(0);
+        } else if (
+          usedBundleModel &&
+          typeof data.content === "string" &&
+          data.content.trim().length > 0
+        ) {
+          setRemaining((r) => (r !== null && r > 0 ? r - 1 : r));
+        }
+      }
+
       // Update model selector if a fallback occurred on the backend
       if (data.model) {
         const fullModelName = `openrouter/${data.model}`;
-        const hasModel = AVAILABLE_MODELS.some((m) => m.value === fullModelName);
+        const hasModel = models.some((m) => m.value === fullModelName);
         if (hasModel && model !== fullModelName) {
           setModel(fullModelName);
           const modelLabel =
-            AVAILABLE_MODELS.find((m) => m.value === fullModelName)?.label ?? "Auto Free";
+            models.find((m) => m.value === fullModelName)?.label ?? "Auto Free";
           toast.info(`Switched to ${modelLabel} (auto-fallback from original model).`);
         }
       }
@@ -132,9 +177,34 @@ export function Chat({
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           <div>
-            <p className="text-sm font-medium">Chat with {agentName}</p>
+            <p className="flex items-center gap-2 text-sm font-medium">
+              Chat with {agentName}
+              {bundleMode && remaining !== null && (
+                <span
+                  className={
+                    remaining > 0
+                      ? "rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary"
+                      : "rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground"
+                  }
+                >
+                  {remaining > 0 ? "Bundle" : "Free tier"}
+                </span>
+              )}
+            </p>
             <p className="text-xs text-muted-foreground">
-              {messages.length} message{messages.length !== 1 ? "s" : ""}
+              {bundleMode && remaining !== null ? (
+                remaining > 0 ? (
+                  <>
+                    {remaining} of {bundleAllowance} conversations left · resets Monday
+                  </>
+                ) : (
+                  <>Weekly allowance used — free tier until Monday</>
+                )
+              ) : (
+                <>
+                  {messages.length} message{messages.length !== 1 ? "s" : ""}
+                </>
+              )}
             </p>
           </div>
         </div>
@@ -144,7 +214,7 @@ export function Chat({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {AVAILABLE_MODELS.map((m) => (
+              {models.map((m) => (
                 <SelectItem key={m.value} value={m.value}>
                   {m.label}
                 </SelectItem>

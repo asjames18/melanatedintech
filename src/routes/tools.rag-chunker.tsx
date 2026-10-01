@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Layers, Copy, Download, Sparkles, FileText, Upload, Hash, CheckCircle2 } from "lucide-react";
+import { Layers, Download, Upload, Hash } from "lucide-react";
 import { buildSeoMeta, ldScript, breadcrumbLd } from "@/lib/seo";
 import { ToolCrossSell } from "@/components/tool-cross-sell";
 import { ToolGuide } from "@/components/tool-guide";
@@ -16,11 +16,11 @@ import { trackEvent } from "@/lib/analytics";
 
 const GUIDE_DATA = {
   whatItIs: "A knowledge document chunker that splits large text files into optimized segments for AI Vector Search & RAG.",
-  whyUseIt: "Prevents context truncation and retrieval loss in vector databases (Pinecone, Supabase Vector) by guaranteeing clean boundaries and token limits.",
+  whyUseIt: "Prevents context truncation and retrieval loss in vector databases (Pinecone, Supabase Vector) with clean chunk boundaries and estimated token counts per chunk.",
   howToUse: [
     "Paste your raw document text or upload a .txt / .md file.",
     "Select your chunking strategy (Paragraphs, Headings, or Fixed Word Count with Overlap).",
-    "Inspect the generated chunk cards and token metrics, then click 'Export JSON' to load into your vector index.",
+    "Inspect the generated chunk cards and token metrics, then click 'Export JSON' or 'Export CSV' to load into your vector index.",
   ],
 };
 
@@ -48,6 +48,17 @@ export const Route = createFileRoute("/tools/rag-chunker")({
   component: RagChunkerPage,
 });
 
+type Strategy = "paragraphs" | "headings" | "words";
+
+// Parse a numeric input without the `Number(v) || fallback` footgun: typing or
+// clearing the field must not snap to a magic default. Returns the parsed
+// number, or the fallback only when the field is empty or not a number.
+function parseNum(raw: string, fallback: number): number {
+  const trimmed = raw.trim();
+  if (trimmed === "") return fallback;
+  const n = Number(trimmed);
+  return Number.isFinite(n) ? n : fallback;
+}
 interface ChunkItem {
   id: number;
   content: string;
@@ -75,7 +86,7 @@ The Orchestrator pattern coordinates complex multi-step tasks by breaking down u
 Retrieval-Augmented Generation requires clean document chunking. Large text files should be divided into 200-500 word chunks with 10-15% overlap to ensure context continuity across vector index searches.`
   );
 
-  const [strategy, setStrategy] = useState<"paragraphs" | "headings" | "words">("paragraphs");
+  const [strategy, setStrategy] = useState<Strategy>("paragraphs");
   const [wordsPerChunk, setWordsPerChunk] = useState<number>(100);
   const [overlapWords, setOverlapWords] = useState<number>(15);
 
@@ -161,6 +172,27 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
     toast.success("Downloaded JSON chunks!");
   };
 
+  const handleExportCsv = () => {
+    const escapeCsv = (value: string | number) => {
+      const s = String(value).replace(/"/g, '""');
+      return /[",\n]/.test(s) ? `"${s}"` : s;
+    };
+    const rows = [
+      ["id", "tokens", "chars", "text"],
+      ...chunks.map((c) => [c.id, c.tokenCount, c.charCount, c.content] as const),
+    ];
+    const csvContent = rows.map((r) => r.map(escapeCsv).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "rag-knowledge-chunks.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+    trackEvent("rag_chunker_export", { format: "csv", count: chunks.length });
+    toast.success("Downloaded CSV chunks!");
+  };
+
   return (
     <SiteLayout>
       <PageHeader
@@ -187,7 +219,7 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
                   <Label htmlFor="strategy-select" className="text-xs font-semibold">
                     Chunking Strategy
                   </Label>
-                  <Select value={strategy} onValueChange={(v) => setStrategy(v as any)}>
+                  <Select value={strategy} onValueChange={(v) => setStrategy(v as Strategy)}>
                     <SelectTrigger id="strategy-select">
                       <SelectValue placeholder="Select strategy" />
                     </SelectTrigger>
@@ -211,7 +243,7 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
                         min={20}
                         max={1000}
                         value={wordsPerChunk}
-                        onChange={(e) => setWordsPerChunk(Number(e.target.value) || 50)}
+                        onChange={(e) => setWordsPerChunk(parseNum(e.target.value, 100))}
                       />
                     </div>
                     <div className="space-y-1">
@@ -224,7 +256,7 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
                         min={0}
                         max={100}
                         value={overlapWords}
-                        onChange={(e) => setOverlapWords(Number(e.target.value) || 0)}
+                        onChange={(e) => setOverlapWords(parseNum(e.target.value, 15))}
                       />
                     </div>
                   </div>
@@ -235,9 +267,20 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
                     <Label htmlFor="source-text" className="text-xs font-semibold">
                       Source Document Text
                     </Label>
-                    <label className="text-[11px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1">
+                    <label
+                      className="text-[11px] font-semibold text-primary hover:underline cursor-pointer flex items-center gap-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Upload a .txt or .md file"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          document.getElementById("rag-chunker-file")?.click();
+                        }
+                      }}
+                    >
                       <Upload className="h-3 w-3" /> Upload File
-                      <input type="file" accept=".txt,.md,.markdown" onChange={handleFileUpload} className="hidden" />
+                      <input id="rag-chunker-file" type="file" accept=".txt,.md,.markdown" onChange={handleFileUpload} className="hidden" />
                     </label>
                   </div>
                   <Textarea
@@ -264,9 +307,14 @@ Retrieval-Augmented Generation requires clean document chunking. Large text file
                   </CardTitle>
                   <CardDescription>Estimated Total Tokens: ~{totalTokens.toLocaleString()} tokens</CardDescription>
                 </div>
-                <Button onClick={handleExportJson} disabled={chunks.length === 0} className="gap-1.5">
-                  <Download className="h-4 w-4" /> Export JSON
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={handleExportJson} disabled={chunks.length === 0} className="gap-1.5">
+                    <Download className="h-4 w-4" /> Export JSON
+                  </Button>
+                  <Button onClick={handleExportCsv} disabled={chunks.length === 0} variant="outline" className="gap-1.5">
+                    <Download className="h-4 w-4" /> Export CSV
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">

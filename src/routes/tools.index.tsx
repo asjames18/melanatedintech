@@ -56,7 +56,7 @@ function ToolsIndex() {
     {
       title: "Voice Agent Builder",
       description:
-        "Design, rehearse, and export starter phone voice AI agent configs for Vapi AI and Retell AI, built for small businesses, non-profits, ministries, and customer support.",
+        "Design, rehearse, and export starter phone voice AI agent configs for Vapi AI, Retell AI, and OpenAI Realtime, built for small businesses, non-profits, ministries, and customer support.",
       href: "/tools/voice-agent-builder" as const,
       Icon: PhoneCall,
       badge: "Voice AI & Calls",
@@ -119,7 +119,7 @@ function ToolsIndex() {
     {
       title: "Prompt A/B Tester",
       description:
-        "Side-by-side system prompt A/B testing studio. Compare responses, latency, and instruction following with automated AI rubric scoring.",
+        "Side-by-side system prompt A/B testing studio. Compare responses, latency, and structure with transparent heuristic scoring.",
       href: "/tools/ab-tester" as const,
       Icon: Trophy,
       badge: "A/B Split Tester",
@@ -173,7 +173,7 @@ function ToolsIndex() {
     {
       title: "Workflow Spec Builder",
       description:
-        "Visually construct AI automation pipelines and export ready-to-import blueprints for Zapier, Make.com, n8n, or raw Webhooks.",
+        "Construct AI automation pipelines and export spec blueprints for Zapier, Make.com, n8n, or raw Webhooks.",
       href: "/tools/workflow-spec-builder" as const,
       Icon: Workflow,
       badge: "Automation Blueprint",
@@ -218,7 +218,7 @@ function ToolsIndex() {
     {
       title: "Live Agentic Loop Sandbox",
       description:
-        "Watch how autonomous AI agents think, query tools, analyze observations, and execute multi-step ReAct workflows in real time.",
+        "Watch a scripted ReAct loop: how AI agents think, select tools, and process observations across multi-step workflows — a simulation, nothing executes.",
       href: "/tools/agent-sandbox" as const,
       Icon: GitBranch,
       badge: "ReAct Loop Visualizer",

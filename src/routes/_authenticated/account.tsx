@@ -69,6 +69,24 @@ function Account() {
   const avatarUrl = useAvatarUrl(profile.data?.avatar_url);
   const adminStatus = useQuery({ queryKey: ["admin-status"], queryFn: () => checkAdmin() });
   const isAdmin = adminStatus.data?.isAdmin ?? false;
+  // Right after sign-up the session can reach the page a beat before the
+  // account queries succeed. Fail soft with an in-place retry instead of a
+  // dead-end error screen or misleading empty states.
+  const accountLoadFailed =
+    profile.isError ||
+    savedAgents.isError ||
+    savedArticles.isError ||
+    pathProgress.isError ||
+    fitFinder.isError ||
+    entitlements.isError;
+  const retryAccountLoad = () => {
+    void profile.refetch();
+    void savedAgents.refetch();
+    void savedArticles.refetch();
+    void pathProgress.refetch();
+    void fitFinder.refetch();
+    void entitlements.refetch();
+  };
 
   // Search & Filter state for Saved Agents
   const [agentSearch, setAgentSearch] = useState("");
@@ -142,6 +160,20 @@ function Account() {
         title={profile.data?.display_name ? `Hey, ${profile.data.display_name}` : "Your account"}
         description="Saved agents and articles, reading history, profile, and access — all in one place."
       />
+
+      {accountLoadFailed && (
+        <section className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Some account details didn't load. This can happen right after sign-up — try again
+              without reloading.
+            </p>
+            <Button size="sm" variant="outline" onClick={retryAccountLoad}>
+              Try again
+            </Button>
+          </div>
+        </section>
+      )}
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -734,8 +766,18 @@ function Account() {
               </TabsContent>
 
               <TabsContent value="profile" className="mt-4 outline-none">
-                {profile.isLoading || !profile.data ? (
+                {profile.isLoading ? (
                   <Loading />
+                ) : profile.isError || !profile.data ? (
+                  <Empty
+                    title="Your profile isn't ready yet"
+                    body="Your account was created, but your profile didn't load. Give it a moment and try again — no reload required."
+                    cta={
+                      <Button className="mt-4" onClick={() => void profile.refetch()}>
+                        Try again
+                      </Button>
+                    }
+                  />
                 ) : (
                   <ProfileEditor profile={profile.data} />
                 )}

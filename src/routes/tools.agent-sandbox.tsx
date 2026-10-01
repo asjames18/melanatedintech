@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,7 @@ import {
   Wrench,
   Eye,
   CheckCircle2,
-  Sparkles,
   Terminal,
-  Layers,
-  ArrowRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/tools/agent-sandbox")({
@@ -54,7 +51,6 @@ interface PresetAgent {
     type: "thought" | "action" | "observation" | "response";
     title: string;
     content: string;
-    toolUsed?: string;
   }[];
 }
 
@@ -75,7 +71,6 @@ const AGENT_PRESETS: PresetAgent[] = [
         type: "action",
         title: "Executing CRM Query",
         content: "Calling tool: crm_lead_lookup(status='uncontacted', time_range='48h')",
-        toolUsed: "crm_lead_lookup",
       },
       {
         type: "observation",
@@ -91,7 +86,6 @@ const AGENT_PRESETS: PresetAgent[] = [
         type: "action",
         title: "Dispatching Automated Follow-ups",
         content: "Calling tool: twilio_sms_gateway(lead_ids=[1024, 1027, 1029, 1031, 1035], template='revenue_audit_recovery')",
-        toolUsed: "twilio_sms_gateway",
       },
       {
         type: "observation",
@@ -121,7 +115,6 @@ const AGENT_PRESETS: PresetAgent[] = [
         type: "action",
         title: "Extracting Core Key Takeaways",
         content: "Calling tool: content_summarizer(format='newsletter_3_points', tone='inspirational')",
-        toolUsed: "content_summarizer",
       },
       {
         type: "observation",
@@ -156,7 +149,6 @@ const AGENT_PRESETS: PresetAgent[] = [
         type: "action",
         title: "Running Vulnerability & Jailbreak Scan",
         content: "Calling tool: prompt_injection_scanner(payload='...')",
-        toolUsed: "prompt_injection_scanner",
       },
       {
         type: "observation",
@@ -181,8 +173,14 @@ export function AgentSandbox() {
   const [selectedPresetId, setSelectedPresetId] = useState<string>("revenue_recovery");
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const feedRef = useRef<HTMLDivElement>(null);
 
   const activeAgent = AGENT_PRESETS.find((a) => a.id === selectedPresetId) || AGENT_PRESETS[0];
+
+  // Keep the newest trace step in view as the simulation advances.
+  useEffect(() => {
+    feedRef.current?.scrollTo({ top: feedRef.current.scrollHeight, behavior: "smooth" });
+  }, [currentStepIndex]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -224,6 +222,15 @@ export function AgentSandbox() {
       />
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Scripted-simulation disclosure: the trace presents scripted events as
+            if they happened — say so plainly so nobody mistakes it for live execution. */}
+        <p className="mb-8 text-xs text-muted-foreground">
+          Scripted simulation — the agent steps are pre-written to illustrate the
+          Thought → Action → Observation loop. No real tools, accounts, or
+          messages are connected; pressing "Run Agentic Loop" animates the trace,
+          nothing executes.
+        </p>
+
         {/* Preset Agent Selector */}
         <div className="mb-8 grid gap-4 sm:grid-cols-3">
           {AGENT_PRESETS.map((agent) => {
@@ -232,6 +239,7 @@ export function AgentSandbox() {
               <button
                 key={agent.id}
                 onClick={() => handleSelectPreset(agent.id)}
+                aria-pressed={isSelected}
                 className={`rounded-2xl border p-5 text-left transition-all ${
                   isSelected
                     ? "border-primary bg-primary/10 ring-1 ring-primary"
@@ -258,7 +266,13 @@ export function AgentSandbox() {
                   Agent Configuration
                 </span>
                 <span className="rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-mono text-emerald-600 dark:text-emerald-400">
-                  Status: Active ReAct Loop
+                  {isPlaying
+                    ? "Status: Active ReAct Loop"
+                    : currentStepIndex >= activeAgent.steps.length - 1 && currentStepIndex > 0
+                      ? "Status: Complete"
+                      : currentStepIndex > 0
+                        ? "Status: Paused"
+                        : "Status: Ready"}
                 </span>
               </div>
 
@@ -317,7 +331,7 @@ export function AgentSandbox() {
                 </span>
               </div>
 
-              <div className="mt-6 space-y-4 max-h-[450px] overflow-y-auto pr-2">
+              <div ref={feedRef} className="mt-6 space-y-4 max-h-[450px] overflow-y-auto pr-2">
                 {activeAgent.steps.slice(0, currentStepIndex + 1).map((step, idx) => {
                   let stepColor = "text-amber-400 border-amber-500/30 bg-amber-500/10";
                   let Icon = Brain;

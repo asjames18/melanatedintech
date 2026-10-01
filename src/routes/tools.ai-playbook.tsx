@@ -24,12 +24,12 @@ import { ToolGuide } from "@/components/tool-guide";
 import { Copy, Sparkles, Lock, Play, Wand2 } from "lucide-react";
 
 const GUIDE_DATA = {
-  whatItIs: "A niche-tailored prompt generator that instantly creates industry-specific AI prompts for marketing, sales, operations, and customer support.",
+  whatItIs: "A niche-tailored prompt generator that instantly creates industry-specific AI prompts for marketing, sales, operations, and growth strategy.",
   whyUseIt: "Eliminates generic template guesswork by embedding your exact trade context directly into every prompt block.",
   howToUse: [
     "Type your profession or business niche into the input field (e.g. realtor, photographer, ministry leader, plumber).",
     "Click 'Build my playbook' to generate customized prompt packs.",
-    "Click 'Test Drive Live' on any prompt card to run the prompt instantly in your browser, or click 'Edit in Pilot' to customize it further.",
+    "Click 'Test Drive Live' on any prompt card to run the prompt instantly in your browser, or click 'Edit in Pilot' to carry the prompt into Prompt Pilot for customization.",
   ],
 };
 
@@ -101,6 +101,7 @@ function AiPlaybookPage() {
     trackEvent("ai_playbook_send_to_pilot", { niche, prompt: title });
     navigate({
       to: "/tools/prompt-pilot",
+      search: { prompt, title },
     });
     toast.success(`Opening Prompt Pilot...`);
   };

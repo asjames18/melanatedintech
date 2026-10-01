@@ -91,6 +91,36 @@ export type Database = {
           },
         ]
       }
+      agent_usage_log: {
+        Row: {
+          agent_slug: string
+          created_at: string
+          id: string
+          input_tokens: number | null
+          model: string
+          output_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          agent_slug: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          model: string
+          output_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          agent_slug?: string
+          created_at?: string
+          id?: string
+          input_tokens?: number | null
+          model?: string
+          output_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       agents: {
         Row: {
           active: boolean
@@ -1449,6 +1479,30 @@ export type Database = {
         }
         Relationships: []
       }
+      redeem_codes: {
+        Row: {
+          bundle_slug: string
+          code: string
+          created_at: string
+          redeemed_at: string | null
+          redeemed_by: string | null
+        }
+        Insert: {
+          bundle_slug?: string
+          code: string
+          created_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Update: {
+          bundle_slug?: string
+          code?: string
+          created_at?: string
+          redeemed_at?: string | null
+          redeemed_by?: string | null
+        }
+        Relationships: []
+      }
       reply_reactions: {
         Row: {
           created_at: string
@@ -2168,6 +2222,14 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      redeem_bundle_code: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: Json
+      }
+      reserve_bundle_conversation: {
+        Args: { p_agent_slug: string; p_limit: number; p_user_id: string }
+        Returns: Json
       }
     }
     Enums: {

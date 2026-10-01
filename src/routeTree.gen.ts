@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AgentsRouteImport } from './routes/agents'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as ApplyRouteImport } from './routes/apply'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ChallengesRouteImport } from './routes/challenges'
@@ -147,6 +148,11 @@ const AboutRoute = AboutRouteImport.update({
 const AgentsRoute = AgentsRouteImport.update({
   id: '/agents',
   path: '/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplyRoute = ApplyRouteImport.update({
@@ -759,6 +765,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/app': typeof AppRoute
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
@@ -879,6 +886,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/app': typeof AppRoute
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/community-guidelines': typeof CommunityGuidelinesRoute
@@ -995,6 +1003,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/agents': typeof AgentsRouteWithChildren
+  '/app': typeof AppRoute
   '/apply': typeof ApplyRoute
   '/auth': typeof AuthRoute
   '/challenges': typeof ChallengesRouteWithChildren
@@ -1118,6 +1127,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/agents'
+    | '/app'
     | '/apply'
     | '/auth'
     | '/challenges'
@@ -1238,6 +1248,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/app'
     | '/apply'
     | '/auth'
     | '/community-guidelines'
@@ -1353,6 +1364,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/agents'
+    | '/app'
     | '/apply'
     | '/auth'
     | '/challenges'
@@ -1476,6 +1488,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AgentsRoute: typeof AgentsRouteWithChildren
+  AppRoute: typeof AppRoute
   ApplyRoute: typeof ApplyRoute
   AuthRoute: typeof AuthRoute
   ChallengesRoute: typeof ChallengesRouteWithChildren
@@ -1585,6 +1598,13 @@ declare module '@tanstack/react-router' {
       path: '/agents'
       fullPath: '/agents'
       preLoaderRoute: typeof AgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apply': {
@@ -2581,6 +2601,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AgentsRoute: AgentsRouteWithChildren,
+  AppRoute: AppRoute,
   ApplyRoute: ApplyRoute,
   AuthRoute: AuthRoute,
   ChallengesRoute: ChallengesRouteWithChildren,

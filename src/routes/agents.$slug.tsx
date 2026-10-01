@@ -248,6 +248,7 @@ function AgentDetail() {
         bundleMode={isBundleRedeemer}
         bundleRemaining={bundleStatus?.remaining ?? null}
         bundleAllowance={bundleStatus?.allowance ?? 200}
+        saveHistory={owned}
       />
     </div>
   ) : null;

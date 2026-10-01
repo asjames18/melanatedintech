@@ -56,8 +56,7 @@ export function useHasEntitlement(kind: "agent" | "product", slug: string) {
   return useEntitlementState(kind, slug) === "owned";
 }
 
-function entitlementMatches(rows: EntitlementRow[], kind: string, slug: string) {
-  const env = hasPaymentsClientToken() ? safeEnv() : null;
+function entitlementMatches(rows: EntitlementRow[], kind: string, slug: string) {  const env = hasPaymentsClientToken() ? safeEnv() : null;
   return rows.some((e) => {
     if (e.kind !== kind || e.slug !== slug) return false;
     // Free claims are not tied to a Stripe mode, so they count in either. Paid
@@ -74,4 +73,17 @@ function safeEnv() {
   } catch {
     return null;
   }
+}
+
+/**
+ * Pure ownership check over an already-fetched entitlement rows array.
+ * Same matching logic as the hooks — use this when a component needs the
+ * owned-slug set itself instead of one hook call per item.
+ */
+export function entitlementIsOwned(
+  rows: unknown,
+  kind: "agent" | "product",
+  slug: string,
+): boolean {
+  return entitlementMatches(rows as EntitlementRow[], kind, slug);
 }

@@ -9,13 +9,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Markdown } from "@/components/markdown";
-import { Send, Loader2, Bot, User } from "lucide-react";
+import { Send, Loader2, Bot, User, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 type ChatMessage = {
   role: "system" | "user" | "assistant";
   content: string;
+};
+
+type SavedChat = {
+  id: string;
+  title: string;
+  updated_at: string;
 };
 
 type ChatProps = {
@@ -29,6 +35,17 @@ type ChatProps = {
   bundleMode?: boolean;
   bundleRemaining?: number | null;
   bundleAllowance?: number;
+  /**
+   * Entitled (paid) user: persist chats to agent_conversations after each
+   * exchange and show the saved-chat history UI. Free users never save.
+   */
+  saveHistory?: boolean;
+  /**
+   * Workspace rail: load a saved conversation chosen outside this pane
+   * (e.g. from "Recent chats"). { id, nonce } — the nonce retriggers loads.
+   */
+  externalLoad?: { id: string; nonce: number } | null;
+  onExternalLoadHandled?: () => void;
 };
 
 /** Paid model included with the AppSumo bundle (matches BUNDLE_MODEL server-side). */
@@ -57,6 +74,9 @@ export function Chat({
   bundleMode = false,
   bundleRemaining = null,
   bundleAllowance = 200,
+  saveHistory = false,
+  externalLoad = null,
+  onExternalLoadHandled,
 }: ChatProps) {
   const models = bundleMode
     ? [{ value: BUNDLE_MODEL_VALUE, label: "DeepSeek V4.1 Flash (Bundle)" }, ...AVAILABLE_MODELS]
@@ -88,6 +108,147 @@ export function Chat({
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Saved-chat history (entitled users only). Everything here fails soft:
+  // a storage error must never break or block the chat itself.
+  const historyEnabled = saveHistory && !!agentSlug;
+  const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const activeChatIdRef = useRef<string | null>(null);
+
+  const selectChat = (id: string | null) => {
+    activeChatIdRef.current = id;
+    setActiveChatId(id);
+  };
+
+  const startNewChat = () => {
+    selectChat(null);
+    setMessages([]);
+    setInput("");
+    setError(null);
+  };
+
+  useEffect(() => {
+    if (!historyEnabled) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) return;
+        const { data, error } = await supabase
+          .from("agent_conversations")
+          .select("id, title, updated_at")
+          .eq("agent_slug", agentSlug as string)
+          .order("updated_at", { ascending: false })
+          .limit(25);
+        if (!cancelled && !error && data) setSavedChats(data);
+      } catch {
+        // History is best-effort; the chat works without it.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [historyEnabled, agentSlug]);
+
+  const persistConversation = async (completed: ChatMessage[]) => {
+    if (!historyEnabled) return;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user.id;
+      if (!userId) return;
+      const activeId = activeChatIdRef.current;
+      if (activeId) {
+        const { error } = await supabase
+          .from("agent_conversations")
+          .update({ messages: completed })
+          .eq("id", activeId);
+        if (!error) {
+          setSavedChats((prev) => {
+            const current = prev.find((c) => c.id === activeId);
+            if (!current) return prev;
+            return [
+              { ...current, updated_at: new Date().toISOString() },
+              ...prev.filter((c) => c.id !== activeId),
+            ];
+          });
+        }
+      } else {
+        const title = (completed.find((m) => m.role === "user")?.content ?? "").slice(0, 60);
+        const { data, error } = await supabase
+          .from("agent_conversations")
+          .insert({
+            user_id: userId,
+            agent_slug: agentSlug as string,
+            title,
+            messages: completed,
+          })
+          .select("id, title, updated_at")
+          .single();
+        if (!error && data) {
+          selectChat(data.id);
+          setSavedChats((prev) => [data, ...prev]);
+        }
+      }
+    } catch {
+      // Saving must never break the chat.
+    }
+  };
+
+  const loadChat = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("agent_conversations")
+        .select("messages")
+        .eq("id", id)
+        .single();
+      if (error || !data) throw new Error("load failed");
+      const stored: unknown[] = Array.isArray(data.messages) ? data.messages : [];
+      const loaded: ChatMessage[] = [];
+      for (const m of stored) {
+        const msg = m as ChatMessage | null;
+        if (
+          msg &&
+          (msg.role === "user" || msg.role === "assistant") &&
+          typeof msg.content === "string"
+        ) {
+          loaded.push({ role: msg.role, content: msg.content });
+        }
+      }
+      setMessages(loaded);
+      selectChat(id);
+      setError(null);
+    } catch {
+      toast.error("Couldn't open that saved chat.");
+    }
+  };
+
+  const deleteChat = async (id: string) => {
+    if (!window.confirm("Delete this saved chat? This can't be undone.")) return;
+    try {
+      const { error } = await supabase.from("agent_conversations").delete().eq("id", id);
+      if (error) throw error;
+      setSavedChats((prev) => prev.filter((c) => c.id !== id));
+      if (activeChatIdRef.current === id) startNewChat();
+    } catch {
+      toast.error("Couldn't delete that chat.");
+    }
+  };
+
+  // Workspace rail: open a saved chat chosen outside this pane. One-shot per
+  // nonce so re-renders don't replay it.
+  const externalNonceRef = useRef(0);
+  useEffect(() => {
+    if (externalLoad && externalLoad.nonce !== externalNonceRef.current) {
+      externalNonceRef.current = externalLoad.nonce;
+      void (async () => {
+        await loadChat(externalLoad.id);
+        onExternalLoadHandled?.();
+      })();
+    }
+    // Intentionally one-shot: loadChat is invoked, not tracked.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [externalLoad]);
 
   const handleSend = async () => {
     const trimmed = input.trim();
@@ -126,7 +287,19 @@ export function Chat({
       }
 
       const data = await res.json();
-      setMessages((prev) => [...prev, { role: "assistant", content: data.content ?? "" }]);
+      const completedMessages: ChatMessage[] = [
+        ...newMessages,
+        { role: "assistant", content: data.content ?? "" },
+      ];
+      setMessages(completedMessages);
+      // Paid users: save the finished exchange. Fire-and-forget (fail soft).
+      if (
+        historyEnabled &&
+        typeof data.content === "string" &&
+        data.content.trim().length > 0
+      ) {
+        void persistConversation(completedMessages);
+      }
 
       // Bundle allowance meter: only a usable bundle-model response spends
       // one conversation. Explicit free-model replies (and free fallbacks)
@@ -227,6 +400,58 @@ export function Chat({
           </Select>
         </div>
       </div>
+
+      {/* Saved-chat history (paid users only) */}
+      {historyEnabled && (
+        <div className="flex items-center gap-2 overflow-x-auto border-b px-4 py-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 shrink-0 text-xs"
+            onClick={startNewChat}
+          >
+            <Plus className="mr-1 h-3 w-3" /> New chat
+          </Button>
+          {savedChats.length === 0 ? (
+            <span className="text-xs text-muted-foreground">
+              Your chats with {agentName} are saved here automatically.
+            </span>
+          ) : (
+            savedChats.map((chat) => (
+              <div
+                key={chat.id}
+                className={`flex shrink-0 items-center gap-1 rounded-full border px-2 py-1 text-xs ${
+                  chat.id === activeChatId ? "border-primary bg-primary/10" : "bg-muted/50"
+                }`}
+              >
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5"
+                  onClick={() => void loadChat(chat.id)}
+                >
+                  <span className="max-w-[10rem] truncate font-medium">
+                    {chat.title || "Untitled chat"}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {new Date(chat.updated_at).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Delete saved chat"
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => void deleteChat(chat.id)}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 space-y-4 overflow-y-auto p-4" style={{ maxHeight: "60vh" }}>

@@ -43,6 +43,24 @@ Before deployment, confirm that the intended branch and commit are correct, run 
 
 Use short-lived deployment credentials only through protected environment variables or secure secret bindings. Never place credentials in source files, shell history, commit messages, logs, screenshots, or documentation. Remove temporary credential files after deployment and verify the working tree is clean. After deployment, run public smoke checks for the affected routes and perform a redacted binding-continuity check when the release changes Worker configuration.
 
+## Preview deployment (mit-site-preview worker)
+
+Preview deploys go to the `mit-site-preview` worker, never production. After
+`npm run check` (which builds `dist/`), deploy with the *generated* config,
+not the repo-root `wrangler.jsonc` (which has no `main`/`assets` entry and
+fails with "Missing entry-point"). The generated `dist/server/wrangler.json`
+is written by `npm run build` — if it's missing (it can vanish between
+runs), just re-run `npm run build` before deploying:
+
+```bash
+python3 ~/workspace/skills/cloudflare/bin/deploy-wrangler.py <repo>/dist/server --config wrangler.json --name mit-site-preview
+```
+
+Verify the output says "Uploaded mit-site-preview" (not the production
+worker name) before trusting it. Extra wrangler flags go WITHOUT a `--`
+separator — a `--` before `--name` makes wrangler swallow it and fall back
+to the config's own `name` (production).
+
 ## Authenticated testing
 
 Use a dedicated or owner-approved test account. Read-only testing is the default. Verify loading, authorization, navigation, empty states, forms, notifications, and responsive behavior without publishing posts, sending messages, submitting inquiries, changing settings, making purchases, or enabling campaigns unless the owner explicitly approves that exact action. Record findings without retaining user identity, private content, or secrets.

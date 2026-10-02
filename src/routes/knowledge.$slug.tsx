@@ -20,6 +20,7 @@ import { SITE_URL } from "@/lib/site";
 import {
   ArrowLeft,
   Sparkles,
+  Headphones,
   Link as LinkIcon,
   Timer,
   Wand2,
@@ -287,6 +288,25 @@ function ArticleView() {
           {article.title}
         </h1>
         <p className="mt-4 text-lg text-muted-foreground">{article.excerpt}</p>
+
+        {article.audio_url && (
+          <div className="mt-6 rounded-xl border bg-card p-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Headphones className="h-4 w-4 text-primary" />
+              Listen to this article
+              <span className="text-xs font-normal text-muted-foreground">
+                · narrated audio
+              </span>
+            </div>
+            <audio
+              controls
+              preload="none"
+              src={article.audio_url}
+              className="mt-3 w-full"
+              onPlay={() => trackEvent("article_audio_play", { itemSlug: slug })}
+            />
+          </div>
+        )}
 
         {author.data && (
           <Link

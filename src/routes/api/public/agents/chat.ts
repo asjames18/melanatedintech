@@ -389,6 +389,35 @@ export const Route = createFileRoute("/api/public/agents/chat")({
             ? Math.min(1, Math.max(0, temperature))
             : 0.7;
 
+        // Per-user agent memory (AppSumo bundle redeemers only). The
+        // agent_memories tables may not exist yet (migration pending) — every
+        // helper no-ops cleanly then and chat is unaffected. Memory reads and
+        // in-chat commands never touch the weekly-allowance metering.
+        if (isBundleRedeemer && userId && chatDb && logSlug) {
+          try {
+            const {
+              handleMemoryCommand,
+              loadMemorySection,
+              isMemoryEnabled,
+            } = await import("@/lib/agent-memory.server");
+            if (await isMemoryEnabled(chatDb, userId)) {
+              const lastUserMsg =
+                [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+              // "remember that ...", "keep this between us ...",
+              // "forget that ..." — handled server-side, best-effort.
+              await handleMemoryCommand(chatDb, userId, logSlug, lastUserMsg).catch(
+                () => {},
+              );
+              const memorySection = await loadMemorySection(chatDb, userId, logSlug);
+              if (memorySection) {
+                systemContent = `${systemContent}\n\n${memorySection}`;
+              }
+            }
+          } catch {
+            // memory must never break chat
+          }
+        }
+
         // Build final messages array with system prompt prepended.
         const fullMessages: ChatMessage[] = [
           { role: "system", content: systemContent },
@@ -441,6 +470,19 @@ export const Route = createFileRoute("/api/public/agents/chat")({
             await finalizeBundleReservation(chatDb, bundleReservationId, providerRes);
           } else if (chatDb && userId && logSlug) {
             logAgentUsage(chatDb, userId, logSlug, providerRes).catch(() => {});
+          }
+
+          // Background distillation: fold durable facts from this conversation
+          // into the user's memory notes (bundle redeemers only). Fire-and-
+          // forget so it never adds latency; it runs on the service-role
+          // client and never touches allowance metering. Only on usable
+          // responses — a failed reply isn't worth learning from.
+          if (isBundleRedeemer && userId && chatDb && logSlug && providerRes.ok) {
+            import("@/lib/agent-memory.server")
+              .then(({ maybeDistillMemory }) =>
+                maybeDistillMemory(chatDb, userId, logSlug, messages, env),
+              )
+              .catch(() => {});
           }
 
           // Tell the UI when the weekly allowance is used up so it can say so

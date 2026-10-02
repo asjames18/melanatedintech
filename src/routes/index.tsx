@@ -102,6 +102,22 @@ function Home() {
     <SiteLayout>
       <Hero />
 
+      {/* Answer-first company definition (GEO: quotable entity block) */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-primary">
+            What is Melanated in Tech?
+          </h2>
+          <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
+            Melanated in Tech is an AI solutions company based in Sebring, Florida, founded by
+            Antonio James. It helps owner-led service businesses find the workflows already
+            costing them time and revenue — then rebuilds those workflows with practical,
+            human-approved AI automation. Its field guides, interactive tools, and AI agents are
+            openly available to anyone.
+          </p>
+        </div>
+      </section>
+
       <section className="border-b border-border">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="max-w-3xl">

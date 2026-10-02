@@ -24,6 +24,7 @@ import { useEntitlements } from "@/hooks/use-entitlement";
 import {
   Bookmark,
   BookOpen,
+  Brain,
   Clock,
   GraduationCap,
   LogOut,
@@ -41,6 +42,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { checkAdminStatus } from "@/lib/admin.functions";
+import { getBundleStatus } from "@/lib/redeem.functions";
+import { AgentMemorySettings } from "@/components/account/AgentMemorySettings";
 
 export const Route = createFileRoute("/_authenticated/account")({
   head: () => ({ meta: [{ title: "Account — Melanated in Tech" }] }),
@@ -69,6 +72,14 @@ function Account() {
   const avatarUrl = useAvatarUrl(profile.data?.avatar_url);
   const adminStatus = useQuery({ queryKey: ["admin-status"], queryFn: () => checkAdmin() });
   const isAdmin = adminStatus.data?.isAdmin ?? false;
+  // Bundle redeemer status gates the Agent Memory tab (paid feature — free
+  // tier gets no memory and no UI).
+  const getBundleStatusFn = useServerFn(getBundleStatus);
+  const bundleStatus = useQuery({
+    queryKey: ["bundle-status"],
+    queryFn: () => getBundleStatusFn(),
+  });
+  const isBundleRedeemer = bundleStatus.data?.isRedeemer === true;
   // Right after sign-up the session can reach the page a beat before the
   // account queries succeed. Fail soft with an in-place retry instead of a
   // dead-end error screen or misleading empty states.
@@ -571,6 +582,14 @@ function Account() {
                 >
                   <ShieldCheck className="h-4 w-4 mr-2" /> Active Deployments
                 </TabsTrigger>
+                {isBundleRedeemer && (
+                  <TabsTrigger
+                    value="memory"
+                    className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-3 text-sm font-semibold text-muted-foreground hover:text-foreground data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent shadow-none"
+                  >
+                    <Brain className="h-4 w-4 mr-2" /> Agent Memory
+                  </TabsTrigger>
+                )}
               </TabsList>
 
               <TabsContent value="agents" className="mt-4 outline-none">
@@ -824,6 +843,12 @@ function Account() {
                   </div>
                 </div>
               </TabsContent>
+
+              {isBundleRedeemer && (
+                <TabsContent value="memory" className="mt-4 outline-none">
+                  <AgentMemorySettings />
+                </TabsContent>
+              )}
             </Tabs>
           </div>
         </div>

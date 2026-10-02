@@ -209,7 +209,13 @@ export function Markdown({ md }: { md: string }) {
       }
       const key = `tbl-${out.length}`;
       out.push(
-        <div key={key} className="my-4 overflow-x-auto">
+        // Scrollable wrapper: a wide table scrolls sideways inside the bubble
+        // instead of forcing it (or the page) wider than the viewport. The
+        // right-edge fade marks the table as swipeable on touch screens.
+        <div
+          key={key}
+          className="my-4 overflow-x-auto [mask-image:linear-gradient(to_right,black_90%,transparent)]"
+        >
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b border-border text-left">

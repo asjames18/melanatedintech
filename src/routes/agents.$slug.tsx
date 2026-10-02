@@ -244,6 +244,7 @@ function AgentDetail() {
         agentId={agent.id}
         agentSlug={agent.slug}
         agentName={agent.name}
+        agentBlurb={agent.tagline}
         defaultModel={agent.model ?? "openrouter/openrouter/free"}
         bundleMode={isBundleRedeemer}
         bundleRemaining={bundleStatus?.remaining ?? null}

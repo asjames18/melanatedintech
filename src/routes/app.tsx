@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Lock, LogIn, MessageSquareText } from "lucide-react";
+import { Bot, CircleUserRound, Lock, LogIn, MessageSquareText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { listAgents } from "@/lib/public.functions";
 import { getBundleStatus } from "@/lib/redeem.functions";
 import { useEntitlements, entitlementIsOwned } from "@/hooks/use-entitlement";
 import { categoryVisual } from "@/lib/category-style";
+import { starterPromptsFor } from "@/lib/starter-prompts";
 import { UnlockButton } from "@/components/unlock-button";
 import { Button } from "@/components/ui/button";
 import { SiteLayout } from "@/components/site-layout";
@@ -121,21 +122,55 @@ function AppWorkspace() {
     staleTime: 15_000,
   });
 
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
+  const [activeSlug, setActiveSlug] = useState<string | null>(() => {
+    // Remember the buyer's last-used agent between visits, so the workspace
+    // reopens where they left off instead of always resetting to the first
+    // unlocked agent. Best-effort: privacy modes may block localStorage.
+    try {
+      return window.localStorage.getItem("mit-app-agent");
+    } catch {
+      return null;
+    }
+  });
+  // Chat panes mount lazily: each mounted Chat fires auth + saved-history
+  // queries on load, so opening the workspace with nine agents mounted meant
+  // nine concurrent queries before the buyer typed a word. Only mount the
+  // panes the buyer has actually opened; a visited pane stays mounted when
+  // they switch away, so its thread and draft survive.
+  const [visitedSlugs, setVisitedSlugs] = useState<string[]>([]);
   const [externalLoad, setExternalLoad] = useState<{
     slug: string;
     id: string;
     nonce: number;
   } | null>(null);
 
+  // An explicit ?agent= link wins over the remembered agent (a shared or
+  // bookmarked deep link is a deliberate choice, not a stale preference).
+  // Either way, a stored slug for an agent the buyer no longer owns falls
+  // through to the first unlocked agent.
   const effectiveSlug =
-    (activeSlug && ownedSlugs?.has(activeSlug) ? activeSlug : null) ??
     (search.agent && ownedSlugs?.has(search.agent) ? search.agent : null) ??
+    (activeSlug && ownedSlugs?.has(activeSlug) ? activeSlug : null) ??
     entitledAgents[0]?.slug ??
     null;
 
+  useEffect(() => {
+    if (effectiveSlug) {
+      setVisitedSlugs((v) => (v.includes(effectiveSlug) ? v : [...v, effectiveSlug]));
+    }
+  }, [effectiveSlug]);
+
+  const rememberAgent = (slug: string) => {
+    try {
+      window.localStorage.setItem("mit-app-agent", slug);
+    } catch {
+      // Persistence is a convenience, never load-bearing.
+    }
+  };
+
   const switchAgent = (slug: string) => {
     setActiveSlug(slug);
+    rememberAgent(slug);
     setExternalLoad(null);
     void queryClient.invalidateQueries({ queryKey: ["bundle-status"] });
     void queryClient.invalidateQueries({ queryKey: ["workspace-recent-chats"] });
@@ -144,6 +179,7 @@ function AppWorkspace() {
   const openRecentChat = (row: RecentChat) => {
     if (!ownedSlugs?.has(row.agent_slug)) return;
     setActiveSlug(row.agent_slug);
+    rememberAgent(row.agent_slug);
     setExternalLoad({ slug: row.agent_slug, id: row.id, nonce: Date.now() });
   };
 
@@ -188,34 +224,43 @@ function AppWorkspace() {
 
   return (
     <div className="flex h-dvh flex-col bg-background">
-      {/* Workspace header */}
-      <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-4">
-        <div className="flex items-center gap-2.5">
+      {/* Workspace header — mobile stacks: brand + All agents on row one,
+          the allowance pill on its own row. No more crowding or wrapped link. */}
+      <header className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 border-b bg-card px-4 py-2 md:h-14 md:flex-nowrap md:py-0">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground">
             <Bot className="h-4 w-4" />
           </div>
-          <div>
-            <p className="font-display text-sm font-semibold leading-none">
+          <div className="min-w-0">
+            <p className="truncate font-display text-sm font-semibold leading-none">
               Agent workspace
             </p>
-            <p className="mt-0.5 text-[11px] leading-none text-muted-foreground">
+            <p className="mt-0.5 truncate text-[11px] leading-none text-muted-foreground">
               Melanated in Tech
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {isBundleRedeemer && bundleStatus && (
-            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-              {bundleStatus.remaining} of {bundleStatus.allowance} left · resets Monday
-            </span>
-          )}
-          <Link
-            to="/agents"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            All agents
-          </Link>
-        </div>
+        {isBundleRedeemer && bundleStatus && (
+          <span className="order-3 w-full whitespace-nowrap rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary md:order-none md:w-auto">
+            {bundleStatus.remaining} of {bundleStatus.allowance} left · resets Monday
+          </span>
+        )}
+        <Link
+          to="/agents"
+          className="whitespace-nowrap text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          All agents
+        </Link>
+        {/* The workspace is a buyer's home — without this, account settings
+            and sign-out (both live only on /account) are unreachable from here. */}
+        <Link
+          to="/account"
+          aria-label="Account settings"
+          title="Account settings"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <CircleUserRound className="h-5 w-5" />
+        </Link>
       </header>
 
       <div className="flex min-h-0 flex-1">
@@ -295,14 +340,14 @@ function AppWorkspace() {
 
         {/* Pane */}
         <main className="min-w-0 flex-1 overflow-y-auto">
-          {/* Mobile agent picker */}
-          <div className="flex gap-2 overflow-x-auto border-b bg-card px-4 py-2 md:hidden">
+          {/* Mobile agent picker — right-edge fade marks the row as scrollable. */}
+          <div className="flex gap-2 overflow-x-auto border-b bg-card px-4 py-2 [mask-image:linear-gradient(to_right,black_88%,transparent)] md:hidden">
             {entitledAgents.map((a) => (
               <button
                 key={a.slug}
                 type="button"
                 onClick={() => switchAgent(a.slug)}
-                className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs font-medium ${
                   a.slug === effectiveSlug
                     ? "border-primary bg-primary/10 text-primary"
                     : "text-muted-foreground"
@@ -313,24 +358,68 @@ function AppWorkspace() {
             ))}
           </div>
 
-          <div className="mx-auto max-w-3xl px-4 py-6">
+          {/* Mobile recent chats — the desktop rail's Recent chats is md+ only,
+              so mobile buyers get the same cross-agent resume list here. */}
+          {recentChats && recentChats.length > 0 && (
+            <div className="border-b bg-card px-4 py-2 md:hidden">
+              <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Recent chats
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1 [mask-image:linear-gradient(to_right,black_88%,transparent)]">
+                {recentChats.slice(0, 10).map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => openRecentChat(c)}
+                    className="flex shrink-0 items-center gap-2 rounded-full border bg-muted/50 px-3 py-2 text-left"
+                  >
+                    <MessageSquareText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="min-w-0 max-w-[9rem] truncate text-xs font-medium">
+                      {c.title || "Untitled chat"}
+                    </span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
+                      {new Date(c.updated_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mx-auto max-w-3xl px-4 py-4 md:py-6">
             {effectiveSlug ? (
               entitledAgents.map((a) => (
                 <div key={a.slug} className={a.slug === effectiveSlug ? "" : "hidden"}>
-                  <Chat
-                    agentId={a.id}
-                    agentSlug={a.slug}
-                    agentName={a.name}
-                    defaultModel="openrouter/openrouter/free"
-                    bundleMode={isBundleRedeemer}
-                    bundleRemaining={bundleStatus?.remaining ?? null}
-                    bundleAllowance={bundleStatus?.allowance ?? 200}
-                    saveHistory
-                    externalLoad={
-                      externalLoad && externalLoad.slug === a.slug ? externalLoad : null
-                    }
-                    onExternalLoadHandled={() => setExternalLoad(null)}
-                  />
+                  {(a.slug === effectiveSlug || visitedSlugs.includes(a.slug)) && (
+                    <Chat
+                      agentId={a.id}
+                      agentSlug={a.slug}
+                      agentName={a.name}
+                      agentBlurb={a.tagline}
+                      suggestedPrompts={starterPromptsFor(a.category)}
+                      defaultModel="openrouter/openrouter/free"
+                      bundleMode={isBundleRedeemer}
+                      bundleRemaining={bundleStatus?.remaining ?? null}
+                      bundleAllowance={bundleStatus?.allowance ?? 200}
+                      hideAllowanceOnMobile
+                      saveHistory
+                      onHistoryChanged={() => {
+                        // Saved chats changed (new exchange or delete) — the
+                        // desktop rail and mobile resume strip must reflect it
+                        // now, not on the next agent switch or refetch window.
+                        void queryClient.invalidateQueries({
+                          queryKey: ["workspace-recent-chats"],
+                        });
+                      }}
+                      externalLoad={
+                        externalLoad && externalLoad.slug === a.slug ? externalLoad : null
+                      }
+                      onExternalLoadHandled={() => setExternalLoad(null)}
+                    />
+                  )}
                 </div>
               ))
             ) : (

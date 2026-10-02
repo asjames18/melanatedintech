@@ -8,7 +8,9 @@
 - [Knowledge Hub](https://melanatedintech.com/knowledge): practical AI agent playbooks, checklists, field guides, scorecards, and operating templates.
 - [Agent Marketplace](https://melanatedintech.com/agents): production-oriented AI agent listings and packs.
 - [Learning Paths](https://melanatedintech.com/paths): guided paths that connect articles, agents, tools, and products.
-- [Interactive AI Tools](https://melanatedintech.com/tools): 12 free interactive AI tools (see below).
+- [Interactive AI Tools](https://melanatedintech.com/tools): 21 free interactive AI tools (see below).
+- [Agent Workspace](https://melanatedintech.com/app): one-page workspace where bundle buyers use all five AI agents — Chief of Staff, Marketing, Support, Inbox Zero, SEO Researcher — with auto-saved, resumable conversations.
+- [Podcast](https://melanatedintech.com/podcast): the Melanated in Tech audio feed.
 - [Products](https://melanatedintech.com/products): AI agent starter kits, prompt libraries, SOPs, and blueprints.
 - [Services](https://melanatedintech.com/services): strategy sprints, custom agent builds, workshops, and implementation support.
 - [Community](https://melanatedintech.com/community): discussion and shared learning for AI agent builders.

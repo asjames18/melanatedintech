@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UnlockButton } from "@/components/unlock-button";
-import { buildSeoMeta, breadcrumbLd, ldScript } from "@/lib/seo";
+import { buildSeoMeta, breadcrumbLd, faqLd, ldScript } from "@/lib/seo";
 import { trackEvent } from "@/lib/analytics";
 import { funnelAttribution } from "@/components/funnel-attribution";
 import { validateLeadContact, fetchUserLocationGeo, UserGeoLocation } from "@/lib/public-apis.functions";
@@ -41,6 +41,11 @@ export const Route = createFileRoute("/diagnostic")({
           { name: "Home", path: "/" },
           { name: "AI Workflow Diagnostic", path: "/diagnostic" },
         ]),
+      ),
+      ldScript(
+        faqLd(
+          FAQS.map(([question, answer]) => ({ question, answer })),
+        ),
       ),
     ],
   }),
@@ -71,6 +76,14 @@ const DELIVERABLES = [
 ];
 
 const FAQS = [
+  [
+    "How much does the AI Workflow Diagnostic cost?",
+    "The AI Workflow Diagnostic is $297 one-time, booked directly on this page. It includes a 45-minute live audit session, a revenue-leak map, a recovery estimate, and a 30-day action plan. The full $297 is credited toward the $1,500 30-Day Recovery Pilot if you move forward.",
+  ],
+  [
+    "What is the difference between the AI Workflow Audit and the AI Workflow Diagnostic?",
+    "They are two separate offers. The AI Workflow Audit ($250) is currently offered through our Upwork listing. The AI Workflow Diagnostic ($297) is booked directly through melanatedintech.com and includes a 45-minute live session plus full credit toward the 30-Day Recovery Pilot.",
+  ],
   [
     "Can the $297 diagnostic fee be credited toward a pilot?",
     "Yes. 100% of your $297 diagnostic fee is automatically credited toward the initial deposit if you proceed with our $1,500 30-Day Recovery Pilot.",
@@ -375,6 +388,72 @@ function AiWorkflowDiagnostic() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Engagement comparison (GEO: quotable comparison table) */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+          <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+            Compare engagements
+          </p>
+          <h2 className="mt-2 font-display text-3xl font-semibold">
+            Which engagement fits your situation?
+          </h2>
+          <div className="mt-8 overflow-x-auto rounded-2xl border border-border">
+            <table className="w-full min-w-[680px] border-collapse bg-card text-left text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="p-4 align-top font-display text-base font-semibold">Engagement</th>
+                  <th className="p-4 align-top font-display text-base font-semibold">Price</th>
+                  <th className="p-4 align-top font-display text-base font-semibold">What you get</th>
+                  <th className="p-4 align-top font-display text-base font-semibold">Timeline</th>
+                  <th className="p-4 align-top font-display text-base font-semibold">Best for</th>
+                </tr>
+              </thead>
+              <tbody className="text-muted-foreground">
+                <tr className="border-b border-border/60">
+                  <td className="p-4 font-semibold text-foreground">AI Workflow Diagnostic</td>
+                  <td className="p-4 font-semibold text-foreground">$297 one-time</td>
+                  <td className="p-4">
+                    45-minute live audit, revenue-leak map, recovery estimate, and 30-day action
+                    plan. 100% credited toward the pilot.
+                  </td>
+                  <td className="p-4">Scheduled instantly after checkout</td>
+                  <td className="p-4">
+                    Local service businesses (2–20 employees) with a suspected revenue leak
+                  </td>
+                </tr>
+                <tr className="border-b border-border/60">
+                  <td className="p-4 font-semibold text-foreground">Workflow Opportunity Sprint</td>
+                  <td className="p-4 font-semibold text-foreground">$7,500–$15,000*</td>
+                  <td className="p-4">
+                    Workflow map, feasibility and risk review, implementation-ready plan, and a
+                    pilot go / no-go / revise decision.
+                  </td>
+                  <td className="p-4">10 business days</td>
+                  <td className="p-4">
+                    Complex workflows across multiple systems where handoffs are the problem
+                  </td>
+                </tr>
+                <tr>
+                  <td className="p-4 font-semibold text-foreground">30-Day Recovery Pilot</td>
+                  <td className="p-4 font-semibold text-foreground">$1,500</td>
+                  <td className="p-4">
+                    One bounded recovery workflow installed and configured for your business.
+                  </td>
+                  <td className="p-4">30 days</td>
+                  <td className="p-4">
+                    A defined leak you are ready to build — often right after the diagnostic
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-4 text-xs text-muted-foreground">
+            *Sprint pricing is a planning signal, not a quote — the final price is confirmed in a
+            written scope before work begins.
+          </p>
         </div>
       </section>
 

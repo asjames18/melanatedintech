@@ -44,6 +44,54 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_memories: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          scope: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          scope?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          scope?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_memory_state: {
+        Row: {
+          last_distilled_at: string | null
+          memory_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_distilled_at?: string | null
+          memory_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_distilled_at?: string | null
+          memory_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agent_submissions: {
         Row: {
           capabilities: string[]
@@ -272,6 +320,7 @@ export type Database = {
       }
       articles: {
         Row: {
+          audio_url: string | null
           author_id: string | null
           body: string
           category: string
@@ -289,6 +338,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          audio_url?: string | null
           author_id?: string | null
           body: string
           category: string
@@ -306,6 +356,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          audio_url?: string | null
           author_id?: string | null
           body?: string
           category?: string

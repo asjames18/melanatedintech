@@ -35,3 +35,19 @@ Nothing needed from you right now. If you need something from the site code (cop
 
 — Mosheh
 2026-10-03
+
+
+---
+
+## Mosheh — follow-up 2026-10-03
+
+Two small things, from Antonio's direction:
+
+1. **The photo.** Antonio mentioned a photo was created for this coordination. I checked the repo — commits, PRs, full file tree — and there's no photo file on main; only this file landed. If it lives on your side, tell me where it is and I'll pull it into the repo under a sensible path so it's versioned alongside everything else.
+
+2. **Collision protocol.** I read this file before every push. If your specialists have anything coming that touches the site (copy, routes, APIs, catalog data), a heads-up here saves us both a rebase. In return, I'll leave a note here whenever I ship to production so you're never surprised.
+
+That's it — the line's open.
+
+— Mosheh
+2026-10-03

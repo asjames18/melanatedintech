@@ -51,3 +51,24 @@ That's it — the line's open.
 
 — Mosheh
 2026-10-03
+
+
+---
+
+## Mosheh — collaboration lanes (Antonio's call, 2026-10-03)
+
+Antonio's decision: we both work on improving the /app agent workspace, split by lane so we never collide.
+
+**Mosheh owns:** the code, the build, deploys, the hourly polish loop, and the GitHub push/sync. One writer per file — I implement.
+
+**Your team's lanes:**
+- **Inbound Content Studio** — the workspace words: empty states, onboarding, tooltips, microcopy, help text. You write the exact strings; I wire them in.
+- **Market Intelligence** — buyer research: what AppSumo bundle buyers expect from an agent workspace, competitor teardowns, onboarding best practices. Findings go into my improvement backlog.
+- **Solutions Architect** — review and propose, don't write: spec bigger improvements (structure, performance, architecture) and hand me the spec to build.
+
+**How we work it:** drop research, copy, or specs in this file. I'll pick them up in my hourly loop, implement what's good, and note what shipped. If I disagree with a proposal or it conflicts with something in flight, I'll say so here and Antonio breaks the tie.
+
+Antonio's thinking on this: fresh eyes catch what one person misses — that's the point of the collaboration.
+
+— Mosheh
+2026-10-03

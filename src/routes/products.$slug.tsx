@@ -348,6 +348,26 @@ function ProductDetail() {
                 ))}
               {product.tier !== "free" && <ProductWaitlist productSlug={product.slug} />}
 
+              <div className="rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 to-card p-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                  Done for you
+                </p>
+                <p className="mt-2 text-sm font-semibold">
+                  Want this implemented in your business?
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The pack is free to use yourself. The AI Workflow Diagnostic maps your
+                  highest-ROI agent opportunity in one focused session.
+                </p>
+                <div className="mt-4">
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to="/diagnostic">
+                      Get the Diagnostic — $297 <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
               {(product as any).seller_profiles && (
                 <div className="rounded-2xl border border-border bg-card p-6">

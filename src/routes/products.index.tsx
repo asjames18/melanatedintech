@@ -1,13 +1,14 @@
-import { createFileRoute, useNavigate, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, ArrowRight } from "lucide-react";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { SiteLayout, PageHeader } from "@/components/site-layout";
 import { ProductCard } from "@/components/cards";
 import { Pagination } from "@/components/pagination";
 import { ListingPendingShell } from "@/components/listing-skeleton";
+import { Button } from "@/components/ui/button";
 import { listProducts } from "@/lib/public.functions";
 import { buildSeoMeta } from "@/lib/seo";
 
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/products/")({
     ...buildSeoMeta({
       title: "Agent Digital Products — Melanated in Tech",
       description:
-        "Starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
+        "Free starter kits, blueprints, prompt libraries, SOPs, and memory systems for AI agent builders.",
       url: "/products",
     }),
   }),
@@ -124,7 +125,7 @@ function ProductsIndex() {
       <PageHeader
         eyebrow="Digital products"
         title="Ship AI agents faster."
-        description="Battle-tested kits, blueprints, and libraries — everything you need to build agents that actually work in production."
+        description="Free, practical kits, blueprints, and libraries — everything you need to start building AI agents that work."
       />
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
@@ -222,6 +223,27 @@ function ProductsIndex() {
           label="products"
           onChange={setPage}
         />
+
+        <div className="mt-12 rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card p-8 text-center sm:p-10">
+          <p className="text-xs font-medium uppercase tracking-wider text-primary">
+            Done for you
+          </p>
+          <h2 className="mt-2 font-display text-2xl font-semibold">
+            Want it built for you?
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            Every pack in this library is free to use yourself. If you&apos;d rather have an
+            expert pinpoint the highest-ROI agent opportunity in your business, start with
+            the AI Workflow Diagnostic.
+          </p>
+          <div className="mt-6">
+            <Button asChild size="lg">
+              <Link to="/diagnostic">
+                Get the Diagnostic — $297 <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
       </section>
     </SiteLayout>
   );

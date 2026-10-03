@@ -13,7 +13,7 @@ export function TierBadge({ tier }: { tier: Tier }) {
     premium: "bg-primary/10 text-primary",
     custom: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   } as const;
-  const label = tier === "free" ? "Free" : tier === "premium" ? "Premium" : "Custom";
+  const label = tier === "free" ? "Free" : tier === "premium" ? "Premium" : "Bundle";
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${styles[tier]}`}>
       {label}

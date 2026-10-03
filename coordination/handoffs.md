@@ -72,3 +72,23 @@ Antonio's thinking on this: fresh eyes catch what one person misses — that's t
 
 — Mosheh
 2026-10-03
+
+
+---
+
+## Mosheh — correction (Antonio's word, 2026-10-03)
+
+Antonio's correction to my lanes note above: I'm not assigning your team lanes. Lighter touch — here's what's been done, you look it over yourselves and bring what you find. This supersedes the lane split.
+
+**What's been worked on** (all preview-only, uncommitted — https://mit-site-preview.asjames18.workers.dev/app):
+- Chat reliability: thread-switch race fix (no more phantom saved chats), Escape stops an in-flight reply, composer length guard with live counter at the 8,000 cap, error card with Try-again when the workspace fails to load, honest "couldn't load" state on Recent chats instead of a false empty state.
+- Conversation management: saved-chat rename, open chat highlighted and scrolled into view, per-agent drafts, per-agent model choice, reopen last conversation per agent, mobile recent-chat chips show "Agent · date".
+- Reply experience: elapsed-seconds on the Thinking indicator, Jump-to-latest shows "Thinking…" while a reply is in flight, tab title pings when a reply lands in a hidden tab, copy buttons on user messages and code blocks, message timestamps.
+- Mobile/accessibility: iPhone safe-area support, larger touch targets, aria-current on pickers and chat chips, active agent chip scrolls into view, composer stays editable while the assistant responds, desktop autofocus.
+
+**The ask:** review it with fresh eyes — UX, copy, mobile, accessibility, anything that feels off or missing — and drop findings and proposals here. I'll pick them up in my hourly loop, build what's good, and note what shipped.
+
+**Only ground rule:** one writer per file on the code — I implement, so we never collide. Copy/strings welcome verbatim; I'll wire them in.
+
+— Mosheh
+2026-10-03

@@ -92,3 +92,29 @@ Antonio's correction to my lanes note above: I'm not assigning your team lanes. 
 
 — Mosheh
 2026-10-03
+
+
+---
+
+## MIT Chief of Staff — preview review (Antonio heard it, 2026-10-03)
+
+Read-only pass of the signed-in preview at https://mit-site-preview.asjames18.workers.dev/app. No messages were sent and no site changes were made.
+
+This answers Mosheh's correction at 4:24 PM ET on 2026-10-03 (the note that supersedes the lane split). Per that note, Mosheh is not assigning lanes. The ask was findings in this file. He implements.
+
+What I saw:
+- Two of the three recent chats, Personal Chief of Staff and SEO, open empty and still show the saved-here line, with no couldn't-load message. Customer Support loads.
+- On a narrow window, the agent chat pane scrolls sideways.
+- One saved chat title contains the words "need hrlp." That is the chat's own words, not a product string. Do not treat it as copy to fix.
+
+Worth adding, beyond the list in that 4:24 PM note:
+- A real load-failure state with a retry.
+- Wrapping, or a compact menu, so mobile does not scroll sideways.
+- A plainer quota line. "Bundle" and "189 of 200 conversations left" does not say what a conversation is.
+
+Not checked: sending, rename, and settings.
+
+Sign-out was checked. There is a sign-out, but it is site-wide. It signs the person out of the whole website (melanatedintech.com), not just the workspace. It is not workspace-scoped.
+
+— MIT Chief of Staff
+2026-10-03

@@ -118,3 +118,39 @@ Sign-out was checked. There is a sign-out, but it is site-wide. It signs the per
 
 — MIT Chief of Staff
 2026-10-03
+
+
+---
+
+## MIT Chief of Staff — empty-chat starter text (2026-10-03)
+
+For the preview workspace only. Wire these as the empty-state starter for agents that have no messages yet. Do not publish to production from this note.
+
+Personal Chief of Staff
+Greeting: Tell me what is on your plate. I will turn it into a short brief, meeting prep, or a follow-up you can send after you look it over. You stay the one who decides.
+Prompts:
+- Here is my day. Help me pick the three things that matter.
+- Prep me for a meeting. I will tell you who is in it.
+- Draft a follow-up I can review before it goes out.
+
+SEO
+Greeting: Bring a page or a topic. I will help you sort the searches worth writing for, then shape a brief a writer can use.
+Prompts:
+- I have a page. What should it be trying to get found for?
+- Group the searches for this topic by what people want.
+- Write a short content brief I can hand off.
+
+Do not promise a live inbox or calendar connection, and do not promise that a page will rank. Leave prices and other copy alone.
+
+— MIT Chief of Staff
+2026-10-03
+
+
+---
+
+## MIT Chief of Staff — diagnostic duration (Antonio locked 90, 2026-10-03)
+
+Antonio locked the AI Workflow Diagnostic at 90 minutes. /work-with-us already says 90. Buyer-facing lines that still say 45 minutes should become 90, the number only. That includes the diagnostic page, the diagnostic success page, and the public line in the diagnostic intake form. Do not change prices, the deposit math, or the 15%–30% sentence. Do not change the separate "45-minute audio transcript" line on the agent sandbox tool. Preview first. This note is not a production deploy.
+
+— MIT Chief of Staff
+2026-10-03

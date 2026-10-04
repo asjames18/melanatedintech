@@ -92,3 +92,86 @@ Antonio's correction to my lanes note above: I'm not assigning your team lanes. 
 
 — Mosheh
 2026-10-03
+
+
+---
+
+## MIT Chief of Staff — preview review (Antonio heard it, 2026-10-03)
+
+Read-only pass of the signed-in preview at https://mit-site-preview.asjames18.workers.dev/app. No messages were sent and no site changes were made.
+
+This answers Mosheh's correction at 4:24 PM ET on 2026-10-03 (the note that supersedes the lane split). Per that note, Mosheh is not assigning lanes. The ask was findings in this file. He implements.
+
+What I saw:
+- Two of the three recent chats, Personal Chief of Staff and SEO, open empty and still show the saved-here line, with no couldn't-load message. Customer Support loads.
+- On a narrow window, the agent chat pane scrolls sideways.
+- One saved chat title contains the words "need hrlp." That is the chat's own words, not a product string. Do not treat it as copy to fix.
+
+Worth adding, beyond the list in that 4:24 PM note:
+- A real load-failure state with a retry.
+- Wrapping, or a compact menu, so mobile does not scroll sideways.
+- A plainer quota line. "Bundle" and "189 of 200 conversations left" does not say what a conversation is.
+
+Not checked: sending, rename, and settings.
+
+Sign-out was checked. There is a sign-out, but it is site-wide. It signs the person out of the whole website (melanatedintech.com), not just the workspace. It is not workspace-scoped.
+
+— MIT Chief of Staff
+2026-10-03
+
+
+---
+
+## MIT Chief of Staff — empty-chat starter text (2026-10-03)
+
+For the preview workspace only. Wire these as the empty-state starter for agents that have no messages yet. Do not publish to production from this note.
+
+Personal Chief of Staff
+Greeting: Tell me what is on your plate. I will turn it into a short brief, meeting prep, or a follow-up you can send after you look it over. You stay the one who decides.
+Prompts:
+- Here is my day. Help me pick the three things that matter.
+- Prep me for a meeting. I will tell you who is in it.
+- Draft a follow-up I can review before it goes out.
+
+SEO
+Greeting: Bring a page or a topic. I will help you sort the searches worth writing for, then shape a brief a writer can use.
+Prompts:
+- I have a page. What should it be trying to get found for?
+- Group the searches for this topic by what people want.
+- Write a short content brief I can hand off.
+
+Do not promise a live inbox or calendar connection, and do not promise that a page will rank. Leave prices and other copy alone.
+
+— MIT Chief of Staff
+2026-10-03
+
+
+---
+
+## MIT Chief of Staff — diagnostic duration (Antonio locked 90, 2026-10-03)
+
+Antonio locked the AI Workflow Diagnostic at 90 minutes. /work-with-us already says 90. Buyer-facing lines that still say 45 minutes should become 90, the number only. That includes the diagnostic page, the diagnostic success page, and the public line in the diagnostic intake form. Do not change prices, the deposit math, or the 15%–30% sentence. Do not change the separate "45-minute audio transcript" line on the agent sandbox tool. Preview first. This note is not a production deploy.
+
+— MIT Chief of Staff
+2026-10-03
+
+
+---
+
+## MIT Chief of Staff — what to build first (2026-10-03)
+
+Public comparison against ChatGPT, Claude, Poe, Dust, Lindy, and LibreChat, plus a phone check of the live site. Preview implementation. This note is not a production deploy.
+
+Do these first, in this order:
+1. If a recent chat has no messages, do not say it was saved. Show an honest couldn't-load state with a retry. Personal Chief of Staff and SEO opened empty on the signed-in preview. Customer Support loaded. Cause unknown. Do not describe the couldn't-load fix as done until those two chats are rechecked.
+2. On a narrow window, the agent chat pane scrolls sideways. Wrap it, or use a compact menu. Horizontal scroll should stay inside content that needs it, such as a code block, not the whole pane.
+3. Replace "Bundle" and "189 of 200 conversations left" with a plain line that says what a conversation is. Do not invent a credit or points system.
+
+Phone check of the live site at 375px wide, read only: the fixed bottom menu covers the hero headline on https://melanatedintech.com/ and on https://melanatedintech.com/diagnostic. Redeem, /agents, and /community were fine. The mobile menu opened. No horizontal scroll on those five pages. Fix the overlap on the preview first.
+
+Do not build from this note: a workspace-only sign-out (site-wide sign-out is normal; Claude logs the whole account out), an admin usage console, shared projects, native iOS or Android apps, folders and bulk archive, or per-message point math.
+
+Sources for the patterns, not for MIT behavior: https://help.openai.com/en/articles/8809935 , https://www.librechat.ai/docs/features/shareable_links , https://www.librechat.ai/docs/features/navigation , https://support.claude.com/en/articles/9797557-usage-limit-best-practices , https://support.claude.com/en/articles/10310342-how-do-i-log-out-of-all-active-sessions , https://docs.dust.tt/docs/user-documentation/agents/steering-conversations
+
+— MIT Chief of Staff
+2026-10-03

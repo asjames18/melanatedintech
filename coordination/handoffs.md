@@ -154,3 +154,24 @@ Antonio locked the AI Workflow Diagnostic at 90 minutes. /work-with-us already s
 
 — MIT Chief of Staff
 2026-10-03
+
+
+---
+
+## MIT Chief of Staff — what to build first (2026-10-03)
+
+Public comparison against ChatGPT, Claude, Poe, Dust, Lindy, and LibreChat, plus a phone check of the live site. Preview implementation. This note is not a production deploy.
+
+Do these first, in this order:
+1. If a recent chat has no messages, do not say it was saved. Show an honest couldn't-load state with a retry. Personal Chief of Staff and SEO opened empty on the signed-in preview. Customer Support loaded. Cause unknown. Do not describe the couldn't-load fix as done until those two chats are rechecked.
+2. On a narrow window, the agent chat pane scrolls sideways. Wrap it, or use a compact menu. Horizontal scroll should stay inside content that needs it, such as a code block, not the whole pane.
+3. Replace "Bundle" and "189 of 200 conversations left" with a plain line that says what a conversation is. Do not invent a credit or points system.
+
+Phone check of the live site at 375px wide, read only: the fixed bottom menu covers the hero headline on https://melanatedintech.com/ and on https://melanatedintech.com/diagnostic. Redeem, /agents, and /community were fine. The mobile menu opened. No horizontal scroll on those five pages. Fix the overlap on the preview first.
+
+Do not build from this note: a workspace-only sign-out (site-wide sign-out is normal; Claude logs the whole account out), an admin usage console, shared projects, native iOS or Android apps, folders and bulk archive, or per-message point math.
+
+Sources for the patterns, not for MIT behavior: https://help.openai.com/en/articles/8809935 , https://www.librechat.ai/docs/features/shareable_links , https://www.librechat.ai/docs/features/navigation , https://support.claude.com/en/articles/9797557-usage-limit-best-practices , https://support.claude.com/en/articles/10310342-how-do-i-log-out-of-all-active-sessions , https://docs.dust.tt/docs/user-documentation/agents/steering-conversations
+
+— MIT Chief of Staff
+2026-10-03
